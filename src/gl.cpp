@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstdarg>
 #include <cstring>
+#include <cmath>
 #include <stdio.h>
 
 #include <glad/glad.h>
@@ -27,6 +28,10 @@ void log_info(const char* format, ...) {
   vfprintf(stdout, format, vargs);
   fprintf(stdout, "\n");
   va_end(vargs);
+}
+
+void log_newline() {
+  fprintf(stdout, "\n");
 }
 
 char* load_file(const char* path) {
@@ -69,7 +74,7 @@ void assert_shader_status_ok(uint32 shader) {
     exit(EXIT_FAILURE);
   }
 
-  printf("\n");
+  log_newline();
 }
 
 void assert_program_status_ok(uint32 shader) {
@@ -88,7 +93,7 @@ void assert_program_status_ok(uint32 shader) {
     exit(EXIT_FAILURE);
   }
 
-  printf("\n");
+  log_newline();
 }
 
 uint32 load_shader(const char* source, GLenum shaderType) {
@@ -242,13 +247,20 @@ void init_objects(State *state) {
 }
 
 void render(State *state) {
-  glClearColor(0.0f, 0.333f, 0.933f, 1.0f);
+  real64 t = glfwGetTime();
+
+  /* glClearColor(0.0f, 0.333f, 0.933f, 1.0f); */
+  glClearColor(0.0f, 0.000f, 1.000f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
+  uint32 t_uniform_location = glGetUniformLocation(state->shader_program, "t");
   glUseProgram(state->shader_program);
+  glUniform1f(t_uniform_location, (real32)t);
+
 #if 0
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
 #endif
+
   glBindVertexArray(state->vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
