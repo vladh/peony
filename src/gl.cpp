@@ -8,6 +8,8 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 #include "gl.h"
 
@@ -123,10 +125,9 @@ uint32 make_shader_program_with_paths(const char* vertPath, const char* fragPath
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-  log_info("%d\n", state->window_width);
   state->window_width = width;
   state->window_height = height;
-  log_info("%d\n", state->window_width);
+  log_info("%d x %d", state->window_width, state->window_height);
   glViewport(0, 0, width, height);
 }
 
@@ -225,15 +226,20 @@ void init_objects(State *state) {
   state->shader_program = shader_program;
   state->vao = vao;
 
-#if 0
   int32 texture_width, texture_height, texture_n_channels;
+  stbi_set_flip_vertically_on_load(true);
   unsigned char *texture_data = stbi_load(
-    "resources/container.jpg", &texture_width, &texture_height, &texture_n_channels, 0
+    "resources/alpaca.jpg", &texture_width, &texture_height, &texture_n_channels, 0
   );
   if (texture_data) {
     uint32 test_texture;
     glGenTextures(1, &test_texture);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, test_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(
       GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture_data
     );
@@ -243,7 +249,6 @@ void init_objects(State *state) {
     log_error("Failed to load texture.");
   }
   stbi_image_free(texture_data);
-#endif
 }
 
 void render(State *state) {
@@ -257,9 +262,8 @@ void render(State *state) {
   glUseProgram(state->shader_program);
   glUniform1f(t_uniform_location, (real32)t);
 
-#if 0
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
-#endif
 
   glBindVertexArray(state->vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
