@@ -1,8 +1,7 @@
-#define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable : 4201)
+#pragma warning(disable : 4127)
 
 #include <cstdlib>
-#include <cstdarg>
 #include <cstring>
 #include <cmath>
 #include <stdio.h>
@@ -15,116 +14,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "gl.h"
-
-
-void log_error(const char* format, ...) {
-  va_list vargs;
-  fprintf(stderr, "error | ");
-  va_start(vargs, format);
-  vfprintf(stderr, format, vargs);
-  fprintf(stderr, "\n");
-  va_end(vargs);
-}
-
-void log_info(const char* format, ...) {
-  va_list vargs;
-  fprintf(stdout, "info  | ");
-  va_start(vargs, format);
-  vfprintf(stdout, format, vargs);
-  fprintf(stdout, "\n");
-  va_end(vargs);
-}
-
-void log_newline() {
-  fprintf(stdout, "\n");
-}
-
-char* load_file(const char* path) {
-  FILE* f = fopen(path, "rb");
-  if (!f) {
-    log_error("Could not open file %s.", path);
-    return nullptr;
-  }
-
-  fseek(f, 0, SEEK_END);
-  size_t fsize = ftell(f);
-  fseek(f, 0, SEEK_SET);
-
-  char* string = (char*)malloc(fsize + 1);
-  size_t result = fread(string, fsize, 1, f);
-  fclose(f);
-  if (result != 1) {
-    log_error("Could not read from file %s.", path);
-    return nullptr;
-  }
-
-  string[fsize] = 0;
-
-  return string;
-}
-
-void assert_shader_status_ok(uint32 shader) {
-  int32 status;
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-
-  char message[512];
-  glGetShaderInfoLog(shader, 512, NULL, message);
-
-  log_info("[assertShaderStatusOk] Compilation for shader %d", shader);
-  log_info("Status: %d", status);
-  log_info("Message: %s", message);
-
-  if (status == false) {
-    log_error("[assertShaderStatusOk] Shader compilation failed");
-    exit(EXIT_FAILURE);
-  }
-
-  log_newline();
-}
-
-void assert_program_status_ok(uint32 shader) {
-  int32 status;
-  glGetProgramiv(shader, GL_COMPILE_STATUS, &status);
-
-  char message[512];
-  glGetProgramInfoLog(shader, 512, NULL, message);
-
-  log_info("[assertProgramStatusOk] Loading program");
-  log_info("Status: %d", status);
-  log_info("Message: %s", message);
-
-  if (status == false) {
-    log_error("[assertProgramStatusOk] Program loading failed");
-    exit(EXIT_FAILURE);
-  }
-
-  log_newline();
-}
-
-uint32 load_shader(const char* source, GLenum shaderType) {
-  uint32 shader = glCreateShader(shaderType);
-  glShaderSource(shader, 1, &source, NULL);
-  glCompileShader(shader);
-  assert_shader_status_ok(shader);
-  return shader;
-}
-
-uint32 make_shader_program(uint32 vertexShader, uint32 fragmentShader) {
-  uint32 shader_program = glCreateProgram();
-  glAttachShader(shader_program, vertexShader);
-  glAttachShader(shader_program, fragmentShader);
-  glLinkProgram(shader_program);
-  assert_program_status_ok(shader_program);
-  return shader_program;
-}
-
-uint32 make_shader_program_with_paths(const char* vertPath, const char* fragPath) {
-  return make_shader_program(
-    load_shader(load_file(vertPath), GL_VERTEX_SHADER),
-    load_shader(load_file(fragPath), GL_FRAGMENT_SHADER)
-  );
-}
+#include "gl.hpp"
+#include "log.hpp"
+#include "util.hpp"
+#include "shader.hpp"
+#include "camera.hpp"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -135,9 +29,40 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
+void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
+  State *state = (State*)glfwGetWindowUserPointer(window);
+  camera_update_mouse(state, x, y);
+}
+
 void process_input(GLFWwindow *window) {
+  State *state = (State*)glfwGetWindowUserPointer(window);
+
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    camera_move_front_back(state, 1);
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    camera_move_front_back(state, -1);
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+    camera_move_left_right(state, -1);
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    camera_move_left_right(state, 1);
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    camera_move_up_down(state, 1);
+  }
+
+  if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+    camera_move_up_down(state, -1);
   }
 }
 
@@ -146,6 +71,7 @@ State* init_state() {
   state->window_width = 800;
   state->window_height = 600;
   strcpy(state->window_title, "hi lol");
+
   real32 test_vertices[] = {
     // positions          colors             texture coords
      /* 0.5f,  0.5f,  0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f, // top right */
@@ -214,6 +140,24 @@ State* init_state() {
   memcpy(state->test_vertices, test_vertices, sizeof(test_vertices));
   memcpy(state->test_indices, test_indices, sizeof(test_indices));
   memcpy(state->cube_positions, cube_positions, sizeof(cube_positions));
+
+  state->yaw = -90.0f;
+  state->pitch = 0.0f;
+
+  state->camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
+  state->camera_front = glm::vec3(0.0f, 0.0f, 0.0f);
+  state->camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
+  state->camera_speed = 0.05f;
+  state->camera_fov = 90.0f;
+  state->camera_near = 0.1f;
+  state->camera_far = 100.0f;
+  camera_update_matrix(state);
+
+  state->mouse_has_moved = false;
+  state->mouse_last_x = 0.0f;
+  state->mouse_last_y = 0.0f;
+  state->mouse_sensitivity = 0.1f;
+
   return state;
 }
 
@@ -246,6 +190,9 @@ GLFWwindow* init_window(State *state) {
 
   glViewport(0, 0, state->window_width, state->window_height);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetCursorPosCallback(window, mouse_callback);
+
+  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   glfwSetWindowUserPointer(window, state);
 
@@ -282,7 +229,7 @@ void init_objects(State *state) {
 
   /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
 
-  uint32 shader_program = make_shader_program_with_paths("src/test.vert", "src/test.frag");
+  uint32 shader_program = shader_make_program_with_paths("src/test.vert", "src/test.frag");
 
   state->shader_program = shader_program;
   state->vao = vao;
@@ -326,18 +273,15 @@ void render(State *state) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
 
-  /* glm::mat4 model = glm::mat4(1.0f); */
-  glm::mat4 view = glm::mat4(1.0f);
-  glm::mat4 projection;
+  glm::mat4 view = glm::lookAt(
+    state->camera_pos, state->camera_pos + state->camera_front, state->camera_up
+  );
 
-  /* model = glm::rotate(model, (float)t * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); */
-  view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-  projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
-
-  /* glUniformMatrix4fv( */
-  /*   glGetUniformLocation(state->shader_program, "model"), */
-  /*   1, GL_FALSE, glm::value_ptr(model) */
-  /* ); */
+  glm::mat4 projection = glm::perspective(
+    glm::radians(state->camera_fov),
+    (real32)state->window_width / (real32)state->window_height,
+    state->camera_near, state->camera_far
+  );
 
   glUniformMatrix4fv(
     glGetUniformLocation(state->shader_program, "view"),
@@ -356,7 +300,6 @@ void render(State *state) {
     model = glm::translate(model, state->cube_positions[i]);
     float angle = 20.0f * i;
     model = glm::rotate(model, (float)t * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
-    /* state->shader_program.setMat4("model", model); */
     glUniformMatrix4fv(
       glGetUniformLocation(state->shader_program, "model"),
       1, GL_FALSE, glm::value_ptr(model)

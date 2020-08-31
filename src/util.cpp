@@ -1,0 +1,31 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdio.h>
+#include <cstdlib>
+
+#include "log.hpp"
+
+
+char* util_load_file(const char* path) {
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    log_error("Could not open file %s.", path);
+    return nullptr;
+  }
+
+  fseek(f, 0, SEEK_END);
+  size_t fsize = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  char* string = (char*)malloc(fsize + 1);
+  size_t result = fread(string, fsize, 1, f);
+  fclose(f);
+  if (result != 1) {
+    log_error("Could not read from file %s.", path);
+    return nullptr;
+  }
+
+  string[fsize] = 0;
+
+  return string;
+}
