@@ -90,18 +90,6 @@ void models_setup_mesh(Mesh *mesh) {
   );
 }
 
-void models_init_mesh(
-  Mesh *mesh,
-  Vertex *vertices,
-  uint32 *indices,
-  Texture *textures
-) {
-  memcpy(mesh->vertices, vertices, sizeof(*vertices));
-  memcpy(mesh->indices, vertices, sizeof(*indices));
-  memcpy(mesh->textures, vertices, sizeof(*textures));
-  models_setup_mesh(mesh);
-}
-
 void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene) {
   mesh->n_vertices = 0;
   mesh->n_indices = 0;
@@ -132,6 +120,7 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
       vertex.tex_coords = glm::vec2(0.0f, 0.0f);
     }
 
+    /* log_info("Loading vertex %d", mesh->n_vertices); */
     mesh->vertices[mesh->n_vertices++] = vertex;
   }
 
@@ -139,6 +128,7 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
     for (uint32 idx_index = 0; idx_index < face.mNumIndices; idx_index++) {
+      /* log_info("Loading index %d", mesh->n_indices); */
       mesh->indices[mesh->n_indices++] = face.mIndices[idx_index];
     }
   }
@@ -177,6 +167,7 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
         texture.id = models_load_texture_from_file(model->directory, texture_filename);
         texture.type = texture_type_name;
         texture.filename = texture_filename;
+        /* log_info("Loading texture %d", mesh->n_textures); */
         mesh->textures[mesh->n_textures++] = texture;
       }
     }
@@ -190,6 +181,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   uint32 specular_idx = 1;
 
   for (uint32 idx = 0; idx < mesh->n_textures; idx++) {
+    /* log_info("Texture %d", idx); */
     glActiveTexture(GL_TEXTURE0 + idx);
 
     char idx_str[2];
@@ -198,26 +190,39 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
 
     if (strcmp(texture_type, "texture_diffuse") == 0) {
       sprintf(idx_str, "%d", diffuse_idx);
-      strcpy(uniform_name, "material.");
+      /* strcpy(uniform_name, "material."); */
+      strcpy(uniform_name, "");
       strcat(uniform_name, texture_type);
       strcat(uniform_name, idx_str);
+      diffuse_idx++;
     } else if (strcmp(texture_type, "texture_specular") == 0) {
       sprintf(idx_str, "%d", specular_idx);
-      strcpy(uniform_name, "material.");
+      /* strcpy(uniform_name, "material."); */
+      strcpy(uniform_name, "");
       strcat(uniform_name, texture_type);
       strcat(uniform_name, idx_str);
+      specular_idx++;
     }
 
+    /* log_info("uniform_name %s", uniform_name); */
     glUniform1f(
       glGetUniformLocation(shader_program, uniform_name),
       (real32)idx
     );
+
+    glBindTexture(GL_TEXTURE_2D, mesh->textures[idx].id);
   }
+
+  glActiveTexture(GL_TEXTURE0);
+
+  glBindVertexArray(mesh->vao);
+  glDrawElements(GL_TRIANGLES, mesh->n_indices, GL_UNSIGNED_INT, 0);
+  glBindVertexArray(0);
 }
 
 void models_draw_model(Model *model, uint32 shader_program) {
   for (uint32 idx = 0; idx < model->n_meshes; idx++) {
-    log_info("Drawing mesh %d", idx);
+    /* log_info("Drawing mesh %d", idx); */
     models_draw_mesh(&model->meshes[idx], shader_program);
   }
 }
@@ -226,6 +231,7 @@ void models_draw_model(Model *model, uint32 shader_program) {
 void models_load_model_node(Model *model, aiNode *node, const aiScene *scene) {
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
+    log_info("Loading mesh %d", model->n_meshes);
     models_load_mesh(model, &model->meshes[model->n_meshes++], mesh_data, scene);
   }
 
@@ -252,4 +258,6 @@ void models_load_model(Model *model, const char* directory, const char* filename
 
   model->n_meshes = 0;
   model->directory = directory;
+
+  models_load_model_node(model, scene->mRootNode, scene);
 }
