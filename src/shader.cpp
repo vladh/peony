@@ -1,6 +1,8 @@
+#include <cstdlib>
+
 #include <glad/glad.h>
 
-#include "gl.hpp"
+#include "types.hpp"
 #include "log.hpp"
 #include "util.hpp"
 

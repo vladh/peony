@@ -3,8 +3,19 @@
 #include <stdio.h>
 #include <cstdlib>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+
+#include "types.hpp"
 #include "log.hpp"
 
+
+unsigned char* util_load_image(const char* path, int32 *width, int32 *height, int32 *n_channels) {
+  unsigned char *image_data = stbi_load(
+    path, width, height, n_channels, 0
+  );
+  return image_data;
+}
 
 char* util_load_file(const char* path) {
   FILE* f = fopen(path, "rb");

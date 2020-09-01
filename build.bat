@@ -5,6 +5,6 @@ set CommonLinkerFlags=/LIBPATH:"C:/opt/lib/" -STACK:0x100000,0x100000 -increment
 
 pushd build
 
-cl %CommonCompilerFlags% -MDd ..\src\glad.c ..\src\log.cpp ..\src\shader.cpp ..\src\util.cpp ..\src\camera.cpp ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
+cl %CommonCompilerFlags% -MDd ..\src\glad.c ..\src\log.cpp ..\src\shader.cpp ..\src\util.cpp ..\src\camera.cpp ..\src\models.cpp ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
 
 popd

@@ -2,27 +2,24 @@
 #pragma warning(disable : 4201)
 #pragma warning(disable : 4127)
 
-#include <cstdlib>
-#include <cstring>
-#include <cmath>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
 #include <stdio.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 #include "gl.hpp"
+#include "types.hpp"
 #include "log.hpp"
 #include "util.hpp"
 #include "shader.hpp"
 #include "camera.hpp"
+#include "models.hpp"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
@@ -71,7 +68,11 @@ void process_input(GLFWwindow *window) {
 }
 
 State* init_state() {
-  State *state = (State*)malloc(sizeof(State));
+  /* size_t state_size = 1073741824; */
+  size_t state_size = sizeof(State);
+  State *state = (State*)malloc(state_size);
+  log_info("Allocating %d", state_size);
+  log_newline();
   state->window_width = 800;
   state->window_height = 600;
   strcpy(state->window_title, "hi lol");
@@ -162,6 +163,14 @@ State* init_state() {
   state->mouse_last_y = 0.0f;
   state->mouse_sensitivity = 0.1f;
 
+  state->n_models = 0;
+  Model *model = &state->models[state->n_models++];
+  model->n_meshes = 0;
+  models_load_model(
+    /* model, "resources/backpack/", "backpack.obj" */
+    model, "resources/", "miniGoose.fbx"
+  );
+
   return state;
 }
 
@@ -220,28 +229,37 @@ void init_objects(State *state) {
     GL_ELEMENT_ARRAY_BUFFER, sizeof(state->test_indices), state->test_indices, GL_STATIC_DRAW
   );
 
-  glVertexAttribPointer(0, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)0);
   glEnableVertexAttribArray(0);
+  glVertexAttribPointer(
+    0, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)0
+  );
 
-  glVertexAttribPointer(1, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)(3 * sizeof(real32)));
   glEnableVertexAttribArray(1);
+  glVertexAttribPointer(
+    1, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)(3 * sizeof(real32))
+  );
 
-  glVertexAttribPointer(2, 2, GL_FLOAT, false, 8 * sizeof(real32), (void*)(6 * sizeof(real32)));
   glEnableVertexAttribArray(2);
+  glVertexAttribPointer(
+    2, 2, GL_FLOAT, false, 8 * sizeof(real32), (void*)(6 * sizeof(real32))
+  );
 
   glBindVertexArray(0);
 
   /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
 
   uint32 shader_program = shader_make_program_with_paths("src/test.vert", "src/test.frag");
-
   state->shader_program = shader_program;
+
+  uint32 model_shader_program = shader_make_program_with_paths("src/model.vert", "src/model.frag");
+  state->model_shader_program = model_shader_program;
+
   state->vao = vao;
 
   int32 texture_width, texture_height, texture_n_channels;
-  stbi_set_flip_vertically_on_load(true);
-  unsigned char *texture_data = stbi_load(
-    "resources/alpaca.jpg", &texture_width, &texture_height, &texture_n_channels, 0
+  /* stbi_set_flip_vertically_on_load(true); */
+  unsigned char *texture_data = util_load_image(
+    "resources/alpaca.jpg", &texture_width, &texture_height, &texture_n_channels
   );
   if (texture_data) {
     uint32 test_texture;
@@ -260,14 +278,13 @@ void init_objects(State *state) {
   } else {
     log_error("Failed to load texture.");
   }
-  stbi_image_free(texture_data);
+  /* stbi_image_free(texture_data); */
 }
 
 void render(State *state) {
   real64 t = glfwGetTime();
 
-  /* glClearColor(0.0f, 0.333f, 0.933f, 1.0f); */
-  glClearColor(0.0f, 0.000f, 1.000f, 1.0f);
+  glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   uint32 t_uniform_location = glGetUniformLocation(state->shader_program, "t");
@@ -312,6 +329,8 @@ void render(State *state) {
     glDrawArrays(GL_TRIANGLES, 0, 36);
   }
   glBindVertexArray(0);
+
+  models_draw_model(&state->models[0], state->model_shader_program);
 }
 
 void main_loop(GLFWwindow *window, State *state) {

@@ -19,11 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\src\camera.cpp" />
     <ClCompile Include="..\src\gl.cpp" />
     <ClCompile Include="..\src\glad.c" />
+    <ClCompile Include="..\src\log.cpp" />
+    <ClCompile Include="..\src\models.cpp" />
+    <ClCompile Include="..\src\shader.cpp" />
+    <ClCompile Include="..\src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\src\gl.h" />
+    <ClInclude Include="..\src\camera.hpp" />
+    <ClInclude Include="..\src\gl.hpp" />
+    <ClInclude Include="..\src\log.hpp" />
+    <ClInclude Include="..\src\models.hpp" />
+    <ClInclude Include="..\src\shader.hpp" />
+    <ClInclude Include="..\src\types.hpp" />
+    <ClInclude Include="..\src\util.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\src\test.frag" />
@@ -93,6 +104,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>C:\opt\include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\opt\lib;$(LibraryPath)</LibraryPath>
+    <ExecutablePath>C:\opt\lib;$(VC_ExecutablePath_x64);$(CommonExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -138,7 +150,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>opengl32.lib;glfw3.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>opengl32.lib;glfw3.lib;assimp-vc142-mtd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>

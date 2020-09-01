@@ -3,7 +3,7 @@
 
 #include <glad/glad.h>
 
-#include "gl.hpp"
+#include "types.hpp"
 
 
 void shader_assert_shader_status_ok(uint32 shader);
