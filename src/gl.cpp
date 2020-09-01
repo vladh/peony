@@ -22,6 +22,71 @@
 #include "models.hpp"
 
 
+global_variable bool32 key_states[1024] = {false};
+global_variable bool32 prev_key_states[1024] = {true};
+
+
+void toggle_wireframe(State *state) {
+  if (state->is_wireframe_on) {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  }
+  state->is_wireframe_on = !state->is_wireframe_on;
+}
+
+bool32 is_key_down(int key) {
+  return key_states[key];
+}
+
+bool32 is_key_up(int key) {
+  return !key_states[key];
+}
+
+bool32 is_key_now_down(int key) {
+  return key_states[key] && !prev_key_states[key];
+}
+
+bool32 is_key_now_up(int key) {
+  return !key_states[key] && prev_key_states[key];
+}
+
+void process_input_continuous(GLFWwindow *window, State *state) {
+  if (is_key_down(GLFW_KEY_W)) {
+    camera_move_front_back(state, 1);
+  }
+
+  if (is_key_down(GLFW_KEY_S)) {
+    camera_move_front_back(state, -1);
+  }
+
+  if (is_key_down(GLFW_KEY_A)) {
+    camera_move_left_right(state, -1);
+  }
+
+  if (is_key_down(GLFW_KEY_D)) {
+    camera_move_left_right(state, 1);
+  }
+
+  if (is_key_down(GLFW_KEY_SPACE)) {
+    camera_move_up_down(state, 1);
+  }
+
+  if (is_key_down(GLFW_KEY_LEFT_CONTROL)) {
+    camera_move_up_down(state, -1);
+  }
+}
+
+void process_input_transient(GLFWwindow *window, State *state) {
+  if (is_key_now_down(GLFW_KEY_ESCAPE)) {
+    glfwSetWindowShouldClose(window, true);
+  }
+
+  if (is_key_now_down(GLFW_KEY_Q)) {
+    toggle_wireframe(state);
+  }
+}
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   state->window_width = width;
@@ -35,46 +100,26 @@ void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   camera_update_mouse(state, x, y);
 }
 
-void process_input(GLFWwindow *window) {
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   State *state = (State*)glfwGetWindowUserPointer(window);
 
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-    glfwSetWindowShouldClose(window, true);
+  prev_key_states[key] = key_states[key];
+  if (action == GLFW_PRESS) {
+    key_states[key] = true;
+  } else if (action == GLFW_RELEASE) {
+    key_states[key] = false;
   }
 
-  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    camera_move_front_back(state, 1);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    camera_move_front_back(state, -1);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    camera_move_left_right(state, -1);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    camera_move_left_right(state, 1);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-    camera_move_up_down(state, 1);
-  }
-
-  if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-    camera_move_up_down(state, -1);
-  }
+  process_input_transient(window, state);
 }
 
 State* init_state() {
-  /* size_t state_size = 1073741824; */
   size_t state_size = sizeof(State);
   State *state = (State*)malloc(state_size);
-  log_info("Allocating %d", state_size);
+  log_info("Allocating %dMB", state_size / 1024 / 1024);
   log_newline();
-  state->window_width = 800;
-  state->window_height = 600;
+  state->window_width = 1920;
+  state->window_height = 1080;
   strcpy(state->window_title, "hi lol");
 
   real32 test_vertices[] = {
@@ -163,13 +208,7 @@ State* init_state() {
   state->mouse_last_y = 0.0f;
   state->mouse_sensitivity = 0.1f;
 
-  state->n_models = 0;
-  Model *model = &state->models[state->n_models++];
-  model->n_meshes = 0;
-  models_load_model(
-    /* model, "resources/backpack/", "backpack.obj" */
-    model, "resources/", "miniGoose.fbx"
-  );
+  state->is_wireframe_on = false;
 
   return state;
 }
@@ -204,6 +243,7 @@ GLFWwindow* init_window(State *state) {
   glViewport(0, 0, state->window_width, state->window_height);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetKeyCallback(window, key_callback);
 
   glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
@@ -248,16 +288,18 @@ void init_objects(State *state) {
 
   /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
 
-  uint32 shader_program = shader_make_program_with_paths("src/test.vert", "src/test.frag");
-  state->shader_program = shader_program;
+  uint32 alpaca_shader_program = shader_make_program_with_paths("src/alpaca.vert", "src/alpaca.frag");
+  state->alpaca_shader_program = alpaca_shader_program;
 
-  uint32 model_shader_program = shader_make_program_with_paths("src/model.vert", "src/model.frag");
-  state->model_shader_program = model_shader_program;
+  uint32 backpack_shader_program = shader_make_program_with_paths("src/backpack.vert", "src/backpack.frag");
+  state->backpack_shader_program = backpack_shader_program;
+
+  uint32 goose_shader_program = shader_make_program_with_paths("src/goose.vert", "src/goose.frag");
+  state->goose_shader_program = goose_shader_program;
 
   state->vao = vao;
 
   int32 texture_width, texture_height, texture_n_channels;
-  /* stbi_set_flip_vertically_on_load(true); */
   unsigned char *texture_data = util_load_image(
     "resources/alpaca.jpg", &texture_width, &texture_height, &texture_n_channels
   );
@@ -279,6 +321,16 @@ void init_objects(State *state) {
     log_error("Failed to load texture.");
   }
   /* stbi_image_free(texture_data); */
+
+  state->n_models = 0;
+  Model *backpack_model = &state->models[state->n_models++];
+  models_load_model(
+    backpack_model, "resources/backpack/", "backpack.obj"
+  );
+  Model *goose_model = &state->models[state->n_models++];
+  models_load_model(
+    goose_model, "resources/", "miniGoose.fbx"
+  );
 }
 
 void render(State *state) {
@@ -287,12 +339,10 @@ void render(State *state) {
   glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  uint32 t_uniform_location = glGetUniformLocation(state->shader_program, "t");
-  glUseProgram(state->shader_program);
-  glUniform1f(t_uniform_location, (real32)t);
-
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
+
+  glm::mat4 model = glm::mat4(1.0f);
 
   glm::mat4 view = glm::lookAt(
     state->camera_pos, state->camera_pos + state->camera_front, state->camera_up
@@ -304,25 +354,33 @@ void render(State *state) {
     state->camera_near, state->camera_far
   );
 
+  // Alpaca
+
+  glUseProgram(state->alpaca_shader_program);
+
+  glUniform1f(
+    glGetUniformLocation(state->alpaca_shader_program, "t"),
+    (real32)t
+  );
+
   glUniformMatrix4fv(
-    glGetUniformLocation(state->shader_program, "view"),
+    glGetUniformLocation(state->alpaca_shader_program, "view"),
     1, GL_FALSE, glm::value_ptr(view)
   );
 
   glUniformMatrix4fv(
-    glGetUniformLocation(state->shader_program, "projection"),
+    glGetUniformLocation(state->alpaca_shader_program, "projection"),
     1, GL_FALSE, glm::value_ptr(projection)
   );
 
   glBindVertexArray(state->vao);
   /* glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); */
   for (uint8 i = 0; i < 10; i++) {
-    glm::mat4 model = glm::mat4(1.0f);
-    model = glm::translate(model, state->cube_positions[i]);
-    float angle = 20.0f * i;
-    model = glm::rotate(model, (float)t * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    real32 model_angle = 20.0f * i;
+    model = glm::translate(glm::mat4(1.0f), state->cube_positions[i]);
+    model = glm::rotate(model, (real32)t * glm::radians(model_angle), glm::vec3(1.0f, 0.3f, 0.5f));
     glUniformMatrix4fv(
-      glGetUniformLocation(state->shader_program, "model"),
+      glGetUniformLocation(state->alpaca_shader_program, "model"),
       1, GL_FALSE, glm::value_ptr(model)
     );
 
@@ -330,12 +388,62 @@ void render(State *state) {
   }
   glBindVertexArray(0);
 
-  models_draw_model(&state->models[0], state->model_shader_program);
+  // Backpack
+
+  glUseProgram(state->backpack_shader_program);
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(state->backpack_shader_program, "view"),
+    1, GL_FALSE, glm::value_ptr(view)
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(state->backpack_shader_program, "projection"),
+    1, GL_FALSE, glm::value_ptr(projection)
+  );
+
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+  glUniformMatrix4fv(
+    glGetUniformLocation(state->backpack_shader_program, "model"),
+    1, GL_FALSE, glm::value_ptr(model)
+  );
+  models_draw_model(&state->models[0], state->backpack_shader_program);
+
+  // Goose
+
+  glUseProgram(state->goose_shader_program);
+
+  glUniform1f(
+    glGetUniformLocation(state->goose_shader_program, "t"),
+    (real32)t
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(state->goose_shader_program, "view"),
+    1, GL_FALSE, glm::value_ptr(view)
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(state->goose_shader_program, "projection"),
+    1, GL_FALSE, glm::value_ptr(projection)
+  );
+
+  model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+  glUniformMatrix4fv(
+    glGetUniformLocation(state->goose_shader_program, "model"),
+    1, GL_FALSE, glm::value_ptr(model)
+  );
+  models_draw_model(&state->models[1], state->goose_shader_program);
 }
 
 void main_loop(GLFWwindow *window, State *state) {
   while(!glfwWindowShouldClose(window)) {
-    process_input(window);
+    process_input_continuous(window, state);
     render(state);
     glfwSwapBuffers(window);
     glfwPollEvents();

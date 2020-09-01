@@ -18,8 +18,9 @@ typedef struct State {
   real32 test_indices[512];
   glm::vec3 cube_positions[32];
 
-  uint32 shader_program;
-  uint32 model_shader_program;
+  uint32 alpaca_shader_program;
+  uint32 backpack_shader_program;
+  uint32 goose_shader_program;
   uint32 vao;
   uint32 test_texture;
 
@@ -39,7 +40,9 @@ typedef struct State {
   real64 mouse_last_y;
   real64 mouse_sensitivity;
 
-  Model models[8];
+  bool32 is_wireframe_on;
+
+  Model models[4];
   uint32 n_models;
 } State;
 

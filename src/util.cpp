@@ -11,6 +11,7 @@
 
 
 unsigned char* util_load_image(const char* path, int32 *width, int32 *height, int32 *n_channels) {
+  stbi_set_flip_vertically_on_load(true);
   unsigned char *image_data = stbi_load(
     path, width, height, n_channels, 0
   );
