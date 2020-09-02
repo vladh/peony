@@ -323,10 +323,14 @@ void init_objects(State *state) {
   /* stbi_image_free(texture_data); */
 
   state->n_models = 0;
+
+#if 1
   Model *backpack_model = &state->models[state->n_models++];
   models_load_model(
     backpack_model, "resources/backpack/", "backpack.obj"
   );
+#endif
+
   Model *goose_model = &state->models[state->n_models++];
   models_load_model(
     goose_model, "resources/", "miniGoose.fbx"
@@ -390,6 +394,7 @@ void render(State *state) {
 
   // Backpack
 
+#if 1
   glUseProgram(state->backpack_shader_program);
 
   glUniformMatrix4fv(
@@ -410,6 +415,7 @@ void render(State *state) {
     1, GL_FALSE, glm::value_ptr(model)
   );
   models_draw_model(&state->models[0], state->backpack_shader_program);
+#endif
 
   // Goose
 
