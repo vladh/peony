@@ -37,12 +37,10 @@ void shader_assert_program_status_ok(uint32 shader) {
   log_info("Status: %d", status);
   log_info("Message: %s", message);
 
-#if 0
   if (status != 1) {
     log_error("[assertProgramStatusOk] Program loading failed");
     exit(EXIT_FAILURE);
   }
-#endif
 
   log_newline();
 }
