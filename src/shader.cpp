@@ -28,7 +28,7 @@ void shader_assert_shader_status_ok(uint32 shader) {
 
 void shader_assert_program_status_ok(uint32 shader) {
   int32 status;
-  glGetProgramiv(shader, GL_COMPILE_STATUS, &status);
+  glGetProgramiv(shader, GL_LINK_STATUS, &status);
 
   char message[512];
   glGetProgramInfoLog(shader, 512, NULL, message);
