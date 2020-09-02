@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable : 4201)
+#pragma warning(disable : 4100)
 #pragma warning(disable : 4127)
+#pragma warning(disable : 4201)
 
 #include <stdlib.h>
 #include <string.h>
@@ -324,7 +325,7 @@ void init_objects(State *state) {
 
   state->n_models = 0;
 
-#if 1
+#if 0
   Model *backpack_model = &state->models[state->n_models++];
   models_load_model(
     backpack_model, "resources/backpack/", "backpack.obj"
@@ -394,7 +395,7 @@ void render(State *state) {
 
   // Backpack
 
-#if 1
+#if 0
   glUseProgram(state->backpack_shader_program);
 
   glUniformMatrix4fv(
@@ -444,7 +445,7 @@ void render(State *state) {
     glGetUniformLocation(state->goose_shader_program, "model"),
     1, GL_FALSE, glm::value_ptr(model)
   );
-  models_draw_model(&state->models[1], state->goose_shader_program);
+  models_draw_model(&state->models[0], state->goose_shader_program);
 }
 
 void main_loop(GLFWwindow *window, State *state) {
