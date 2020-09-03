@@ -276,7 +276,11 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
-void init_objects(Memory *memory, State *state) {
+void init_alpaca(Memory *memory, State *state) {
+  shader_make_asset(
+    state, "alpaca", "src/alpaca.vert", "src/alpaca.frag"
+  );
+
   uint32 vbo, vao, ebo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
@@ -310,18 +314,6 @@ void init_objects(Memory *memory, State *state) {
 
   glBindVertexArray(0);
 
-  shader_make_asset(
-    state, "alpaca", "src/alpaca.vert", "src/alpaca.frag"
-  );
-  shader_make_asset(
-    state, "backpack", "src/backpack.vert", "src/backpack.frag"
-  );
-  shader_make_asset(
-    state, "goose", "src/goose.vert", "src/goose.frag"
-  );
-
-  state->vao = vao;
-
   int32 texture_width, texture_height, texture_n_channels;
   unsigned char *texture_data = util_load_image(
     "resources/alpaca.jpg", &texture_width, &texture_height, &texture_n_channels
@@ -345,24 +337,96 @@ void init_objects(Memory *memory, State *state) {
   }
   util_free_image(texture_data);
 
+  state->vao = vao;
+}
+
+void init_goose(Memory *memory, State *state) {
+  shader_make_asset(
+    state, "goose", "src/goose.vert", "src/goose.frag"
+  );
   models_make_asset(
     memory, state, "goose", "resources/", "miniGoose.fbx"
   );
-  models_make_asset(
-    memory, state, "backpack", "resources/", "miniGoose.fbx"
+}
+
+void init_backpack(Memory *memory, State *state) {
+  shader_make_asset(
+    state, "backpack", "src/backpack.vert", "src/backpack.frag"
   );
 }
 
+void init_objects(Memory *memory, State *state) {
+  init_backpack(memory, state);
+  init_goose(memory, state);
+  init_alpaca(memory, state);
+}
+
+void draw_goose(State *state, glm::mat4 view, glm::mat4 projection) {
+  ShaderAsset *goose_shader_asset = asset_get_shader_asset_by_name(state, "goose");
+  glUseProgram(goose_shader_asset->shader.program);
+
+  glUniform1f(
+    glGetUniformLocation(goose_shader_asset->shader.program, "t"),
+    (real32)state->t
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(goose_shader_asset->shader.program, "view"),
+    1, GL_FALSE, glm::value_ptr(view)
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(goose_shader_asset->shader.program, "projection"),
+    1, GL_FALSE, glm::value_ptr(projection)
+  );
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+  glUniformMatrix4fv(
+    glGetUniformLocation(goose_shader_asset->shader.program, "model"),
+    1, GL_FALSE, glm::value_ptr(model)
+  );
+
+  ModelAsset *goose_model_asset = asset_get_model_asset_by_name(state, "goose");
+  models_draw_model(&goose_model_asset->model, goose_shader_asset->shader.program);
+}
+
+void draw_backpack(State *state, glm::mat4 view, glm::mat4 projection) {
+  ShaderAsset *backpack_shader_asset = asset_get_shader_asset_by_name(state, "backpack");
+  glUseProgram(backpack_shader_asset->shader.program);
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(backpack_shader_asset->shader.program, "view"),
+    1, GL_FALSE, glm::value_ptr(view)
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(backpack_shader_asset->shader.program, "projection"),
+    1, GL_FALSE, glm::value_ptr(projection)
+  );
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+  glUniformMatrix4fv(
+    glGetUniformLocation(backpack_shader_asset->shader.program, "model"),
+    1, GL_FALSE, glm::value_ptr(model)
+  );
+
+  ModelAsset *backpack_model_asset = asset_get_model_asset_by_name(state, "backpack");
+  models_draw_model(&backpack_model_asset->model, backpack_shader_asset->shader.program);
+}
+
 void render(State *state) {
-  real64 t = glfwGetTime();
+  state->t = glfwGetTime();
 
   glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
-
-  glm::mat4 model = glm::mat4(1.0f);
 
   glm::mat4 view = glm::lookAt(
     state->camera_pos, state->camera_pos + state->camera_front, state->camera_up
@@ -376,12 +440,14 @@ void render(State *state) {
 
   // Alpaca
 
+  glm::mat4 model = glm::mat4(1.0f);
+
   ShaderAsset *alpaca_shader_asset = asset_get_shader_asset_by_name(state, "alpaca");
   glUseProgram(alpaca_shader_asset->shader.program);
 
   glUniform1f(
     glGetUniformLocation(alpaca_shader_asset->shader.program, "t"),
-    (real32)t
+    (real32)state->t
   );
 
   glUniformMatrix4fv(
@@ -399,7 +465,7 @@ void render(State *state) {
   for (uint8 i = 0; i < 10; i++) {
     real32 model_angle = 20.0f * i;
     model = glm::translate(glm::mat4(1.0f), state->cube_positions[i]);
-    model = glm::rotate(model, (real32)t * glm::radians(model_angle), glm::vec3(1.0f, 0.3f, 0.5f));
+    model = glm::rotate(model, (real32)state->t * glm::radians(model_angle), glm::vec3(1.0f, 0.3f, 0.5f));
     glUniformMatrix4fv(
       glGetUniformLocation(alpaca_shader_asset->shader.program, "model"),
       1, GL_FALSE, glm::value_ptr(model)
@@ -409,62 +475,8 @@ void render(State *state) {
   }
   glBindVertexArray(0);
 
-  // Backpack
-
-#if 0
-  glUseProgram(state->backpack_shader_program);
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(state->backpack_shader_program, "view"),
-    1, GL_FALSE, glm::value_ptr(view)
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(state->backpack_shader_program, "projection"),
-    1, GL_FALSE, glm::value_ptr(projection)
-  );
-
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-  glUniformMatrix4fv(
-    glGetUniformLocation(state->backpack_shader_program, "model"),
-    1, GL_FALSE, glm::value_ptr(model)
-  );
-  models_draw_model(&state->models[0], state->backpack_shader_program);
-#endif
-
-  // Goose
-
-  ShaderAsset *goose_shader_asset = asset_get_shader_asset_by_name(state, "goose");
-  glUseProgram(goose_shader_asset->shader.program);
-
-  glUniform1f(
-    glGetUniformLocation(goose_shader_asset->shader.program, "t"),
-    (real32)t
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(goose_shader_asset->shader.program, "view"),
-    1, GL_FALSE, glm::value_ptr(view)
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(goose_shader_asset->shader.program, "projection"),
-    1, GL_FALSE, glm::value_ptr(projection)
-  );
-
-  model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-  model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-  glUniformMatrix4fv(
-    glGetUniformLocation(goose_shader_asset->shader.program, "model"),
-    1, GL_FALSE, glm::value_ptr(model)
-  );
-
-  ModelAsset *goose_model_asset = asset_get_model_asset_by_name(state, "goose");
-  models_draw_model(&goose_model_asset->model, goose_shader_asset->shader.program);
+  /* draw_backpack(state, view, projection); */
+  draw_goose(state, view, projection);
 }
 
 void main_loop(GLFWwindow *window, State *state) {
