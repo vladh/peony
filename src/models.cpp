@@ -46,10 +46,10 @@ uint32 models_load_texture_from_file(const char *directory, const char *filename
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    /* stbi_image_free(data); */
+    util_free_image(data);
   } else {
     log_error("Texture failed to load at path: %s", path);
-    /* stbi_image_free(data); */
+    util_free_image(data);
   }
 
   return texture_id;
@@ -137,7 +137,7 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
   aiMaterial *material = scene->mMaterials[mesh_data->mMaterialIndex];
 
   aiTextureType texture_type = aiTextureType_DIFFUSE;
-  const char* texture_type_name = "";
+  const char *texture_type_name = "";
 
   for (uint32 idx_type = 0; idx_type < 2; idx_type++) {
     if (idx_type == 0) {
@@ -151,7 +151,7 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
     for (uint32 idx = 0; idx < material->GetTextureCount(texture_type); idx++) {
       aiString texture_filename_aistring;
       material->GetTexture(texture_type, idx, &texture_filename_aistring);
-      const char* texture_filename = texture_filename_aistring.C_Str();
+      const char *texture_filename = texture_filename_aistring.C_Str();
 
       bool32 should_skip = false;
       for (uint32 idx_loaded = 0; idx_loaded < mesh->n_textures; idx_loaded++) {
@@ -186,7 +186,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
 
     char idx_str[2];
     char uniform_name[128];
-    const char* texture_type = mesh->textures[idx].type;
+    const char *texture_type = mesh->textures[idx].type;
 
     if (strcmp(texture_type, "texture_diffuse") == 0) {
       sprintf(idx_str, "%d", diffuse_idx);
@@ -240,7 +240,7 @@ void models_load_model_node(Model *model, aiNode *node, const aiScene *scene) {
   }
 }
 
-void models_load_model(Model *model, const char* directory, const char* filename) {
+void models_load_model(Model *model, const char *directory, const char *filename) {
   char path[128];
   strcpy(path, directory);
   strcat(path, "/");

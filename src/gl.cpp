@@ -14,13 +14,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "gl.hpp"
+#include "memory.hpp"
 #include "types.hpp"
 #include "log.hpp"
 #include "util.hpp"
 #include "shader.hpp"
 #include "camera.hpp"
 #include "models.hpp"
+#include "asset.hpp"
 
 
 global_variable bool32 key_states[1024] = {false};
@@ -114,11 +115,25 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   process_input_transient(window, state);
 }
 
-State* init_state() {
-  size_t state_size = sizeof(State);
-  State *state = (State*)malloc(state_size);
-  log_info("Allocating %dMB", state_size / 1024 / 1024);
+Memory init_memory() {
+  Memory memory;
+
+  memory.state_memory_size = sizeof(State);
+  log_info(
+    "Allocating state memory: %d MB",
+    memory.state_memory_size / 1024 / 1024
+  );
+  memory.state_memory = (State *)malloc(memory.state_memory_size);
+  memset(memory.state_memory, 0, memory.state_memory_size);
+
+  memory.asset_memory_pool = memory_make_memory_pool("assets", megabytes(128));
+
   log_newline();
+
+  return memory;
+}
+
+void init_state(Memory memory, State *state) {
   state->window_width = 1920;
   state->window_height = 1080;
   strcpy(state->window_title, "hi lol");
@@ -192,6 +207,12 @@ State* init_state() {
   memcpy(state->test_indices, test_indices, sizeof(test_indices));
   memcpy(state->cube_positions, cube_positions, sizeof(cube_positions));
 
+  state->n_shader_assets = 0;
+  state->max_n_shader_assets = 128;
+  state->shader_assets = (ShaderAsset*)memory_push_memory_to_pool(
+    memory.asset_memory_pool, sizeof(ShaderAsset) * state->max_n_shader_assets
+  );
+
   state->yaw = -90.0f;
   state->pitch = 0.0f;
 
@@ -210,8 +231,6 @@ State* init_state() {
   state->mouse_sensitivity = 0.1f;
 
   state->is_wireframe_on = false;
-
-  return state;
 }
 
 GLFWwindow* init_window(State *state) {
@@ -253,7 +272,14 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
-void init_objects(State *state) {
+void scene_load_model(State *state, const char *directory, const char *filename) {
+  Model *model = &state->models[state->n_models++];
+  models_load_model(
+    model, "resources/", "miniGoose.fbx"
+  );
+}
+
+void init_objects(Memory memory, State *state) {
   uint32 vbo, vao, ebo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
@@ -287,16 +313,16 @@ void init_objects(State *state) {
 
   glBindVertexArray(0);
 
-  /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
-
-  uint32 alpaca_shader_program = shader_make_program_with_paths("src/alpaca.vert", "src/alpaca.frag");
-  state->alpaca_shader_program = alpaca_shader_program;
-
-  uint32 backpack_shader_program = shader_make_program_with_paths("src/backpack.vert", "src/backpack.frag");
-  state->backpack_shader_program = backpack_shader_program;
-
-  uint32 goose_shader_program = shader_make_program_with_paths("src/goose.vert", "src/goose.frag");
-  state->goose_shader_program = goose_shader_program;
+  shader_make_asset(
+    state, "alpaca", "src/alpaca.vert", "src/alpaca.frag"
+  );
+  shader_make_asset(
+    state, "backpack", "src/backpack.vert", "src/backpack.frag"
+  );
+  shader_make_asset(
+    state, "goose", "src/goose.vert", "src/goose.frag"
+  );
+  memset(memory.asset_memory_pool.memory, 0, 4096);
 
   state->vao = vao;
 
@@ -321,21 +347,11 @@ void init_objects(State *state) {
   } else {
     log_error("Failed to load texture.");
   }
-  /* stbi_image_free(texture_data); */
+  util_free_image(texture_data);
 
   state->n_models = 0;
-
-#if 0
-  Model *backpack_model = &state->models[state->n_models++];
-  models_load_model(
-    backpack_model, "resources/backpack/", "backpack.obj"
-  );
-#endif
-
-  Model *goose_model = &state->models[state->n_models++];
-  models_load_model(
-    goose_model, "resources/", "miniGoose.fbx"
-  );
+  scene_load_model(state, "resources/backpack/", "backpack.obj");
+  scene_load_model(state, "resources/", "miniGoose.fbx");
 }
 
 void render(State *state) {
@@ -361,20 +377,21 @@ void render(State *state) {
 
   // Alpaca
 
-  glUseProgram(state->alpaca_shader_program);
+  ShaderAsset *alpaca_shader_asset = asset_get_shader_asset_by_name(state, "alpaca");
+  glUseProgram(alpaca_shader_asset->shader.program);
 
   glUniform1f(
-    glGetUniformLocation(state->alpaca_shader_program, "t"),
+    glGetUniformLocation(alpaca_shader_asset->shader.program, "t"),
     (real32)t
   );
 
   glUniformMatrix4fv(
-    glGetUniformLocation(state->alpaca_shader_program, "view"),
+    glGetUniformLocation(alpaca_shader_asset->shader.program, "view"),
     1, GL_FALSE, glm::value_ptr(view)
   );
 
   glUniformMatrix4fv(
-    glGetUniformLocation(state->alpaca_shader_program, "projection"),
+    glGetUniformLocation(alpaca_shader_asset->shader.program, "projection"),
     1, GL_FALSE, glm::value_ptr(projection)
   );
 
@@ -385,7 +402,7 @@ void render(State *state) {
     model = glm::translate(glm::mat4(1.0f), state->cube_positions[i]);
     model = glm::rotate(model, (real32)t * glm::radians(model_angle), glm::vec3(1.0f, 0.3f, 0.5f));
     glUniformMatrix4fv(
-      glGetUniformLocation(state->alpaca_shader_program, "model"),
+      glGetUniformLocation(alpaca_shader_asset->shader.program, "model"),
       1, GL_FALSE, glm::value_ptr(model)
     );
 
@@ -420,20 +437,21 @@ void render(State *state) {
 
   // Goose
 
-  glUseProgram(state->goose_shader_program);
+  ShaderAsset *goose_shader_asset = asset_get_shader_asset_by_name(state, "goose");
+  glUseProgram(goose_shader_asset->shader.program);
 
   glUniform1f(
-    glGetUniformLocation(state->goose_shader_program, "t"),
+    glGetUniformLocation(goose_shader_asset->shader.program, "t"),
     (real32)t
   );
 
   glUniformMatrix4fv(
-    glGetUniformLocation(state->goose_shader_program, "view"),
+    glGetUniformLocation(goose_shader_asset->shader.program, "view"),
     1, GL_FALSE, glm::value_ptr(view)
   );
 
   glUniformMatrix4fv(
-    glGetUniformLocation(state->goose_shader_program, "projection"),
+    glGetUniformLocation(goose_shader_asset->shader.program, "projection"),
     1, GL_FALSE, glm::value_ptr(projection)
   );
 
@@ -442,10 +460,10 @@ void render(State *state) {
   model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
   model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
   glUniformMatrix4fv(
-    glGetUniformLocation(state->goose_shader_program, "model"),
+    glGetUniformLocation(goose_shader_asset->shader.program, "model"),
     1, GL_FALSE, glm::value_ptr(model)
   );
-  models_draw_model(&state->models[0], state->goose_shader_program);
+  models_draw_model(&state->models[0], goose_shader_asset->shader.program);
 }
 
 void main_loop(GLFWwindow *window, State *state) {
@@ -462,12 +480,14 @@ void destroy_window() {
 }
 
 int main() {
-  State *state = init_state();
+  Memory memory = init_memory();
+  State *state = (State*)memory.state_memory;
+  init_state(memory, state);
   GLFWwindow *window = init_window(state);
   if (!window) {
     return -1;
   }
-  init_objects(state);
+  init_objects(memory, state);
   main_loop(window, state);
   destroy_window();
   return 0;
