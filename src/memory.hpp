@@ -68,6 +68,8 @@ typedef struct State {
   real64 mouse_sensitivity;
 
   bool32 is_wireframe_on;
+
+  real64 t;
 } State;
 
 typedef struct MemoryPool {
