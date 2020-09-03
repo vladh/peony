@@ -135,7 +135,7 @@ Memory init_memory() {
   return memory;
 }
 
-void init_state(Memory memory, State *state) {
+void init_state(Memory *memory, State *state) {
   state->window_width = 1920;
   state->window_height = 1080;
   strcpy(state->window_title, "hi lol");
@@ -212,7 +212,7 @@ void init_state(Memory memory, State *state) {
   state->n_shader_assets = 0;
   state->max_n_shader_assets = 128;
   state->shader_assets = (ShaderAsset*)memory_push_memory_to_pool(
-    &memory.asset_memory_pool, sizeof(ShaderAsset) * state->max_n_shader_assets
+    &memory->asset_memory_pool, sizeof(ShaderAsset) * state->max_n_shader_assets
   );
 
   state->n_model_assets = 0;
@@ -462,6 +462,7 @@ void render(State *state) {
     glGetUniformLocation(goose_shader_asset->shader.program, "model"),
     1, GL_FALSE, glm::value_ptr(model)
   );
+
   ModelAsset *goose_model_asset = asset_get_model_asset_by_name(state, "goose");
   models_draw_model(&goose_model_asset->model, goose_shader_asset->shader.program);
 }
@@ -482,7 +483,7 @@ void destroy_window() {
 int main() {
   Memory memory = init_memory();
   State *state = (State*)memory.state_memory;
-  init_state(memory, state);
+  init_state(&memory, state);
   GLFWwindow *window = init_window(state);
   if (!window) {
     return -1;
