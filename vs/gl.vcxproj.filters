@@ -15,16 +15,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\src\alpaca.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\src\alpaca.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\src\backpack.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\src\backpack.vert">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\src\goose.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="..\src\goose.vert">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\asset.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\camera.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\gl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\camera.cpp">
+    <ClCompile Include="..\src\log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\log.cpp">
+    <ClCompile Include="..\src\memory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\src\models.cpp">
@@ -38,6 +64,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\asset.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\camera.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -45,6 +74,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\log.hpp">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\memory.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\models.hpp">
@@ -59,13 +91,5 @@
     <ClInclude Include="..\src\util.hpp">
       <Filter>Source Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\test.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="..\src\test.vert">
-      <Filter>Source Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

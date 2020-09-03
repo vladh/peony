@@ -19,26 +19,34 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\src\alpaca.frag" />
+    <None Include="..\src\alpaca.vert" />
+    <None Include="..\src\backpack.frag" />
+    <None Include="..\src\backpack.vert" />
+    <None Include="..\src\goose.frag" />
+    <None Include="..\src\goose.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\asset.cpp" />
     <ClCompile Include="..\src\camera.cpp" />
     <ClCompile Include="..\src\gl.cpp" />
     <ClCompile Include="..\src\glad.c" />
     <ClCompile Include="..\src\log.cpp" />
+    <ClCompile Include="..\src\memory.cpp" />
     <ClCompile Include="..\src\models.cpp" />
     <ClCompile Include="..\src\shader.cpp" />
     <ClCompile Include="..\src\util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\src\asset.hpp" />
     <ClInclude Include="..\src\camera.hpp" />
     <ClInclude Include="..\src\gl.hpp" />
     <ClInclude Include="..\src\log.hpp" />
+    <ClInclude Include="..\src\memory.hpp" />
     <ClInclude Include="..\src\models.hpp" />
     <ClInclude Include="..\src\shader.hpp" />
     <ClInclude Include="..\src\types.hpp" />
     <ClInclude Include="..\src\util.hpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\src\test.frag" />
-    <None Include="..\src\test.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

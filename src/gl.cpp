@@ -322,7 +322,6 @@ void init_objects(Memory memory, State *state) {
   shader_make_asset(
     state, "goose", "src/goose.vert", "src/goose.frag"
   );
-  memset(memory.asset_memory_pool.memory, 0, 4096);
 
   state->vao = vao;
 
