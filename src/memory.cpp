@@ -16,14 +16,14 @@ MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
   return pool;
 }
 
-void* memory_push_memory_to_pool(MemoryPool pool, uint32 size) {
+void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size) {
   log_info(
-    "Pusing to memory pool '%s': %d B (%d MB)", pool.name, size, size / 1024 / 1024
+    "Pusing to memory pool '%s': %d B (%d MB)", pool->name, size, size / 1024 / 1024
   );
   log_newline();
 
-  assert(pool.used + size <= pool.size);
-  void *new_memory = pool.memory + pool.used;
-  pool.used += size;
+  assert(pool->used + size <= pool->size);
+  void *new_memory = pool->memory + pool->used;
+  pool->used += size;
   return new_memory;
 }

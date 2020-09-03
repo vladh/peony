@@ -8,5 +8,6 @@
 
 
 ShaderAsset* asset_get_shader_asset_by_name(State *state, const char *name);
+ModelAsset* asset_get_model_asset_by_name(State *state, const char *name);
 
 #endif

@@ -7,6 +7,10 @@
 #include "types.hpp"
 
 
+typedef struct Memory Memory;
+typedef struct State State;
+typedef struct ModelAsset ModelAsset;
+
 typedef struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
@@ -44,5 +48,9 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program);
 void models_draw_model(Model *model, uint32 shader_program);
 void models_load_model_node(Model *model, aiNode *node, const aiScene *scene);
 void models_load_model(Model *model, const char *directory, const char *filename);
+ModelAsset* models_make_asset(
+  Memory *memory, State *state,
+  const char *name, const char *directory, const char *filename
+);
 
 #endif
