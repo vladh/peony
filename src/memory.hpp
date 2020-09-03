@@ -45,6 +45,9 @@ typedef struct State {
   uint32 n_shader_assets;
   uint32 max_n_shader_assets;
 
+  ModelAsset *model_assets[128];
+  uint32 n_model_assets;
+
   uint32 vao;
   uint32 test_texture;
 
@@ -65,11 +68,6 @@ typedef struct State {
   real64 mouse_sensitivity;
 
   bool32 is_wireframe_on;
-
-  Model models[4];
-  uint32 n_models;
-
-  ShaderAsset mem_shader_asset[128];
 } State;
 
 typedef struct MemoryPool {
@@ -87,6 +85,6 @@ typedef struct Memory {
 } Memory;
 
 MemoryPool memory_make_memory_pool(const char *name, uint32 size);
-void* memory_push_memory_to_pool(MemoryPool pool, uint32 size);
+void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size);
 
 #endif

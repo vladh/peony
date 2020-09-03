@@ -13,3 +13,14 @@ ShaderAsset* asset_get_shader_asset_by_name(State *state, const char *name) {
   }
   return nullptr;
 }
+
+ModelAsset* asset_get_model_asset_by_name(State *state, const char *name) {
+  /* log_info("Getting shader asset: %s", name); */
+  for (uint32 idx = 0; idx < state->n_model_assets; idx++) {
+    ModelAsset *asset = state->model_assets[idx];
+    if (strcmp(asset->info.name, name) == 0) {
+      return asset;
+    }
+  }
+  return nullptr;
+}

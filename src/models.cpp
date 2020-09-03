@@ -9,6 +9,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "memory.hpp"
 #include "log.hpp"
 #include "util.hpp"
 
@@ -260,4 +261,26 @@ void models_load_model(Model *model, const char *directory, const char *filename
   model->directory = directory;
 
   models_load_model_node(model, scene->mRootNode, scene);
+}
+
+ModelAsset* models_make_asset(
+  Memory *memory, State *state,
+  const char *name, const char *directory, const char *filename
+) {
+  // TODO: Un-hardcode
+  assert(state->n_model_assets < 128);
+
+  ModelAsset *asset = (ModelAsset*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(ModelAsset)
+  );
+
+  state->model_assets[state->n_model_assets++] = asset;
+
+  asset->info.name = name;
+
+  models_load_model(
+    &asset->model, directory, filename
+  );
+
+  return asset;
 }

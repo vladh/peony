@@ -14,13 +14,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "memory.hpp"
 #include "types.hpp"
+#include "models.hpp"
+#include "memory.hpp"
 #include "log.hpp"
 #include "util.hpp"
 #include "shader.hpp"
 #include "camera.hpp"
-#include "models.hpp"
 #include "asset.hpp"
 
 
@@ -126,7 +126,9 @@ Memory init_memory() {
   memory.state_memory = (State *)malloc(memory.state_memory_size);
   memset(memory.state_memory, 0, memory.state_memory_size);
 
-  memory.asset_memory_pool = memory_make_memory_pool("assets", megabytes(128));
+  memory.asset_memory_pool = memory_make_memory_pool(
+    "assets", megabytes(512)
+  );
 
   log_newline();
 
@@ -210,8 +212,10 @@ void init_state(Memory memory, State *state) {
   state->n_shader_assets = 0;
   state->max_n_shader_assets = 128;
   state->shader_assets = (ShaderAsset*)memory_push_memory_to_pool(
-    memory.asset_memory_pool, sizeof(ShaderAsset) * state->max_n_shader_assets
+    &memory.asset_memory_pool, sizeof(ShaderAsset) * state->max_n_shader_assets
   );
+
+  state->n_model_assets = 0;
 
   state->yaw = -90.0f;
   state->pitch = 0.0f;
@@ -272,14 +276,7 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
-void scene_load_model(State *state, const char *directory, const char *filename) {
-  Model *model = &state->models[state->n_models++];
-  models_load_model(
-    model, "resources/", "miniGoose.fbx"
-  );
-}
-
-void init_objects(Memory memory, State *state) {
+void init_objects(Memory *memory, State *state) {
   uint32 vbo, vao, ebo;
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
@@ -348,9 +345,12 @@ void init_objects(Memory memory, State *state) {
   }
   util_free_image(texture_data);
 
-  state->n_models = 0;
-  scene_load_model(state, "resources/backpack/", "backpack.obj");
-  scene_load_model(state, "resources/", "miniGoose.fbx");
+  models_make_asset(
+    memory, state, "goose", "resources/", "miniGoose.fbx"
+  );
+  models_make_asset(
+    memory, state, "backpack", "resources/", "miniGoose.fbx"
+  );
 }
 
 void render(State *state) {
@@ -462,7 +462,8 @@ void render(State *state) {
     glGetUniformLocation(goose_shader_asset->shader.program, "model"),
     1, GL_FALSE, glm::value_ptr(model)
   );
-  models_draw_model(&state->models[0], goose_shader_asset->shader.program);
+  ModelAsset *goose_model_asset = asset_get_model_asset_by_name(state, "goose");
+  models_draw_model(&goose_model_asset->model, goose_shader_asset->shader.program);
 }
 
 void main_loop(GLFWwindow *window, State *state) {
@@ -486,7 +487,7 @@ int main() {
   if (!window) {
     return -1;
   }
-  init_objects(memory, state);
+  init_objects(&memory, state);
   main_loop(window, state);
   destroy_window();
   return 0;
