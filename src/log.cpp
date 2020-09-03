@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 
-void log_error(const char* format, ...) {
+void log_error(const char *format, ...) {
   va_list vargs;
   fprintf(stderr, "error | ");
   va_start(vargs, format);
@@ -11,7 +11,7 @@ void log_error(const char* format, ...) {
   va_end(vargs);
 }
 
-void log_info(const char* format, ...) {
+void log_info(const char *format, ...) {
   va_list vargs;
   fprintf(stdout, "info  | ");
   va_start(vargs, format);

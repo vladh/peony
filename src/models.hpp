@@ -15,8 +15,8 @@ typedef struct Vertex {
 
 typedef struct Texture {
   uint32 id;
-  const char* type;
-  const char* filename;
+  const char *type;
+  const char *filename;
 } Texture;
 
 typedef struct Mesh {
@@ -34,7 +34,7 @@ typedef struct Mesh {
 typedef struct Model {
   Mesh meshes[128];
   uint32 n_meshes;
-  const char* directory;
+  const char *directory;
 } Model;
 
 uint32 models_load_texture_from_file(const char *filename, const char *directory);
@@ -43,6 +43,6 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
 void models_draw_mesh(Mesh *mesh, uint32 shader_program);
 void models_draw_model(Model *model, uint32 shader_program);
 void models_load_model_node(Model *model, aiNode *node, const aiScene *scene);
-void models_load_model(Model *model, const char* directory, const char* filename);
+void models_load_model(Model *model, const char *directory, const char *filename);
 
 #endif
