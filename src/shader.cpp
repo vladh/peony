@@ -72,16 +72,11 @@ uint32 shader_make_program_with_paths(const char *vert_path, const char *frag_pa
 }
 
 ShaderAsset* shader_make_asset(
-  State *state, const char *name,
+  ShaderAsset *asset, const char *name,
   const char *vertex_path, const char* frag_path
 ) {
   uint32 program = shader_make_program_with_paths(vertex_path, frag_path);
-
-  assert(state->n_shader_assets < state->max_n_shader_assets);
-  ShaderAsset *asset = state->shader_assets + state->n_shader_assets++;
-
   asset->info.name = name;
   asset->shader.program = program;
-
   return asset;
 }

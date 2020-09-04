@@ -15,13 +15,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "types.hpp"
+#include "shader.hpp"
 #include "models.hpp"
+#include "asset.hpp"
 #include "memory.hpp"
+#include "control.hpp"
 #include "log.hpp"
 #include "util.hpp"
-#include "shader.hpp"
 #include "camera.hpp"
-#include "asset.hpp"
 
 
 global_variable bool32 key_states[1024] = {false};
@@ -55,27 +56,27 @@ bool32 is_key_now_up(int key) {
 
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (is_key_down(GLFW_KEY_W)) {
-    camera_move_front_back(state, 1);
+    camera_move_front_back(&state->camera, 1);
   }
 
   if (is_key_down(GLFW_KEY_S)) {
-    camera_move_front_back(state, -1);
+    camera_move_front_back(&state->camera, -1);
   }
 
   if (is_key_down(GLFW_KEY_A)) {
-    camera_move_left_right(state, -1);
+    camera_move_left_right(&state->camera, -1);
   }
 
   if (is_key_down(GLFW_KEY_D)) {
-    camera_move_left_right(state, 1);
+    camera_move_left_right(&state->camera, 1);
   }
 
   if (is_key_down(GLFW_KEY_SPACE)) {
-    camera_move_up_down(state, 1);
+    camera_move_up_down(&state->camera, 1);
   }
 
   if (is_key_down(GLFW_KEY_LEFT_CONTROL)) {
-    camera_move_up_down(state, -1);
+    camera_move_up_down(&state->camera, -1);
   }
 }
 
@@ -99,7 +100,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-  camera_update_mouse(state, x, y);
+  glm::vec2 mouse_offset = control_update(&state->control, x, y);
+  camera_update_mouse(&state->camera, mouse_offset);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -217,22 +219,10 @@ void init_state(Memory *memory, State *state) {
 
   state->n_model_assets = 0;
 
-  state->yaw = -90.0f;
-  state->pitch = 0.0f;
+  camera_init(&state->camera);
+  camera_update_matrix(&state->camera);
 
-  state->camera_pos = glm::vec3(0.0f, 0.0f, 3.0f);
-  state->camera_front = glm::vec3(0.0f, 0.0f, 0.0f);
-  state->camera_up = glm::vec3(0.0f, 1.0f, 0.0f);
-  state->camera_speed = 0.05f;
-  state->camera_fov = 90.0f;
-  state->camera_near = 0.1f;
-  state->camera_far = 100.0f;
-  camera_update_matrix(state);
-
-  state->mouse_has_moved = false;
-  state->mouse_last_x = 0.0f;
-  state->mouse_last_y = 0.0f;
-  state->mouse_sensitivity = 0.1f;
+  control_init(&state->control);
 
   state->is_wireframe_on = false;
 }
@@ -276,9 +266,28 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
+// TODO: Move somewhere else?
+ShaderAsset* get_new_shader_asset(State *state) {
+  assert(state->n_shader_assets < state->max_n_shader_assets);
+  ShaderAsset *asset = state->shader_assets + state->n_shader_assets++;
+  return asset;
+}
+
+ModelAsset* get_new_model_asset(Memory *memory, State *state) {
+  // TODO: Un-hardcode
+  assert(state->n_model_assets < 128);
+  ModelAsset *asset = (ModelAsset*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(ModelAsset)
+  );
+  state->model_assets[state->n_model_assets++] = asset;
+  return asset;
+}
+//
+
 void init_alpaca(Memory *memory, State *state) {
   shader_make_asset(
-    state, "alpaca", "src/alpaca.vert", "src/alpaca.frag"
+    get_new_shader_asset(state),
+    "alpaca", "src/alpaca.vert", "src/alpaca.frag"
   );
 
   uint32 vbo, vao, ebo;
@@ -342,16 +351,19 @@ void init_alpaca(Memory *memory, State *state) {
 
 void init_goose(Memory *memory, State *state) {
   shader_make_asset(
-    state, "goose", "src/goose.vert", "src/goose.frag"
+    get_new_shader_asset(state),
+    "goose", "src/goose.vert", "src/goose.frag"
   );
   models_make_asset(
-    memory, state, "goose", "resources/", "miniGoose.fbx"
+    get_new_model_asset(memory, state),
+    "goose", "resources/", "miniGoose.fbx"
   );
 }
 
 void init_backpack(Memory *memory, State *state) {
   shader_make_asset(
-    state, "backpack", "src/backpack.vert", "src/backpack.frag"
+    get_new_shader_asset(state),
+    "backpack", "src/backpack.vert", "src/backpack.frag"
   );
 }
 
@@ -362,7 +374,9 @@ void init_objects(Memory *memory, State *state) {
 }
 
 void draw_goose(State *state, glm::mat4 view, glm::mat4 projection) {
-  ShaderAsset *goose_shader_asset = asset_get_shader_asset_by_name(state, "goose");
+  ShaderAsset *goose_shader_asset = asset_get_shader_asset_by_name(
+    state->shader_assets, state->n_shader_assets, "goose"
+  );
   glUseProgram(goose_shader_asset->shader.program);
 
   glUniform1f(
@@ -389,12 +403,16 @@ void draw_goose(State *state, glm::mat4 view, glm::mat4 projection) {
     1, GL_FALSE, glm::value_ptr(model)
   );
 
-  ModelAsset *goose_model_asset = asset_get_model_asset_by_name(state, "goose");
+  ModelAsset *goose_model_asset = asset_get_model_asset_by_name(
+    state->model_assets, state->n_model_assets, "goose"
+  );
   models_draw_model(&goose_model_asset->model, goose_shader_asset->shader.program);
 }
 
 void draw_backpack(State *state, glm::mat4 view, glm::mat4 projection) {
-  ShaderAsset *backpack_shader_asset = asset_get_shader_asset_by_name(state, "backpack");
+  ShaderAsset *backpack_shader_asset = asset_get_shader_asset_by_name(
+    state->shader_assets, state->n_shader_assets, "backpack"
+  );
   glUseProgram(backpack_shader_asset->shader.program);
 
   glUniformMatrix4fv(
@@ -415,7 +433,9 @@ void draw_backpack(State *state, glm::mat4 view, glm::mat4 projection) {
     1, GL_FALSE, glm::value_ptr(model)
   );
 
-  ModelAsset *backpack_model_asset = asset_get_model_asset_by_name(state, "backpack");
+  ModelAsset *backpack_model_asset = asset_get_model_asset_by_name(
+    state->model_assets, state->n_model_assets, "backpack"
+  );
   models_draw_model(&backpack_model_asset->model, backpack_shader_asset->shader.program);
 }
 
@@ -429,20 +449,22 @@ void render(State *state) {
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
 
   glm::mat4 view = glm::lookAt(
-    state->camera_pos, state->camera_pos + state->camera_front, state->camera_up
+    state->camera.pos, state->camera.pos + state->camera.front, state->camera.up
   );
 
   glm::mat4 projection = glm::perspective(
-    glm::radians(state->camera_fov),
+    glm::radians(state->camera.fov),
     (real32)state->window_width / (real32)state->window_height,
-    state->camera_near, state->camera_far
+    state->camera.near, state->camera.far
   );
 
   // Alpaca
 
   glm::mat4 model = glm::mat4(1.0f);
 
-  ShaderAsset *alpaca_shader_asset = asset_get_shader_asset_by_name(state, "alpaca");
+  ShaderAsset *alpaca_shader_asset = asset_get_shader_asset_by_name(
+    state->shader_assets, state->n_shader_assets, "alpaca"
+  );
   glUseProgram(alpaca_shader_asset->shader.program);
 
   glUniform1f(
