@@ -264,23 +264,12 @@ void models_load_model(Model *model, const char *directory, const char *filename
 }
 
 ModelAsset* models_make_asset(
-  Memory *memory, State *state,
+  ModelAsset* asset,
   const char *name, const char *directory, const char *filename
 ) {
-  // TODO: Un-hardcode
-  assert(state->n_model_assets < 128);
-
-  ModelAsset *asset = (ModelAsset*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(ModelAsset)
-  );
-
-  state->model_assets[state->n_model_assets++] = asset;
-
   asset->info.name = name;
-
   models_load_model(
     &asset->model, directory, filename
   );
-
   return asset;
 }

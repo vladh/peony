@@ -6,31 +6,16 @@
 #include <glm/glm.hpp>
 
 #include "types.hpp"
+#include "asset.hpp"
 #include "models.hpp"
+#include "control.hpp"
+#include "camera.hpp"
 
 
 #define kilobytes(value) ((value)*1024LL)
 #define megabytes(value) (kilobytes(value)*1024LL)
 #define gigabytes(value) (megabytes(value)*1024LL)
 #define terabytes(value) (gigabytes(value)*1024LL)
-
-typedef struct Shader {
-  uint32 program;
-} Shader;
-
-typedef struct AssetInfo {
-  const char *name;
-} AssetInfo;
-
-typedef struct ModelAsset {
-  AssetInfo info;
-  Model model;
-} ModelAsset;
-
-typedef struct ShaderAsset {
-  AssetInfo info;
-  Shader shader;
-} ShaderAsset;
 
 typedef struct State {
   uint32 window_width;
@@ -51,21 +36,9 @@ typedef struct State {
   uint32 vao;
   uint32 test_texture;
 
-  real64 yaw;
-  real64 pitch;
+  Camera camera;
 
-  glm::vec3 camera_pos;
-  glm::vec3 camera_front;
-  glm::vec3 camera_up;
-  real32 camera_speed;
-  real32 camera_fov;
-  real32 camera_near;
-  real32 camera_far;
-
-  bool32 mouse_has_moved;
-  real64 mouse_last_x;
-  real64 mouse_last_y;
-  real64 mouse_sensitivity;
+  Control control;
 
   bool32 is_wireframe_on;
 

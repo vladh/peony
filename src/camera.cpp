@@ -2,51 +2,51 @@
 #include "memory.hpp"
 
 
-void camera_update_matrix(State *state) {
-  state->camera_front = glm::normalize(glm::vec3(
-    cos(glm::radians(state->yaw)) * cos(glm::radians(state->pitch)),
-    -sin(glm::radians(state->pitch)),
-    sin(glm::radians(state->yaw)) * cos(glm::radians(state->pitch))
+void camera_init(Camera *camera) {
+  camera->yaw = -90.0f;
+  camera->pitch = 0.0f;
+  camera->pos = glm::vec3(0.0f, 0.0f, 3.0f);
+  camera->front = glm::vec3(0.0f, 0.0f, 0.0f);
+  camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
+  camera->speed = 0.05f;
+  camera->fov = 90.0f;
+  camera->near = 0.1f;
+  camera->far = 100.0f;
+}
+
+void camera_update_matrix(Camera *camera) {
+  camera->front = glm::normalize(glm::vec3(
+    cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
+    -sin(glm::radians(camera->pitch)),
+    sin(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch))
   ));
 }
 
-void camera_move_front_back(State *state, real32 sign) {
-    state->camera_pos += sign * state->camera_speed * state->camera_front;
+void camera_move_front_back(Camera *camera, real32 sign) {
+  camera->pos += sign * camera->speed * camera->front;
 }
 
-void camera_move_left_right(State *state, real32 sign) {
-    glm::vec3 direction = glm::normalize(glm::cross(state->camera_front, state->camera_up));
-    state->camera_pos += sign * direction * state->camera_speed;
+void camera_move_left_right(Camera *camera, real32 sign) {
+  glm::vec3 direction = glm::normalize(glm::cross(
+    camera->front, camera->up
+  ));
+  camera->pos += sign * direction * camera->speed;
 }
 
-void camera_move_up_down(State *state, real32 sign) {
-    state->camera_pos += sign * state->camera_speed * state->camera_up;
+void camera_move_up_down(Camera *camera, real32 sign) {
+  camera->pos += sign * camera->speed * camera->up;
 }
 
-void camera_update_mouse(State *state, real64 x, real64 y) {
-  if (!state->mouse_has_moved) {
-    state->mouse_last_x = x;
-    state->mouse_last_y = y;
-    state->mouse_has_moved = true;
-  }
-
-  real64 x_offset = x - state->mouse_last_x;
-  real64 y_offset = y - state->mouse_last_y;
-  state->mouse_last_x = x;
-  state->mouse_last_y = y;
-
-  x_offset *= state->mouse_sensitivity;
-  y_offset *= state->mouse_sensitivity;
-
-  state->yaw += x_offset;
-  state->pitch += y_offset;
+void camera_update_mouse(Camera *camera, glm::vec2 mouse_offset) {
+  camera->yaw += mouse_offset.x;
+  camera->pitch += mouse_offset.y;
 
   // TODO: Do this in a better way.
-  if (state->pitch > 89.0f) {
-    state->pitch = 89.0f;
-  } else if (state->pitch < -89.0f) {
-    state->pitch = -89.0f;
+  if (camera->pitch > 89.0f) {
+    camera->pitch = 89.0f;
+  } else if (camera->pitch < -89.0f) {
+    camera->pitch = -89.0f;
   }
 
-  camera_update_matrix(state);
+  camera_update_matrix(camera);
 }
