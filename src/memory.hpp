@@ -26,6 +26,7 @@ typedef struct State {
 
   real64 t;
   bool32 is_wireframe_on;
+  bool32 is_cursor_disabled;
 
   uint32 window_width;
   uint32 window_height;
