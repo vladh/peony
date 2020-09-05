@@ -6,11 +6,11 @@
 #include "types.hpp"
 
 
-typedef struct Shader {
+struct Shader {
   uint32 program;
-} Shader;
+};
 
-typedef struct ShaderAsset ShaderAsset;
+struct ShaderAsset;
 
 void shader_assert_shader_status_ok(uint32 shader);
 void shader_assert_program_status_ok(uint32 shader);

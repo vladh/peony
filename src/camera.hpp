@@ -6,7 +6,7 @@
 #include "types.hpp"
 
 
-typedef struct Camera {
+struct Camera {
   real64 yaw;
   real64 pitch;
   glm::vec3 pos;
@@ -18,7 +18,7 @@ typedef struct Camera {
   real32 far;
   glm::mat4 view;
   glm::mat4 projection;
-} Camera;
+};
 
 void camera_init(Camera *camera);
 void camera_move_front_back(Camera *camera, real32 sign);

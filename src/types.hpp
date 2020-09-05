@@ -4,6 +4,12 @@
 #include <stdint.h>
 
 
+#define kilobytes(value) ((value) * 1024LL)
+#define megabytes(value) (kilobytes(value) * 1024LL)
+#define gigabytes(value) (megabytes(value) * 1024LL)
+#define terabytes(value) (gigabytes(value) * 1024LL)
+#define len(x) (sizeof(x) / sizeof((x)[0]))
+
 typedef int8_t int8;
 typedef int16_t int16;
 typedef int32_t int32;
