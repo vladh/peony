@@ -58,6 +58,10 @@ bool32 entity_has_tag(Entity *entity, const char *tag);
 Entity* entity_get_by_name(
   Entity *entities, uint32 n_entities, const char *name
 );
+void entity_get_all_with_tag(
+  Entity *entities, uint32 n_entities, const char *tag_name,
+  Entity *found_entities[], uint32 *n_found_entities
+);
 
 #endif
 

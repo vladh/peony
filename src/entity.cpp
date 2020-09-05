@@ -59,3 +59,16 @@ Entity* entity_get_by_name(
   }
   return nullptr;
 }
+
+void entity_get_all_with_tag(
+  Entity *entities, uint32 n_entities, const char *tag_name,
+  Entity *found_entities[], uint32 *n_found_entities
+) {
+  (*n_found_entities) = 0;
+  for (uint32 idx = 0; idx < n_entities; idx++) {
+    Entity *entity = entities + idx;
+    if (entity_has_tag(entity, tag_name)) {
+      found_entities[(*n_found_entities)++] = entity;
+    }
+  }
+}
