@@ -9,13 +9,16 @@
 #include "asset.hpp"
 #include "models.hpp"
 #include "control.hpp"
+#include "shader.hpp"
 #include "camera.hpp"
+#include "entity.hpp"
 
 
-#define kilobytes(value) ((value)*1024LL)
-#define megabytes(value) (kilobytes(value)*1024LL)
-#define gigabytes(value) (megabytes(value)*1024LL)
-#define terabytes(value) (gigabytes(value)*1024LL)
+#define kilobytes(value) ((value) * 1024LL)
+#define megabytes(value) (kilobytes(value) * 1024LL)
+#define gigabytes(value) (megabytes(value) * 1024LL)
+#define terabytes(value) (gigabytes(value) * 1024LL)
+#define len(x) (sizeof(x) / sizeof(x[0]))
 
 typedef struct State {
   uint32 window_width;
@@ -25,6 +28,10 @@ typedef struct State {
   real32 test_vertices[512];
   real32 test_indices[512];
   glm::vec3 cube_positions[32];
+
+  Entity *entities;
+  uint32 n_entities;
+  uint32 max_n_entities;
 
   ShaderAsset *shader_assets;
   uint32 n_shader_assets;

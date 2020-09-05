@@ -32,6 +32,7 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 -fp:fast ^
 -nologo ^
 -sdl ^
+-std:c++latest ^
 /D_ITERATOR_DEBUG_LEVEL=0
 
 :: Linker flags
@@ -49,7 +50,7 @@ opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib shell32.lib
 
 pushd build
 
-cl %CommonCompilerFlags% ..\src\glad.c ..\src\log.cpp ..\src\shader.cpp ..\src\util.cpp ..\src\camera.cpp ..\src\models.cpp ..\src\asset.cpp ..\src\memory.cpp ..\src\control.cpp ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
+cl %CommonCompilerFlags% ..\src\glad.c ..\src\log.cpp ..\src\shader.cpp ..\src\util.cpp ..\src\camera.cpp ..\src\models.cpp ..\src\asset.cpp ..\src\memory.cpp ..\src\control.cpp ..\src\entity.cpp ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
 :: cl %CommonCompilerFlags% ..\src\glad.c ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
 
 popd

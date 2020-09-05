@@ -29,6 +29,8 @@
   <ItemGroup>
     <ClCompile Include="..\src\asset.cpp" />
     <ClCompile Include="..\src\camera.cpp" />
+    <ClCompile Include="..\src\control.cpp" />
+    <ClCompile Include="..\src\entity.cpp" />
     <ClCompile Include="..\src\gl.cpp" />
     <ClCompile Include="..\src\glad.c" />
     <ClCompile Include="..\src\log.cpp" />
@@ -40,6 +42,8 @@
   <ItemGroup>
     <ClInclude Include="..\src\asset.hpp" />
     <ClInclude Include="..\src\camera.hpp" />
+    <ClInclude Include="..\src\control.hpp" />
+    <ClInclude Include="..\src\entity.hpp" />
     <ClInclude Include="..\src\gl.hpp" />
     <ClInclude Include="..\src\log.hpp" />
     <ClInclude Include="..\src\memory.hpp" />
@@ -173,6 +177,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
