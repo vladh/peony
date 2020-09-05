@@ -30,13 +30,26 @@ global_variable bool32 key_states[1024] = {false};
 global_variable bool32 prev_key_states[1024] = {true};
 
 
-void toggle_wireframe(State *state) {
+void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_wireframe_on) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  } else {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
+
+  if (state->is_cursor_disabled) {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  } else {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
+}
+
+void toggle_wireframe(State *state) {
   state->is_wireframe_on = !state->is_wireframe_on;
+}
+
+void toggle_cursor(State *state) {
+  state->is_cursor_disabled = !state->is_cursor_disabled;
 }
 
 bool32 is_key_down(int key) {
@@ -88,6 +101,12 @@ void process_input_transient(GLFWwindow *window, State *state) {
 
   if (is_key_now_down(GLFW_KEY_Q)) {
     toggle_wireframe(state);
+    update_drawing_options(state, window);
+  }
+
+  if (is_key_now_down(GLFW_KEY_C)) {
+    toggle_cursor(state);
+    update_drawing_options(state, window);
   }
 }
 
@@ -215,10 +234,12 @@ void init_state(Memory *memory, State *state) {
 
   state->n_entities = 0;
   state->max_n_entities = 128;
+  log_info("Pushing memory for entities");
   state->entities = (Entity*)memory_push_memory_to_pool(
     &memory->asset_memory_pool, sizeof(Entity) * state->max_n_entities
   );
 
+  log_info("Pushing memory for shader assets");
   state->n_shader_assets = 0;
   state->max_n_shader_assets = 128;
   state->shader_assets = (ShaderAsset*)memory_push_memory_to_pool(
@@ -233,6 +254,7 @@ void init_state(Memory *memory, State *state) {
   control_init(&state->control);
 
   state->is_wireframe_on = false;
+  state->is_cursor_disabled = true;
 }
 
 GLFWwindow* init_window(State *state) {
@@ -267,7 +289,7 @@ GLFWwindow* init_window(State *state) {
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetKeyCallback(window, key_callback);
 
-  glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  update_drawing_options(state, window);
 
   glfwSetWindowUserPointer(window, state);
 
@@ -284,6 +306,7 @@ ShaderAsset* get_new_shader_asset(State *state) {
 ModelAsset* get_new_model_asset(Memory *memory, State *state) {
   // TODO: Un-hardcode
   assert(state->n_model_assets < len(state->model_assets));
+  log_info("Pushing memory for model");
   ModelAsset *asset = (ModelAsset*)memory_push_memory_to_pool(
     &memory->asset_memory_pool, sizeof(ModelAsset)
   );
