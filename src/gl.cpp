@@ -343,7 +343,7 @@ void init_alpaca(Memory *memory, State *state) {
   state->test_vao = vao;
 }
 
-void init_goose(Memory *memory, State *state) {
+void init_geese(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     get_new_shader_asset(state),
     "goose", "src/goose.vert", "src/goose.frag"
@@ -353,18 +353,28 @@ void init_goose(Memory *memory, State *state) {
     "goose", "resources/", "miniGoose.fbx"
   );
 
-  Entity *entity = entity_make(
-    get_new_entity(memory, state),
-    "goose",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::angleAxis(
-      glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-  entity_set_shader_asset(entity, shader_asset);
-  entity_set_model_asset(entity, model_asset);
+  uint32 n_geese = 10;
+
+  for (uint8 idx = 0; idx < n_geese; idx++) {
+    Entity *entity = entity_make(
+      get_new_entity(memory, state),
+      "goose",
+      ENTITY_MODEL,
+      glm::vec3(0.0f + idx * 3.0f, 0.0f, 0.0f),
+      glm::vec3(
+        1.0f / (real32)(idx + 1),
+        1.0f / (real32)(idx + 1),
+        1.0f / (real32)(idx + 1)
+      ),
+      glm::angleAxis(
+        glm::radians(-90.0f + (15.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
+      )
+    );
+
+    entity_set_shader_asset(entity, shader_asset);
+    entity_set_model_asset(entity, model_asset);
+    entity_add_tag(entity, "goose");
+  }
 }
 
 #if 0
@@ -381,7 +391,7 @@ void init_objects(Memory *memory, State *state) {
   init_backpack(memory, state);
 #endif
 
-  init_goose(memory, state);
+  init_geese(memory, state);
   init_alpaca(memory, state);
 }
 
@@ -516,10 +526,28 @@ void render(Memory *memory, State *state) {
 
   draw_alpaca(memory, state);
 
+#if 0
   Entity *goose_entity = entity_get_by_name(
     state->entities, state->n_entities, "goose"
   );
-  draw_entity(state, goose_entity);
+#endif
+
+  // TODO: Un-hardcode?
+  Entity *goose_entities[64];
+  uint32 n_goose_entities;
+
+  entity_get_all_with_tag(
+    state->entities, state->n_entities, "goose",
+    goose_entities, &n_goose_entities
+  );
+
+  for (uint32 idx = 0; idx < n_goose_entities; idx++) {
+    draw_entity(state, goose_entities[idx]);
+    goose_entities[idx]->rotation = glm::angleAxis(
+      glm::radians(-90.0f + (30.0f * idx + (15.0f * (real32)state->t))),
+      glm::vec3(1.0f, 0.0f, 0.0f)
+    );
+  }
 }
 
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
