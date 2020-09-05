@@ -14,12 +14,24 @@ void camera_init(Camera *camera) {
   camera->far = 100.0f;
 }
 
-void camera_update_matrix(Camera *camera) {
+void camera_update_matrices(
+  Camera *camera, real64 window_width, real64 window_height
+) {
   camera->front = glm::normalize(glm::vec3(
     cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
     -sin(glm::radians(camera->pitch)),
     sin(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch))
   ));
+
+  camera->view = glm::lookAt(
+    camera->pos, camera->pos + camera->front, camera->up
+  );
+
+  camera->projection = glm::perspective(
+    glm::radians(camera->fov),
+    (real32)window_width / (real32)window_height,
+    camera->near, camera->far
+  );
 }
 
 void camera_move_front_back(Camera *camera, real32 sign) {
@@ -42,11 +54,10 @@ void camera_update_mouse(Camera *camera, glm::vec2 mouse_offset) {
   camera->pitch += mouse_offset.y;
 
   // TODO: Do this in a better way.
+  // Do we still need this now that we're using quaternions?
   if (camera->pitch > 89.0f) {
     camera->pitch = 89.0f;
   } else if (camera->pitch < -89.0f) {
     camera->pitch = -89.0f;
   }
-
-  camera_update_matrix(camera);
 }

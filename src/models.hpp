@@ -39,7 +39,7 @@ typedef struct Model {
   const char *directory;
 } Model;
 
-uint32 models_load_texture_from_file(const char *filename, const char *directory);
+uint32 models_load_texture_from_file(const char *directory, const char *filename);
 void models_setup_mesh(Mesh *mesh);
 void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene);
 void models_draw_mesh(Mesh *mesh, uint32 shader_program);
