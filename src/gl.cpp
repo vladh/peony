@@ -197,7 +197,7 @@ void init_state(Memory *memory, State *state) {
     0, 1, 3, // first triangle
     1, 2, 3 // second triangle
   };
-  glm::vec3 cube_positions[] = {
+  glm::vec3 test_cube_positions[] = {
     glm::vec3( 0.0f,  0.0f,  0.0f),
     glm::vec3( 2.0f,  5.0f, -15.0f),
     glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -211,7 +211,7 @@ void init_state(Memory *memory, State *state) {
   };
   memcpy(state->test_vertices, test_vertices, sizeof(test_vertices));
   memcpy(state->test_indices, test_indices, sizeof(test_indices));
-  memcpy(state->cube_positions, cube_positions, sizeof(cube_positions));
+  memcpy(state->test_cube_positions, test_cube_positions, sizeof(test_cube_positions));
 
   state->n_entities = 0;
   state->max_n_entities = 128;
@@ -340,7 +340,7 @@ void init_alpaca(Memory *memory, State *state) {
     "resources/", "alpaca.jpg"
   );
 
-  state->vao = vao;
+  state->test_vao = vao;
 }
 
 void init_goose(Memory *memory, State *state) {
@@ -487,11 +487,10 @@ void draw_alpaca(Memory *memory, State *state) {
     1, GL_FALSE, glm::value_ptr(state->camera.projection)
   );
 
-  glBindVertexArray(state->vao);
-  /* glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); */
+  glBindVertexArray(state->test_vao);
   for (uint8 i = 0; i < 10; i++) {
     real32 model_angle = 20.0f * i;
-    model = glm::translate(glm::mat4(1.0f), state->cube_positions[i]);
+    model = glm::translate(glm::mat4(1.0f), state->test_cube_positions[i]);
     model = glm::rotate(model, (real32)state->t * glm::radians(model_angle), glm::vec3(1.0f, 0.3f, 0.5f));
     glUniformMatrix4fv(
       glGetUniformLocation(alpaca_shader_asset->shader.program, "model"),
