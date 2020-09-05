@@ -21,13 +21,21 @@
 #define len(x) (sizeof(x) / sizeof(x[0]))
 
 typedef struct State {
+  Camera camera;
+  Control control;
+
+  real64 t;
+  bool32 is_wireframe_on;
+
   uint32 window_width;
   uint32 window_height;
   char window_title[32];
 
+  uint32 test_vao;
+  uint32 test_texture;
   real32 test_vertices[512];
   real32 test_indices[512];
-  glm::vec3 cube_positions[32];
+  glm::vec3 test_cube_positions[32];
 
   Entity *entities;
   uint32 n_entities;
@@ -40,16 +48,6 @@ typedef struct State {
   ModelAsset *model_assets[128];
   uint32 n_model_assets;
 
-  uint32 vao;
-  uint32 test_texture;
-
-  Camera camera;
-
-  Control control;
-
-  bool32 is_wireframe_on;
-
-  real64 t;
 } State;
 
 typedef struct MemoryPool {
