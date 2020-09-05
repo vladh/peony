@@ -7,21 +7,21 @@
 #include "types.hpp"
 
 
-typedef struct ModelAsset ModelAsset;
+struct ModelAsset;
 
-typedef struct Vertex {
+struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
   glm::vec2 tex_coords;
-} Vertex;
+};
 
-typedef struct Texture {
+struct Texture {
   uint32 id;
   const char *type;
   const char *filename;
-} Texture;
+};
 
-typedef struct Mesh {
+struct Mesh {
   Vertex vertices[32768];
   uint32 n_vertices;
   uint32 indices[32768];
@@ -31,13 +31,13 @@ typedef struct Mesh {
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
-} Mesh;
+};
 
-typedef struct Model {
+struct Model {
   Mesh meshes[128];
   uint32 n_meshes;
   const char *directory;
-} Model;
+};
 
 uint32 models_load_texture_from_file(const char *directory, const char *filename);
 void models_setup_mesh(Mesh *mesh);

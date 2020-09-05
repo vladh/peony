@@ -25,11 +25,18 @@
 #include "log.hpp"
 #include "util.hpp"
 #include "camera.hpp"
+#include "array.hpp"
+
+/* template <typename T> */
+/* T* array_push(Array<T> *array) { */
+/*   assert(array->size < array->max_size); */
+/*   T* new_item = array->items[array->size++]; */
+/*   return new_item; */
+/* } */
 
 
 global_variable bool32 key_states[1024] = {false};
 global_variable bool32 prev_key_states[1024] = {true};
-
 
 void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_wireframe_on) {
@@ -233,18 +240,25 @@ void init_state(Memory *memory, State *state) {
   memcpy(state->test_indices, test_indices, sizeof(test_indices));
   memcpy(state->test_cube_positions, test_cube_positions, sizeof(test_cube_positions));
 
-  state->n_entities = 0;
-  state->max_n_entities = 128;
   log_info("Pushing memory for entities");
-  state->entities = (Entity*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Entity) * state->max_n_entities
+  state->entities.size = 0;
+  state->entities.max_size = 128;
+  state->entities.items = (Entity*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Entity) * state->entities.max_size
+  );
+
+  log_info("Pushing memory for found entities");
+  state->found_entities.size = 0;
+  state->found_entities.max_size = 128;
+  state->found_entities.items = (Entity**)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Entity*) * state->found_entities.max_size
   );
 
   log_info("Pushing memory for shader assets");
-  state->n_shader_assets = 0;
-  state->max_n_shader_assets = 128;
-  state->shader_assets = (ShaderAsset*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(ShaderAsset) * state->max_n_shader_assets
+  state->shader_assets.size = 0;
+  state->shader_assets.max_size = 128;
+  state->shader_assets.items = (ShaderAsset*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(ShaderAsset) * state->shader_assets.max_size
   );
 
   state->n_model_assets = 0;
@@ -298,14 +312,7 @@ GLFWwindow* init_window(State *state) {
 }
 
 // TODO: Move somewhere else?
-ShaderAsset* get_new_shader_asset(State *state) {
-  assert(state->n_shader_assets < state->max_n_shader_assets);
-  ShaderAsset *asset = state->shader_assets + state->n_shader_assets++;
-  return asset;
-}
-
 ModelAsset* get_new_model_asset(Memory *memory, State *state) {
-  // TODO: Un-hardcode
   assert(state->n_model_assets < len(state->model_assets));
   log_info("Pushing memory for model");
   ModelAsset *asset = (ModelAsset*)memory_push_memory_to_pool(
@@ -314,16 +321,11 @@ ModelAsset* get_new_model_asset(Memory *memory, State *state) {
   state->model_assets[state->n_model_assets++] = asset;
   return asset;
 }
-Entity* get_new_entity(Memory *memory, State *state) {
-  assert(state->n_entities < state->max_n_entities);
-  Entity *entity = state->entities + state->n_entities++;
-  return entity;
-}
 //
 
 void init_alpaca(Memory *memory, State *state) {
   shader_make_asset(
-    get_new_shader_asset(state),
+    array_push<ShaderAsset>(&state->shader_assets),
     "alpaca", "src/alpaca.vert", "src/alpaca.frag"
   );
 
@@ -369,7 +371,7 @@ void init_alpaca(Memory *memory, State *state) {
 
 void init_geese(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
-    get_new_shader_asset(state),
+    array_push<ShaderAsset>(&state->shader_assets),
     "goose", "src/goose.vert", "src/goose.frag"
   );
   ModelAsset *model_asset = models_make_asset(
@@ -382,7 +384,7 @@ void init_geese(Memory *memory, State *state) {
   for (uint8 idx = 0; idx < n_geese; idx++) {
     real64 scale = util_random(0.2f, 0.4f);
     Entity *entity = entity_make(
-      get_new_entity(memory, state),
+      array_push<Entity>(&state->entities),
       "goose",
       ENTITY_MODEL,
       glm::vec3(
@@ -405,7 +407,7 @@ void init_geese(Memory *memory, State *state) {
 #if 0
 void init_backpack(Memory *memory, State *state) {
   shader_make_asset(
-    get_new_shader_asset(state),
+    (ShaderAsset*)array_push<ShaderAsset>(&state->shader_assets),
     "backpack", "src/backpack.vert", "src/backpack.frag"
   );
 }
@@ -503,7 +505,7 @@ void draw_alpaca(Memory *memory, State *state) {
   glm::mat4 model = glm::mat4(1.0f);
 
   ShaderAsset *alpaca_shader_asset = asset_get_shader_asset_by_name(
-    state->shader_assets, state->n_shader_assets, "alpaca"
+    &state->shader_assets, "alpaca"
   );
   glUseProgram(alpaca_shader_asset->shader.program);
 
@@ -547,11 +549,11 @@ void render(Memory *memory, State *state) {
   glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  draw_alpaca(memory, state);
+
 #if 0
   draw_backpack(state, view, projection);
 #endif
-
-  draw_alpaca(memory, state);
 
 #if 0
   Entity *goose_entity = entity_get_by_name(
@@ -559,18 +561,14 @@ void render(Memory *memory, State *state) {
   );
 #endif
 
-  // TODO: Un-hardcode?
-  Entity *goose_entities[64];
-  uint32 n_goose_entities;
-
   entity_get_all_with_tag(
-    state->entities, state->n_entities, "goose",
-    goose_entities, &n_goose_entities
+    state->entities, "goose", &state->found_entities
   );
 
-  for (uint32 idx = 0; idx < n_goose_entities; idx++) {
-    draw_entity(state, goose_entities[idx]);
-    goose_entities[idx]->rotation *= glm::angleAxis(
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    draw_entity(state, entity);
+    entity->rotation *= glm::angleAxis(
       glm::radians(15.0f * (real32)state->dt),
       glm::vec3(1.0f, 0.0f, 0.0f)
     );

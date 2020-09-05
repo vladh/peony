@@ -4,10 +4,10 @@
 
 
 ShaderAsset* asset_get_shader_asset_by_name(
-  ShaderAsset *shader_assets, uint32 n_shader_assets, const char *name
+  Array<ShaderAsset> *shader_assets, const char *name
 ) {
-  for (uint32 idx = 0; idx < n_shader_assets; idx++) {
-    ShaderAsset *asset = shader_assets + idx;
+  for (uint32 idx = 0; idx < shader_assets->size; idx++) {
+    ShaderAsset *asset = shader_assets->items + idx;
     if (strcmp(asset->info.name, name) == 0) {
       return asset;
     }

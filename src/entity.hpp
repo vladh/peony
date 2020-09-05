@@ -10,13 +10,16 @@
 
 #include "shader.hpp"
 #include "models.hpp"
+#include "log.hpp"
+#include "types.hpp"
+#include "array.hpp"
 
 
-typedef enum EntityType {
+enum EntityType {
   ENTITY_MODEL
-} EntityType;
+};
 
-typedef struct EntityTag {
+struct EntityTag {
   const char *name;
 
   EntityTag(const char *name = "") : name(name) {
@@ -29,9 +32,9 @@ typedef struct EntityTag {
   bool operator==(const EntityTag &rhs) const {
     return strcmp(name, rhs.name);
   }
-} EntityTag;
+};
 
-typedef struct Entity {
+struct Entity {
   const char *name;
   EntityType type;
   glm::vec3 position;
@@ -40,7 +43,7 @@ typedef struct Entity {
   ShaderAsset *shader_asset;
   ModelAsset *model_asset;
   std::set<EntityTag> tags;
-} Entity;
+};
 
 Entity* entity_make(
   Entity *entity, const char *name,
@@ -59,8 +62,8 @@ Entity* entity_get_by_name(
   Entity *entities, uint32 n_entities, const char *name
 );
 void entity_get_all_with_tag(
-  Entity *entities, uint32 n_entities, const char *tag_name,
-  Entity *found_entities[], uint32 *n_found_entities
+  Array<Entity> entities, const char *tag_name,
+  Array<Entity*> *found_entities
 );
 
 #endif
