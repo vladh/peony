@@ -25,6 +25,7 @@ typedef struct State {
   Control control;
 
   real64 t;
+  real64 dt;
   bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
 

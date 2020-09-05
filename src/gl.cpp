@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include <stdio.h>
 
 #include <glad/glad.h>
@@ -379,18 +380,19 @@ void init_geese(Memory *memory, State *state) {
   uint32 n_geese = 10;
 
   for (uint8 idx = 0; idx < n_geese; idx++) {
+    real64 scale = util_random(0.2f, 0.4f);
     Entity *entity = entity_make(
       get_new_entity(memory, state),
       "goose",
       ENTITY_MODEL,
-      glm::vec3(0.0f + idx * 3.0f, 0.0f, 0.0f),
       glm::vec3(
-        1.0f / (real32)(idx + 1),
-        1.0f / (real32)(idx + 1),
-        1.0f / (real32)(idx + 1)
+        util_random(-8.0f, 8.0f),
+        util_random(-8.0f, 8.0f),
+        util_random(-8.0f, 8.0f)
       ),
+      glm::vec3(scale, scale, scale),
       glm::angleAxis(
-        glm::radians(-90.0f + (15.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
+        glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
 
@@ -536,7 +538,9 @@ void draw_alpaca(Memory *memory, State *state) {
 }
 
 void render(Memory *memory, State *state) {
-  state->t = glfwGetTime();
+  real64 t_now = glfwGetTime();
+  state->dt = t_now - state->t;
+  state->t = t_now;
 
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
 
@@ -566,8 +570,8 @@ void render(Memory *memory, State *state) {
 
   for (uint32 idx = 0; idx < n_goose_entities; idx++) {
     draw_entity(state, goose_entities[idx]);
-    goose_entities[idx]->rotation = glm::angleAxis(
-      glm::radians(-90.0f + (30.0f * idx + (15.0f * (real32)state->t))),
+    goose_entities[idx]->rotation *= glm::angleAxis(
+      glm::radians(15.0f * (real32)state->dt),
       glm::vec3(1.0f, 0.0f, 0.0f)
     );
   }
@@ -587,6 +591,7 @@ void destroy_window() {
 }
 
 int main() {
+  srand((uint32)time(NULL));
   Memory memory = init_memory();
   State *state = (State*)memory.state_memory;
   init_state(&memory, state);
