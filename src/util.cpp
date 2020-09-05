@@ -45,3 +45,9 @@ char* util_load_file(const char *path) {
 
   return string;
 }
+
+real64 util_random(real64 min, real64 max) {
+  uint32 r = rand();
+  real64 r_normalized = (real64)r / (real64)RAND_MAX;
+  return min + ((r_normalized) * (max - min));
+}
