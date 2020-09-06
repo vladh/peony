@@ -27,16 +27,6 @@
 #include "camera.hpp"
 #include "array.hpp"
 
-/* template <typename T> */
-/* T* array_push(Array<T> *array) { */
-/*   assert(array->size < array->max_size); */
-/*   T* new_item = array->items[array->size++]; */
-/*   return new_item; */
-/* } */
-
-
-global_variable bool32 key_states[1024] = {false};
-global_variable bool32 prev_key_states[1024] = {true};
 
 void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_wireframe_on) {
@@ -60,59 +50,59 @@ void toggle_cursor(State *state) {
   state->is_cursor_disabled = !state->is_cursor_disabled;
 }
 
-bool32 is_key_down(int key) {
-  return key_states[key];
+bool32 is_key_down(State *state, int key) {
+  return state->key_states[key];
 }
 
-bool32 is_key_up(int key) {
-  return !key_states[key];
+bool32 is_key_up(State *state, int key) {
+  return !state->key_states[key];
 }
 
-bool32 is_key_now_down(int key) {
-  return key_states[key] && !prev_key_states[key];
+bool32 is_key_now_down(State *state, int key) {
+  return state->key_states[key] && !state->prev_key_states[key];
 }
 
-bool32 is_key_now_up(int key) {
-  return !key_states[key] && prev_key_states[key];
+bool32 is_key_now_up(State *state, int key) {
+  return !state->key_states[key] && state->prev_key_states[key];
 }
 
 void process_input_continuous(GLFWwindow *window, State *state) {
-  if (is_key_down(GLFW_KEY_W)) {
+  if (is_key_down(state, GLFW_KEY_W)) {
     camera_move_front_back(&state->camera, 1);
   }
 
-  if (is_key_down(GLFW_KEY_S)) {
+  if (is_key_down(state, GLFW_KEY_S)) {
     camera_move_front_back(&state->camera, -1);
   }
 
-  if (is_key_down(GLFW_KEY_A)) {
+  if (is_key_down(state, GLFW_KEY_A)) {
     camera_move_left_right(&state->camera, -1);
   }
 
-  if (is_key_down(GLFW_KEY_D)) {
+  if (is_key_down(state, GLFW_KEY_D)) {
     camera_move_left_right(&state->camera, 1);
   }
 
-  if (is_key_down(GLFW_KEY_SPACE)) {
+  if (is_key_down(state, GLFW_KEY_SPACE)) {
     camera_move_up_down(&state->camera, 1);
   }
 
-  if (is_key_down(GLFW_KEY_LEFT_CONTROL)) {
+  if (is_key_down(state, GLFW_KEY_LEFT_CONTROL)) {
     camera_move_up_down(&state->camera, -1);
   }
 }
 
 void process_input_transient(GLFWwindow *window, State *state) {
-  if (is_key_now_down(GLFW_KEY_ESCAPE)) {
+  if (is_key_now_down(state, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (is_key_now_down(GLFW_KEY_Q)) {
+  if (is_key_now_down(state, GLFW_KEY_Q)) {
     toggle_wireframe(state);
     update_drawing_options(state, window);
   }
 
-  if (is_key_now_down(GLFW_KEY_C)) {
+  if (is_key_now_down(state, GLFW_KEY_C)) {
     toggle_cursor(state);
     update_drawing_options(state, window);
   }
@@ -136,11 +126,11 @@ void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   State *state = (State*)glfwGetWindowUserPointer(window);
 
-  prev_key_states[key] = key_states[key];
+  state->prev_key_states[key] = state->key_states[key];
   if (action == GLFW_PRESS) {
-    key_states[key] = true;
+    state->key_states[key] = true;
   } else if (action == GLFW_RELEASE) {
-    key_states[key] = false;
+    state->key_states[key] = false;
   }
 
   process_input_transient(window, state);
@@ -261,7 +251,12 @@ void init_state(Memory *memory, State *state) {
     &memory->asset_memory_pool, sizeof(ShaderAsset) * state->shader_assets.max_size
   );
 
-  state->n_model_assets = 0;
+  log_info("Pushing memory for model assets");
+  state->model_assets.size = 0;
+  state->model_assets.max_size = 32;
+  state->model_assets.items = (ModelAsset**)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(ModelAsset*) * state->model_assets.max_size
+  );
 
   camera_init(&state->camera);
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
@@ -270,6 +265,11 @@ void init_state(Memory *memory, State *state) {
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
+
+  for (uint32 idx = 0; idx < len(state->key_states); idx++) {
+    state->key_states[idx] = false;
+    state->prev_key_states[idx] = true;
+  }
 }
 
 GLFWwindow* init_window(State *state) {
@@ -310,18 +310,6 @@ GLFWwindow* init_window(State *state) {
 
   return window;
 }
-
-// TODO: Move somewhere else?
-ModelAsset* get_new_model_asset(Memory *memory, State *state) {
-  assert(state->n_model_assets < len(state->model_assets));
-  log_info("Pushing memory for model");
-  ModelAsset *asset = (ModelAsset*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(ModelAsset)
-  );
-  state->model_assets[state->n_model_assets++] = asset;
-  return asset;
-}
-//
 
 void init_alpaca(Memory *memory, State *state) {
   shader_make_asset(
@@ -375,7 +363,12 @@ void init_geese(Memory *memory, State *state) {
     "goose", "src/goose.vert", "src/goose.frag"
   );
   ModelAsset *model_asset = models_make_asset(
-    get_new_model_asset(memory, state),
+    array_push<ModelAsset*>(
+      &state->model_assets,
+      (ModelAsset*)memory_push_memory_to_pool(
+        &memory->asset_memory_pool, sizeof(ModelAsset)
+      )
+    ),
     "goose", "resources/", "miniGoose.fbx"
   );
 
@@ -411,13 +404,39 @@ void init_backpack(Memory *memory, State *state) {
     "backpack", "src/backpack.vert", "src/backpack.frag"
   );
 }
+
+void draw_backpack(State *state, glm::mat4 view, glm::mat4 projection) {
+  ShaderAsset *backpack_shader_asset = asset_get_shader_asset_by_name(
+    state->shader_assets, state->n_shader_assets, "backpack"
+  );
+  glUseProgram(backpack_shader_asset->shader.program);
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(backpack_shader_asset->shader.program, "view"),
+    1, GL_FALSE, glm::value_ptr(view)
+  );
+
+  glUniformMatrix4fv(
+    glGetUniformLocation(backpack_shader_asset->shader.program, "projection"),
+    1, GL_FALSE, glm::value_ptr(projection)
+  );
+
+  glm::mat4 model = glm::mat4(1.0f);
+  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+  glUniformMatrix4fv(
+    glGetUniformLocation(backpack_shader_asset->shader.program, "model"),
+    1, GL_FALSE, glm::value_ptr(model)
+  );
+
+  ModelAsset *backpack_model_asset = asset_get_model_asset_by_name(
+    state->model_assets, state->n_model_assets, "backpack"
+  );
+  models_draw_model(&backpack_model_asset->model, backpack_shader_asset->shader.program);
+}
 #endif
 
 void init_objects(Memory *memory, State *state) {
-#if 0
-  init_backpack(memory, state);
-#endif
-
   init_geese(memory, state);
   init_alpaca(memory, state);
 }
@@ -466,38 +485,6 @@ void draw_entity(State *state, Entity *entity) {
   }
 }
 
-#if 0
-void draw_backpack(State *state, glm::mat4 view, glm::mat4 projection) {
-  ShaderAsset *backpack_shader_asset = asset_get_shader_asset_by_name(
-    state->shader_assets, state->n_shader_assets, "backpack"
-  );
-  glUseProgram(backpack_shader_asset->shader.program);
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(backpack_shader_asset->shader.program, "view"),
-    1, GL_FALSE, glm::value_ptr(view)
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(backpack_shader_asset->shader.program, "projection"),
-    1, GL_FALSE, glm::value_ptr(projection)
-  );
-
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-  glUniformMatrix4fv(
-    glGetUniformLocation(backpack_shader_asset->shader.program, "model"),
-    1, GL_FALSE, glm::value_ptr(model)
-  );
-
-  ModelAsset *backpack_model_asset = asset_get_model_asset_by_name(
-    state->model_assets, state->n_model_assets, "backpack"
-  );
-  models_draw_model(&backpack_model_asset->model, backpack_shader_asset->shader.program);
-}
-#endif
-
 void draw_alpaca(Memory *memory, State *state) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, state->test_texture);
@@ -539,27 +526,20 @@ void draw_alpaca(Memory *memory, State *state) {
   glBindVertexArray(0);
 }
 
-void render(Memory *memory, State *state) {
+void draw_background() {
+  glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void update_and_render(Memory *memory, State *state) {
   real64 t_now = glfwGetTime();
   state->dt = t_now - state->t;
   state->t = t_now;
 
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
 
-  glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+  draw_background();
   draw_alpaca(memory, state);
-
-#if 0
-  draw_backpack(state, view, projection);
-#endif
-
-#if 0
-  Entity *goose_entity = entity_get_by_name(
-    state->entities, state->n_entities, "goose"
-  );
-#endif
 
   entity_get_all_with_tag(
     state->entities, "goose", &state->found_entities
@@ -567,18 +547,18 @@ void render(Memory *memory, State *state) {
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
-    draw_entity(state, entity);
     entity->rotation *= glm::angleAxis(
       glm::radians(15.0f * (real32)state->dt),
       glm::vec3(1.0f, 0.0f, 0.0f)
     );
+    draw_entity(state, entity);
   }
 }
 
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
     process_input_continuous(window, state);
-    render(memory, state);
+    update_and_render(memory, state);
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
