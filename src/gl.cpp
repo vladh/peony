@@ -312,7 +312,7 @@ GLFWwindow* init_window(State *state) {
 }
 
 void init_alpaca(Memory *memory, State *state) {
-  shader_make_asset(
+  ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     "alpaca", "src/alpaca.vert", "src/alpaca.frag"
   );
@@ -333,19 +333,24 @@ void init_alpaca(Memory *memory, State *state) {
     GL_ELEMENT_ARRAY_BUFFER, sizeof(state->test_indices), state->test_indices, GL_STATIC_DRAW
   );
 
-  glEnableVertexAttribArray(0);
+  uint32 location;
+
+  location = glGetAttribLocation(shader_asset->shader.program, "position");
+  glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    0, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)0
+    location, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)0
   );
 
-  glEnableVertexAttribArray(1);
+  location = glGetAttribLocation(shader_asset->shader.program, "color");
+  glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    1, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)(3 * sizeof(real32))
+    location, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)(3 * sizeof(real32))
   );
 
-  glEnableVertexAttribArray(2);
+  location = glGetAttribLocation(shader_asset->shader.program, "tex_coords");
+  glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    2, 2, GL_FLOAT, false, 8 * sizeof(real32), (void*)(6 * sizeof(real32))
+    location, 2, GL_FLOAT, false, 8 * sizeof(real32), (void*)(6 * sizeof(real32))
   );
 
   glBindVertexArray(0);
@@ -363,12 +368,14 @@ void init_geese(Memory *memory, State *state) {
     "goose", "src/goose.vert", "src/goose.frag"
   );
   ModelAsset *model_asset = models_make_asset(
+    memory,
     array_push<ModelAsset*>(
       &state->model_assets,
       (ModelAsset*)memory_push_memory_to_pool(
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
+    shader_asset,
     "goose", "resources/", "miniGoose.fbx"
   );
 
