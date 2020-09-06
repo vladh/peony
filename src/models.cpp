@@ -10,6 +10,7 @@
 #include <assimp/postprocess.h>
 
 #include "memory.hpp"
+#include "array.hpp"
 #include "log.hpp"
 #include "util.hpp"
 
@@ -56,7 +57,7 @@ uint32 models_load_texture_from_file(const char *directory, const char *filename
   return texture_id;
 }
 
-void models_setup_mesh(Mesh *mesh) {
+void models_setup_mesh(Mesh *mesh, Shader shader) {
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
   glGenBuffers(1, &mesh->ebo);
@@ -65,77 +66,114 @@ void models_setup_mesh(Mesh *mesh) {
 
   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   glBufferData(
-    GL_ARRAY_BUFFER, sizeof(mesh->vertices), mesh->vertices, GL_STATIC_DRAW
+    GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->vertices.size,
+    mesh->vertices.items, GL_STATIC_DRAW
   );
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(mesh->indices), mesh->indices, GL_STATIC_DRAW
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * mesh->indices.size,
+    mesh->indices.items, GL_STATIC_DRAW
   );
 
-  glEnableVertexAttribArray(0);
+  uint32 location;
+
+  location = glGetAttribLocation(shader.program, "position");
+  glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0
+    location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0
   );
 
-  glEnableVertexAttribArray(1);
+  location = glGetAttribLocation(shader.program, "normal");
+  glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-    (void*)offsetof(Vertex, normal)
+    location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal)
   );
 
-  glEnableVertexAttribArray(2);
+  location = glGetAttribLocation(shader.program, "text_coords");
+  glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-    (void*)offsetof(Vertex, tex_coords)
+    location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords)
   );
 }
 
-void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene) {
-  mesh->n_vertices = 0;
-  mesh->n_indices = 0;
-  mesh->n_textures = 0;
+internal void models_load_mesh_vertices(
+  Memory *memory, Model *model,
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+) {
+  mesh->vertices.size = 0;
+  mesh->vertices.max_size = mesh_data->mNumVertices;
+  log_info("Pushing memory for vertices");
+  mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size
+  );
 
-  // Load vertices
-  for (uint32 idx = 0; idx < mesh_data -> mNumVertices; idx++) {
-    Vertex vertex;
+  for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
+    Vertex *vertex = (Vertex*)array_push<Vertex>(&mesh->vertices);
 
     glm::vec3 position;
     position.x = mesh_data->mVertices[idx].x;
     position.y = mesh_data->mVertices[idx].y;
     position.z = mesh_data->mVertices[idx].z;
-    vertex.position = position;
+    vertex->position = position;
 
     glm::vec3 normal;
     normal.x = mesh_data->mNormals[idx].x;
     normal.y = mesh_data->mNormals[idx].y;
     normal.z = mesh_data->mNormals[idx].z;
-    vertex.normal = normal;
+    vertex->normal = normal;
 
     if (mesh_data->mTextureCoords[0]) {
       glm::vec2 tex_coords;
       tex_coords.x = mesh_data->mTextureCoords[0][idx].x;
       tex_coords.y = mesh_data->mTextureCoords[0][idx].y;
-      vertex.tex_coords = tex_coords;
+      vertex->tex_coords = tex_coords;
     } else {
-      vertex.tex_coords = glm::vec2(0.0f, 0.0f);
+      vertex->tex_coords = glm::vec2(0.0f, 0.0f);
     }
+  }
+}
 
-    /* log_info("Loading vertex %d", mesh->n_vertices); */
-    mesh->vertices[mesh->n_vertices++] = vertex;
+internal void models_load_mesh_indices(
+  Memory *memory, Model *model,
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+) {
+  uint32 n_indices = 0;
+  for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
+    aiFace face = mesh_data->mFaces[idx_face];
+    n_indices += face.mNumIndices;
   }
 
-  // Load indices
+  mesh->indices.size = 0;
+  mesh->indices.max_size = n_indices;
+  log_info("Pushing memory for indices");
+  mesh->indices.items = (uint32*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size
+  );
+
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
     for (uint32 idx_index = 0; idx_index < face.mNumIndices; idx_index++) {
-      /* log_info("Loading index %d", mesh->n_indices); */
-      mesh->indices[mesh->n_indices++] = face.mIndices[idx_index];
+      array_push(&mesh->indices, face.mIndices[idx_index]);
     }
   }
+}
 
-  // Load textures
+internal void models_load_mesh_textures(
+  Memory *memory, Model *model,
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+) {
   aiMaterial *material = scene->mMaterials[mesh_data->mMaterialIndex];
+
+  uint32 n_diffuse_textures = material->GetTextureCount(aiTextureType_DIFFUSE);
+  uint32 n_specular_textures = material->GetTextureCount(aiTextureType_SPECULAR);
+
+  mesh->textures.size = 0;
+  mesh->textures.max_size = n_diffuse_textures + n_specular_textures;
+  log_info("Pushing memory for textures");
+  mesh->textures.items = (Texture*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size
+  );
 
   aiTextureType texture_type = aiTextureType_DIFFUSE;
   const char *texture_type_name = "";
@@ -155,94 +193,68 @@ void models_load_mesh(Model *model, Mesh *mesh, aiMesh *mesh_data, const aiScene
       const char *texture_filename = texture_filename_aistring.C_Str();
 
       bool32 should_skip = false;
-      for (uint32 idx_loaded = 0; idx_loaded < mesh->n_textures; idx_loaded++) {
-        if (strcmp(mesh->textures[idx_loaded].filename, texture_filename) == 0) {
-          mesh->textures[mesh->n_textures++] = mesh->textures[idx_loaded];
+      for (uint32 idx_loaded = 0; idx_loaded < mesh->textures.size; idx_loaded++) {
+        if (strcmp(mesh->textures.items[idx_loaded].filename, texture_filename) == 0) {
+          // TODO: Change this to pointers so we don't copy?
+          array_push(&mesh->textures, mesh->textures.items[idx_loaded]);
           should_skip = true;
           break;
         }
       }
 
       if (!should_skip) {
-        Texture texture;
-        texture.id = models_load_texture_from_file(model->directory, texture_filename);
-        texture.type = texture_type_name;
-        texture.filename = texture_filename;
-        /* log_info("Loading texture %d", mesh->n_textures); */
-        mesh->textures[mesh->n_textures++] = texture;
+        Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
+        texture->id = models_load_texture_from_file(model->directory, texture_filename);
+        texture->type = texture_type_name;
+        texture->was_loaded_from_file = true;
+        texture->filename = texture_filename;
       }
     }
   }
-
-  models_setup_mesh(mesh);
 }
 
-void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
-  uint32 diffuse_idx = 1;
-  uint32 specular_idx = 1;
-
-  for (uint32 idx = 0; idx < mesh->n_textures; idx++) {
-    /* log_info("Texture %d", idx); */
-    glActiveTexture(GL_TEXTURE0 + idx);
-
-    char idx_str[2];
-    char uniform_name[128];
-    const char *texture_type = mesh->textures[idx].type;
-
-    if (strcmp(texture_type, "texture_diffuse") == 0) {
-      sprintf(idx_str, "%d", diffuse_idx);
-      /* strcpy(uniform_name, "material."); */
-      strcpy(uniform_name, "");
-      strcat(uniform_name, texture_type);
-      strcat(uniform_name, idx_str);
-      diffuse_idx++;
-    } else if (strcmp(texture_type, "texture_specular") == 0) {
-      sprintf(idx_str, "%d", specular_idx);
-      /* strcpy(uniform_name, "material."); */
-      strcpy(uniform_name, "");
-      strcat(uniform_name, texture_type);
-      strcat(uniform_name, idx_str);
-      specular_idx++;
-    }
-
-    /* log_info("uniform_name %s", uniform_name); */
-    glUniform1f(
-      glGetUniformLocation(shader_program, uniform_name),
-      (real32)idx
+void models_load_mesh(
+  Memory *memory, Model *model,
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+) {
+  models_load_mesh_vertices(
+    memory, model, mesh, mesh_data, scene
+  );
+  models_load_mesh_indices(
+    memory, model, mesh, mesh_data, scene
+  );
+  if (model->should_load_textures_from_file) {
+    models_load_mesh_textures(
+      memory, model, mesh, mesh_data, scene
     );
-
-    glBindTexture(GL_TEXTURE_2D, mesh->textures[idx].id);
   }
-
-  glActiveTexture(GL_TEXTURE0);
-
-  glBindVertexArray(mesh->vao);
-  glDrawElements(GL_TRIANGLES, mesh->n_indices, GL_UNSIGNED_INT, 0);
-  glBindVertexArray(0);
+  models_setup_mesh(mesh, model->shader_asset->shader);
 }
 
-void models_draw_model(Model *model, uint32 shader_program) {
-  for (uint32 idx = 0; idx < model->n_meshes; idx++) {
-    /* log_info("Drawing mesh %d", idx); */
-    models_draw_mesh(&model->meshes[idx], shader_program);
-  }
-}
-
-
-void models_load_model_node(Model *model, aiNode *node, const aiScene *scene) {
+void models_load_model_node(
+  Memory *memory, Model *model,
+  aiNode *node, const aiScene *scene
+) {
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
-    log_info("Loading mesh %d", model->n_meshes);
-    models_load_mesh(model, &model->meshes[model->n_meshes++], mesh_data, scene);
+    log_info("Loading mesh %d", model->meshes.size);
+    models_load_mesh(
+      memory, model,
+      array_push(&model->meshes),
+      mesh_data, scene
+    );
   }
 
   for (uint32 idx = 0; idx < node->mNumChildren; idx++) {
-    models_load_model_node(model, node->mChildren[idx], scene);
+    models_load_model_node(memory, model, node->mChildren[idx], scene);
   }
 }
 
-void models_load_model(Model *model, const char *directory, const char *filename) {
-  char path[128];
+void models_load_model(
+  Memory *memory, Model *model,
+  const char *directory, const char *filename
+) {
+  char path[256];
   strcpy(path, directory);
   strcat(path, "/");
   strcat(path, filename);
@@ -257,19 +269,73 @@ void models_load_model(Model *model, const char *directory, const char *filename
     return;
   }
 
-  model->n_meshes = 0;
   model->directory = directory;
 
-  models_load_model_node(model, scene->mRootNode, scene);
+  model->meshes.size = 0;
+  model->meshes.max_size = 128;
+  log_info("Pushing memory for meshes");
+  model->meshes.items = (Mesh*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size
+  );
+
+  models_load_model_node(memory, model, scene->mRootNode, scene);
 }
 
 ModelAsset* models_make_asset(
-  ModelAsset* asset,
+  Memory *memory, ModelAsset* model_asset, ShaderAsset* shader_asset,
   const char *name, const char *directory, const char *filename
 ) {
-  asset->info.name = name;
+  model_asset->info.name = name;
+  model_asset->model.shader_asset = shader_asset;
+  model_asset->model.should_load_textures_from_file = true;
   models_load_model(
-    &asset->model, directory, filename
+    memory, &model_asset->model, directory, filename
   );
-  return asset;
+  return model_asset;
+}
+
+void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
+  uint32 diffuse_idx = 1;
+  uint32 specular_idx = 1;
+
+  for (uint32 idx = 0; idx < mesh->textures.size; idx++) {
+    glActiveTexture(GL_TEXTURE0 + idx);
+
+    char idx_str[2];
+    char uniform_name[128];
+    const char *texture_type = mesh->textures.items[idx].type;
+
+    if (strcmp(texture_type, "texture_diffuse") == 0) {
+      sprintf(idx_str, "%d", diffuse_idx);
+      strcpy(uniform_name, "");
+      strcat(uniform_name, texture_type);
+      strcat(uniform_name, idx_str);
+      diffuse_idx++;
+    } else if (strcmp(texture_type, "texture_specular") == 0) {
+      sprintf(idx_str, "%d", specular_idx);
+      strcpy(uniform_name, "");
+      strcat(uniform_name, texture_type);
+      strcat(uniform_name, idx_str);
+      specular_idx++;
+    }
+
+    glUniform1f(
+      glGetUniformLocation(shader_program, uniform_name),
+      (real32)idx
+    );
+
+    glBindTexture(GL_TEXTURE_2D, mesh->textures.items[idx].id);
+  }
+
+  glActiveTexture(GL_TEXTURE0);
+
+  glBindVertexArray(mesh->vao);
+  glDrawElements(GL_TRIANGLES, mesh->indices.size, GL_UNSIGNED_INT, 0);
+  glBindVertexArray(0);
+}
+
+void models_draw_model(Model *model, uint32 shader_program) {
+  for (uint32 idx = 0; idx < model->meshes.size; idx++) {
+    models_draw_mesh(&model->meshes.items[idx], shader_program);
+  }
 }

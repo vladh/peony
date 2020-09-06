@@ -7,6 +7,8 @@
 #include "array.hpp"
 
 
+struct Model;
+
 struct AssetInfo {
   const char *name;
 };

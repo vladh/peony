@@ -3,7 +3,8 @@
 
 MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
   log_info(
-    "Allocating memory pool '%s': %d B (%d MB)", name, size, size / 1024 / 1024
+    "Allocating memory pool '%s': %.2fMB (%dB)",
+    name, (real64)size / 1024 / 1024, size
   );
   log_newline();
 
@@ -18,7 +19,8 @@ MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
 
 void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size) {
   log_info(
-    "Pusing to memory pool '%s': %d B (%d MB)", pool->name, size, size / 1024 / 1024
+    "Pusing to memory pool '%s': %.2fMB (%dB)",
+    pool->name, (real64)size / 1024 / 1024, size
   );
   log_newline();
 
