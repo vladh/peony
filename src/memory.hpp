@@ -34,21 +34,13 @@ struct State {
   real32 test_indices[512];
   glm::vec3 test_cube_positions[32];
 
-  /* Entity *entities; */
-  /* uint32 n_entities; */
-  /* uint32 max_n_entities; */
-
   Array<Entity> entities;
   Array<Entity*> found_entities;
   Array<ShaderAsset> shader_assets;
+  Array<ModelAsset*> model_assets;
 
-  /* ShaderAsset *shader_assets; */
-  /* uint32 n_shader_assets; */
-  /* uint32 max_n_shader_assets; */
-
-  ModelAsset *model_assets[128];
-  uint32 n_model_assets;
-
+  bool32 key_states[1024];
+  bool32 prev_key_states[1024];
 };
 
 struct MemoryPool {

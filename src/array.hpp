@@ -18,5 +18,12 @@ T* array_push(Array<T> *array) {
   return new_item;
 }
 
+template <typename T>
+T array_push(Array<T> *array, T new_item) {
+  assert(array->size < array->max_size);
+  array->items[array->size++] = new_item;
+  return new_item;
+}
+
 #endif
 
