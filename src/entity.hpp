@@ -1,7 +1,5 @@
 #ifndef ENTITY_H
 #define ENTITY_H
-#pragma warning(disable : 4100)
-#pragma warning(disable : 4201)
 
 #include <set>
 

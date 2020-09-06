@@ -1,7 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#pragma warning(disable : 4100)
-#pragma warning(disable : 4127)
-#pragma warning(disable : 4201)
 
 #include <stdlib.h>
 #include <string.h>
