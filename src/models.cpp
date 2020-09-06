@@ -15,12 +15,7 @@
 #include "util.hpp"
 
 
-uint32 models_load_texture_from_file(const char *directory, const char *filename) {
-  char path[128];
-  strcpy(path, directory);
-  strcat(path, "/");
-  strcat(path, filename);
-
+uint32 models_load_texture_from_file(const char *path) {
   uint32 texture_id;
   glGenTextures(1, &texture_id);
 
@@ -90,7 +85,7 @@ void models_setup_mesh(Mesh *mesh, Shader shader) {
     location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal)
   );
 
-  location = glGetAttribLocation(shader.program, "text_coords");
+  location = glGetAttribLocation(shader.program, "tex_coords");
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
     location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords)
@@ -143,6 +138,8 @@ internal void models_load_mesh_indices(
     aiFace face = mesh_data->mFaces[idx_face];
     n_indices += face.mNumIndices;
   }
+
+  mesh->does_use_indices = (n_indices > 0);
 
   mesh->indices.size = 0;
   mesh->indices.max_size = n_indices;
@@ -203,8 +200,13 @@ internal void models_load_mesh_textures(
       }
 
       if (!should_skip) {
+        char texture_path[128];
+        strcpy(texture_path, model->directory);
+        strcat(texture_path, "/");
+        strcat(texture_path, texture_filename);
+
         Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
-        texture->id = models_load_texture_from_file(model->directory, texture_filename);
+        texture->id = models_load_texture_from_file(texture_path);
         texture->type = texture_type_name;
         texture->was_loaded_from_file = true;
         texture->filename = texture_filename;
@@ -269,8 +271,6 @@ void models_load_model(
     return;
   }
 
-  model->directory = directory;
-
   model->meshes.size = 0;
   model->meshes.max_size = 128;
   log_info("Pushing memory for meshes");
@@ -281,16 +281,102 @@ void models_load_model(
   models_load_model_node(memory, model, scene->mRootNode, scene);
 }
 
-ModelAsset* models_make_asset(
-  Memory *memory, ModelAsset* model_asset, ShaderAsset* shader_asset,
+ModelAsset* models_make_asset_from_file(
+  Memory *memory, ModelAsset *model_asset, ShaderAsset *shader_asset,
   const char *name, const char *directory, const char *filename
 ) {
   model_asset->info.name = name;
   model_asset->model.shader_asset = shader_asset;
   model_asset->model.should_load_textures_from_file = true;
+  model_asset->model.directory = directory;
   models_load_model(
     memory, &model_asset->model, directory, filename
   );
+  return model_asset;
+}
+
+ModelAsset* models_make_asset_from_data(
+  Memory *memory, ModelAsset *model_asset,
+  ShaderAsset *shader_asset,
+  real32 *vertex_data, uint32 n_vertices,
+  real32 *index_data, uint32 n_indices,
+  const char *name, const char *texture_path
+) {
+  model_asset->info.name = name;
+
+  Model *model = &model_asset->model;
+
+  model->shader_asset = shader_asset;
+  model->should_load_textures_from_file = false;
+  model->directory = "";
+
+  model->meshes.size = 0;
+  model->meshes.max_size = 1;
+  log_info("Pushing memory for meshes");
+  model->meshes.items = (Mesh*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size
+  );
+
+  Mesh *mesh = model->meshes.items;
+  model->meshes.size++;
+
+  // Vertices
+  mesh->vertices.size = 0;
+  mesh->vertices.max_size = n_vertices;
+  log_info("Pushing memory for vertices");
+  mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size
+  );
+
+  for (uint32 idx = 0; idx < n_vertices; idx++) {
+    Vertex *vertex = (Vertex*)array_push<Vertex>(&mesh->vertices);
+
+    glm::vec3 position;
+    position.x = vertex_data[(idx * 8) + 0];
+    position.y = vertex_data[(idx * 8) + 1];
+    position.z = vertex_data[(idx * 8) + 2];
+    vertex->position = position;
+
+    glm::vec3 normal;
+    normal.x = vertex_data[(idx * 8) + 3];
+    normal.y = vertex_data[(idx * 8) + 4];
+    normal.z = vertex_data[(idx * 8) + 5];
+    vertex->normal = normal;
+
+    glm::vec2 tex_coords;
+    tex_coords.x = vertex_data[(idx * 8) + 6];
+    tex_coords.y = vertex_data[(idx * 8) + 7];
+    vertex->tex_coords = tex_coords;
+  }
+
+  // Indices
+  mesh->does_use_indices = (n_indices > 0);
+
+  mesh->indices.size = 0;
+  mesh->indices.max_size = n_indices;
+  log_info("Pushing memory for indices");
+  mesh->indices.items = (uint32*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size
+  );
+
+  memcpy(index_data, mesh->indices.items, sizeof(uint32) * n_indices);
+  mesh->indices.size = n_indices;
+
+  // Textures
+  mesh->textures.size = 0;
+  mesh->textures.max_size = 1;
+  log_info("Pushing memory for textures");
+  mesh->textures.items = (Texture*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size
+  );
+  Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
+  texture->id = models_load_texture_from_file(texture_path);
+  texture->type = "texture_diffuse";
+  texture->was_loaded_from_file = false;
+  texture->filename = "";
+
+  models_setup_mesh(mesh, shader_asset->shader);
+
   return model_asset;
 }
 
@@ -330,7 +416,11 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   glActiveTexture(GL_TEXTURE0);
 
   glBindVertexArray(mesh->vao);
-  glDrawElements(GL_TRIANGLES, mesh->indices.size, GL_UNSIGNED_INT, 0);
+  if (mesh->indices.size > 0) {
+    glDrawElements(GL_TRIANGLES, mesh->indices.size, GL_UNSIGNED_INT, 0);
+  } else {
+    glDrawArrays(GL_TRIANGLES, 0, mesh->vertices.size);
+  }
   glBindVertexArray(0);
 }
 
