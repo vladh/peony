@@ -161,75 +161,6 @@ void init_state(Memory *memory, State *state) {
   state->window_height = 1080;
   strcpy(state->window_title, "hi lol");
 
-  real32 test_vertices[] = {
-    // positions          colors             texture coords
-     /* 0.5f,  0.5f,  0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 1.0f, // top right */
-     /* 0.5f, -0.5f,  0.0f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // bottom right */
-    /* -0.5f, -0.5f,  0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, // bottom left */
-    /* -0.5f,  0.5f,  0.0f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f, // top left */
-
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-
-    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f,
-     0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-     0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
-     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-     0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f,
-
-    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f,  0.0f, 1.0f,
-     0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f,  1.0f, 1.0f,
-     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-     0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
-    -0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 1.0f,  0.0f, 1.0f
-  };
-  uint32 test_indices[] = {
-    0, 1, 3, // first triangle
-    1, 2, 3 // second triangle
-  };
-  glm::vec3 test_cube_positions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
-  };
-  memcpy(state->test_vertices, test_vertices, sizeof(test_vertices));
-  memcpy(state->test_indices, test_indices, sizeof(test_indices));
-  memcpy(state->test_cube_positions, test_cube_positions, sizeof(test_cube_positions));
-
   log_info("Pushing memory for entities");
   state->entities.size = 0;
   state->entities.max_size = 128;
@@ -317,49 +248,89 @@ void init_alpaca(Memory *memory, State *state) {
     "alpaca", "src/alpaca.vert", "src/alpaca.frag"
   );
 
-  uint32 vbo, vao, ebo;
-  glGenVertexArrays(1, &vao);
-  glGenBuffers(1, &vbo);
-  glGenBuffers(1, &ebo);
-  glBindVertexArray(vao);
+  real32 alpaca_vertices[] = {
+    // positions          normal             texture coords
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(
-    GL_ARRAY_BUFFER, sizeof(state->test_vertices), state->test_vertices, GL_STATIC_DRAW
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+     0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+    -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+     0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+     0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+    -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f
+  };
+  uint32 n_vertices = 36;
+
+  ModelAsset *model_asset = models_make_asset_from_data(
+    memory,
+    array_push<ModelAsset*>(
+      &state->model_assets,
+      (ModelAsset*)memory_push_memory_to_pool(
+        &memory->asset_memory_pool, sizeof(ModelAsset)
+      )
+    ),
+    shader_asset,
+    alpaca_vertices, n_vertices,
+    nullptr, 0,
+    "alpaca", "resources/alpaca.jpg"
   );
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(state->test_indices), state->test_indices, GL_STATIC_DRAW
-  );
+  uint32 n_alpacas = 10;
 
-  uint32 location;
+  for (uint8 idx = 0; idx < n_alpacas; idx++) {
+    real64 scale = util_random(1.0f, 1.4f);
+    Entity *entity = entity_make(
+      array_push<Entity>(&state->entities),
+      "alpaca",
+      ENTITY_MODEL,
+      glm::vec3(
+        util_random(-6.0f, 6.0f),
+        util_random(-6.0f, 6.0f),
+        util_random(-6.0f, 6.0f)
+      ),
+      glm::vec3(scale, scale, scale),
+      glm::angleAxis(
+        glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
+      )
+    );
 
-  location = glGetAttribLocation(shader_asset->shader.program, "position");
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)0
-  );
-
-  location = glGetAttribLocation(shader_asset->shader.program, "color");
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, 3, GL_FLOAT, false, 8 * sizeof(real32), (void*)(3 * sizeof(real32))
-  );
-
-  location = glGetAttribLocation(shader_asset->shader.program, "tex_coords");
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, 2, GL_FLOAT, false, 8 * sizeof(real32), (void*)(6 * sizeof(real32))
-  );
-
-  glBindVertexArray(0);
-
-  state->test_texture = models_load_texture_from_file(
-    "resources/", "alpaca.jpg"
-  );
-
-  state->test_vao = vao;
+    entity_set_shader_asset(entity, shader_asset);
+    entity_set_model_asset(entity, model_asset);
+    entity_add_tag(entity, "alpaca");
+  }
 }
 
 void init_geese(Memory *memory, State *state) {
@@ -367,7 +338,7 @@ void init_geese(Memory *memory, State *state) {
     array_push<ShaderAsset>(&state->shader_assets),
     "goose", "src/goose.vert", "src/goose.frag"
   );
-  ModelAsset *model_asset = models_make_asset(
+  ModelAsset *model_asset = models_make_asset_from_file(
     memory,
     array_push<ModelAsset*>(
       &state->model_assets,
@@ -403,45 +374,6 @@ void init_geese(Memory *memory, State *state) {
     entity_add_tag(entity, "goose");
   }
 }
-
-#if 0
-void init_backpack(Memory *memory, State *state) {
-  shader_make_asset(
-    (ShaderAsset*)array_push<ShaderAsset>(&state->shader_assets),
-    "backpack", "src/backpack.vert", "src/backpack.frag"
-  );
-}
-
-void draw_backpack(State *state, glm::mat4 view, glm::mat4 projection) {
-  ShaderAsset *backpack_shader_asset = asset_get_shader_asset_by_name(
-    state->shader_assets, state->n_shader_assets, "backpack"
-  );
-  glUseProgram(backpack_shader_asset->shader.program);
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(backpack_shader_asset->shader.program, "view"),
-    1, GL_FALSE, glm::value_ptr(view)
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(backpack_shader_asset->shader.program, "projection"),
-    1, GL_FALSE, glm::value_ptr(projection)
-  );
-
-  glm::mat4 model = glm::mat4(1.0f);
-  model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-  model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-  glUniformMatrix4fv(
-    glGetUniformLocation(backpack_shader_asset->shader.program, "model"),
-    1, GL_FALSE, glm::value_ptr(model)
-  );
-
-  ModelAsset *backpack_model_asset = asset_get_model_asset_by_name(
-    state->model_assets, state->n_model_assets, "backpack"
-  );
-  models_draw_model(&backpack_model_asset->model, backpack_shader_asset->shader.program);
-}
-#endif
 
 void init_objects(Memory *memory, State *state) {
   init_geese(memory, state);
@@ -492,47 +424,6 @@ void draw_entity(State *state, Entity *entity) {
   }
 }
 
-void draw_alpaca(Memory *memory, State *state) {
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, state->test_texture);
-
-  glm::mat4 model = glm::mat4(1.0f);
-
-  ShaderAsset *alpaca_shader_asset = asset_get_shader_asset_by_name(
-    &state->shader_assets, "alpaca"
-  );
-  glUseProgram(alpaca_shader_asset->shader.program);
-
-  glUniform1f(
-    glGetUniformLocation(alpaca_shader_asset->shader.program, "t"),
-    (real32)state->t
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(alpaca_shader_asset->shader.program, "view"),
-    1, GL_FALSE, glm::value_ptr(state->camera.view)
-  );
-
-  glUniformMatrix4fv(
-    glGetUniformLocation(alpaca_shader_asset->shader.program, "projection"),
-    1, GL_FALSE, glm::value_ptr(state->camera.projection)
-  );
-
-  glBindVertexArray(state->test_vao);
-  for (uint8 i = 0; i < 10; i++) {
-    real32 model_angle = 20.0f * i;
-    model = glm::translate(glm::mat4(1.0f), state->test_cube_positions[i]);
-    model = glm::rotate(model, (real32)state->t * glm::radians(model_angle), glm::vec3(1.0f, 0.3f, 0.5f));
-    glUniformMatrix4fv(
-      glGetUniformLocation(alpaca_shader_asset->shader.program, "model"),
-      1, GL_FALSE, glm::value_ptr(model)
-    );
-
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-  }
-  glBindVertexArray(0);
-}
-
 void draw_background() {
   glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -546,10 +437,22 @@ void update_and_render(Memory *memory, State *state) {
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
 
   draw_background();
-  draw_alpaca(memory, state);
 
   entity_get_all_with_tag(
     state->entities, "goose", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    entity->rotation *= glm::angleAxis(
+      glm::radians(15.0f * (real32)state->dt),
+      glm::vec3(1.0f, 0.0f, 0.0f)
+    );
+    draw_entity(state, entity);
+  }
+
+  entity_get_all_with_tag(
+    state->entities, "alpaca", &state->found_entities
   );
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {

@@ -28,12 +28,6 @@ struct State {
   uint32 window_height;
   char window_title[32];
 
-  uint32 test_vao;
-  uint32 test_texture;
-  real32 test_vertices[512];
-  real32 test_indices[512];
-  glm::vec3 test_cube_positions[32];
-
   Array<Entity> entities;
   Array<Entity*> found_entities;
   Array<ShaderAsset> shader_assets;
