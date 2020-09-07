@@ -239,6 +239,54 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
+void init_axes(Memory *memory, State *state) {
+  ShaderAsset* shader_asset = shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
+    "axes", "src/axes.vert", "src/axes.frag"
+  );
+
+  const real32 axis_size = 20.0f;
+  real32 axes_vertices[] = {
+    // position                       normal             texture_coord
+    0.0f,      0.0f,      0.0f,       1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    axis_size, 0.0f,      0.0f,       1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+    0.0f,      0.0f,      0.0f,       0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+    0.0f,      axis_size, 0.0f,       0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+    0.0f,      0.0f,      0.0f,       0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+    0.0f,      0.0f,      axis_size,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f
+  };
+  uint32 n_vertices = 6;
+
+  ModelAsset *model_asset = models_make_asset_from_data(
+    memory,
+    array_push<ModelAsset*>(
+      &state->model_assets,
+      (ModelAsset*)memory_push_memory_to_pool(
+        &memory->asset_memory_pool, sizeof(ModelAsset)
+      )
+    ),
+    shader_asset,
+    axes_vertices, n_vertices,
+    nullptr, 0,
+    "axes", ""
+  );
+
+  Entity *entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "axes",
+    ENTITY_MODEL,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::angleAxis(
+      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  );
+
+  entity_set_shader_asset(entity, shader_asset);
+  entity_set_model_asset(entity, model_asset);
+  entity_add_tag(entity, "axes");
+}
+
 void init_alpaca(Memory *memory, State *state) {
   ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
@@ -246,7 +294,7 @@ void init_alpaca(Memory *memory, State *state) {
   );
 
   real32 alpaca_vertices[] = {
-    // positions          normal             texture coords
+    // position           normal             texture_coords
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
      0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
      0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,
@@ -373,6 +421,7 @@ void init_geese(Memory *memory, State *state) {
 }
 
 void init_objects(Memory *memory, State *state) {
+  init_axes(memory, state);
   init_geese(memory, state);
   init_alpaca(memory, state);
 }
@@ -458,6 +507,15 @@ void update_and_render(Memory *memory, State *state) {
       glm::radians(15.0f * (real32)state->dt),
       glm::vec3(1.0f, 0.0f, 0.0f)
     );
+    draw_entity(state, entity);
+  }
+
+  entity_get_all_with_tag(
+    state->entities, "axes", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
     draw_entity(state, entity);
   }
 }
