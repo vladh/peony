@@ -2,7 +2,8 @@ TARGET = gl
 BINPATH = build/
 CC = g++
 CFLAGS = -I${HOME}/opt/include -std=c++2a -Wall -g
-LDFLAGS = -L${HOME}/opt/lib -lm -lglfw -lassimp
+# LDFLAGS = -L${HOME}/opt/lib -lm -lglfw -lassimp
+LDFLAGS = -lm -lglfw -lassimp
 
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard src/*.cpp))
 HEADERS = $(wildcard src/*.h)
@@ -18,7 +19,9 @@ $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) $(CFLAGS) $(LDFLAGS) -o $(BINPATH)$@
 
 run: $(TARGET)
-	DYLD_LIBRARY_PATH=${HOME}/opt/lib $(BINPATH)$(TARGET)
+	$(BINPATH)$(TARGET)
 
 clean:
 	rm -f $(BINPATH)$(TARGET)
+
+# DYLD_LIBRARY_PATH=${HOME}/opt/lib $(BINPATH)$(TARGET)
