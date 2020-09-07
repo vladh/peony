@@ -33,6 +33,7 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 -nologo ^
 -sdl ^
 -std:c++latest ^
+-wd4100 -wd4127 -wd4201 ^
 /D_ITERATOR_DEBUG_LEVEL=0
 
 :: Linker flags
