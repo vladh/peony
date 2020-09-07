@@ -45,7 +45,8 @@ void entity_remove_tag(Entity *entity, const char *tag_name) {
 }
 
 bool32 entity_has_tag(Entity *entity, const char *tag_name) {
-  return entity->tags.size() > 0 && entity->tags.contains(tag_name);
+  /* return entity->tags.size() > 0 && entity->tags.contains(tag_name); */
+  return entity->tags.size() > 0 && entity->tags.count(tag_name) > 0;
 }
 
 Entity* entity_get_by_name(
