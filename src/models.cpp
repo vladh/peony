@@ -219,6 +219,7 @@ void models_load_mesh(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 ) {
+  mesh->mode = GL_TRIANGLES;
   models_load_mesh_vertices(
     memory, model, mesh, mesh_data, scene
   );
@@ -300,7 +301,8 @@ ModelAsset* models_make_asset_from_data(
   ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
   real32 *index_data, uint32 n_indices,
-  const char *name, const char *texture_path
+  const char *name, const char *texture_path,
+  uint32 mode
 ) {
   model_asset->info.name = name;
 
@@ -319,6 +321,8 @@ ModelAsset* models_make_asset_from_data(
 
   Mesh *mesh = model->meshes.items;
   model->meshes.size++;
+
+  model->meshes.items[0].mode = mode;
 
   // Vertices
   mesh->vertices.size = 0;
@@ -417,9 +421,9 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
 
   glBindVertexArray(mesh->vao);
   if (mesh->indices.size > 0) {
-    glDrawElements(GL_TRIANGLES, mesh->indices.size, GL_UNSIGNED_INT, 0);
+    glDrawElements(mesh->mode, mesh->indices.size, GL_UNSIGNED_INT, 0);
   } else {
-    glDrawArrays(GL_TRIANGLES, 0, mesh->vertices.size);
+    glDrawArrays(mesh->mode, 0, mesh->vertices.size);
   }
   glBindVertexArray(0);
 }

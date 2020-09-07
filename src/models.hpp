@@ -33,7 +33,16 @@ struct Mesh {
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
+  uint32 mode;
 };
+ModelAsset* models_make_asset_from_data(
+  Memory *memory, ModelAsset *model_asset,
+  ShaderAsset *shader_asset,
+  real32 *vertex_data, uint32 n_vertices,
+  real32 *index_data, uint32 n_indices,
+  const char *name, const char *texture_path,
+  uint32 mode
+);
 
 struct Model {
   Array<Mesh> meshes;
