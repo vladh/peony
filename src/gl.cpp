@@ -268,7 +268,8 @@ void init_axes(Memory *memory, State *state) {
     shader_asset,
     axes_vertices, n_vertices,
     nullptr, 0,
-    "axes", ""
+    "axes", "",
+    GL_LINES
   );
 
   Entity *entity = entity_make(
@@ -350,7 +351,8 @@ void init_alpaca(Memory *memory, State *state) {
     shader_asset,
     alpaca_vertices, n_vertices,
     nullptr, 0,
-    "alpaca", "resources/alpaca.jpg"
+    "alpaca", "resources/alpaca.jpg",
+    GL_TRIANGLES
   );
 
   uint32 n_alpacas = 10;
