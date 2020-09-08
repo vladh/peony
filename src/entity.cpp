@@ -49,16 +49,18 @@ bool32 entity_has_tag(Entity *entity, const char *tag_name) {
   return entity->tags.size() > 0 && entity->tags.count(tag_name) > 0;
 }
 
-Entity* entity_get_by_name(
-  Entity *entities, uint32 n_entities, const char *name
+void entity_get_all_with_name(
+  Array<Entity> entities, const char *name,
+  Array<Entity*> *found_entities
 ) {
-  for (uint32 idx = 0; idx < n_entities; idx++) {
-    Entity *entity = entities + idx;
+  found_entities->size = 0;
+  for (uint32 idx = 0; idx < entities.size; idx++) {
+    Entity *entity = entities.items + idx;
     if (strcmp(entity->name, name) == 0) {
-      return entity;
+      assert(found_entities->size < found_entities->max_size);
+      found_entities->items[found_entities->size++] = entity;
     }
   }
-  return nullptr;
 }
 
 void entity_get_all_with_tag(

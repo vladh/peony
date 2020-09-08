@@ -11,10 +11,7 @@
 #include "log.hpp"
 #include "types.hpp"
 #include "array.hpp"
-
-
-enum EntityType {
-  ENTITY_MODEL
+enum EntityType { ENTITY_MODEL
 };
 
 struct EntityTag {
@@ -56,8 +53,9 @@ void entity_set_model_asset(Entity *entity, ModelAsset *asset);
 void entity_add_tag(Entity *entity, const char *tag);
 void entity_remove_tag(Entity *entity, const char *tag);
 bool32 entity_has_tag(Entity *entity, const char *tag);
-Entity* entity_get_by_name(
-  Entity *entities, uint32 n_entities, const char *name
+void entity_get_all_with_name(
+  Array<Entity> entities, const char *name,
+  Array<Entity*> *found_entities
 );
 void entity_get_all_with_tag(
   Array<Entity> entities, const char *tag_name,

@@ -276,7 +276,7 @@ void init_axes(Memory *memory, State *state) {
     array_push<Entity>(&state->entities),
     "axes",
     ENTITY_MODEL,
-    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, 0.1f, 0.0f),
     glm::vec3(1.0f, 1.0f, 1.0f),
     glm::angleAxis(
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
@@ -365,7 +365,7 @@ void init_alpaca(Memory *memory, State *state) {
       ENTITY_MODEL,
       glm::vec3(
         util_random(-6.0f, 6.0f),
-        util_random(-6.0f, 6.0f),
+        util_random(1.0f, 6.0f),
         util_random(-6.0f, 6.0f)
       ),
       glm::vec3(scale, scale, scale),
@@ -378,6 +378,39 @@ void init_alpaca(Memory *memory, State *state) {
     entity_set_model_asset(entity, model_asset);
     entity_add_tag(entity, "alpaca");
   }
+}
+
+void init_floor(Memory *memory, State *state) {
+  ShaderAsset *shader_asset = shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
+    "floor", "src/floor.vert", "src/floor.frag"
+  );
+  ModelAsset *model_asset = models_make_asset_from_file(
+    memory,
+    array_push<ModelAsset*>(
+      &state->model_assets,
+      (ModelAsset*)memory_push_memory_to_pool(
+        &memory->asset_memory_pool, sizeof(ModelAsset)
+      )
+    ),
+    shader_asset,
+    "floor", "resources/", "cube.obj"
+  );
+
+  Entity *entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "floor",
+    ENTITY_MODEL,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(50.0f, 0.1f, 50.0f),
+    glm::angleAxis(
+      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  );
+
+  entity_set_shader_asset(entity, shader_asset);
+  entity_set_model_asset(entity, model_asset);
+  entity_add_tag(entity, "floor");
 }
 
 void init_geese(Memory *memory, State *state) {
@@ -407,12 +440,14 @@ void init_geese(Memory *memory, State *state) {
       ENTITY_MODEL,
       glm::vec3(
         util_random(-8.0f, 8.0f),
-        util_random(-8.0f, 8.0f),
+        0.1f,
+        /* util_random(1.0f, 8.0f), */
         util_random(-8.0f, 8.0f)
       ),
       glm::vec3(scale, scale, scale),
       glm::angleAxis(
-        glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
+        glm::radians(-90.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
 
@@ -424,6 +459,7 @@ void init_geese(Memory *memory, State *state) {
 
 void init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
+  init_floor(memory, state);
   init_geese(memory, state);
   init_alpaca(memory, state);
 }
@@ -486,20 +522,22 @@ void update_and_render(Memory *memory, State *state) {
 
   draw_background();
 
-  entity_get_all_with_tag(
+  // Geese
+  entity_get_all_with_name(
     state->entities, "goose", &state->found_entities
   );
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
     entity->rotation *= glm::angleAxis(
-      glm::radians(15.0f * (real32)state->dt),
-      glm::vec3(1.0f, 0.0f, 0.0f)
+      glm::radians(30.0f * (real32)state->dt),
+      glm::vec3(0.0f, 0.0f, 1.0f)
     );
     draw_entity(state, entity);
   }
 
-  entity_get_all_with_tag(
+  // Alpaca
+  entity_get_all_with_name(
     state->entities, "alpaca", &state->found_entities
   );
 
@@ -512,8 +550,19 @@ void update_and_render(Memory *memory, State *state) {
     draw_entity(state, entity);
   }
 
-  entity_get_all_with_tag(
+  // Axes
+  entity_get_all_with_name(
     state->entities, "axes", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    draw_entity(state, entity);
+  }
+
+  // Floor
+  entity_get_all_with_name(
+    state->entities, "floor", &state->found_entities
   );
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {

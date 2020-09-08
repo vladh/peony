@@ -5,7 +5,7 @@
 void camera_init(Camera *camera) {
   camera->yaw = -90.0f;
   camera->pitch = 0.0f;
-  camera->pos = glm::vec3(0.0f, 0.0f, 3.0f);
+  camera->pos = glm::vec3(0.0f, 3.0f, 3.0f);
   camera->front = glm::vec3(0.0f, 0.0f, 0.0f);
   camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
   camera->speed = 0.05f;
