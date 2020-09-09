@@ -1,6 +1,8 @@
 #include <cstdlib>
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "memory.hpp"
 #include "types.hpp"
@@ -93,26 +95,26 @@ void shader_set_float(uint32 program, const char *name, float value) {
   glUniform1f(glGetUniformLocation(program, name), value);
 }
 
-void shader_set_vec2(uint32 program, const char *name, const glm::vec2 &value) {
-  glUniform2fv(glGetUniformLocation(program, name), 1, &value[0]);
+void shader_set_vec2(uint32 program, const char *name, glm::vec2 *value) {
+  glUniform2fv(glGetUniformLocation(program, name), 1, glm::value_ptr(*value));
 }
 
-void shader_set_vec3(uint32 program, const char *name, const glm::vec3 &value) {
-  glUniform3fv(glGetUniformLocation(program, name), 1, &value[0]);
+void shader_set_vec3(uint32 program, const char *name, glm::vec3 *value) {
+  glUniform3fv(glGetUniformLocation(program, name), 1, glm::value_ptr(*value));
 }
 
-void shader_set_vec4(uint32 program, const char *name, const glm::vec4 &value) {
-  glUniform4fv(glGetUniformLocation(program, name), 1, &value[0]);
+void shader_set_vec4(uint32 program, const char *name, glm::vec4 *value) {
+  glUniform4fv(glGetUniformLocation(program, name), 1, glm::value_ptr(*value));
 }
 
-void shader_set_mat2(uint32 program, const char *name, const glm::mat2 &mat) {
-  glUniformMatrix2fv(glGetUniformLocation(program, name), 1, GL_FALSE, &mat[0][0]);
+void shader_set_mat2(uint32 program, const char *name, glm::mat2 *mat) {
+  glUniformMatrix2fv(glGetUniformLocation(program, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
-void shader_set_mat3(uint32 program, const char *name, const glm::mat3 &mat) {
-  glUniformMatrix3fv(glGetUniformLocation(program, name), 1, GL_FALSE, &mat[0][0]);
+void shader_set_mat3(uint32 program, const char *name, glm::mat3 *mat) {
+  glUniformMatrix3fv(glGetUniformLocation(program, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
-void shader_set_mat4(uint32 program, const char *name, const glm::mat4 &mat) {
-  glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE, &mat[0][0]);
+void shader_set_mat4(uint32 program, const char *name, glm::mat4 *mat) {
+  glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }

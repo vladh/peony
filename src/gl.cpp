@@ -488,10 +488,10 @@ void draw_entity(State *state, Entity *entity) {
     uint32 shader_program = entity->shader_asset->shader.program;
     glUseProgram(shader_program);
     shader_set_float(shader_program, "t", (real32)state->t);
-    shader_set_vec3(shader_program, "light_position", state->light_position);
-    shader_set_mat4(shader_program, "view", state->camera.view);
-    shader_set_mat4(shader_program, "projection", state->camera.projection);
-    shader_set_mat4(shader_program, "model", model_matrix);
+    shader_set_vec3(shader_program, "light_position", &state->light_position);
+    shader_set_mat4(shader_program, "view", &state->camera.view);
+    shader_set_mat4(shader_program, "projection", &state->camera.projection);
+    shader_set_mat4(shader_program, "model", &model_matrix);
 
     Model *model = &(entity->model_asset->model);
     models_draw_model(model, shader_program);
