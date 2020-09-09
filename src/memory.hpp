@@ -32,9 +32,6 @@ struct State {
   Array<Entity*> found_entities;
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset*> model_assets;
-
-  bool32 key_states[1024];
-  bool32 prev_key_states[1024];
 };
 
 struct MemoryPool {

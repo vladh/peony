@@ -47,59 +47,43 @@ void toggle_cursor(State *state) {
   state->is_cursor_disabled = !state->is_cursor_disabled;
 }
 
-bool32 is_key_down(State *state, int key) {
-  return state->key_states[key];
-}
-
-bool32 is_key_up(State *state, int key) {
-  return !state->key_states[key];
-}
-
-bool32 is_key_now_down(State *state, int key) {
-  return state->key_states[key] && !state->prev_key_states[key];
-}
-
-bool32 is_key_now_up(State *state, int key) {
-  return !state->key_states[key] && state->prev_key_states[key];
-}
-
 void process_input_continuous(GLFWwindow *window, State *state) {
-  if (is_key_down(state, GLFW_KEY_W)) {
+  if (control_is_key_down(&state->control, GLFW_KEY_W)) {
     camera_move_front_back(&state->camera, 1);
   }
 
-  if (is_key_down(state, GLFW_KEY_S)) {
+  if (control_is_key_down(&state->control, GLFW_KEY_S)) {
     camera_move_front_back(&state->camera, -1);
   }
 
-  if (is_key_down(state, GLFW_KEY_A)) {
+  if (control_is_key_down(&state->control, GLFW_KEY_A)) {
     camera_move_left_right(&state->camera, -1);
   }
 
-  if (is_key_down(state, GLFW_KEY_D)) {
+  if (control_is_key_down(&state->control, GLFW_KEY_D)) {
     camera_move_left_right(&state->camera, 1);
   }
 
-  if (is_key_down(state, GLFW_KEY_SPACE)) {
+  if (control_is_key_down(&state->control, GLFW_KEY_SPACE)) {
     camera_move_up_down(&state->camera, 1);
   }
 
-  if (is_key_down(state, GLFW_KEY_LEFT_CONTROL)) {
+  if (control_is_key_down(&state->control, GLFW_KEY_LEFT_CONTROL)) {
     camera_move_up_down(&state->camera, -1);
   }
 }
 
 void process_input_transient(GLFWwindow *window, State *state) {
-  if (is_key_now_down(state, GLFW_KEY_ESCAPE)) {
+  if (control_is_key_now_down(&state->control, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (is_key_now_down(state, GLFW_KEY_Q)) {
+  if (control_is_key_now_down(&state->control, GLFW_KEY_Q)) {
     toggle_wireframe(state);
     update_drawing_options(state, window);
   }
 
-  if (is_key_now_down(state, GLFW_KEY_C)) {
+  if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
     toggle_cursor(state);
     update_drawing_options(state, window);
   }
@@ -115,21 +99,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-  glm::vec2 mouse_offset = control_update(&state->control, x, y);
+  glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
   camera_update_mouse(&state->camera, mouse_offset);
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-
-  state->prev_key_states[key] = state->key_states[key];
-  if (action == GLFW_PRESS) {
-    state->key_states[key] = true;
-  } else if (action == GLFW_RELEASE) {
-    state->key_states[key] = false;
-  }
-
+  control_update_keys(&state->control, key, scancode, action, mods);
   process_input_transient(window, state);
 }
 
@@ -193,11 +170,6 @@ void init_state(Memory *memory, State *state) {
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
-
-  for (uint32 idx = 0; idx < len(state->key_states); idx++) {
-    state->key_states[idx] = false;
-    state->prev_key_states[idx] = true;
-  }
 }
 
 GLFWwindow* init_window(State *state) {
@@ -461,7 +433,9 @@ void init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
   init_floor(memory, state);
   init_geese(memory, state);
+#if 0
   init_alpaca(memory, state);
+#endif
 }
 
 void draw_entity(State *state, Entity *entity) {
@@ -522,34 +496,6 @@ void update_and_render(Memory *memory, State *state) {
 
   draw_background();
 
-  // Geese
-  entity_get_all_with_name(
-    state->entities, "goose", &state->found_entities
-  );
-
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    entity->rotation *= glm::angleAxis(
-      glm::radians(30.0f * (real32)state->dt),
-      glm::vec3(0.0f, 0.0f, 1.0f)
-    );
-    draw_entity(state, entity);
-  }
-
-  // Alpaca
-  entity_get_all_with_name(
-    state->entities, "alpaca", &state->found_entities
-  );
-
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    entity->rotation *= glm::angleAxis(
-      glm::radians(15.0f * (real32)state->dt),
-      glm::vec3(1.0f, 0.0f, 0.0f)
-    );
-    draw_entity(state, entity);
-  }
-
   // Axes
   entity_get_all_with_name(
     state->entities, "axes", &state->found_entities
@@ -569,6 +515,36 @@ void update_and_render(Memory *memory, State *state) {
     Entity *entity = state->found_entities.items[idx];
     draw_entity(state, entity);
   }
+
+  // Geese
+  entity_get_all_with_name(
+    state->entities, "goose", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    entity->rotation *= glm::angleAxis(
+      glm::radians(30.0f * (real32)state->dt),
+      glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+    draw_entity(state, entity);
+  }
+
+#if 0
+  // Alpaca
+  entity_get_all_with_name(
+    state->entities, "alpaca", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    entity->rotation *= glm::angleAxis(
+      glm::radians(15.0f * (real32)state->dt),
+      glm::vec3(1.0f, 0.0f, 0.0f)
+    );
+    draw_entity(state, entity);
+  }
+#endif
 }
 
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
