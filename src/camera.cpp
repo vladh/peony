@@ -5,7 +5,7 @@
 void camera_init(Camera *camera) {
   camera->yaw = -90.0f;
   camera->pitch = 0.0f;
-  camera->pos = glm::vec3(0.0f, 3.0f, 3.0f);
+  camera->position = glm::vec3(0.0f, 3.0f, 3.0f);
   camera->front = glm::vec3(0.0f, 0.0f, 0.0f);
   camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
   camera->speed = 0.05f;
@@ -24,7 +24,7 @@ void camera_update_matrices(
   ));
 
   camera->view = glm::lookAt(
-    camera->pos, camera->pos + camera->front, camera->up
+    camera->position, camera->position + camera->front, camera->up
   );
 
   camera->projection = glm::perspective(
@@ -35,18 +35,18 @@ void camera_update_matrices(
 }
 
 void camera_move_front_back(Camera *camera, real32 sign) {
-  camera->pos += sign * camera->speed * camera->front;
+  camera->position += sign * camera->speed * camera->front;
 }
 
 void camera_move_left_right(Camera *camera, real32 sign) {
   glm::vec3 direction = glm::normalize(glm::cross(
     camera->front, camera->up
   ));
-  camera->pos += sign * direction * camera->speed;
+  camera->position += sign * direction * camera->speed;
 }
 
 void camera_move_up_down(Camera *camera, real32 sign) {
-  camera->pos += sign * camera->speed * camera->up;
+  camera->position += sign * camera->speed * camera->up;
 }
 
 void camera_update_mouse(Camera *camera, glm::vec2 mouse_offset) {

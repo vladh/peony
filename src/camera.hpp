@@ -9,7 +9,7 @@
 struct Camera {
   real64 yaw;
   real64 pitch;
-  glm::vec3 pos;
+  glm::vec3 position;
   glm::vec3 front;
   glm::vec3 up;
   real32 speed;
