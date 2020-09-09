@@ -409,7 +409,7 @@ void init_light(Memory *memory, State *state) {
     "light",
     ENTITY_MODEL,
     state->light_position,
-    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::vec3(0.3f, 0.3f, 0.3f),
     glm::angleAxis(
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
@@ -447,9 +447,7 @@ void init_geese(Memory *memory, State *state) {
       ENTITY_MODEL,
       glm::vec3(
         util_random(-8.0f, 8.0f),
-        /* 0.1f, */
         1.0f,
-        /* util_random(1.0f, 8.0f), */
         util_random(-8.0f, 8.0f)
       ),
       glm::vec3(scale, scale, scale),
@@ -489,6 +487,7 @@ void draw_entity(State *state, Entity *entity) {
     glUseProgram(shader_program);
     shader_set_float(shader_program, "t", (real32)state->t);
     shader_set_vec3(shader_program, "light_position", &state->light_position);
+    shader_set_vec3(shader_program, "camera_position", &state->camera.position);
     shader_set_mat4(shader_program, "view", &state->camera.view);
     shader_set_mat4(shader_program, "projection", &state->camera.projection);
     shader_set_mat4(shader_program, "model", &model_matrix);
@@ -521,7 +520,7 @@ void update_and_render_axes(Memory *memory, State *state) {
 
 void update_and_render_light(Memory *memory, State *state) {
   state->light_position = glm::vec3(
-    sin(state->t) * 10.0f,
+    sin(state->t) * 3.0f,
     1.0f,
     0.0f
   );
@@ -564,13 +563,14 @@ void update_and_render_geese(Memory *memory, State *state) {
 
     entity->position = glm::vec3(
       sin(pos_arg) * radius_offset,
-      0.0f,
+      entity->position.y,
       cos(pos_arg) * radius_offset
     );
     entity->rotation *= glm::angleAxis(
       glm::radians(spin_deg_per_t * (real32)state->dt),
       glm::vec3(0.0f, 0.0f, 1.0f)
     );
+
     draw_entity(state, entity);
   }
 }

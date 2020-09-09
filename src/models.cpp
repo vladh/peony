@@ -375,10 +375,18 @@ ModelAsset* models_make_asset_from_data(
     &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size
   );
   Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
-  texture->id = models_load_texture_from_file(texture_path);
-  texture->type = "texture_diffuse";
-  texture->was_loaded_from_file = false;
-  texture->filename = "";
+
+  if (strcmp(texture_path, "") == 0) {
+    texture->id = -1;
+    texture->type = "";
+    texture->was_loaded_from_file = false;
+    texture->filename = "";
+  } else {
+    texture->id = models_load_texture_from_file(texture_path);
+    texture->type = "texture_diffuse";
+    texture->was_loaded_from_file = true;
+    texture->filename = "";
+  }
 
   models_setup_mesh(mesh, shader_asset->shader);
 
