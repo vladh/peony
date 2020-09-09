@@ -539,12 +539,19 @@ void update_and_render_axes(Memory *memory, State *state) {
 }
 
 void update_and_render_light(Memory *memory, State *state) {
+  state->light_position = glm::vec3(
+    sin(state->t) * 10.0f,
+    1.0f,
+    0.0f
+  );
+
   entity_get_all_with_name(
     state->entities, "light", &state->found_entities
   );
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
+    entity->position = state->light_position;
     draw_entity(state, entity);
   }
 }
