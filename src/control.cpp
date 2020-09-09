@@ -10,7 +10,7 @@ void control_init(Control *control) {
   control->mouse_last_y = 0.0f;
   control->mouse_sensitivity = 0.1f;
 
-  for (uint32 idx = 0; idx < len(control->key_states); idx++) {
+  for (uint32 idx = 0; idx < LEN(control->key_states); idx++) {
     control->key_states[idx] = false;
     control->prev_key_states[idx] = true;
   }

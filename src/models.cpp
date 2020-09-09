@@ -203,9 +203,10 @@ internal void models_load_mesh_textures(
 
       if (!should_skip) {
         char texture_path[128];
-        strcpy(texture_path, model->directory);
-        strcat(texture_path, "/");
-        strcat(texture_path, texture_filename);
+        snprintf(
+          texture_path, sizeof(texture_path),
+          "%s/%s", model->directory, texture_filename
+        );
 
         Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
         texture->id = models_load_texture_from_file(texture_path);
@@ -260,9 +261,9 @@ void models_load_model(
   const char *directory, const char *filename
 ) {
   char path[256];
-  strcpy(path, directory);
-  strcat(path, "/");
-  strcat(path, filename);
+  snprintf(
+    path, sizeof(path), "%s/%s", directory, filename
+  );
 
   Assimp::Importer import;
   const aiScene *scene = import.ReadFile(
@@ -401,21 +402,20 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   for (uint32 idx = 0; idx < mesh->textures.size; idx++) {
     glActiveTexture(GL_TEXTURE0 + idx);
 
-    char idx_str[2];
     char uniform_name[128];
     const char *texture_type = mesh->textures.items[idx].type;
 
     if (strcmp(texture_type, "texture_diffuse") == 0) {
-      sprintf(idx_str, "%d", diffuse_idx);
-      strcpy(uniform_name, "");
-      strcat(uniform_name, texture_type);
-      strcat(uniform_name, idx_str);
+      snprintf(
+        uniform_name, sizeof(uniform_name),
+        "%s%d", texture_type, diffuse_idx
+      );
       diffuse_idx++;
     } else if (strcmp(texture_type, "texture_specular") == 0) {
-      sprintf(idx_str, "%d", specular_idx);
-      strcpy(uniform_name, "");
-      strcat(uniform_name, texture_type);
-      strcat(uniform_name, idx_str);
+      snprintf(
+        uniform_name, sizeof(uniform_name),
+        "%s%d", texture_type, specular_idx
+      );
       specular_idx++;
     }
 

@@ -71,12 +71,12 @@ ShaderAsset* shader_make_asset(
   return asset;
 }
 
-void shader_set_int(uint32 program, const char *name, float value) {
+void shader_set_int(uint32 program, const char *name, uint32 value) {
   glUniform1i(glGetUniformLocation(program, name), value);
 }
 
-void shader_set_bool(uint32 program, const char *name, float value) {
-  shader_set_int(program, name, (int)value);
+void shader_set_bool(uint32 program, const char *name, bool value) {
+  shader_set_int(program, name, (uint32)value);
 }
 
 void shader_set_float(uint32 program, const char *name, float value) {
