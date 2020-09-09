@@ -23,6 +23,7 @@
 #include "util.hpp"
 #include "camera.hpp"
 #include "array.hpp"
+#include "state.hpp"
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -115,8 +116,8 @@ Memory init_memory() {
 
   memory.state_memory_size = sizeof(State);
   log_info(
-    "Allocating state memory: %d MB",
-    memory.state_memory_size / 1024 / 1024
+    "Allocating state memory: %.2fMB (%dB)",
+    (real64)memory.state_memory_size / 1024 / 1024, memory.state_memory_size
   );
   memory.state_memory = (State *)malloc(memory.state_memory_size);
   memset(memory.state_memory, 0, memory.state_memory_size);
@@ -124,8 +125,6 @@ Memory init_memory() {
   memory.asset_memory_pool = memory_make_memory_pool(
     "assets", megabytes(512)
   );
-
-  log_newline();
 
   return memory;
 }
@@ -135,43 +134,19 @@ void init_state(Memory *memory, State *state) {
   state->window_height = 1080;
   strcpy(state->window_title, "hi lol");
 
-  log_info("Pushing memory for entities");
-  state->entities.size = 0;
-  state->entities.max_size = 128;
-  state->entities.items = (Entity*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Entity) * state->entities.max_size
-  );
-
-  log_info("Pushing memory for found entities");
-  state->found_entities.size = 0;
-  state->found_entities.max_size = 128;
-  state->found_entities.items = (Entity**)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Entity*) * state->found_entities.max_size
-  );
-
-  log_info("Pushing memory for shader assets");
-  state->shader_assets.size = 0;
-  state->shader_assets.max_size = 128;
-  state->shader_assets.items = (ShaderAsset*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(ShaderAsset) * state->shader_assets.max_size
-  );
-
-  log_info("Pushing memory for model assets");
-  state->model_assets.size = 0;
-  state->model_assets.max_size = 32;
-  state->model_assets.items = (ModelAsset**)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(ModelAsset*) * state->model_assets.max_size
-  );
-
-  camera_init(&state->camera);
-  camera_update_matrices(&state->camera, state->window_width, state->window_height);
-
-  control_init(&state->control);
+  array_init<Entity>(&memory->asset_memory_pool, &state->entities, 128);
+  array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
+  array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
+  array_init<ModelAsset*>(&memory->asset_memory_pool, &state->model_assets, 128);
+  array_init<Light>(&memory->asset_memory_pool, &state->lights, 32);
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
-
   state->light_position = glm::vec3(0.0f, 1.0f, 0.0f);
+
+  camera_init(&state->camera);
+  camera_update_matrices(&state->camera, state->window_width, state->window_height);
+  control_init(&state->control);
 }
 
 GLFWwindow* init_window(State *state) {

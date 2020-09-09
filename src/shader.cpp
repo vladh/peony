@@ -18,35 +18,25 @@ void shader_assert_shader_status_ok(uint32 shader) {
   char message[512];
   glGetShaderInfoLog(shader, 512, NULL, message);
 
-  log_info("[assertShaderStatusOk] Compilation for shader %d", shader);
-  log_info("Status: %d", status);
-  log_info("Message: %s", message);
-
   if (status != 1) {
-    log_error("[assertShaderStatusOk] Shader compilation failed");
+    log_info("Compiling shader %d: (status %d) (message %s)", shader, status, message);
+    log_error("Shader compilation failed");
     exit(EXIT_FAILURE);
   }
-
-  log_newline();
 }
 
-void shader_assert_program_status_ok(uint32 shader) {
+void shader_assert_program_status_ok(uint32 program) {
   int32 status;
-  glGetProgramiv(shader, GL_LINK_STATUS, &status);
+  glGetProgramiv(program, GL_LINK_STATUS, &status);
 
   char message[512];
-  glGetProgramInfoLog(shader, 512, NULL, message);
-
-  log_info("[assertProgramStatusOk] Loading program");
-  log_info("Status: %d", status);
-  log_info("Message: %s", message);
+  glGetProgramInfoLog(program, 512, NULL, message);
 
   if (status != 1) {
-    log_error("[assertProgramStatusOk] Program loading failed");
+    log_info("Compiling program %d: (status %d) (message %s)", program, status, message);
+    log_error("Program loading failed");
     exit(EXIT_FAILURE);
   }
-
-  log_newline();
 }
 
 uint32 shader_load(const char *source, GLenum shader_type) {
