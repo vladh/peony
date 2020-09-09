@@ -11,6 +11,7 @@
 
 #include "memory.hpp"
 #include "shader.hpp"
+#include "asset.hpp"
 #include "array.hpp"
 #include "log.hpp"
 #include "util.hpp"
@@ -99,9 +100,9 @@ internal void models_load_mesh_vertices(
 ) {
   mesh->vertices.size = 0;
   mesh->vertices.max_size = mesh_data->mNumVertices;
-  log_info("Pushing memory for vertices");
   mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size
+    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
+    "vertices"
   );
 
   for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
@@ -144,9 +145,9 @@ internal void models_load_mesh_indices(
 
   mesh->indices.size = 0;
   mesh->indices.max_size = n_indices;
-  log_info("Pushing memory for indices");
   mesh->indices.items = (uint32*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size
+    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size,
+    "indices"
   );
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
@@ -168,9 +169,9 @@ internal void models_load_mesh_textures(
 
   mesh->textures.size = 0;
   mesh->textures.max_size = n_diffuse_textures + n_specular_textures;
-  log_info("Pushing memory for textures");
   mesh->textures.items = (Texture*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size
+    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size,
+    "textures"
   );
 
   aiTextureType texture_type = aiTextureType_DIFFUSE;
@@ -275,9 +276,9 @@ void models_load_model(
 
   model->meshes.size = 0;
   model->meshes.max_size = 128;
-  log_info("Pushing memory for meshes");
   model->meshes.items = (Mesh*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size
+    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
+    "meshes"
   );
 
   models_load_model_node(memory, model, scene->mRootNode, scene);
@@ -315,9 +316,9 @@ ModelAsset* models_make_asset_from_data(
 
   model->meshes.size = 0;
   model->meshes.max_size = 1;
-  log_info("Pushing memory for meshes");
   model->meshes.items = (Mesh*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size
+    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
+    "meshes"
   );
 
   Mesh *mesh = model->meshes.items;
@@ -328,9 +329,9 @@ ModelAsset* models_make_asset_from_data(
   // Vertices
   mesh->vertices.size = 0;
   mesh->vertices.max_size = n_vertices;
-  log_info("Pushing memory for vertices");
   mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size
+    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
+    "meshes"
   );
 
   for (uint32 idx = 0; idx < n_vertices; idx++) {
@@ -359,9 +360,9 @@ ModelAsset* models_make_asset_from_data(
 
   mesh->indices.size = 0;
   mesh->indices.max_size = n_indices;
-  log_info("Pushing memory for indices");
   mesh->indices.items = (uint32*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size
+    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size,
+    "indices"
   );
 
   memcpy(index_data, mesh->indices.items, sizeof(uint32) * n_indices);
@@ -370,9 +371,9 @@ ModelAsset* models_make_asset_from_data(
   // Textures
   mesh->textures.size = 0;
   mesh->textures.max_size = 1;
-  log_info("Pushing memory for textures");
   mesh->textures.items = (Texture*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size
+    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size,
+    "textures"
   );
   Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
 
