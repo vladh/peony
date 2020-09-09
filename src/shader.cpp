@@ -15,10 +15,9 @@ void shader_assert_shader_status_ok(uint32 shader) {
   int32 status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
-  char message[512];
-  glGetShaderInfoLog(shader, 512, NULL, message);
-
   if (status != 1) {
+    char message[512];
+    glGetShaderInfoLog(shader, 512, NULL, message);
     log_info("Compiling shader %d: (status %d) (message %s)", shader, status, message);
     log_error("Shader compilation failed");
     exit(EXIT_FAILURE);
@@ -29,10 +28,9 @@ void shader_assert_program_status_ok(uint32 program) {
   int32 status;
   glGetProgramiv(program, GL_LINK_STATUS, &status);
 
-  char message[512];
-  glGetProgramInfoLog(program, 512, NULL, message);
-
   if (status != 1) {
+    char message[512];
+    glGetProgramInfoLog(program, 512, NULL, message);
     log_info("Compiling program %d: (status %d) (message %s)", program, status, message);
     log_error("Program loading failed");
     exit(EXIT_FAILURE);
