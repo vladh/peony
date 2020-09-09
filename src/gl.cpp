@@ -170,6 +170,8 @@ void init_state(Memory *memory, State *state) {
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
+
+  state->light_position = glm::vec3(0.0f, 1.0f, 0.0f);
 }
 
 GLFWwindow* init_window(State *state) {
@@ -214,7 +216,7 @@ GLFWwindow* init_window(State *state) {
 void init_axes(Memory *memory, State *state) {
   ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "axes", "src/axes.vert", "src/axes.frag"
+    "axes", "src/shaders/axes.vert", "src/shaders/axes.frag"
   );
 
   const real32 axis_size = 20.0f;
@@ -263,7 +265,7 @@ void init_axes(Memory *memory, State *state) {
 void init_alpaca(Memory *memory, State *state) {
   ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "alpaca", "src/alpaca.vert", "src/alpaca.frag"
+    "alpaca", "src/shaders/alpaca.vert", "src/shaders/alpaca.frag"
   );
 
   real32 alpaca_vertices[] = {
@@ -355,7 +357,7 @@ void init_alpaca(Memory *memory, State *state) {
 void init_floor(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "floor", "src/floor.vert", "src/floor.frag"
+    "floor", "src/shaders/floor.vert", "src/shaders/floor.frag"
   );
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
@@ -385,10 +387,43 @@ void init_floor(Memory *memory, State *state) {
   entity_add_tag(entity, "floor");
 }
 
+void init_light(Memory *memory, State *state) {
+  ShaderAsset *shader_asset = shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
+    "light", "src/shaders/light.vert", "src/shaders/light.frag"
+  );
+  ModelAsset *model_asset = models_make_asset_from_file(
+    memory,
+    array_push<ModelAsset*>(
+      &state->model_assets,
+      (ModelAsset*)memory_push_memory_to_pool(
+        &memory->asset_memory_pool, sizeof(ModelAsset)
+      )
+    ),
+    shader_asset,
+    "light", "resources/", "cube.obj"
+  );
+
+  Entity *entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "light",
+    ENTITY_MODEL,
+    state->light_position,
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::angleAxis(
+      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  );
+
+  entity_set_shader_asset(entity, shader_asset);
+  entity_set_model_asset(entity, model_asset);
+  entity_add_tag(entity, "light");
+}
+
 void init_geese(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "goose", "src/goose.vert", "src/goose.frag"
+    "goose", "src/shaders/goose.vert", "src/shaders/goose.frag"
   );
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
@@ -412,7 +447,8 @@ void init_geese(Memory *memory, State *state) {
       ENTITY_MODEL,
       glm::vec3(
         util_random(-8.0f, 8.0f),
-        0.1f,
+        /* 0.1f, */
+        1.0f,
         /* util_random(1.0f, 8.0f), */
         util_random(-8.0f, 8.0f)
       ),
@@ -432,6 +468,7 @@ void init_geese(Memory *memory, State *state) {
 void init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
   init_floor(memory, state);
+  init_light(memory, state);
   init_geese(memory, state);
 #if 0
   init_alpaca(memory, state);
@@ -449,6 +486,11 @@ void draw_entity(State *state, Entity *entity) {
     glUniform1f(
       glGetUniformLocation(shader_program, "t"),
       (real32)state->t
+    );
+
+    glUniform3fv(
+      glGetUniformLocation(shader_program, "light_position"),
+      1, glm::value_ptr(state->light_position)
     );
 
     glUniformMatrix4fv(
@@ -496,6 +538,17 @@ void update_and_render_axes(Memory *memory, State *state) {
   }
 }
 
+void update_and_render_light(Memory *memory, State *state) {
+  entity_get_all_with_name(
+    state->entities, "light", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    draw_entity(state, entity);
+  }
+}
+
 void update_and_render_floor(Memory *memory, State *state) {
   entity_get_all_with_name(
     state->entities, "floor", &state->found_entities
@@ -514,8 +567,20 @@ void update_and_render_geese(Memory *memory, State *state) {
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
+
+    real32 period_offset = idx;
+    real32 spin_speed_factor = 0.3f;
+    real32 radius_offset = (2.0f + (idx * 1.0f));
+    real32 pos_arg = (state->t * spin_speed_factor) + period_offset;
+    real32 spin_deg_per_t = 90.0f;
+
+    entity->position = glm::vec3(
+      sin(pos_arg) * radius_offset,
+      0.0f,
+      cos(pos_arg) * radius_offset
+    );
     entity->rotation *= glm::angleAxis(
-      glm::radians(30.0f * (real32)state->dt),
+      glm::radians(spin_deg_per_t * (real32)state->dt),
       glm::vec3(0.0f, 0.0f, 1.0f)
     );
     draw_entity(state, entity);
@@ -545,6 +610,7 @@ void update_and_render(Memory *memory, State *state) {
   draw_background();
   update_and_render_axes(memory, state);
   update_and_render_floor(memory, state);
+  update_and_render_light(memory, state);
   update_and_render_geese(memory, state);
 #if 0
   update_and_render_alpaca(memory, state);

@@ -28,6 +28,8 @@ struct State {
   uint32 window_height;
   char window_title[32];
 
+  glm::vec3 light_position;
+
   Array<Entity> entities;
   Array<Entity*> found_entities;
   Array<ShaderAsset> shader_assets;
