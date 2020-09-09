@@ -80,3 +80,39 @@ ShaderAsset* shader_make_asset(
   asset->shader.program = program;
   return asset;
 }
+
+void shader_set_int(uint32 program, const char *name, float value) {
+  glUniform1i(glGetUniformLocation(program, name), value);
+}
+
+void shader_set_bool(uint32 program, const char *name, float value) {
+  shader_set_int(program, name, (int)value);
+}
+
+void shader_set_float(uint32 program, const char *name, float value) {
+  glUniform1f(glGetUniformLocation(program, name), value);
+}
+
+void shader_set_vec2(uint32 program, const char *name, const glm::vec2 &value) {
+  glUniform2fv(glGetUniformLocation(program, name), 1, &value[0]);
+}
+
+void shader_set_vec3(uint32 program, const char *name, const glm::vec3 &value) {
+  glUniform3fv(glGetUniformLocation(program, name), 1, &value[0]);
+}
+
+void shader_set_vec4(uint32 program, const char *name, const glm::vec4 &value) {
+  glUniform4fv(glGetUniformLocation(program, name), 1, &value[0]);
+}
+
+void shader_set_mat2(uint32 program, const char *name, const glm::mat2 &mat) {
+  glUniformMatrix2fv(glGetUniformLocation(program, name), 1, GL_FALSE, &mat[0][0]);
+}
+
+void shader_set_mat3(uint32 program, const char *name, const glm::mat3 &mat) {
+  glUniformMatrix3fv(glGetUniformLocation(program, name), 1, GL_FALSE, &mat[0][0]);
+}
+
+void shader_set_mat4(uint32 program, const char *name, const glm::mat4 &mat) {
+  glUniformMatrix4fv(glGetUniformLocation(program, name), 1, GL_FALSE, &mat[0][0]);
+}
