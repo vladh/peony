@@ -124,7 +124,7 @@ Memory init_memory() {
   memset(memory.state_memory, 0, memory.state_memory_size);
 
   memory.asset_memory_pool = memory_make_memory_pool(
-    "assets", megabytes(512)
+    "assets", MEGABYTES(512)
   );
 
   return memory;
@@ -143,7 +143,17 @@ void init_state(Memory *memory, State *state) {
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
-  state->light_position = glm::vec3(0.0f, 1.0f, 0.0f);
+
+  Light *light1 = array_push(&state->lights);
+  light1->is_point_light = true;
+  light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
+  light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
+  light1->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+  light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+  light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
+  light1->attenuation_constant = 1.0f;
+  light1->attenuation_linear = 0.09f;
+  light1->attenuation_quadratic = 0.032f;
 
   camera_init(&state->camera);
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
@@ -333,7 +343,7 @@ void init_light(Memory *memory, State *state) {
     array_push<Entity>(&state->entities),
     "light",
     ENTITY_MODEL,
-    state->light_position,
+    state->lights.items[0].position,
     glm::vec3(0.3f, 0.3f, 0.3f),
     glm::angleAxis(
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
@@ -417,6 +427,38 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_mat4(shader_program, "projection", &state->camera.projection);
     shader_set_mat4(shader_program, "model", &model_matrix);
 
+    shader_set_int(shader_program, "n_lights", state->lights.size);
+    char uniform_name[128];
+
+    for (uint32 idx = 0; idx < state->lights.size; idx++) {
+      sprintf(uniform_name, "lights[%d].is_point_light", idx);
+      shader_set_bool(shader_program, uniform_name, state->lights.items[idx].is_point_light);
+
+      sprintf(uniform_name, "lights[%d].position", idx);
+      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].position);
+
+      sprintf(uniform_name, "lights[%d].direction", idx);
+      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].direction);
+
+      sprintf(uniform_name, "lights[%d].ambient", idx);
+      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].ambient);
+
+      sprintf(uniform_name, "lights[%d].diffuse", idx);
+      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].diffuse);
+
+      sprintf(uniform_name, "lights[%d].specular", idx);
+      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].specular);
+
+      sprintf(uniform_name, "lights[%d].attenuation_constant", idx);
+      shader_set_float(shader_program, uniform_name, state->lights.items[idx].attenuation_constant);
+
+      sprintf(uniform_name, "lights[%d].attenuation_linear", idx);
+      shader_set_float(shader_program, uniform_name, state->lights.items[idx].attenuation_linear);
+
+      sprintf(uniform_name, "lights[%d].attenuation_quadratic", idx);
+      shader_set_float(shader_program, uniform_name, state->lights.items[idx].attenuation_quadratic);
+    }
+
     Model *model = &(entity->model_asset->model);
     models_draw_model(model, shader_program);
   } else {
@@ -444,7 +486,7 @@ void update_and_render_axes(Memory *memory, State *state) {
 }
 
 void update_and_render_light(Memory *memory, State *state) {
-  state->light_position = glm::vec3(
+  state->lights.items[0].position = glm::vec3(
     sin(state->t) * 3.0f,
     1.0f,
     0.0f
@@ -456,7 +498,7 @@ void update_and_render_light(Memory *memory, State *state) {
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
-    entity->position = state->light_position;
+    entity->position = state->lights.items[0].position;
     draw_entity(state, entity);
   }
 }

@@ -4,11 +4,13 @@
 #include <stdint.h>
 
 
-#define kilobytes(value) ((value) * 1024LL)
-#define megabytes(value) (kilobytes(value) * 1024LL)
-#define gigabytes(value) (megabytes(value) * 1024LL)
-#define terabytes(value) (gigabytes(value) * 1024LL)
-#define len(x) (sizeof(x) / sizeof((x)[0]))
+#define KILOBYTES(value) ((value) * 1024LL)
+#define MEGABYTES(value) (KILOBYTES(value) * 1024LL)
+#define GIGABYTES(value) (MEGABYTES(value) * 1024LL)
+#define TERABYTES(value) (GIGABYTES(value) * 1024LL)
+#define LEN(x) (sizeof(x) / sizeof((x)[0]))
+#define STRINGIZE_(x) #x
+#define STRINGIZE(x) STRINGIZE_(x)
 
 typedef int8_t int8;
 typedef int16_t int16;
