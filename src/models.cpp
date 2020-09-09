@@ -10,6 +10,7 @@
 #include <assimp/postprocess.h>
 
 #include "memory.hpp"
+#include "shader.hpp"
 #include "array.hpp"
 #include "log.hpp"
 #include "util.hpp"
@@ -409,10 +410,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
       specular_idx++;
     }
 
-    glUniform1f(
-      glGetUniformLocation(shader_program, uniform_name),
-      (real32)idx
-    );
+    shader_set_float(shader_program, uniform_name, (real32)idx);
 
     glBindTexture(GL_TEXTURE_2D, mesh->textures.items[idx].id);
   }

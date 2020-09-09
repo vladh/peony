@@ -480,37 +480,18 @@ void draw_entity(State *state, Entity *entity) {
     assert(entity->shader_asset);
     assert(entity->model_asset);
 
-    uint32 shader_program = entity->shader_asset->shader.program;
-    glUseProgram(shader_program);
-
-    glUniform1f(
-      glGetUniformLocation(shader_program, "t"),
-      (real32)state->t
-    );
-
-    glUniform3fv(
-      glGetUniformLocation(shader_program, "light_position"),
-      1, glm::value_ptr(state->light_position)
-    );
-
-    glUniformMatrix4fv(
-      glGetUniformLocation(shader_program, "view"),
-      1, GL_FALSE, glm::value_ptr(state->camera.view)
-    );
-
-    glUniformMatrix4fv(
-      glGetUniformLocation(shader_program, "projection"),
-      1, GL_FALSE, glm::value_ptr(state->camera.projection)
-    );
-
     glm::mat4 model_matrix = glm::mat4(1.0f);
     model_matrix = glm::translate(model_matrix, entity->position);
     model_matrix = glm::scale(model_matrix, entity->scale);
     model_matrix = model_matrix * glm::toMat4(entity->rotation);
-    glUniformMatrix4fv(
-      glGetUniformLocation(shader_program, "model"),
-      1, GL_FALSE, glm::value_ptr(model_matrix)
-    );
+
+    uint32 shader_program = entity->shader_asset->shader.program;
+    glUseProgram(shader_program);
+    shader_set_float(shader_program, "t", (real32)state->t);
+    shader_set_vec3(shader_program, "light_position", state->light_position);
+    shader_set_mat4(shader_program, "view", state->camera.view);
+    shader_set_mat4(shader_program, "projection", state->camera.projection);
+    shader_set_mat4(shader_program, "model", model_matrix);
 
     Model *model = &(entity->model_asset->model);
     models_draw_model(model, shader_program);
