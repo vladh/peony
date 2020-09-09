@@ -443,7 +443,6 @@ void draw_entity(State *state, Entity *entity) {
     assert(entity->shader_asset);
     assert(entity->model_asset);
 
-    // Shader
     uint32 shader_program = entity->shader_asset->shader.program;
     glUseProgram(shader_program);
 
@@ -471,7 +470,6 @@ void draw_entity(State *state, Entity *entity) {
       1, GL_FALSE, glm::value_ptr(model_matrix)
     );
 
-    // Model
     Model *model = &(entity->model_asset->model);
     models_draw_model(model, shader_program);
   } else {
@@ -487,16 +485,7 @@ void draw_background() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void update_and_render(Memory *memory, State *state) {
-  real64 t_now = glfwGetTime();
-  state->dt = t_now - state->t;
-  state->t = t_now;
-
-  camera_update_matrices(&state->camera, state->window_width, state->window_height);
-
-  draw_background();
-
-  // Axes
+void update_and_render_axes(Memory *memory, State *state) {
   entity_get_all_with_name(
     state->entities, "axes", &state->found_entities
   );
@@ -505,8 +494,9 @@ void update_and_render(Memory *memory, State *state) {
     Entity *entity = state->found_entities.items[idx];
     draw_entity(state, entity);
   }
+}
 
-  // Floor
+void update_and_render_floor(Memory *memory, State *state) {
   entity_get_all_with_name(
     state->entities, "floor", &state->found_entities
   );
@@ -515,8 +505,9 @@ void update_and_render(Memory *memory, State *state) {
     Entity *entity = state->found_entities.items[idx];
     draw_entity(state, entity);
   }
+}
 
-  // Geese
+void update_and_render_geese(Memory *memory, State *state) {
   entity_get_all_with_name(
     state->entities, "goose", &state->found_entities
   );
@@ -529,9 +520,9 @@ void update_and_render(Memory *memory, State *state) {
     );
     draw_entity(state, entity);
   }
+}
 
-#if 0
-  // Alpaca
+void update_and_render_alpaca(Memory *memory, State *state) {
   entity_get_all_with_name(
     state->entities, "alpaca", &state->found_entities
   );
@@ -544,6 +535,19 @@ void update_and_render(Memory *memory, State *state) {
     );
     draw_entity(state, entity);
   }
+}
+
+void update_and_render(Memory *memory, State *state) {
+  real64 t_now = glfwGetTime();
+  state->dt = t_now - state->t;
+  state->t = t_now;
+  camera_update_matrices(&state->camera, state->window_width, state->window_height);
+  draw_background();
+  update_and_render_axes(memory, state);
+  update_and_render_floor(memory, state);
+  update_and_render_geese(memory, state);
+#if 0
+  update_and_render_alpaca(memory, state);
 #endif
 }
 
