@@ -379,7 +379,7 @@ ModelAsset* models_make_asset_from_data(
   Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
 
   if (strcmp(texture_path, "") == 0) {
-    texture->id = -1;
+    texture->id = (uint32)0xdead;
     texture->type = "";
     texture->was_loaded_from_file = false;
     texture->filename = "";

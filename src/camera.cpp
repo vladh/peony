@@ -1,4 +1,8 @@
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "types.hpp"
+#include "camera.hpp"
 #include "memory.hpp"
 
 
