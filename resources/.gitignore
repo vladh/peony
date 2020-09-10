@@ -1,3 +1,4 @@
 backpack
 container.jpg
 !.gitignore
+!*.obj
