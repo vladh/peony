@@ -522,10 +522,10 @@ void update_and_render_geese(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
 
-    real32 period_offset = idx;
+    real32 period_offset = (real32)idx;
     real32 spin_speed_factor = 0.3f;
     real32 radius_offset = (2.0f + (idx * 1.0f));
-    real32 pos_arg = (state->t * spin_speed_factor) + period_offset;
+    real32 pos_arg = ((real32)state->t * spin_speed_factor) + period_offset;
     real32 spin_deg_per_t = 90.0f;
 
     entity->position = glm::vec3(
