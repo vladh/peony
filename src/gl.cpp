@@ -155,6 +155,17 @@ void init_state(Memory *memory, State *state) {
   light1->attenuation_linear = 0.09f;
   light1->attenuation_quadratic = 0.032f;
 
+  Light *light2 = array_push(&state->lights);
+  light2->is_point_light = true;
+  light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
+  light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
+  light2->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+  light2->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+  light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
+  light2->attenuation_constant = 1.0f;
+  light2->attenuation_linear = 0.09f;
+  light2->attenuation_quadratic = 0.032f;
+
   camera_init(&state->camera);
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
   control_init(&state->control);
@@ -322,7 +333,7 @@ void init_floor(Memory *memory, State *state) {
   entity_add_tag(entity, "floor");
 }
 
-void init_light(Memory *memory, State *state) {
+void init_lights(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     "light", "src/shaders/light.vert", "src/shaders/light.frag"
@@ -339,9 +350,9 @@ void init_light(Memory *memory, State *state) {
     "light", "resources/", "cube.obj"
   );
 
-  Entity *entity = entity_make(
+  Entity *light1 = entity_make(
     array_push<Entity>(&state->entities),
-    "light",
+    "light1",
     ENTITY_MODEL,
     state->lights.items[0].position,
     glm::vec3(0.3f, 0.3f, 0.3f),
@@ -349,10 +360,23 @@ void init_light(Memory *memory, State *state) {
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
   );
+  entity_set_shader_asset(light1, shader_asset);
+  entity_set_model_asset(light1, model_asset);
+  entity_add_tag(light1, "light");
 
-  entity_set_shader_asset(entity, shader_asset);
-  entity_set_model_asset(entity, model_asset);
-  entity_add_tag(entity, "light");
+  Entity *light2 = entity_make(
+    array_push<Entity>(&state->entities),
+    "light2",
+    ENTITY_MODEL,
+    state->lights.items[1].position,
+    glm::vec3(0.3f, 0.3f, 0.3f),
+    glm::angleAxis(
+      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  );
+  entity_set_shader_asset(light2, shader_asset);
+  entity_set_model_asset(light2, model_asset);
+  entity_add_tag(light2, "light");
 }
 
 void init_geese(Memory *memory, State *state) {
@@ -401,7 +425,7 @@ void init_geese(Memory *memory, State *state) {
 void init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
   init_floor(memory, state);
-  init_light(memory, state);
+  init_lights(memory, state);
   init_geese(memory, state);
 #if 0
   init_alpaca(memory, state);
@@ -485,20 +509,25 @@ void update_and_render_axes(Memory *memory, State *state) {
   }
 }
 
-void update_and_render_light(Memory *memory, State *state) {
+void update_and_render_lights(Memory *memory, State *state) {
   state->lights.items[0].position = glm::vec3(
     sin(state->t) * 3.0f,
     1.0f,
     0.0f
   );
+  state->lights.items[1].position = glm::vec3(
+    cos(state->t) * 3.0f,
+    2.0f,
+    sin(state->t) * 5.0f
+  );
 
-  entity_get_all_with_name(
+  entity_get_all_with_tag(
     state->entities, "light", &state->found_entities
   );
 
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
-    entity->position = state->lights.items[0].position;
+    entity->position = state->lights.items[idx].position;
     draw_entity(state, entity);
   }
 }
@@ -565,7 +594,7 @@ void update_and_render(Memory *memory, State *state) {
   draw_background();
   update_and_render_axes(memory, state);
   update_and_render_floor(memory, state);
-  update_and_render_light(memory, state);
+  update_and_render_lights(memory, state);
   update_and_render_geese(memory, state);
 #if 0
   update_and_render_alpaca(memory, state);
