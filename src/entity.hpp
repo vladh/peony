@@ -35,6 +35,7 @@ struct Entity {
   glm::vec3 position;
   glm::vec3 scale;
   glm::quat rotation;
+  glm::vec3 color;
   ShaderAsset *shader_asset;
   ModelAsset *model_asset;
   std::set<EntityTag> tags;
@@ -48,6 +49,7 @@ Entity* entity_make(
 void entity_set_position(Entity *entity, glm::vec3 position);
 void entity_set_scale(Entity *entity, glm::vec3 scale);
 void entity_set_rotation(Entity *entity, glm::quat rotation);
+void entity_set_color(Entity *entity, glm::vec3 color);
 void entity_set_shader_asset(Entity *entity, ShaderAsset *asset);
 void entity_set_model_asset(Entity *entity, ModelAsset *asset);
 void entity_add_tag(Entity *entity, const char *tag);

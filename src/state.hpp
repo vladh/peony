@@ -35,12 +35,11 @@ struct State {
   real64 dt;
   bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
+  glm::vec4 background_color;
 
   uint32 window_width;
   uint32 window_height;
   char window_title[32];
-
-  glm::vec3 light_position;
 
   Array<Entity> entities;
   Array<Entity*> found_entities;
