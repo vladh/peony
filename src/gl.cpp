@@ -143,12 +143,13 @@ void init_state(Memory *memory, State *state) {
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
+  state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
   Light *light1 = array_push(&state->lights);
   light1->is_point_light = true;
   light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  light1->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+  light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
   light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
   light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
   light1->attenuation_constant = 1.0f;
@@ -159,7 +160,7 @@ void init_state(Memory *memory, State *state) {
   light2->is_point_light = true;
   light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  light2->ambient = glm::vec3(0.2f, 0.2f, 0.2f);
+  light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
   light2->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
   light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
   light2->attenuation_constant = 1.0f;
@@ -303,7 +304,7 @@ void init_alpaca(Memory *memory, State *state) {
 void init_floor(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "floor", "src/shaders/floor.vert", "src/shaders/floor.frag"
+    "floor", "src/shaders/entity.vert", "src/shaders/entity.frag"
   );
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
@@ -322,12 +323,13 @@ void init_floor(Memory *memory, State *state) {
     "floor",
     ENTITY_MODEL,
     glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(50.0f, 0.1f, 50.0f),
+    glm::vec3(150.0f, 0.1f, 150.0f),
     glm::angleAxis(
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
   );
 
+  entity_set_color(entity, glm::vec3(1.0f, 1.0f, 1.0f));
   entity_set_shader_asset(entity, shader_asset);
   entity_set_model_asset(entity, model_asset);
   entity_add_tag(entity, "floor");
@@ -382,7 +384,7 @@ void init_lights(Memory *memory, State *state) {
 void init_geese(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "goose", "src/shaders/goose.vert", "src/shaders/goose.frag"
+    "goose", "src/shaders/entity.vert", "src/shaders/entity.frag"
   );
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
@@ -406,7 +408,7 @@ void init_geese(Memory *memory, State *state) {
       ENTITY_MODEL,
       glm::vec3(
         util_random(-8.0f, 8.0f),
-        1.0f,
+        0.1f,
         util_random(-8.0f, 8.0f)
       ),
       glm::vec3(scale, scale, scale),
@@ -416,6 +418,7 @@ void init_geese(Memory *memory, State *state) {
       )
     );
 
+    entity_set_color(entity, glm::vec3(1.0f, 0.0f, 0.0f));
     entity_set_shader_asset(entity, shader_asset);
     entity_set_model_asset(entity, model_asset);
     entity_add_tag(entity, "goose");
@@ -444,12 +447,12 @@ void draw_entity(State *state, Entity *entity) {
 
     uint32 shader_program = entity->shader_asset->shader.program;
     glUseProgram(shader_program);
-    shader_set_float(shader_program, "t", (real32)state->t);
-    shader_set_vec3(shader_program, "light_position", &state->light_position);
-    shader_set_vec3(shader_program, "camera_position", &state->camera.position);
+    shader_set_mat4(shader_program, "model", &model_matrix);
     shader_set_mat4(shader_program, "view", &state->camera.view);
     shader_set_mat4(shader_program, "projection", &state->camera.projection);
-    shader_set_mat4(shader_program, "model", &model_matrix);
+    shader_set_float(shader_program, "t", (real32)state->t);
+    shader_set_vec3(shader_program, "camera_position", &state->camera.position);
+    shader_set_vec3(shader_program, "entity_color", &entity->color);
 
     shader_set_int(shader_program, "n_lights", state->lights.size);
     char uniform_name[128];
@@ -493,8 +496,13 @@ void draw_entity(State *state, Entity *entity) {
   }
 }
 
-void draw_background() {
-  glClearColor(0.180f, 0.204f, 0.251f, 1.0f);
+void draw_background(Memory *memory, State *state) {
+  glClearColor(
+    state->background_color.r,
+    state->background_color.g,
+    state->background_color.b,
+    state->background_color.a
+  );
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -591,7 +599,7 @@ void update_and_render(Memory *memory, State *state) {
   state->dt = t_now - state->t;
   state->t = t_now;
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
-  draw_background();
+  draw_background(memory, state);
   update_and_render_axes(memory, state);
   update_and_render_floor(memory, state);
   update_and_render_lights(memory, state);

@@ -28,6 +28,10 @@ void entity_set_rotation(Entity *entity, glm::quat rotation) {
   entity->rotation = rotation;
 }
 
+void entity_set_color(Entity *entity, glm::vec3 color) {
+  entity->color = color;
+}
+
 void entity_set_shader_asset(Entity *entity, ShaderAsset *asset) {
   entity->shader_asset = asset;
 }
