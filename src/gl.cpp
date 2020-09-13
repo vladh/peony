@@ -27,6 +27,9 @@
 #include "state.hpp"
 
 
+#define USE_FRAMEBUFFER true
+
+
 void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_wireframe_on) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -260,7 +263,7 @@ void init_alpaca(Memory *memory, State *state) {
     "alpaca", "src/shaders/alpaca.vert", "src/shaders/alpaca.frag"
   );
 
-  real32 alpaca_vertices[] = ALPACA_VERTICES;
+  real32 vertices[] = ALPACA_VERTICES;
   uint32 n_vertices = 36;
 
   ModelAsset *model_asset = models_make_asset_from_data(
@@ -272,7 +275,7 @@ void init_alpaca(Memory *memory, State *state) {
       )
     ),
     shader_asset,
-    alpaca_vertices, n_vertices,
+    vertices, n_vertices,
     nullptr, 0,
     "alpaca", "resources/alpaca.jpg",
     GL_TRIANGLES
@@ -301,6 +304,44 @@ void init_alpaca(Memory *memory, State *state) {
     entity_set_model_asset(entity, model_asset);
     entity_add_tag(entity, "alpaca");
   }
+}
+
+void init_screenquad(Memory *memory, State *state) {
+  ShaderAsset* shader_asset = shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
+    "alpaca", "src/shaders/screenquad.vert", "src/shaders/screenquad.frag"
+  );
+
+  real32 vertices[] = SCREENQUAD_VERTICES;
+  uint32 n_vertices = 6;
+
+  ModelAsset *model_asset = models_make_asset_from_data(
+    memory,
+    array_push<ModelAsset*>(
+      &state->model_assets,
+      (ModelAsset*)memory_push_memory_to_pool(
+        &memory->asset_memory_pool, sizeof(ModelAsset)
+      )
+    ),
+    shader_asset,
+    vertices, n_vertices,
+    nullptr, 0,
+    "screenquad", "",
+    GL_TRIANGLES
+  );
+
+  Entity *entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "screenquad",
+    ENTITY_MODEL,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))
+  );
+
+  entity_set_shader_asset(entity, shader_asset);
+  entity_set_model_asset(entity, model_asset);
+  entity_add_tag(entity, "screenquad");
 }
 
 void init_floor(Memory *memory, State *state) {
@@ -427,11 +468,46 @@ void init_geese(Memory *memory, State *state) {
   }
 }
 
+void init_buffers(Memory *memory, State *state) {
+	glGenFramebuffers(1, &state->framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, state->framebuffer);
+
+	glGenTextures(1, &state->texture_color_buffer);
+	glBindTexture(GL_TEXTURE_2D, state->texture_color_buffer);
+	glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
+    0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+  );
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->texture_color_buffer, 0
+  );
+
+	glGenRenderbuffers(1, &state->rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, state->rbo);
+	glRenderbufferStorage(
+    GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
+  );
+	glFramebufferRenderbuffer(
+    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, state->rbo
+  );
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_error("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+  }
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
   init_floor(memory, state);
   init_lights(memory, state);
   init_geese(memory, state);
+#if USE_FRAMEBUFFER
+  init_screenquad(memory, state);
+#endif
 #if 0
   init_alpaca(memory, state);
 #endif
@@ -542,6 +618,17 @@ void update_and_render_lights(Memory *memory, State *state) {
   }
 }
 
+void update_and_render_screenquad(Memory *memory, State *state) {
+  entity_get_all_with_name(
+    state->entities, "screenquad", &state->found_entities
+  );
+
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    draw_entity(state, entity);
+  }
+}
+
 void update_and_render_floor(Memory *memory, State *state) {
   entity_get_all_with_name(
     state->entities, "floor", &state->found_entities
@@ -600,6 +687,12 @@ void update_and_render(Memory *memory, State *state) {
   real64 t_now = glfwGetTime();
   state->dt = t_now - state->t;
   state->t = t_now;
+
+#if USE_FRAMEBUFFER
+  glBindFramebuffer(GL_FRAMEBUFFER, state->framebuffer);
+  glEnable(GL_DEPTH_TEST);
+#endif
+
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
   draw_background(memory, state);
   update_and_render_axes(memory, state);
@@ -608,6 +701,14 @@ void update_and_render(Memory *memory, State *state) {
   update_and_render_geese(memory, state);
 #if 0
   update_and_render_alpaca(memory, state);
+#endif
+
+#if USE_FRAMEBUFFER
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDisable(GL_DEPTH_TEST);
+  glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  update_and_render_screenquad(memory, state);
 #endif
 }
 
@@ -633,6 +734,11 @@ int main() {
   if (!window) {
     return -1;
   }
+
+#if USE_FRAMEBUFFER
+  init_buffers(&memory, state);
+#endif
+
   init_objects(&memory, state);
   main_loop(window, &memory, state);
   destroy_window();
