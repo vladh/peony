@@ -46,6 +46,10 @@ struct State {
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset*> model_assets;
   Array<Light> lights;
+
+  uint32 framebuffer;
+  uint32 texture_color_buffer;
+  uint32 rbo;
 };
 
 #endif
