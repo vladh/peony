@@ -1,10 +1,6 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include "types.hpp"
-#include "memory.hpp"
-
-
 template <typename T>
 struct Array {
   T *items;

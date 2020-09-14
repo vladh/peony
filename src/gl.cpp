@@ -1,30 +1,16 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include <stdio.h>
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/quaternion.hpp>
-
-#include "data.hpp"
-#include "types.hpp"
-#include "shader.hpp"
-#include "models.hpp"
-#include "asset.hpp"
-#include "memory.hpp"
-#include "control.hpp"
-#include "log.hpp"
-#include "util.hpp"
-#include "camera.hpp"
-#include "array.hpp"
-#include "state.hpp"
+#include "gl.hpp"
+#include "log.cpp"
+#include "shader.cpp"
+#include "util.cpp"
+#include "camera.cpp"
+#include "asset.cpp"
+#include "memory.cpp"
+#include "control.cpp"
+#include "entity.cpp"
+#include "array.cpp"
+#include "models.cpp"
 
 
 #define USE_FRAMEBUFFER true
@@ -469,35 +455,35 @@ void init_geese(Memory *memory, State *state) {
 }
 
 void init_buffers(Memory *memory, State *state) {
-	glGenFramebuffers(1, &state->framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, state->framebuffer);
+  glGenFramebuffers(1, &state->framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->framebuffer);
 
-	glGenTextures(1, &state->texture_color_buffer);
-	glBindTexture(GL_TEXTURE_2D, state->texture_color_buffer);
-	glTexImage2D(
+  glGenTextures(1, &state->texture_color_buffer);
+  glBindTexture(GL_TEXTURE_2D, state->texture_color_buffer);
+  glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
     0, GL_RGB, GL_UNSIGNED_BYTE, NULL
   );
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(
     GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->texture_color_buffer, 0
   );
 
-	glGenRenderbuffers(1, &state->rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, state->rbo);
-	glRenderbufferStorage(
+  glGenRenderbuffers(1, &state->rbo);
+  glBindRenderbuffer(GL_RENDERBUFFER, state->rbo);
+  glRenderbufferStorage(
     GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
   );
-	glFramebufferRenderbuffer(
+  glFramebufferRenderbuffer(
     GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, state->rbo
   );
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     log_error("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
   }
 
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void init_objects(Memory *memory, State *state) {

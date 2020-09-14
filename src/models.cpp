@@ -1,22 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
-#include "models.hpp"
-
-#include <string.h>
-
-#include <glad/glad.h>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
-#include "memory.hpp"
-#include "shader.hpp"
-#include "asset.hpp"
-#include "array.hpp"
-#include "log.hpp"
-#include "util.hpp"
-
-
 uint32 models_load_texture_from_file(const char *path) {
   uint32 texture_id;
   glGenTextures(1, &texture_id);

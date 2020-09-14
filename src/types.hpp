@@ -1,9 +1,6 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <stdint.h>
-
-
 #define KILOBYTES(value) ((value) * 1024LL)
 #define MEGABYTES(value) (KILOBYTES(value) * 1024LL)
 #define GIGABYTES(value) (MEGABYTES(value) * 1024LL)

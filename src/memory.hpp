@@ -1,9 +1,6 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include "types.hpp"
-
-
 struct State;
 
 struct MemoryPool {

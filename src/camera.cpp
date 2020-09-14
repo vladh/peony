@@ -1,11 +1,3 @@
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include "types.hpp"
-#include "camera.hpp"
-#include "memory.hpp"
-
-
 void camera_init(Camera *camera) {
   camera->yaw = -90.0f;
   camera->pitch = 0.0f;
@@ -14,8 +6,8 @@ void camera_init(Camera *camera) {
   camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
   camera->speed = 0.05f;
   camera->fov = 90.0f;
-  camera->near = 0.1f;
-  camera->far = 100.0f;
+  camera->near_clip_dist = 0.1f;
+  camera->far_clip_dist = 100.0f;
 }
 
 void camera_update_matrices(
@@ -34,7 +26,7 @@ void camera_update_matrices(
   camera->projection = glm::perspective(
     glm::radians(camera->fov),
     (real32)window_width / (real32)window_height,
-    camera->near, camera->far
+    camera->near_clip_dist, camera->far_clip_dist
   );
 }
 

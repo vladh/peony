@@ -1,12 +1,6 @@
 #ifndef ASSET_H
 #define ASSET_H
 
-#include "types.hpp"
-#include "shader.hpp"
-#include "models.hpp"
-#include "array.hpp"
-
-
 struct Model;
 
 struct AssetInfo {

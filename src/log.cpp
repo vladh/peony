@@ -1,7 +1,3 @@
-#include <cstdarg>
-#include <stdio.h>
-
-
 void log_error(const char *format, ...) {
   va_list vargs;
   fprintf(stderr, "error | ");
