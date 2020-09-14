@@ -1,14 +1,6 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-#include <glm/glm.hpp>
-#include <assimp/scene.h>
-
-#include "types.hpp"
-#include "array.hpp"
-#include "shader.hpp"
-
-
 struct ModelAsset;
 struct Memory;
 

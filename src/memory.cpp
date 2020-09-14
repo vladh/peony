@@ -1,10 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
-#include "memory.hpp"
-#include "log.hpp"
-
 MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
   log_info(
     "Allocating memory pool \"%s\": %.2fMB (%dB)",

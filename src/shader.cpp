@@ -1,16 +1,3 @@
-#include <cstdlib>
-
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "memory.hpp"
-#include "types.hpp"
-#include "asset.hpp"
-#include "log.hpp"
-#include "util.hpp"
-
-
 void shader_assert_shader_status_ok(uint32 shader) {
   int32 status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);

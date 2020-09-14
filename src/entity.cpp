@@ -1,6 +1,3 @@
-#include "entity.hpp"
-
-
 Entity* entity_make(
   Entity *entity, const char *name,
   EntityType type,

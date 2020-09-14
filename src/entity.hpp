@@ -1,16 +1,6 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-#include <set>
-
-#include <glm/glm.hpp>
-#include <glm/gtx/quaternion.hpp>
-
-#include "shader.hpp"
-#include "models.hpp"
-#include "log.hpp"
-#include "types.hpp"
-#include "array.hpp"
 enum EntityType { ENTITY_MODEL
 };
 

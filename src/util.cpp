@@ -1,15 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
-#include <stdio.h>
-#include <cstdlib>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
-
-#include "types.hpp"
-#include "log.hpp"
-
-
 unsigned char *util_load_image(const char *path, int32 *width, int32 *height, int32 *n_channels) {
   stbi_set_flip_vertically_on_load(true);
   unsigned char *image_data = stbi_load(

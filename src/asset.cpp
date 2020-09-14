@@ -1,8 +1,3 @@
-#include "memory.hpp"
-#include "log.hpp"
-#include "asset.hpp"
-
-
 ShaderAsset* asset_get_shader_asset_by_name(
   Array<ShaderAsset> *shader_assets, const char *name
 ) {

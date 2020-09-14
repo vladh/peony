@@ -1,9 +1,3 @@
-#include "control.hpp"
-
-#include <glm/glm.hpp>
-#include <GLFW/glfw3.h>
-
-
 void control_init(Control *control) {
   control->mouse_has_moved = false;
   control->mouse_last_x = 0.0f;

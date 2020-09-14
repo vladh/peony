@@ -1,12 +1,6 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-
-#include "types.hpp"
-
-
 struct Shader {
   uint32 program;
 };

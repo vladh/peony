@@ -1,20 +1,6 @@
 #ifndef STATE_H
 #define STATE_H
 
-#include <stdint.h>
-
-#include <glm/glm.hpp>
-
-#include "types.hpp"
-#include "asset.hpp"
-#include "models.hpp"
-#include "control.hpp"
-#include "shader.hpp"
-#include "camera.hpp"
-#include "entity.hpp"
-#include "array.hpp"
-
-
 struct Light {
   bool is_point_light;
   glm::vec3 position;

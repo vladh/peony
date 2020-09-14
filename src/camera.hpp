@@ -1,11 +1,6 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <glm/glm.hpp>
-
-#include "types.hpp"
-
-
 struct Camera {
   real64 yaw;
   real64 pitch;
@@ -14,8 +9,8 @@ struct Camera {
   glm::vec3 up;
   real32 speed;
   real32 fov;
-  real32 near;
-  real32 far;
+  real32 near_clip_dist;
+  real32 far_clip_dist;
   glm::mat4 view;
   glm::mat4 projection;
 };
