@@ -1,5 +1,7 @@
 #version 330 core
 
+uniform sampler2D texture_diffuse1;
+
 struct Light {
   bool is_point_light;
   vec3 position;
@@ -20,6 +22,7 @@ uniform vec3 entity_color;
 
 in VS_OUT {
   vec3 normal;
+  vec2 tex_coords;
   vec3 frag_position;
 } fs_in;
 
@@ -60,5 +63,5 @@ void main() {
     lighting += ambient + diffuse + specular;
   }
 
-  frag_color = vec4(lighting, 1.0f);
+  frag_color = texture(texture_diffuse1, fs_in.tex_coords) * vec4(lighting, 1.0f);
 }

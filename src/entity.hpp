@@ -1,7 +1,8 @@
 #ifndef ENTITY_H
 #define ENTITY_H
 
-enum EntityType { ENTITY_MODEL
+enum EntityType {
+  ENTITY_MODEL
 };
 
 struct EntityTag {
@@ -31,6 +32,8 @@ struct Entity {
   std::set<EntityTag> tags;
 };
 
+const char* entity_get_vert_shader_for_render_mode(RenderMode render_mode);
+const char* entity_get_frag_shader_for_render_mode(RenderMode render_mode);
 Entity* entity_make(
   Entity *entity, const char *name,
   EntityType type,

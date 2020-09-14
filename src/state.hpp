@@ -1,20 +1,10 @@
 #ifndef STATE_H
 #define STATE_H
 
-struct Light {
-  bool is_point_light;
-  glm::vec3 position;
-  glm::vec3 direction;
-  glm::vec3 ambient;
-  glm::vec3 diffuse;
-  glm::vec3 specular;
-  real32 attenuation_constant;
-  real32 attenuation_linear;
-  real32 attenuation_quadratic;
-};
-
 struct State {
-  Camera camera;
+  Camera camera_main;
+  Camera camera_depth;
+  Camera *camera_active;
   Control control;
 
   real64 t;
@@ -37,7 +27,10 @@ struct State {
 
   uint32 shadow_map_width;
   uint32 shadow_map_height;
-  uint32 shadow_fbo;
+  uint32 shadow_framebuffer;
+  uint32 shadow_map_texture;
+
+  RenderMode render_mode;
 };
 
 #endif

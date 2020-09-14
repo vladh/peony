@@ -1,7 +1,12 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+enum CameraType {
+  CAMERA_PERSPECTIVE, CAMERA_ORTHO
+};
+
 struct Camera {
+  CameraType type;
   real64 yaw;
   real64 pitch;
   glm::vec3 position;
@@ -21,6 +26,12 @@ void camera_move_left_right(Camera *camera, real32 sign);
 void camera_move_up_down(Camera *camera, real32 sign);
 void camera_update_mouse(Camera *camera, glm::vec2 mouse_offset);
 void camera_update_matrices(
+  Camera *camera, real64 window_width, real64 window_height
+);
+void camera_update_matrices_perspective(
+  Camera *camera, real64 window_width, real64 window_height
+);
+void camera_update_matrices_ortho(
   Camera *camera, real64 window_width, real64 window_height
 );
 

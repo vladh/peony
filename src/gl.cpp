@@ -13,7 +13,7 @@
 #include "models.cpp"
 
 
-#define USE_POSTPROCESSING true
+#define USE_POSTPROCESSING false
 #define USE_SHADOWS false
 
 
@@ -41,27 +41,27 @@ void toggle_cursor(State *state) {
 
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (control_is_key_down(&state->control, GLFW_KEY_W)) {
-    camera_move_front_back(&state->camera, 1);
+    camera_move_front_back(&state->camera_main, 1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_S)) {
-    camera_move_front_back(&state->camera, -1);
+    camera_move_front_back(&state->camera_main, -1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_A)) {
-    camera_move_left_right(&state->camera, -1);
+    camera_move_left_right(&state->camera_main, -1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_D)) {
-    camera_move_left_right(&state->camera, 1);
+    camera_move_left_right(&state->camera_main, 1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_SPACE)) {
-    camera_move_up_down(&state->camera, 1);
+    camera_move_up_down(&state->camera_main, 1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_LEFT_CONTROL)) {
-    camera_move_up_down(&state->camera, -1);
+    camera_move_up_down(&state->camera_main, -1);
   }
 }
 
@@ -86,17 +86,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   state->window_width = width;
   state->window_height = height;
   log_info("%d x %d", state->window_width, state->window_height);
-  // Do we need to do this here? I think/hope not.
-#if 0
   glViewport(0, 0, width, height);
-#endif
 }
 
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
-  camera_update_mouse(&state->camera, mouse_offset);
-  camera_update_matrices(&state->camera, state->window_width, state->window_height);
+  camera_update_mouse(&state->camera_main, mouse_offset);
+  camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -160,8 +157,12 @@ void init_state(Memory *memory, State *state) {
   light2->attenuation_linear = 0.09f;
   light2->attenuation_quadratic = 0.032f;
 
-  camera_init(&state->camera);
-  camera_update_matrices(&state->camera, state->window_width, state->window_height);
+  camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
+  camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
+
+  camera_init(&state->camera_depth, CAMERA_ORTHO);
+  camera_update_matrices(&state->camera_depth, state->window_width, state->window_height);
+
   control_init(&state->control);
 
   state->shadow_map_width = 1024;
@@ -230,7 +231,8 @@ void init_axes(Memory *memory, State *state) {
     shader_asset,
     axes_vertices, n_vertices,
     nullptr, 0,
-    "axes", "",
+    "axes",
+    TEXTURE_NONE, "", 0xdead,
     GL_LINES
   );
 
@@ -253,7 +255,10 @@ void init_axes(Memory *memory, State *state) {
 void init_alpaca(Memory *memory, State *state) {
   ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "alpaca", "src/shaders/alpaca.vert", "src/shaders/alpaca.frag"
+    "alpaca",
+    /* "src/shaders/alpaca.vert", "src/shaders/alpaca.frag" */
+    entity_get_vert_shader_for_render_mode(state->render_mode),
+    entity_get_frag_shader_for_render_mode(state->render_mode)
   );
 
   real32 vertices[] = ALPACA_VERTICES;
@@ -270,7 +275,8 @@ void init_alpaca(Memory *memory, State *state) {
     shader_asset,
     vertices, n_vertices,
     nullptr, 0,
-    "alpaca", "resources/alpaca.jpg",
+    "alpaca",
+    TEXTURE_FILE, "resources/alpaca.jpg", 0xdead,
     GL_TRIANGLES
   );
 
@@ -302,7 +308,13 @@ void init_alpaca(Memory *memory, State *state) {
 void init_screenquad(Memory *memory, State *state) {
   ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "alpaca", "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
+#if USE_POSTPROCESSING
+    "screenquad", "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
+#elif USE_SHADOWS
+    "screenquad", "src/shaders/depth.vert", "src/shaders/depth.frag"
+#else
+    "screenquad", "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
+#endif
   );
 
   real32 vertices[] = SCREENQUAD_VERTICES;
@@ -319,7 +331,14 @@ void init_screenquad(Memory *memory, State *state) {
     shader_asset,
     vertices, n_vertices,
     nullptr, 0,
-    "screenquad", "",
+    "screenquad",
+#if USE_POSTPROCESSING
+    TEXTURE_NONE, "", 0xdead,
+#elif USE_SHADOWS
+    TEXTURE_ID, "", state->shadow_map_texture,
+#else
+    TEXTURE_NONE, "", 0xdead,
+#endif
     GL_TRIANGLES
   );
 
@@ -340,7 +359,9 @@ void init_screenquad(Memory *memory, State *state) {
 void init_floor(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "floor", "src/shaders/entity.vert", "src/shaders/entity.frag"
+    "floor",
+    entity_get_vert_shader_for_render_mode(state->render_mode),
+    entity_get_frag_shader_for_render_mode(state->render_mode)
   );
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
@@ -420,7 +441,9 @@ void init_lights(Memory *memory, State *state) {
 void init_geese(Memory *memory, State *state) {
   ShaderAsset *shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "goose", "src/shaders/entity.vert", "src/shaders/entity.frag"
+    "goose",
+    entity_get_vert_shader_for_render_mode(state->render_mode),
+    entity_get_frag_shader_for_render_mode(state->render_mode)
   );
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
@@ -497,11 +520,10 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
 }
 
 void init_shadow_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->shadow_fbo);
+  glGenFramebuffers(1, &state->shadow_framebuffer);
 
-  uint32 depth_texture;
-  glGenTextures(1, &depth_texture);
-  glBindTexture(GL_TEXTURE_2D, depth_texture);
+  glGenTextures(1, &state->shadow_map_texture);
+  glBindTexture(GL_TEXTURE_2D, state->shadow_map_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
     state->shadow_map_width, state->shadow_map_height,
@@ -512,9 +534,9 @@ void init_shadow_buffers(Memory *memory, State *state) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture, 0
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, state->shadow_map_texture, 0
   );
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
@@ -529,12 +551,23 @@ void init_objects(Memory *memory, State *state) {
 #if USE_POSTPROCESSING
   init_screenquad(memory, state);
 #endif
-#if 0
+#if 1
   init_alpaca(memory, state);
 #endif
 }
 
+void set_render_mode(State *state, RenderMode render_mode) {
+  state->render_mode = render_mode;
+  if (state->render_mode == RENDERMODE_REGULAR) {
+    state->camera_active = &state->camera_main;
+  } else if (state->render_mode == RENDERMODE_DEPTH) {
+    state->camera_active = &state->camera_depth;
+  }
+}
+
 void draw_entity(State *state, Entity *entity) {
+  Camera *camera = state->camera_active;
+
   if (entity->type == ENTITY_MODEL) {
     assert(entity->shader_asset);
     assert(entity->model_asset);
@@ -547,10 +580,10 @@ void draw_entity(State *state, Entity *entity) {
     uint32 shader_program = entity->shader_asset->shader.program;
     glUseProgram(shader_program);
     shader_set_mat4(shader_program, "model", &model_matrix);
-    shader_set_mat4(shader_program, "view", &state->camera.view);
-    shader_set_mat4(shader_program, "projection", &state->camera.projection);
+    shader_set_mat4(shader_program, "view", &camera->view);
+    shader_set_mat4(shader_program, "projection", &camera->projection);
     shader_set_float(shader_program, "t", (real32)state->t);
-    shader_set_vec3(shader_program, "camera_position", &state->camera.position);
+    shader_set_vec3(shader_program, "camera_position", &camera->position);
     shader_set_vec3(shader_program, "entity_color", &entity->color);
 
     shader_set_int(shader_program, "n_lights", state->lights.size);
@@ -605,67 +638,53 @@ void draw_background(Memory *memory, State *state) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void update_and_render_axes(Memory *memory, State *state) {
+void draw_all_entities_with_name(Memory *memory, State *state, const char* name) {
   entity_get_all_with_name(
-    state->entities, "axes", &state->found_entities
+    state->entities, name, &state->found_entities
   );
-
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
     draw_entity(state, entity);
   }
 }
 
-void update_and_render_lights(Memory *memory, State *state) {
+void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
+  entity_get_all_with_tag(
+    state->entities, tag, &state->found_entities
+  );
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    draw_entity(state, entity);
+  }
+}
+
+void update_scene(Memory *memory, State *state) {
+  // Lights
   state->lights.items[0].position = glm::vec3(
     sin(state->t) * 3.0f,
     1.0f,
     0.0f
   );
+  state->camera_depth.position = state->lights.items[0].position;
   state->lights.items[1].position = glm::vec3(
     cos(state->t) * 3.0f,
-    2.0f,
+    3.0f,
     sin(state->t) * 5.0f
   );
 
+  // Light entities
   entity_get_all_with_tag(
     state->entities, "light", &state->found_entities
   );
-
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
     entity->position = state->lights.items[idx].position;
-    draw_entity(state, entity);
   }
-}
 
-void update_and_render_screenquad(Memory *memory, State *state) {
-  entity_get_all_with_name(
-    state->entities, "screenquad", &state->found_entities
-  );
-
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    draw_entity(state, entity);
-  }
-}
-
-void update_and_render_floor(Memory *memory, State *state) {
-  entity_get_all_with_name(
-    state->entities, "floor", &state->found_entities
-  );
-
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    draw_entity(state, entity);
-  }
-}
-
-void update_and_render_geese(Memory *memory, State *state) {
+  // Geese
   entity_get_all_with_name(
     state->entities, "goose", &state->found_entities
   );
-
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
 
@@ -684,52 +703,80 @@ void update_and_render_geese(Memory *memory, State *state) {
       glm::radians(spin_deg_per_t * (real32)state->dt),
       glm::vec3(0.0f, 0.0f, 1.0f)
     );
-
-    draw_entity(state, entity);
   }
-}
 
-void update_and_render_alpaca(Memory *memory, State *state) {
+  // Alpaca
   entity_get_all_with_name(
     state->entities, "alpaca", &state->found_entities
   );
-
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
     entity->rotation *= glm::angleAxis(
       glm::radians(15.0f * (real32)state->dt),
       glm::vec3(1.0f, 0.0f, 0.0f)
     );
-    draw_entity(state, entity);
   }
 }
 
+void render_scene(Memory *memory, State *state) {
+  camera_update_matrices(
+    state->camera_active, state->window_width, state->window_height
+  );
+  draw_background(memory, state);
+  draw_all_entities_with_name(memory, state, "axes");
+  draw_all_entities_with_tag(memory, state, "light");
+  draw_all_entities_with_name(memory, state, "floor");
+  draw_all_entities_with_name(memory, state, "goose");
+#if 1
+  draw_all_entities_with_name(memory, state, "alpaca");
+#endif
+}
+
 void update_and_render(Memory *memory, State *state) {
+  // TODO: Clean this up a bit.
   real64 t_now = glfwGetTime();
   state->dt = t_now - state->t;
   state->t = t_now;
 
+  update_scene(memory, state);
+
+  // Render shadow map
+#if USE_SHADOWS
+  glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, state->shadow_map_texture);
+
+  set_render_mode(state, RENDERMODE_DEPTH);
+  render_scene(memory, state);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glViewport(0, 0, state->window_width, state->window_height);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  draw_all_entities_with_name(memory, state, "screenquad");
+#endif
+
+  // Set rendering to postprocessing framebuffer
 #if USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-  glEnable(GL_DEPTH_TEST);
 #endif
 
-  camera_update_matrices(&state->camera, state->window_width, state->window_height);
-  draw_background(memory, state);
-  update_and_render_axes(memory, state);
-  update_and_render_floor(memory, state);
-  update_and_render_lights(memory, state);
-  update_and_render_geese(memory, state);
-#if 0
-  update_and_render_alpaca(memory, state);
+  // Render normal scene
+#if !USE_SHADOWS
+  set_render_mode(state, RENDERMODE_REGULAR);
+  render_scene(memory, state);
 #endif
 
+  // Render postprocessing framebuffer onto quad
 #if USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
   glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  update_and_render_screenquad(memory, state);
+  draw_all_entities_with_name(memory, state, "screenquad");
+  glEnable(GL_DEPTH_TEST);
 #endif
 }
 

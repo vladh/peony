@@ -285,7 +285,8 @@ ModelAsset* models_make_asset_from_data(
   ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
   real32 *index_data, uint32 n_indices,
-  const char *name, const char *texture_path,
+  const char *name,
+  TextureSource texture_type, const char *texture_path, uint32 texture_id,
   uint32 mode
 ) {
   model_asset->info.name = name;
@@ -359,16 +360,21 @@ ModelAsset* models_make_asset_from_data(
   );
   Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
 
-  if (strcmp(texture_path, "") == 0) {
+  if (texture_type == TEXTURE_NONE) {
     texture->id = (uint32)0xdead;
     texture->type = "";
     texture->was_loaded_from_file = false;
     texture->filename = "";
-  } else {
+  } else if (texture_type == TEXTURE_ID) {
+    texture->id = texture_id;
+    texture->type = "texture_diffuse";
+    texture->was_loaded_from_file = false;
+    texture->filename = "";
+  } else if (texture_type == TEXTURE_FILE) {
     texture->id = models_load_texture_from_file(texture_path);
     texture->type = "texture_diffuse";
     texture->was_loaded_from_file = true;
-    texture->filename = "";
+    texture->filename = texture_path;
   }
 
   models_setup_mesh(mesh, shader_asset->shader);
