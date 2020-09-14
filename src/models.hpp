@@ -4,6 +4,10 @@
 struct ModelAsset;
 struct Memory;
 
+enum TextureSource {
+  TEXTURE_NONE, TEXTURE_ID, TEXTURE_FILE
+};
+
 struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
@@ -32,7 +36,8 @@ ModelAsset* models_make_asset_from_data(
   ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
   real32 *index_data, uint32 n_indices,
-  const char *name, const char *texture_path,
+  const char *name,
+  TextureSource texture_type, const char *texture_path, uint32 texture_id,
   uint32 mode
 );
 

@@ -1,11 +1,11 @@
-void shader_assert_shader_status_ok(uint32 shader) {
+void shader_assert_shader_status_ok(uint32 shader, const char* path) {
   int32 status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if (status != 1) {
     char message[512];
     glGetShaderInfoLog(shader, 512, NULL, message);
-    log_info("Compiling shader %d: (status %d) (message %s)", shader, status, message);
+    log_info("Compiling shader %s: (status %d) (message %s)", path, status, message);
     log_error("Shader compilation failed");
     exit(EXIT_FAILURE);
   }
@@ -24,11 +24,11 @@ void shader_assert_program_status_ok(uint32 program) {
   }
 }
 
-uint32 shader_load(const char *source, GLenum shader_type) {
+uint32 shader_load(const char *path, const char *source, GLenum shader_type) {
   uint32 shader = glCreateShader(shader_type);
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
-  shader_assert_shader_status_ok(shader);
+  shader_assert_shader_status_ok(shader, path);
   return shader;
 }
 
@@ -43,8 +43,8 @@ uint32 shader_make_program(uint32 vertex_shader, uint32 fragment_shader) {
 
 uint32 shader_make_program_with_paths(const char *vert_path, const char *frag_path) {
   return shader_make_program(
-    shader_load(util_load_file(vert_path), GL_VERTEX_SHADER),
-    shader_load(util_load_file(frag_path), GL_FRAGMENT_SHADER)
+    shader_load(vert_path, util_load_file(vert_path), GL_VERTEX_SHADER),
+    shader_load(frag_path, util_load_file(frag_path), GL_FRAGMENT_SHADER)
   );
 }
 

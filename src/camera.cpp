@@ -1,4 +1,5 @@
-void camera_init(Camera *camera) {
+void camera_init(Camera *camera, CameraType type) {
+  camera->type = type;
   camera->yaw = -90.0f;
   camera->pitch = 0.0f;
   camera->position = glm::vec3(0.0f, 3.0f, 3.0f);
@@ -10,7 +11,22 @@ void camera_init(Camera *camera) {
   camera->far_clip_dist = 100.0f;
 }
 
-void camera_update_matrices(
+void camera_update_matrices_ortho(
+  Camera *camera, real64 window_width, real64 window_height
+) {
+  camera->view = glm::lookAt(
+    camera->position,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    camera->up
+  );
+
+  camera->projection = glm::ortho(
+    -10.0f, 10.0f, -10.0f, 10.0f,
+    camera->near_clip_dist, camera->far_clip_dist
+  );
+}
+
+void camera_update_matrices_perspective(
   Camera *camera, real64 window_width, real64 window_height
 ) {
   camera->front = glm::normalize(glm::vec3(
@@ -28,6 +44,16 @@ void camera_update_matrices(
     (real32)window_width / (real32)window_height,
     camera->near_clip_dist, camera->far_clip_dist
   );
+}
+
+void camera_update_matrices(
+  Camera *camera, real64 window_width, real64 window_height
+) {
+  if (camera->type == CAMERA_PERSPECTIVE) {
+    camera_update_matrices_perspective(camera, window_width, window_height);
+  } else if (camera->type == CAMERA_ORTHO) {
+    camera_update_matrices_ortho(camera, window_width, window_height);
+  }
 }
 
 void camera_move_front_back(Camera *camera, real32 sign) {

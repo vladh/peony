@@ -13,6 +13,24 @@ Entity* entity_make(
   return entity;
 }
 
+const char* entity_get_vert_shader_for_render_mode(RenderMode render_mode) {
+  if (render_mode == RENDERMODE_REGULAR) {
+    return "src/shaders/entity.vert";
+  } else if (render_mode == RENDERMODE_DEPTH) {
+    return "src/shaders/entity_depth.vert";
+  }
+  return "";
+}
+
+const char* entity_get_frag_shader_for_render_mode(RenderMode render_mode) {
+  if (render_mode == RENDERMODE_REGULAR) {
+    return "src/shaders/entity.frag";
+  } else if (render_mode == RENDERMODE_DEPTH) {
+    return "src/shaders/entity_depth.frag";
+  }
+  return "";
+}
+
 void entity_set_position(Entity *entity, glm::vec3 position) {
   entity->position = position;
 }

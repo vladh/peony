@@ -23,6 +23,7 @@
 #include "glad.cpp"
 
 #include "types.hpp"
+#include "render.hpp"
 #include "memory.hpp"
 #include "array.hpp"
 #include "shader.hpp"

@@ -1,6 +1,6 @@
 #version 330 core
 
-uniform sampler2D depth_map;
+uniform sampler2D texture_diffuse1;
 uniform float near_clip_dist;
 uniform float far_clip_dist;
 
@@ -19,10 +19,6 @@ float linearize_depth(float depth) {
 }
 
 void main() {
-  float depth_value = texture(depth_map, fs_in.tex_coords).r;
-  frag_color = vec4(vec3(depth_value, 1.0f));
-  frag_color = vec4(
-    1.0f - texture(screen_texture, fs_in.tex_coords).rgb,
-    1.0f
-  );
+  float depth_value = texture(texture_diffuse1, fs_in.tex_coords).r;
+  frag_color = vec4(vec3(depth_value), 1.0f);
 }
