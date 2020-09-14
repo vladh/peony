@@ -13,7 +13,8 @@
 #include "models.cpp"
 
 
-#define USE_FRAMEBUFFER true
+#define USE_POSTPROCESSING true
+#define USE_SHADOWS false
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -85,7 +86,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   state->window_width = width;
   state->window_height = height;
   log_info("%d x %d", state->window_width, state->window_height);
+  // Do we need to do this here? I think/hope not.
+#if 0
   glViewport(0, 0, width, height);
+#endif
 }
 
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
@@ -159,6 +163,9 @@ void init_state(Memory *memory, State *state) {
   camera_init(&state->camera);
   camera_update_matrices(&state->camera, state->window_width, state->window_height);
   control_init(&state->control);
+
+  state->shadow_map_width = 1024;
+  state->shadow_map_height = 1024;
 }
 
 GLFWwindow* init_window(State *state) {
@@ -295,7 +302,7 @@ void init_alpaca(Memory *memory, State *state) {
 void init_screenquad(Memory *memory, State *state) {
   ShaderAsset* shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "alpaca", "src/shaders/screenquad.vert", "src/shaders/screenquad.frag"
+    "alpaca", "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
   );
 
   real32 vertices[] = SCREENQUAD_VERTICES;
@@ -454,12 +461,13 @@ void init_geese(Memory *memory, State *state) {
   }
 }
 
-void init_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->framebuffer);
+void init_postprocessing_buffers(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->postprocessing_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
 
-  glGenTextures(1, &state->texture_color_buffer);
-  glBindTexture(GL_TEXTURE_2D, state->texture_color_buffer);
+  uint32 color_texture;
+  glGenTextures(1, &color_texture);
+  glBindTexture(GL_TEXTURE_2D, color_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
     0, GL_RGB, GL_UNSIGNED_BYTE, NULL
@@ -467,16 +475,18 @@ void init_buffers(Memory *memory, State *state) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->texture_color_buffer, 0
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    color_texture, 0
   );
 
-  glGenRenderbuffers(1, &state->rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, state->rbo);
+  uint32 rbo;
+  glGenRenderbuffers(1, &rbo);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
   glRenderbufferStorage(
     GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
   );
   glFramebufferRenderbuffer(
-    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, state->rbo
+    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo
   );
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
@@ -486,12 +496,37 @@ void init_buffers(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void init_shadow_buffers(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->shadow_fbo);
+
+  uint32 depth_texture;
+  glGenTextures(1, &depth_texture);
+  glBindTexture(GL_TEXTURE_2D, depth_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+    state->shadow_map_width, state->shadow_map_height,
+    0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+    );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_fbo);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth_texture, 0
+  );
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
   init_floor(memory, state);
   init_lights(memory, state);
   init_geese(memory, state);
-#if USE_FRAMEBUFFER
+#if USE_POSTPROCESSING
   init_screenquad(memory, state);
 #endif
 #if 0
@@ -674,8 +709,8 @@ void update_and_render(Memory *memory, State *state) {
   state->dt = t_now - state->t;
   state->t = t_now;
 
-#if USE_FRAMEBUFFER
-  glBindFramebuffer(GL_FRAMEBUFFER, state->framebuffer);
+#if USE_POSTPROCESSING
+  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
   glEnable(GL_DEPTH_TEST);
 #endif
 
@@ -689,7 +724,7 @@ void update_and_render(Memory *memory, State *state) {
   update_and_render_alpaca(memory, state);
 #endif
 
-#if USE_FRAMEBUFFER
+#if USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
   glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
@@ -721,8 +756,12 @@ int main() {
     return -1;
   }
 
-#if USE_FRAMEBUFFER
-  init_buffers(&memory, state);
+#if USE_POSTPROCESSING
+  init_postprocessing_buffers(&memory, state);
+#endif
+
+#if USE_SHADOWS
+  init_shadow_buffers(&memory, state);
 #endif
 
   init_objects(&memory, state);
