@@ -14,7 +14,7 @@
 
 
 #define USE_POSTPROCESSING false
-#define USE_SHADOWS false
+#define USE_SHADOWS true
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -161,6 +161,9 @@ void init_state(Memory *memory, State *state) {
   camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
 
   camera_init(&state->camera_depth, CAMERA_ORTHO);
+  // TODO: Remove?
+  state->camera_depth.near_clip_dist = 1.0f;
+  state->camera_depth.far_clip_dist = 7.5f;
   camera_update_matrices(&state->camera_depth, state->window_width, state->window_height);
 
   control_init(&state->control);
@@ -548,7 +551,7 @@ void init_objects(Memory *memory, State *state) {
   init_floor(memory, state);
   init_lights(memory, state);
   init_geese(memory, state);
-#if USE_POSTPROCESSING
+#if USE_POSTPROCESSING || USE_SHADOWS
   init_screenquad(memory, state);
 #endif
 #if 0
@@ -637,16 +640,6 @@ void draw_entity(State *state, Entity *entity) {
   }
 }
 
-void draw_background(Memory *memory, State *state) {
-  glClearColor(
-    state->background_color.r,
-    state->background_color.g,
-    state->background_color.b,
-    state->background_color.a
-  );
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
 void draw_all_entities_with_name(Memory *memory, State *state, const char* name) {
   entity_get_all_with_name(
     state->entities, name, &state->found_entities
@@ -674,12 +667,14 @@ void update_scene(Memory *memory, State *state) {
     1.0f,
     0.0f
   );
-  state->camera_depth.position = state->lights.items[0].position;
   state->lights.items[1].position = glm::vec3(
     cos(state->t) * 3.0f,
     3.0f,
     sin(state->t) * 5.0f
   );
+
+  // Cameras
+  state->camera_depth.position = state->lights.items[1].position;
 
   // Light entities
   entity_get_all_with_tag(
@@ -731,7 +726,6 @@ void render_scene(Memory *memory, State *state) {
   camera_update_matrices(
     state->camera_active, state->window_width, state->window_height
   );
-  draw_background(memory, state);
   draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_tag(memory, state, "light");
   draw_all_entities_with_name(memory, state, "floor");
@@ -749,37 +743,42 @@ void update_and_render(Memory *memory, State *state) {
 
   update_scene(memory, state);
 
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(
+    state->background_color.r, state->background_color.g,
+    state->background_color.b, state->background_color.a
+  );
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   // Render shadow map
 #if USE_SHADOWS
-  glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
   glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
+  glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
+
   glClear(GL_DEPTH_BUFFER_BIT);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, state->shadow_map_texture);
 
   set_render_mode(state, RENDERMODE_DEPTH);
   render_scene(memory, state);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glViewport(0, 0, state->window_width, state->window_height);
+#elif USE_POSTPROCESSING
+  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  draw_all_entities_with_name(memory, state, "screenquad");
-#endif
-
-  // Set rendering to postprocessing framebuffer
-#if USE_POSTPROCESSING
-  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-#endif
-
-  // Render normal scene
-#if !USE_SHADOWS
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
 #endif
 
-  // Render postprocessing framebuffer onto quad
-#if USE_POSTPROCESSING
+  // Render normal scene
+#if !USE_SHADOWS && !USE_POSTPROCESSING
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  set_render_mode(state, RENDERMODE_REGULAR);
+  render_scene(memory, state);
+#endif
+
+  // Render postprocessing/shadow framebuffer onto quad
+#if USE_POSTPROCESSING || USE_SHADOWS
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
   glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
