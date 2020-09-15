@@ -10,6 +10,8 @@ Entity* entity_make(
   entity->position = position;
   entity->scale = scale;
   entity->rotation = rotation;
+  entity->shader_asset = nullptr;
+  entity->model_asset = nullptr;
   return entity;
 }
 

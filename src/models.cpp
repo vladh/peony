@@ -35,7 +35,7 @@ uint32 models_load_texture_from_file(const char *path) {
   return texture_id;
 }
 
-void models_setup_mesh(Mesh *mesh, Shader shader) {
+void models_setup_mesh(Mesh *mesh) {
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
   glGenBuffers(1, &mesh->ebo);
@@ -54,21 +54,25 @@ void models_setup_mesh(Mesh *mesh, Shader shader) {
     mesh->indices.items, GL_STATIC_DRAW
   );
 
+  // TODO: Somehow fix these janky locations.
   uint32 location;
 
-  location = glGetAttribLocation(shader.program, "position");
+  /* location = glGetAttribLocation(shader_program, "position"); */
+  location = 0;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
     location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0
   );
 
-  location = glGetAttribLocation(shader.program, "normal");
+  /* location = glGetAttribLocation(shader_program, "normal"); */
+  location = 1;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
     location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal)
   );
 
-  location = glGetAttribLocation(shader.program, "tex_coords");
+  /* location = glGetAttribLocation(shader_program, "tex_coords"); */
+  location = 2;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
     location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords)
@@ -184,7 +188,7 @@ void models_load_mesh(
       memory, model, mesh, mesh_data, scene
     );
   }
-  models_setup_mesh(mesh, model->shader_asset->shader);
+  models_setup_mesh(mesh);
 }
 
 void models_load_model_node(
@@ -238,11 +242,10 @@ void models_load_model(
 }
 
 ModelAsset* models_make_asset_from_file(
-  Memory *memory, ModelAsset *model_asset, ShaderAsset *shader_asset,
+  Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
 ) {
   model_asset->info.name = name;
-  model_asset->model.shader_asset = shader_asset;
   model_asset->model.should_load_textures_from_file = true;
   model_asset->model.directory = directory;
   models_load_model(
@@ -265,7 +268,6 @@ void models_add_texture_to_mesh(
 
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
-  ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *name,
@@ -275,7 +277,6 @@ ModelAsset* models_make_asset_from_data(
 
   Model *model = &model_asset->model;
 
-  model->shader_asset = shader_asset;
   model->should_load_textures_from_file = false;
   model->directory = "";
 
@@ -329,7 +330,7 @@ ModelAsset* models_make_asset_from_data(
   mesh->indices.max_size = n_indices;
   mesh->indices.items = index_data;
 
-  models_setup_mesh(mesh, shader_asset->shader);
+  models_setup_mesh(mesh);
 
   memory_reset_pool(&memory->temp_memory_pool);
   memory_zero_out_pool(&memory->temp_memory_pool);

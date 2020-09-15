@@ -50,6 +50,7 @@ uint32 shader_make_program(
   glAttachShader(shader_program, geometry_shader);
   glLinkProgram(shader_program);
   shader_assert_program_status_ok(shader_program);
+
   return shader_program;
 }
 

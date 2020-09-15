@@ -87,7 +87,7 @@ void main() {
     diffuse *= attenuation;
     specular *= attenuation;
 
-    if (n_depth_textures > 0) {
+    if (false && n_depth_textures > 0) {
       float shadow = calculate_shadows(fs_in.frag_position);
       lighting += shadow;
       /* lighting += (ambient + ((1.0f - shadow) * (diffuse + specular))) * entity_surface; */
