@@ -25,6 +25,7 @@ in VS_OUT {
   vec3 normal;
   vec2 tex_coords;
   vec3 frag_position;
+  vec4 frag_position_in_light_space;
 } fs_in;
 
 out vec4 frag_color;

@@ -12,11 +12,11 @@ struct EntityTag {
   }
 
   bool operator<(const EntityTag &rhs) const {
-    return strcmp(name, rhs.name);
+    return (bool)(strcmp(name, rhs.name) < 0);
   }
 
   bool operator==(const EntityTag &rhs) const {
-    return strcmp(name, rhs.name);
+    return (bool)(strcmp(name, rhs.name) == 0);
   }
 };
 

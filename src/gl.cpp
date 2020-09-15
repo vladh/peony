@@ -41,27 +41,27 @@ void toggle_cursor(State *state) {
 
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (control_is_key_down(&state->control, GLFW_KEY_W)) {
-    camera_move_front_back(&state->camera_main, 1);
+    camera_move_front_back(state->camera_active, 1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_S)) {
-    camera_move_front_back(&state->camera_main, -1);
+    camera_move_front_back(state->camera_active, -1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_A)) {
-    camera_move_left_right(&state->camera_main, -1);
+    camera_move_left_right(state->camera_active, -1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_D)) {
-    camera_move_left_right(&state->camera_main, 1);
+    camera_move_left_right(state->camera_active, 1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_SPACE)) {
-    camera_move_up_down(&state->camera_main, 1);
+    camera_move_up_down(state->camera_active, 1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_LEFT_CONTROL)) {
-    camera_move_up_down(&state->camera_main, -1);
+    camera_move_up_down(state->camera_active, -1);
   }
 }
 
@@ -92,8 +92,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
-  camera_update_mouse(&state->camera_main, mouse_offset);
-  camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
+  camera_update_mouse(state->camera_active, mouse_offset);
+  camera_update_matrices(state->camera_active, state->window_width, state->window_height);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -159,6 +159,7 @@ void init_state(Memory *memory, State *state) {
 
   camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
   camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
+  state->camera_active = &state->camera_main;
 
   camera_init(&state->camera_depth, CAMERA_ORTHO);
   // TODO: Remove?
@@ -561,11 +562,6 @@ void init_objects(Memory *memory, State *state) {
 
 void set_render_mode(State *state, RenderMode render_mode) {
   state->render_mode = render_mode;
-  if (state->render_mode == RENDERMODE_REGULAR) {
-    state->camera_active = &state->camera_main;
-  } else if (state->render_mode == RENDERMODE_DEPTH) {
-    state->camera_active = &state->camera_depth;
-  }
 }
 
 void draw_entity(State *state, Entity *entity) {
@@ -585,6 +581,8 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_mat4(shader_program, "model", &model_matrix);
     shader_set_mat4(shader_program, "view", &camera->view);
     shader_set_mat4(shader_program, "projection", &camera->projection);
+    shader_set_mat4(shader_program, "depth_view", &state->camera_depth.view);
+    shader_set_mat4(shader_program, "depth_projection", &state->camera_depth.projection);
     shader_set_float(shader_program, "t", (real32)state->t);
     shader_set_vec3(shader_program, "camera_position", &camera->position);
     shader_set_vec3(shader_program, "entity_color", &entity->color);
@@ -724,7 +722,10 @@ void update_scene(Memory *memory, State *state) {
 
 void render_scene(Memory *memory, State *state) {
   camera_update_matrices(
-    state->camera_active, state->window_width, state->window_height
+    &state->camera_main, state->window_width, state->window_height
+  );
+  camera_update_matrices(
+    &state->camera_depth, state->window_width, state->window_height
   );
   draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_tag(memory, state, "light");
