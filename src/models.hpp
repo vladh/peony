@@ -34,7 +34,6 @@ struct Mesh {
 
 struct Model {
   Array<Mesh> meshes;
-  ShaderAsset *shader_asset;
   bool32 should_load_textures_from_file;
   const char *directory;
 };
@@ -56,12 +55,11 @@ void models_load_model(
   const char *directory, const char *filename
 );
 ModelAsset* models_make_asset_from_file(
-  Memory *memory, ModelAsset *model_asset, ShaderAsset *shader_asset,
+  Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
 );
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
-  ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *name,

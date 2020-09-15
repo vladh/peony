@@ -14,7 +14,7 @@
 
 
 #define USE_POSTPROCESSING false
-#define USE_SHADOWS true
+#define USE_SHADOWS false
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -173,6 +173,21 @@ void init_state(Memory *memory, State *state) {
   state->shadow_far_clip_dist = 25.0f;
 }
 
+void init_shaders(Memory *memory, State *state) {
+  shader_make_asset(
+    &state->entity_shader_asset,
+    "entity",
+    "src/shaders/entity.vert", "src/shaders/entity.frag"
+  );
+
+  shader_make_asset(
+    &state->entity_depth_shader_asset,
+    "entity_depth",
+    "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
+    "src/shaders/entity_depth.geom"
+  );
+}
+
 GLFWwindow* init_window(State *state) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -232,7 +247,6 @@ void init_axes(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    shader_asset,
     axes_vertices, n_vertices,
     nullptr, 0,
     "axes", GL_LINES
@@ -255,25 +269,6 @@ void init_axes(Memory *memory, State *state) {
 }
 
 void init_alpaca(Memory *memory, State *state) {
-  ShaderAsset* shader_asset;
-
-  if (state->render_mode == RENDERMODE_REGULAR) {
-    shader_asset = shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      "alpaca",
-      "src/shaders/entity.vert", "src/shaders/entity.frag"
-    );
-  } else if (state->render_mode == RENDERMODE_DEPTH) {
-    shader_asset = shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      "alpaca",
-      "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
-      "src/shaders/entity_depth.geom"
-    );
-  } else {
-    shader_asset = nullptr;
-  }
-
   real32 vertices[] = ALPACA_VERTICES;
   uint32 n_vertices = 36;
 
@@ -285,7 +280,6 @@ void init_alpaca(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    shader_asset,
     vertices, n_vertices,
     nullptr, 0,
     "alpaca", GL_TRIANGLES
@@ -315,7 +309,6 @@ void init_alpaca(Memory *memory, State *state) {
       )
     );
 
-    entity_set_shader_asset(entity, shader_asset);
     entity_set_model_asset(entity, model_asset);
     entity_add_tag(entity, "alpaca");
   }
@@ -344,7 +337,6 @@ void init_screenquad(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    shader_asset,
     vertices, n_vertices,
     nullptr, 0,
     "screenquad", GL_TRIANGLES
@@ -365,25 +357,6 @@ void init_screenquad(Memory *memory, State *state) {
 }
 
 void init_floor(Memory *memory, State *state) {
-  ShaderAsset* shader_asset;
-
-  if (state->render_mode == RENDERMODE_REGULAR) {
-    shader_asset = shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      "floor",
-      "src/shaders/entity.vert", "src/shaders/entity.frag"
-    );
-  } else if (state->render_mode == RENDERMODE_DEPTH) {
-    shader_asset = shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      "floor",
-      "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
-      "src/shaders/entity_depth.geom"
-    );
-  } else {
-    shader_asset = nullptr;
-  }
-
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
     array_push<ModelAsset*>(
@@ -392,7 +365,6 @@ void init_floor(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    shader_asset,
     "floor", "resources/", "cube.obj"
   );
 
@@ -416,7 +388,6 @@ void init_floor(Memory *memory, State *state) {
   );
 
   entity_set_color(entity, glm::vec3(1.0f, 1.0f, 1.0f));
-  entity_set_shader_asset(entity, shader_asset);
   entity_set_model_asset(entity, model_asset);
   entity_add_tag(entity, "floor");
 }
@@ -434,7 +405,6 @@ void init_lights(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    shader_asset,
     "light", "resources/", "cube.obj"
   );
 
@@ -468,25 +438,6 @@ void init_lights(Memory *memory, State *state) {
 }
 
 void init_geese(Memory *memory, State *state) {
-  ShaderAsset* shader_asset;
-
-  if (state->render_mode == RENDERMODE_REGULAR) {
-    shader_asset = shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      "goose",
-      "src/shaders/entity.vert", "src/shaders/entity.frag"
-    );
-  } else if (state->render_mode == RENDERMODE_DEPTH) {
-    shader_asset = shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      "goose",
-      "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
-      "src/shaders/entity_depth.geom"
-    );
-  } else {
-    shader_asset = nullptr;
-  }
-
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
     array_push<ModelAsset*>(
@@ -495,7 +446,6 @@ void init_geese(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    shader_asset,
     "goose", "resources/", "miniGoose.fbx"
   );
   models_add_texture_to_mesh(
@@ -525,7 +475,6 @@ void init_geese(Memory *memory, State *state) {
     );
 
     entity_set_color(entity, glm::vec3(1.0f, 0.0f, 0.0f));
-    entity_set_shader_asset(entity, shader_asset);
     entity_set_model_asset(entity, model_asset);
     entity_add_tag(entity, "goose");
   }
@@ -634,7 +583,6 @@ void draw_entity(State *state, Entity *entity) {
   Camera *camera = state->camera_active;
 
   if (entity->type == ENTITY_MODEL) {
-    assert(entity->shader_asset);
     assert(entity->model_asset);
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
@@ -642,7 +590,20 @@ void draw_entity(State *state, Entity *entity) {
     model_matrix = glm::scale(model_matrix, entity->scale);
     model_matrix = model_matrix * glm::toMat4(entity->rotation);
 
-    uint32 shader_program = entity->shader_asset->shader.program;
+    ShaderAsset *shader_asset;
+    if (entity->shader_asset) {
+      shader_asset = entity->shader_asset;
+    } else {
+      if (state->render_mode == RENDERMODE_REGULAR) {
+        shader_asset = &state->entity_shader_asset;
+      } else if (state->render_mode == RENDERMODE_DEPTH) {
+        shader_asset = &state->entity_depth_shader_asset;
+      } else {
+        log_error("Could not find shader asset for entity %s", entity->name);
+        shader_asset = nullptr;
+      }
+    }
+    uint32 shader_program = shader_asset->shader.program;
     glUseProgram(shader_program);
     shader_set_mat4(shader_program, "model", &model_matrix);
     shader_set_mat4(shader_program, "view", &camera->view);
@@ -817,8 +778,8 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
 #if USE_SHADOWS
-  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
-  glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
+  /* glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer); */
+  /* glViewport(0, 0, state->shadow_map_width, state->shadow_map_height); */
 
   glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -875,6 +836,7 @@ int main() {
   State *state = (State*)memory.state_memory;
   init_state(&memory, state);
   GLFWwindow *window = init_window(state);
+  init_shaders(&memory, state);
   if (!window) {
     return -1;
   }

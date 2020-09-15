@@ -17,7 +17,7 @@ void main() {
     // for each triangle's vertices
     for(int i = 0; i < 3; ++i) {
       gs_out.frag_position = gl_in[i].gl_Position;
-      gl_Position = shadowMatrices[face] * gs_out.frag_position;
+      gl_Position = shadow_transforms[face] * gs_out.frag_position;
       EmitVertex();
     }
 
