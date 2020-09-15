@@ -551,7 +551,7 @@ void init_objects(Memory *memory, State *state) {
 #if USE_POSTPROCESSING
   init_screenquad(memory, state);
 #endif
-#if 1
+#if 0
   init_alpaca(memory, state);
 #endif
 }
@@ -585,6 +585,15 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_float(shader_program, "t", (real32)state->t);
     shader_set_vec3(shader_program, "camera_position", &camera->position);
     shader_set_vec3(shader_program, "entity_color", &entity->color);
+
+#if 0
+    // TODO: Remove
+    if (strcmp(entity->name, "goose") == 0) {
+      shader_set_bool(shader_program, "should_draw_normals", true);
+    } else {
+      shader_set_bool(shader_program, "should_draw_normals", false);
+    }
+#endif
 
     shader_set_int(shader_program, "n_lights", state->lights.size);
     char uniform_name[128];
@@ -727,7 +736,7 @@ void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_tag(memory, state, "light");
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
-#if 1
+#if 0
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
 }
