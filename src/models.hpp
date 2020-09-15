@@ -4,8 +4,8 @@
 struct ModelAsset;
 struct Memory;
 
-enum TextureSource {
-  TEXTURE_NONE, TEXTURE_ID, TEXTURE_FILE
+enum TextureType {
+  TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH
 };
 
 struct Vertex {
@@ -14,32 +14,23 @@ struct Vertex {
   glm::vec2 tex_coords;
 };
 
-struct Texture {
-  uint32 id;
-  const char *type;
-  bool32 was_loaded_from_file;
-  const char *filename;
-};
-
 struct Mesh {
   Array<Vertex> vertices;
   Array<uint32> indices;
-  Array<Texture> textures;
+
+  uint32 n_diffuse_textures;
+  uint32 diffuse_textures[16];
+  uint32 n_specular_textures;
+  uint32 specular_textures[16];
+  uint32 n_depth_textures;
+  uint32 depth_textures[16];
+
   bool32 does_use_indices;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
   uint32 mode;
 };
-ModelAsset* models_make_asset_from_data(
-  Memory *memory, ModelAsset *model_asset,
-  ShaderAsset *shader_asset,
-  real32 *vertex_data, uint32 n_vertices,
-  real32 *index_data, uint32 n_indices,
-  const char *name,
-  TextureSource texture_type, const char *texture_path, uint32 texture_id,
-  uint32 mode
-);
 
 struct Model {
   Array<Mesh> meshes;
@@ -72,8 +63,9 @@ ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
   ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
-  real32 *index_data, uint32 n_indices,
-  const char *name, const char *texture_path
+  uint32 *index_data, uint32 n_indices,
+  const char *name,
+  uint32 mode
 );
 
 #endif

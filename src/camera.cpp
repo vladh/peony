@@ -83,3 +83,45 @@ void camera_update_mouse(Camera *camera, glm::vec2 mouse_offset) {
     camera->pitch = -89.0f;
   }
 }
+
+void camera_create_shadow_transforms(
+  glm::mat4 shadow_transforms[6], glm::vec3 light_position,
+  uint32 shadow_map_width, uint32 shadow_map_height,
+  real32 near_clip_dist, real32 far_clip_dist
+) {
+  glm::mat4 shadow_projection = glm::perspective(
+    glm::radians(90.0f),
+    (real32)shadow_map_width / (real32)shadow_map_height,
+    near_clip_dist, far_clip_dist
+  );
+  shadow_transforms[0] = shadow_projection * glm::lookAt(
+    light_position,
+    light_position + glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, -1.0f, 0.0f)
+  );
+  shadow_transforms[1] = shadow_projection * glm::lookAt(
+    light_position,
+    light_position + glm::vec3(-1.0f, 0.0f, 0.0f),
+    glm::vec3(0.0f, -1.0f, 0.0f)
+  );
+  shadow_transforms[2] = shadow_projection * glm::lookAt(
+    light_position,
+    light_position + glm::vec3(0.0f, 1.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, 1.0f)
+  );
+  shadow_transforms[3] = shadow_projection * glm::lookAt(
+    light_position,
+    light_position + glm::vec3(0.0f, -1.0f, 0.0f),
+    glm::vec3(0.0f, 0.0f, -1.0f)
+  );
+  shadow_transforms[4] = shadow_projection * glm::lookAt(
+    light_position,
+    light_position + glm::vec3(0.0f, 0.0f, 1.0f),
+    glm::vec3(0.0f, -1.0f, 0.0f)
+  );
+  shadow_transforms[5] = shadow_projection * glm::lookAt(
+    light_position,
+    light_position + glm::vec3(0.0f, 0.0f, -1.0f),
+    glm::vec3(0.0f, -1.0f, 0.0f)
+  );
+}
