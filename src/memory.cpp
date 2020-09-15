@@ -1,8 +1,10 @@
 MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
+#if 0
   log_info(
     "Allocating memory pool \"%s\": %.2fMB (%dB)",
     name, (real64)size / 1024 / 1024, size
   );
+#endif
 
   MemoryPool pool;
   pool.name = name;
@@ -21,10 +23,12 @@ void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size) {
 }
 
 void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size, const char *name) {
+#if 0
   log_info(
     "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
     pool->name, (real64)size / 1024 / 1024, size, name,
     (real64)pool->used / 1024 / 1024, pool->used
   );
+#endif
   return memory_push_memory_to_pool(pool, size);
 }

@@ -224,7 +224,6 @@ void models_load_model_node(
 ) {
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
-    log_info("Loading mesh %d", model->meshes.size);
     models_load_mesh(
       memory, model,
       array_push(&model->meshes),
@@ -353,28 +352,30 @@ ModelAsset* models_make_asset_from_data(
 
   // Textures
   mesh->textures.size = 0;
-  mesh->textures.max_size = 1;
-  mesh->textures.items = (Texture*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size,
-    "textures"
-  );
-  Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
-
   if (texture_type == TEXTURE_NONE) {
-    texture->id = (uint32)0xdead;
-    texture->type = "";
-    texture->was_loaded_from_file = false;
-    texture->filename = "";
-  } else if (texture_type == TEXTURE_ID) {
-    texture->id = texture_id;
-    texture->type = "texture_diffuse";
-    texture->was_loaded_from_file = false;
-    texture->filename = "";
-  } else if (texture_type == TEXTURE_FILE) {
-    texture->id = models_load_texture_from_file(texture_path);
-    texture->type = "texture_diffuse";
-    texture->was_loaded_from_file = true;
-    texture->filename = texture_path;
+    mesh->textures.max_size = 0;
+  } else {
+    mesh->textures.max_size = 1;
+  }
+
+  if (mesh->textures.max_size > 0) {
+    mesh->textures.items = (Texture*)memory_push_memory_to_pool(
+      &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size,
+      "textures"
+    );
+    Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
+
+    if (texture_type == TEXTURE_ID) {
+      texture->id = texture_id;
+      texture->type = "texture_diffuse";
+      texture->was_loaded_from_file = false;
+      texture->filename = "";
+    } else if (texture_type == TEXTURE_FILE) {
+      texture->id = models_load_texture_from_file(texture_path);
+      texture->type = "texture_diffuse";
+      texture->was_loaded_from_file = true;
+      texture->filename = texture_path;
+    }
   }
 
   models_setup_mesh(mesh, shader_asset->shader);
@@ -385,6 +386,8 @@ ModelAsset* models_make_asset_from_data(
 void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   uint32 diffuse_idx = 1;
   uint32 specular_idx = 1;
+
+  shader_set_int(shader_program, "n_textures", mesh->textures.size);
 
   for (uint32 idx = 0; idx < mesh->textures.size; idx++) {
     glActiveTexture(GL_TEXTURE0 + idx);
@@ -406,7 +409,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
       specular_idx++;
     }
 
-    shader_set_float(shader_program, uniform_name, (real32)idx);
+    shader_set_int(shader_program, uniform_name, idx);
 
     glBindTexture(GL_TEXTURE_2D, mesh->textures.items[idx].id);
   }
