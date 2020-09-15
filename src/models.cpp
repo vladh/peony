@@ -82,7 +82,7 @@ internal void models_load_mesh_vertices(
   mesh->vertices.size = 0;
   mesh->vertices.max_size = mesh_data->mNumVertices;
   mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
+    &memory->temp_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
     "vertices"
   );
 
@@ -127,7 +127,7 @@ internal void models_load_mesh_indices(
   mesh->indices.size = 0;
   mesh->indices.max_size = n_indices;
   mesh->indices.items = (uint32*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size,
+    &memory->temp_memory_pool, sizeof(uint32) * mesh->indices.max_size,
     "indices"
   );
 
@@ -143,59 +143,28 @@ internal void models_load_mesh_textures(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 ) {
+  aiString texture_filename_aistring;
+  char texture_path[128];
   aiMaterial *material = scene->mMaterials[mesh_data->mMaterialIndex];
 
-  uint32 n_diffuse_textures = material->GetTextureCount(aiTextureType_DIFFUSE);
-  uint32 n_specular_textures = material->GetTextureCount(aiTextureType_SPECULAR);
+  mesh->n_diffuse_textures = material->GetTextureCount(aiTextureType_DIFFUSE);
+  mesh->n_specular_textures = material->GetTextureCount(aiTextureType_SPECULAR);
+  mesh->n_depth_textures = 0;
 
-  mesh->textures.size = 0;
-  mesh->textures.max_size = n_diffuse_textures + n_specular_textures;
-  mesh->textures.items = (Texture*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size,
-    "textures"
-  );
+  for (uint32 idx = 0; idx < mesh->n_diffuse_textures; idx++) {
+    material->GetTexture(aiTextureType_DIFFUSE, idx, &texture_filename_aistring);
+    sprintf(texture_path, "%s/%s", model->directory, texture_filename_aistring.C_Str());
+    mesh->diffuse_textures[idx] = models_load_texture_from_file(
+      texture_path
+    );
+  }
 
-  aiTextureType texture_type = aiTextureType_DIFFUSE;
-  const char *texture_type_name = "";
-
-  for (uint32 idx_type = 0; idx_type < 2; idx_type++) {
-    if (idx_type == 0) {
-      texture_type = aiTextureType_DIFFUSE;
-      texture_type_name = "texture_diffuse";
-    } else if (idx_type == 1) {
-      texture_type = aiTextureType_SPECULAR;
-      texture_type_name = "texture_specular";
-    }
-
-    for (uint32 idx = 0; idx < material->GetTextureCount(texture_type); idx++) {
-      aiString texture_filename_aistring;
-      material->GetTexture(texture_type, idx, &texture_filename_aistring);
-      const char *texture_filename = texture_filename_aistring.C_Str();
-
-      bool32 should_skip = false;
-      for (uint32 idx_loaded = 0; idx_loaded < mesh->textures.size; idx_loaded++) {
-        if (strcmp(mesh->textures.items[idx_loaded].filename, texture_filename) == 0) {
-          // TODO: Change this to pointers so we don't copy?
-          array_push(&mesh->textures, mesh->textures.items[idx_loaded]);
-          should_skip = true;
-          break;
-        }
-      }
-
-      if (!should_skip) {
-        char texture_path[128];
-        snprintf(
-          texture_path, sizeof(texture_path),
-          "%s/%s", model->directory, texture_filename
-        );
-
-        Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
-        texture->id = models_load_texture_from_file(texture_path);
-        texture->type = texture_type_name;
-        texture->was_loaded_from_file = true;
-        texture->filename = texture_filename;
-      }
-    }
+  for (uint32 idx = 0; idx < mesh->n_specular_textures; idx++) {
+    material->GetTexture(aiTextureType_SPECULAR, idx, &texture_filename_aistring);
+    sprintf(texture_path, "%s/%s", model->directory, texture_filename_aistring.C_Str());
+    mesh->specular_textures[idx] = models_load_texture_from_file(
+      texture_path
+    );
   }
 }
 
@@ -263,6 +232,9 @@ void models_load_model(
   );
 
   models_load_model_node(memory, model, scene->mRootNode, scene);
+
+  memory_reset_pool(&memory->temp_memory_pool);
+  memory_zero_out_pool(&memory->temp_memory_pool);
 }
 
 ModelAsset* models_make_asset_from_file(
@@ -279,13 +251,24 @@ ModelAsset* models_make_asset_from_file(
   return model_asset;
 }
 
+void models_add_texture_to_mesh(
+  Mesh *mesh, TextureType type, uint32 texture
+) {
+  if (type == TEXTURE_DIFFUSE) {
+    mesh->diffuse_textures[mesh->n_diffuse_textures++] = texture;
+  } else if (type == TEXTURE_SPECULAR) {
+    mesh->specular_textures[mesh->n_specular_textures++] = texture;
+  } else if (type == TEXTURE_DEPTH) {
+    mesh->depth_textures[mesh->n_depth_textures++] = texture;
+  }
+}
+
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
   ShaderAsset *shader_asset,
   real32 *vertex_data, uint32 n_vertices,
-  real32 *index_data, uint32 n_indices,
+  uint32 *index_data, uint32 n_indices,
   const char *name,
-  TextureSource texture_type, const char *texture_path, uint32 texture_id,
   uint32 mode
 ) {
   model_asset->info.name = name;
@@ -309,10 +292,13 @@ ModelAsset* models_make_asset_from_data(
   model->meshes.items[0].mode = mode;
 
   // Vertices
+  // NOTE: We are copying this data around for no real reason.
+  // It probably doesn't matter as this is pretty much debug code,
+  // but it might be good to improvei t.
   mesh->vertices.size = 0;
   mesh->vertices.max_size = n_vertices;
   mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
+    &memory->temp_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
     "meshes"
   );
 
@@ -339,79 +325,48 @@ ModelAsset* models_make_asset_from_data(
 
   // Indices
   mesh->does_use_indices = (n_indices > 0);
-
-  mesh->indices.size = 0;
-  mesh->indices.max_size = n_indices;
-  mesh->indices.items = (uint32*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(uint32) * mesh->indices.max_size,
-    "indices"
-  );
-
-  memcpy(index_data, mesh->indices.items, sizeof(uint32) * n_indices);
   mesh->indices.size = n_indices;
-
-  // Textures
-  mesh->textures.size = 0;
-  if (texture_type == TEXTURE_NONE) {
-    mesh->textures.max_size = 0;
-  } else {
-    mesh->textures.max_size = 1;
-  }
-
-  if (mesh->textures.max_size > 0) {
-    mesh->textures.items = (Texture*)memory_push_memory_to_pool(
-      &memory->asset_memory_pool, sizeof(Texture) * mesh->textures.max_size,
-      "textures"
-    );
-    Texture *texture = (Texture*)array_push<Texture>(&mesh->textures);
-
-    if (texture_type == TEXTURE_ID) {
-      texture->id = texture_id;
-      texture->type = "texture_diffuse";
-      texture->was_loaded_from_file = false;
-      texture->filename = "";
-    } else if (texture_type == TEXTURE_FILE) {
-      texture->id = models_load_texture_from_file(texture_path);
-      texture->type = "texture_diffuse";
-      texture->was_loaded_from_file = true;
-      texture->filename = texture_path;
-    }
-  }
+  mesh->indices.max_size = n_indices;
+  mesh->indices.items = index_data;
 
   models_setup_mesh(mesh, shader_asset->shader);
+
+  memory_reset_pool(&memory->temp_memory_pool);
+  memory_zero_out_pool(&memory->temp_memory_pool);
 
   return model_asset;
 }
 
 void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
-  uint32 diffuse_idx = 1;
-  uint32 specular_idx = 1;
+  char uniform_name[128];
+  uint32 texture_idx = 0;
 
-  shader_set_int(shader_program, "n_textures", mesh->textures.size);
+  shader_set_int(shader_program, "n_diffuse_textures", mesh->n_diffuse_textures);
+  shader_set_int(shader_program, "n_specular_textures", mesh->n_specular_textures);
+  shader_set_int(shader_program, "n_depth_textures", mesh->n_depth_textures);
 
-  for (uint32 idx = 0; idx < mesh->textures.size; idx++) {
-    glActiveTexture(GL_TEXTURE0 + idx);
+  for (uint32 idx = 0; idx < mesh->n_diffuse_textures; idx++) {
+    texture_idx++;
+    glActiveTexture(GL_TEXTURE0 + texture_idx);
+    sprintf(uniform_name, "diffuse_textures[%d]", idx);
+    shader_set_int(shader_program, uniform_name, texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->diffuse_textures[idx]);
+  }
 
-    char uniform_name[128];
-    const char *texture_type = mesh->textures.items[idx].type;
+  for (uint32 idx = 0; idx < mesh->n_specular_textures; idx++) {
+    texture_idx++;
+    glActiveTexture(GL_TEXTURE0 + texture_idx);
+    sprintf(uniform_name, "specular_textures[%d]", idx);
+    shader_set_int(shader_program, uniform_name, texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->specular_textures[idx]);
+  }
 
-    if (strcmp(texture_type, "texture_diffuse") == 0) {
-      snprintf(
-        uniform_name, sizeof(uniform_name),
-        "%s%d", texture_type, diffuse_idx
-      );
-      diffuse_idx++;
-    } else if (strcmp(texture_type, "texture_specular") == 0) {
-      snprintf(
-        uniform_name, sizeof(uniform_name),
-        "%s%d", texture_type, specular_idx
-      );
-      specular_idx++;
-    }
-
-    shader_set_int(shader_program, uniform_name, idx);
-
-    glBindTexture(GL_TEXTURE_2D, mesh->textures.items[idx].id);
+  for (uint32 idx = 0; idx < mesh->n_depth_textures; idx++) {
+    texture_idx++;
+    glActiveTexture(GL_TEXTURE0 + texture_idx);
+    sprintf(uniform_name, "depth_textures[%d]", idx);
+    shader_set_int(shader_program, uniform_name, texture_idx);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
   }
 
   glActiveTexture(GL_TEXTURE0);

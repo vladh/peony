@@ -41,10 +41,34 @@ uint32 shader_make_program(uint32 vertex_shader, uint32 fragment_shader) {
   return shader_program;
 }
 
-uint32 shader_make_program_with_paths(const char *vert_path, const char *frag_path) {
+uint32 shader_make_program(
+  uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
+) {
+  uint32 shader_program = glCreateProgram();
+  glAttachShader(shader_program, vertex_shader);
+  glAttachShader(shader_program, fragment_shader);
+  glAttachShader(shader_program, geometry_shader);
+  glLinkProgram(shader_program);
+  shader_assert_program_status_ok(shader_program);
+  return shader_program;
+}
+
+uint32 shader_make_program_with_paths(
+  const char *vert_path, const char *frag_path
+) {
   return shader_make_program(
     shader_load(vert_path, util_load_file(vert_path), GL_VERTEX_SHADER),
     shader_load(frag_path, util_load_file(frag_path), GL_FRAGMENT_SHADER)
+  );
+}
+
+uint32 shader_make_program_with_paths(
+  const char *vert_path, const char *frag_path, const char *geom_path
+) {
+  return shader_make_program(
+    shader_load(vert_path, util_load_file(vert_path), GL_VERTEX_SHADER),
+    shader_load(frag_path, util_load_file(frag_path), GL_FRAGMENT_SHADER),
+    shader_load(geom_path, util_load_file(geom_path), GL_GEOMETRY_SHADER)
   );
 }
 
@@ -53,6 +77,18 @@ ShaderAsset* shader_make_asset(
   const char *vertex_path, const char* frag_path
 ) {
   uint32 program = shader_make_program_with_paths(vertex_path, frag_path);
+  asset->info.name = name;
+  asset->shader.program = program;
+  return asset;
+}
+
+ShaderAsset* shader_make_asset(
+  ShaderAsset *asset, const char *name,
+  const char *vertex_path, const char *frag_path, const char *geom_path
+) {
+  uint32 program = shader_make_program_with_paths(
+    vertex_path, frag_path, geom_path
+  );
   asset->info.name = name;
   asset->shader.program = program;
   return asset;

@@ -3,7 +3,6 @@
 
 struct State {
   Camera camera_main;
-  Camera camera_depth;
   Camera *camera_active;
   Control control;
 
@@ -27,8 +26,14 @@ struct State {
 
   uint32 shadow_map_width;
   uint32 shadow_map_height;
+  real32 shadow_near_clip_dist;
+  real32 shadow_far_clip_dist;
   uint32 shadow_framebuffer;
+
   uint32 shadow_map_texture;
+
+  uint32 shadow_cubemap;
+  glm::mat4 shadow_transforms[6];
 
   RenderMode render_mode;
 };

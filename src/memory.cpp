@@ -1,10 +1,8 @@
 MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
-#if 0
   log_info(
     "Allocating memory pool \"%s\": %.2fMB (%dB)",
     name, (real64)size / 1024 / 1024, size
   );
-#endif
 
   MemoryPool pool;
   pool.name = name;
@@ -13,6 +11,14 @@ MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
   pool.memory = (uint8*)malloc(pool.size);
   memset(pool.memory, 0, pool.size);
   return pool;
+}
+
+void memory_reset_pool(MemoryPool *pool) {
+  pool->used = 0;
+}
+
+void memory_zero_out_pool(MemoryPool *pool) {
+  memset(pool->memory, 0, pool->size);
 }
 
 void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size) {

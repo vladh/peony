@@ -114,7 +114,11 @@ Memory init_memory() {
   memset(memory.state_memory, 0, memory.state_memory_size);
 
   memory.asset_memory_pool = memory_make_memory_pool(
-    "assets", MEGABYTES(512)
+    "assets", MEGABYTES(256)
+  );
+
+  memory.temp_memory_pool = memory_make_memory_pool(
+    "temp", MEGABYTES(256)
   );
 
   return memory;
@@ -161,16 +165,12 @@ void init_state(Memory *memory, State *state) {
   camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
   state->camera_active = &state->camera_main;
 
-  camera_init(&state->camera_depth, CAMERA_ORTHO);
-  // TODO: Remove?
-  state->camera_depth.near_clip_dist = 1.0f;
-  state->camera_depth.far_clip_dist = 7.5f;
-  camera_update_matrices(&state->camera_depth, state->window_width, state->window_height);
-
   control_init(&state->control);
 
   state->shadow_map_width = 1024;
   state->shadow_map_height = 1024;
+  state->shadow_near_clip_dist = 1.0f;
+  state->shadow_far_clip_dist = 25.0f;
 }
 
 GLFWwindow* init_window(State *state) {
@@ -235,9 +235,7 @@ void init_axes(Memory *memory, State *state) {
     shader_asset,
     axes_vertices, n_vertices,
     nullptr, 0,
-    "axes",
-    TEXTURE_NONE, "", 0xdead,
-    GL_LINES
+    "axes", GL_LINES
   );
 
   Entity *entity = entity_make(
@@ -257,13 +255,24 @@ void init_axes(Memory *memory, State *state) {
 }
 
 void init_alpaca(Memory *memory, State *state) {
-  ShaderAsset* shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    "alpaca",
-    /* "src/shaders/alpaca.vert", "src/shaders/alpaca.frag" */
-    entity_get_vert_shader_for_render_mode(state->render_mode),
-    entity_get_frag_shader_for_render_mode(state->render_mode)
-  );
+  ShaderAsset* shader_asset;
+
+  if (state->render_mode == RENDERMODE_REGULAR) {
+    shader_asset = shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      "alpaca",
+      "src/shaders/entity.vert", "src/shaders/entity.frag"
+    );
+  } else if (state->render_mode == RENDERMODE_DEPTH) {
+    shader_asset = shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      "alpaca",
+      "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
+      "src/shaders/entity_depth.geom"
+    );
+  } else {
+    shader_asset = nullptr;
+  }
 
   real32 vertices[] = ALPACA_VERTICES;
   uint32 n_vertices = 36;
@@ -279,9 +288,12 @@ void init_alpaca(Memory *memory, State *state) {
     shader_asset,
     vertices, n_vertices,
     nullptr, 0,
-    "alpaca",
-    TEXTURE_FILE, "resources/alpaca.jpg", 0xdead,
-    GL_TRIANGLES
+    "alpaca", GL_TRIANGLES
+  );
+  models_add_texture_to_mesh(
+    &model_asset->model.meshes.items[0],
+    TEXTURE_DIFFUSE,
+    models_load_texture_from_file("resources/alpaca.jpg")
   );
 
   uint32 n_alpacas = 10;
@@ -335,15 +347,7 @@ void init_screenquad(Memory *memory, State *state) {
     shader_asset,
     vertices, n_vertices,
     nullptr, 0,
-    "screenquad",
-#if USE_POSTPROCESSING
-    TEXTURE_NONE, "", 0xdead,
-#elif USE_SHADOWS
-    TEXTURE_ID, "", state->shadow_map_texture,
-#else
-    TEXTURE_NONE, "", 0xdead,
-#endif
-    GL_TRIANGLES
+    "screenquad", GL_TRIANGLES
   );
 
   Entity *entity = entity_make(
@@ -361,12 +365,25 @@ void init_screenquad(Memory *memory, State *state) {
 }
 
 void init_floor(Memory *memory, State *state) {
-  ShaderAsset *shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    "floor",
-    entity_get_vert_shader_for_render_mode(state->render_mode),
-    entity_get_frag_shader_for_render_mode(state->render_mode)
-  );
+  ShaderAsset* shader_asset;
+
+  if (state->render_mode == RENDERMODE_REGULAR) {
+    shader_asset = shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      "floor",
+      "src/shaders/entity.vert", "src/shaders/entity.frag"
+    );
+  } else if (state->render_mode == RENDERMODE_DEPTH) {
+    shader_asset = shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      "floor",
+      "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
+      "src/shaders/entity_depth.geom"
+    );
+  } else {
+    shader_asset = nullptr;
+  }
+
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
     array_push<ModelAsset*>(
@@ -378,6 +395,14 @@ void init_floor(Memory *memory, State *state) {
     shader_asset,
     "floor", "resources/", "cube.obj"
   );
+
+#if USE_SHADOWS
+  models_add_texture_to_mesh(
+    &model_asset->model.meshes.items[0],
+    TEXTURE_DEPTH,
+    state->shadow_cubemap
+  );
+#endif
 
   Entity *entity = entity_make(
     array_push<Entity>(&state->entities),
@@ -443,12 +468,25 @@ void init_lights(Memory *memory, State *state) {
 }
 
 void init_geese(Memory *memory, State *state) {
-  ShaderAsset *shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    "goose",
-    entity_get_vert_shader_for_render_mode(state->render_mode),
-    entity_get_frag_shader_for_render_mode(state->render_mode)
-  );
+  ShaderAsset* shader_asset;
+
+  if (state->render_mode == RENDERMODE_REGULAR) {
+    shader_asset = shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      "goose",
+      "src/shaders/entity.vert", "src/shaders/entity.frag"
+    );
+  } else if (state->render_mode == RENDERMODE_DEPTH) {
+    shader_asset = shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      "goose",
+      "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
+      "src/shaders/entity_depth.geom"
+    );
+  } else {
+    shader_asset = nullptr;
+  }
+
   ModelAsset *model_asset = models_make_asset_from_file(
     memory,
     array_push<ModelAsset*>(
@@ -459,6 +497,11 @@ void init_geese(Memory *memory, State *state) {
     ),
     shader_asset,
     "goose", "resources/", "miniGoose.fbx"
+  );
+  models_add_texture_to_mesh(
+    &model_asset->model.meshes.items[0],
+    TEXTURE_DEPTH,
+    state->shadow_cubemap
   );
 
   uint32 n_geese = 10;
@@ -524,6 +567,7 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
 }
 
 void init_shadow_buffers(Memory *memory, State *state) {
+#if 0
   glGenFramebuffers(1, &state->shadow_framebuffer);
 
   glGenTextures(1, &state->shadow_map_texture);
@@ -545,6 +589,30 @@ void init_shadow_buffers(Memory *memory, State *state) {
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
+
+  glGenFramebuffers(1, &state->shadow_framebuffer);
+  glGenTextures(1, &state->shadow_cubemap);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemap);
+  for (uint32 idx = 0; idx < 6; idx++) {
+    glTexImage2D(
+      GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx, 0, GL_DEPTH_COMPONENT,
+      state->shadow_map_width, state->shadow_map_height,
+      0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+    );
+  }
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
+  glFramebufferTexture(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadow_cubemap, 0
+  );
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void init_objects(Memory *memory, State *state) {
@@ -555,9 +623,7 @@ void init_objects(Memory *memory, State *state) {
 #if USE_POSTPROCESSING || USE_SHADOWS
   init_screenquad(memory, state);
 #endif
-#if 0
   init_alpaca(memory, state);
-#endif
 }
 
 void set_render_mode(State *state, RenderMode render_mode) {
@@ -581,24 +647,23 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_mat4(shader_program, "model", &model_matrix);
     shader_set_mat4(shader_program, "view", &camera->view);
     shader_set_mat4(shader_program, "projection", &camera->projection);
-    shader_set_mat4(shader_program, "depth_view", &state->camera_depth.view);
-    shader_set_mat4(shader_program, "depth_projection", &state->camera_depth.projection);
+    shader_set_vec3(shader_program, "depth_light_position", &state->lights.items[0].position);
+    shader_set_float(shader_program, "far_clip_dist", state->shadow_far_clip_dist);
     shader_set_float(shader_program, "t", (real32)state->t);
     shader_set_vec3(shader_program, "camera_position", &camera->position);
     shader_set_vec3(shader_program, "entity_color", &entity->color);
+    shader_set_bool(shader_program, "should_draw_normals", false);
 
-#if 0
-    // TODO: Remove
-    if (strcmp(entity->name, "goose") == 0) {
-      shader_set_bool(shader_program, "should_draw_normals", true);
-    } else {
-      shader_set_bool(shader_program, "should_draw_normals", false);
-    }
-#endif
-
-    shader_set_int(shader_program, "n_lights", state->lights.size);
     char uniform_name[128];
 
+    // TODO: The uniforms stay the same for all objects.
+    // We should only set them once.
+    for (uint32 idx = 0; idx < 6; idx++) {
+      sprintf(uniform_name, "shadow_transforms[%d]", idx);
+      shader_set_mat4(shader_program, uniform_name, &state->shadow_transforms[idx]);
+    }
+
+    shader_set_int(shader_program, "n_lights", state->lights.size);
     for (uint32 idx = 0; idx < state->lights.size; idx++) {
       sprintf(uniform_name, "lights[%d].is_point_light", idx);
       shader_set_bool(shader_program, uniform_name, state->lights.items[idx].is_point_light);
@@ -671,8 +736,12 @@ void update_scene(Memory *memory, State *state) {
     sin(state->t) * 5.0f
   );
 
-  // Cameras
-  state->camera_depth.position = state->lights.items[1].position;
+  // Shadow transforms
+  camera_create_shadow_transforms(
+    state->shadow_transforms, state->lights.items[0].position,
+    state->shadow_map_width, state->shadow_map_height,
+    state->shadow_near_clip_dist, state->shadow_far_clip_dist
+  );
 
   // Light entities
   entity_get_all_with_tag(
@@ -724,16 +793,11 @@ void render_scene(Memory *memory, State *state) {
   camera_update_matrices(
     &state->camera_main, state->window_width, state->window_height
   );
-  camera_update_matrices(
-    &state->camera_depth, state->window_width, state->window_height
-  );
   draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_tag(memory, state, "light");
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
-#if 0
   draw_all_entities_with_name(memory, state, "alpaca");
-#endif
 }
 
 void update_and_render(Memory *memory, State *state) {
@@ -772,14 +836,17 @@ void update_and_render(Memory *memory, State *state) {
 #endif
 
   // Render normal scene
-#if !USE_SHADOWS && !USE_POSTPROCESSING
+#if !USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   set_render_mode(state, RENDERMODE_REGULAR);
+#if USE_SHADOWS
+  glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemap);
+#endif
   render_scene(memory, state);
 #endif
 
   // Render postprocessing/shadow framebuffer onto quad
-#if USE_POSTPROCESSING || USE_SHADOWS
+#if USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
   glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
