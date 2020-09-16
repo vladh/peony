@@ -244,7 +244,7 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
   );
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_error("ERROR::FRAMEBUFFER:: Framebuffer is not complete!");
+    log_error("Framebuffer is not complete");
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -281,11 +281,6 @@ void set_render_mode(State *state, RenderMode render_mode) {
 }
 
 void draw_entity(State *state, Entity *entity) {
-#if 0
-  // TODO: Remove.
-  Camera *camera = state->camera_active;
-#endif
-
   if (entity->type == ENTITY_MODEL) {
     assert(entity->model_asset);
 
@@ -307,64 +302,13 @@ void draw_entity(State *state, Entity *entity) {
         shader_asset = nullptr;
       }
     }
+
     uint32 shader_program = shader_asset->shader.program;
     glUseProgram(shader_program);
     shader_set_bool(shader_program, "should_draw_normals", false);
     shader_set_mat4(shader_program, "model", &model_matrix);
     shader_set_vec3(shader_program, "entity_color", &entity->color);
-
-#if 0
-    // TODO: Remove.
-    shader_set_float(shader_program, "far_clip_dist", state->shadow_far_clip_dist);
-    shader_set_mat4(shader_program, "view", &camera->view);
-    shader_set_mat4(shader_program, "projection", &camera->projection);
-    shader_set_vec3(shader_program, "depth_light_position", &state->lights.items[0].position);
-    shader_set_float(shader_program, "far_clip_dist", state->shadow_far_clip_dist);
-    shader_set_float(shader_program, "t", (real32)state->t);
-    shader_set_vec3(shader_program, "camera_position", &camera->position);
-
-    // TODO: Remove.
-    char uniform_name[128];
-    // TODO: The uniforms stay the same for all objects.
-    // We should only set them once.
-    for (uint32 idx = 0; idx < 6; idx++) {
-      util_join(uniform_name, "shadow_transforms[", idx, "]");
-      shader_set_mat4(shader_program, uniform_name, &state->shadow_transforms[idx]);
-    }
-
-    // TODO: Remove
-    shader_set_int(shader_program, "n_lights", state->lights.size);
-    for (uint32 idx = 0; idx < state->lights.size; idx++) {
-      Light *light = &state->lights.items[idx];
-
-      util_join(uniform_name, "lights[", idx, "].position");
-      shader_set_vec3(shader_program, uniform_name, &light->position);
-
-      util_join(uniform_name, "lights[", idx, "].direction");
-      shader_set_vec3(shader_program, uniform_name, &light->direction);
-
-      util_join(uniform_name, "lights[", idx, "].ambient");
-      shader_set_vec3(shader_program, uniform_name, &light->ambient);
-
-      util_join(uniform_name, "lights[", idx, "].diffuse");
-      shader_set_vec3(shader_program, uniform_name, &light->diffuse);
-
-      util_join(uniform_name, "lights[", idx, "].specular");
-      shader_set_vec3(shader_program, uniform_name, &light->specular);
-
-      util_join(uniform_name, "lights[", idx, "].attenuation_constant");
-      shader_set_float(shader_program, uniform_name, light->attenuation_constant);
-
-      util_join(uniform_name, "lights[", idx, "].attenuation_linear");
-      shader_set_float(shader_program, uniform_name, light->attenuation_linear);
-
-      util_join(uniform_name, "lights[", idx, "].attenuation_quadratic");
-      shader_set_float(shader_program, uniform_name, light->attenuation_quadratic);
-    }
-#endif
-
-    Model *model = &(entity->model_asset->model);
-    models_draw_model(model, shader_program);
+    models_draw_model(&entity->model_asset->model, shader_program);
   } else {
     log_warning(
       "Do not know how to draw entity '%s' of type '%d'",
@@ -409,14 +353,6 @@ void render_scene(Memory *memory, State *state) {
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
   shader_common->n_lights = state->lights.size;
   memcpy(shader_common->lights, state->lights.items, sizeof(Light) * state->lights.size);
-
-#if 0
-  // TODO: Remove.
-  shader_common->lights = state->lights.items;
-  for (uint32 idx = 0; idx < 8; idx++) {
-    shader_common->lights[idx] = state->lights.items[idx];
-  }
-#endif
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
