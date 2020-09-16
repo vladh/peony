@@ -34,6 +34,14 @@ char* util_load_file(const char *path) {
   return string;
 }
 
+const char* util_join(char* buf, const char* prefix, uint32 n, const char* suffix) {
+  assert(n < LEN(NUM_TO_STR));
+  strcpy(buf, prefix);
+  strcat(buf, NUM_TO_STR[n]);
+  strcat(buf, suffix);
+  return buf;
+}
+
 real64 util_random(real64 min, real64 max) {
   uint32 r = rand();
   real64 r_normalized = (real64)r / (real64)RAND_MAX;
