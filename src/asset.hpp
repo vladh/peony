@@ -21,7 +21,7 @@ ShaderAsset* asset_get_shader_asset_by_name(
   Array<ShaderAsset> *shader_assets, const char *name
 );
 ModelAsset* asset_get_model_asset_by_name(
-  ModelAsset *model_assets[], uint32 n_model_assets, const char *name
+  Array<ModelAsset*> *model_assets, const char *name
 );
 
 #endif
