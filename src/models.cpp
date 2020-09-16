@@ -90,6 +90,10 @@ internal void models_load_mesh_vertices(
     "vertices"
   );
 
+  if (!mesh_data->mNormals) {
+    log_warning("Model does not have normals.");
+  }
+
   for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
     Vertex *vertex = (Vertex*)array_push<Vertex>(&mesh->vertices);
 
