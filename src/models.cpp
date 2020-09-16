@@ -90,6 +90,8 @@ internal void models_load_mesh_vertices(
     "vertices"
   );
 
+  log_info("Attempting to load %d vertices", mesh_data->mNumVertices);
+
   if (!mesh_data->mNormals) {
     log_warning("Model does not have normals.");
   }
@@ -233,7 +235,7 @@ void models_load_model(
   }
 
   model->meshes.size = 0;
-  model->meshes.max_size = 128;
+  model->meshes.max_size = 512;
   model->meshes.items = (Mesh*)memory_push_memory_to_pool(
     &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
     "meshes"

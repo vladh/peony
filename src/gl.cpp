@@ -1,5 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#define USE_POSTPROCESSING false
+#define USE_SHADOWS true
+#define USE_ALPACA false
+
 #include "gl.hpp"
 #include "log.cpp"
 #include "shader.cpp"
@@ -11,10 +15,8 @@
 #include "entity.cpp"
 #include "array.cpp"
 #include "models.cpp"
-
-
-#define USE_POSTPROCESSING false
-#define USE_SHADOWS true
+#include "scene.cpp"
+#include "scene_resources.cpp"
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -173,21 +175,6 @@ void init_state(Memory *memory, State *state) {
   state->shadow_far_clip_dist = 25.0f;
 }
 
-void init_shaders(Memory *memory, State *state) {
-  shader_make_asset(
-    &state->entity_shader_asset,
-    "entity",
-    "src/shaders/entity.vert", "src/shaders/entity.frag"
-  );
-
-  shader_make_asset(
-    &state->entity_depth_shader_asset,
-    "entity_depth",
-    "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
-    "src/shaders/entity_depth.geom"
-  );
-}
-
 GLFWwindow* init_window(State *state) {
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -228,257 +215,6 @@ GLFWwindow* init_window(State *state) {
   glfwSetWindowUserPointer(window, state);
 
   return window;
-}
-
-void init_axes(Memory *memory, State *state) {
-  ShaderAsset* shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    "axes", "src/shaders/axes.vert", "src/shaders/axes.frag"
-  );
-
-  const real32 axis_size = 20.0f;
-  real32 axes_vertices[] = AXES_VERTICES;
-  uint32 n_vertices = 6;
-
-  ModelAsset *model_asset = models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    axes_vertices, n_vertices,
-    nullptr, 0,
-    "axes", GL_LINES
-  );
-
-  Entity *entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "axes",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.1f, 0.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-
-  entity_set_shader_asset(entity, shader_asset);
-  entity_set_model_asset(entity, model_asset);
-  entity_add_tag(entity, "axes");
-}
-
-void init_alpaca(Memory *memory, State *state) {
-  real32 vertices[] = ALPACA_VERTICES;
-  uint32 n_vertices = 36;
-
-  ModelAsset *model_asset = models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    vertices, n_vertices,
-    nullptr, 0,
-    "alpaca", GL_TRIANGLES
-  );
-  models_add_texture_to_mesh(
-    &model_asset->model.meshes.items[0],
-    TEXTURE_DIFFUSE,
-    models_load_texture_from_file("resources/alpaca.jpg")
-  );
-
-  uint32 n_alpacas = 10;
-
-  for (uint8 idx = 0; idx < n_alpacas; idx++) {
-    real64 scale = util_random(1.0f, 1.4f);
-    Entity *entity = entity_make(
-      array_push<Entity>(&state->entities),
-      "alpaca",
-      ENTITY_MODEL,
-      glm::vec3(
-        util_random(-6.0f, 6.0f),
-        util_random(1.0f, 6.0f),
-        util_random(-6.0f, 6.0f)
-      ),
-      glm::vec3(scale, scale, scale),
-      glm::angleAxis(
-        glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
-      )
-    );
-
-    entity_set_model_asset(entity, model_asset);
-    entity_add_tag(entity, "alpaca");
-  }
-}
-
-void init_screenquad(Memory *memory, State *state) {
-  ShaderAsset* shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-#if USE_POSTPROCESSING
-    "screenquad", "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
-#elif USE_SHADOWS
-    "screenquad", "src/shaders/depth.vert", "src/shaders/depth.frag"
-#else
-    "screenquad", "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
-#endif
-  );
-
-  real32 vertices[] = SCREENQUAD_VERTICES;
-  uint32 n_vertices = 6;
-
-  ModelAsset *model_asset = models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    vertices, n_vertices,
-    nullptr, 0,
-    "screenquad", GL_TRIANGLES
-  );
-
-  Entity *entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "screenquad",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))
-  );
-
-  entity_set_shader_asset(entity, shader_asset);
-  entity_set_model_asset(entity, model_asset);
-  entity_add_tag(entity, "screenquad");
-}
-
-void init_floor(Memory *memory, State *state) {
-  ModelAsset *model_asset = models_make_asset_from_file(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    "floor", "resources/", "cube.obj"
-  );
-
-#if USE_SHADOWS
-  models_add_texture_to_mesh(
-    &model_asset->model.meshes.items[0],
-    TEXTURE_DEPTH,
-    state->shadow_cubemap
-  );
-#endif
-
-  Entity *entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "floor",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(150.0f, 0.1f, 150.0f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-
-  entity_set_color(entity, glm::vec3(1.0f, 1.0f, 1.0f));
-  entity_set_model_asset(entity, model_asset);
-  entity_add_tag(entity, "floor");
-}
-
-void init_lights(Memory *memory, State *state) {
-  ShaderAsset *shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    "light", "src/shaders/light.vert", "src/shaders/light.frag"
-  );
-  ModelAsset *model_asset = models_make_asset_from_file(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    "light", "resources/", "cube.obj"
-  );
-
-  Entity *light1 = entity_make(
-    array_push<Entity>(&state->entities),
-    "light1",
-    ENTITY_MODEL,
-    state->lights.items[0].position,
-    glm::vec3(0.3f, 0.3f, 0.3f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-  entity_set_shader_asset(light1, shader_asset);
-  entity_set_model_asset(light1, model_asset);
-  entity_add_tag(light1, "light");
-
-  Entity *light2 = entity_make(
-    array_push<Entity>(&state->entities),
-    "light2",
-    ENTITY_MODEL,
-    state->lights.items[1].position,
-    glm::vec3(0.3f, 0.3f, 0.3f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-  entity_set_shader_asset(light2, shader_asset);
-  entity_set_model_asset(light2, model_asset);
-  entity_add_tag(light2, "light");
-}
-
-void init_geese(Memory *memory, State *state) {
-  ModelAsset *model_asset = models_make_asset_from_file(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    "goose", "resources/", "miniGoose.fbx"
-  );
-  models_add_texture_to_mesh(
-    &model_asset->model.meshes.items[0],
-    TEXTURE_DEPTH,
-    state->shadow_cubemap
-  );
-
-  uint32 n_geese = 10;
-
-  for (uint8 idx = 0; idx < n_geese; idx++) {
-    real64 scale = util_random(0.2f, 0.4f);
-    Entity *entity = entity_make(
-      array_push<Entity>(&state->entities),
-      "goose",
-      ENTITY_MODEL,
-      glm::vec3(
-        util_random(-8.0f, 8.0f),
-        0.1f,
-        util_random(-8.0f, 8.0f)
-      ),
-      glm::vec3(scale, scale, scale),
-      glm::angleAxis(
-        glm::radians(-90.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f)
-      )
-    );
-
-    entity_set_color(entity, glm::vec3(1.0f, 0.0f, 0.0f));
-    entity_set_model_asset(entity, model_asset);
-    entity_add_tag(entity, "goose");
-  }
 }
 
 void init_postprocessing_buffers(Memory *memory, State *state) {
@@ -540,19 +276,6 @@ void init_shadow_buffers(Memory *memory, State *state) {
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void init_objects(Memory *memory, State *state) {
-  init_axes(memory, state);
-  init_floor(memory, state);
-  init_lights(memory, state);
-  init_geese(memory, state);
-#if USE_POSTPROCESSING || USE_SHADOWS
-  init_screenquad(memory, state);
-#endif
-#if 0
-  init_alpaca(memory, state);
-#endif
 }
 
 void set_render_mode(State *state, RenderMode render_mode) {
@@ -664,72 +387,6 @@ void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
   }
 }
 
-void update_scene(Memory *memory, State *state) {
-  // Lights
-  state->lights.items[0].position = glm::vec3(
-    sin(state->t) * 3.0f,
-    1.0f,
-    0.0f
-  );
-  state->lights.items[1].position = glm::vec3(
-    cos(state->t) * 3.0f,
-    3.0f,
-    sin(state->t) * 5.0f
-  );
-
-  // Shadow transforms
-  camera_create_shadow_transforms(
-    state->shadow_transforms, state->lights.items[0].position,
-    state->shadow_map_width, state->shadow_map_height,
-    state->shadow_near_clip_dist, state->shadow_far_clip_dist
-  );
-
-  // Light entities
-  entity_get_all_with_tag(
-    state->entities, "light", &state->found_entities
-  );
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    entity->position = state->lights.items[idx].position;
-  }
-
-  // Geese
-  entity_get_all_with_name(
-    state->entities, "goose", &state->found_entities
-  );
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-
-    real32 period_offset = (real32)idx;
-    real32 spin_speed_factor = 0.3f;
-    real32 radius_offset = (2.0f + (idx * 1.0f));
-    real32 pos_arg = ((real32)state->t * spin_speed_factor) + period_offset;
-    real32 spin_deg_per_t = 90.0f;
-
-    entity->position = glm::vec3(
-      sin(pos_arg) * radius_offset,
-      entity->position.y,
-      cos(pos_arg) * radius_offset
-    );
-    entity->rotation *= glm::angleAxis(
-      glm::radians(spin_deg_per_t * (real32)state->dt),
-      glm::vec3(0.0f, 0.0f, 1.0f)
-    );
-  }
-
-  // Alpaca
-  entity_get_all_with_name(
-    state->entities, "alpaca", &state->found_entities
-  );
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    entity->rotation *= glm::angleAxis(
-      glm::radians(15.0f * (real32)state->dt),
-      glm::vec3(1.0f, 0.0f, 0.0f)
-    );
-  }
-}
-
 void render_scene(Memory *memory, State *state) {
   camera_update_matrices(
     &state->camera_main, state->window_width, state->window_height
@@ -738,7 +395,7 @@ void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_tag(memory, state, "light");
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
-#if 0
+#if USE_ALPACA
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
 }
@@ -749,7 +406,7 @@ void update_and_render(Memory *memory, State *state) {
   state->dt = t_now - state->t;
   state->t = t_now;
 
-  update_scene(memory, state);
+  scene_update(memory, state);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(
@@ -816,9 +473,10 @@ int main() {
   srand((uint32)time(NULL));
   Memory memory = init_memory();
   State *state = (State*)memory.state_memory;
+
   init_state(&memory, state);
+
   GLFWwindow *window = init_window(state);
-  init_shaders(&memory, state);
   if (!window) {
     return -1;
   }
@@ -831,7 +489,10 @@ int main() {
   init_shadow_buffers(&memory, state);
 #endif
 
-  init_objects(&memory, state);
+  scene_resources_init_models(&memory, state);
+  scene_resources_init_shaders(&memory, state);
+
+  scene_init_objects(&memory, state);
   main_loop(window, &memory, state);
   destroy_window();
   return 0;
