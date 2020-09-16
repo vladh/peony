@@ -2,7 +2,7 @@
 
 uniform mat4 model;
 
-in vec3 position;
+layout (location = 0) in vec3 position;
 
 void main() {
   gl_Position = model * vec4(position, 1.0);
