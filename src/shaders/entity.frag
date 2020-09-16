@@ -38,13 +38,36 @@ in VS_OUT {
 
 out vec4 frag_color;
 
+vec3 grid_sampling_offsets[20] = vec3[] (
+  vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
+  vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
+  vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
+  vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
+  vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+);
+
 float calculate_shadows(vec3 frag_position) {
   vec3 frag_to_light = fs_in.frag_position - depth_light_position;
-  float closest_depth = texture(depth_textures[0], frag_to_light).r;
-  closest_depth *= far_clip_dist;
   float current_depth = length(frag_to_light);
-  float bias = 0.05;
-  float shadow = (current_depth - bias > closest_depth) ? 1.0 : 0.0;
+
+  float shadow = 0.0f;
+  float bias = 0.30f;
+  int n_samples = 20;
+
+  float view_distance = length(camera_position - fs_in.frag_position);
+  float sample_radius = (1.0f + (view_distance / far_clip_dist)) / 25.0f;
+
+  for (int i = 0; i < n_samples; i++) {
+    float closest_depth = texture(
+      depth_textures[0],
+      frag_to_light + grid_sampling_offsets[i] * sample_radius
+    ).r * far_clip_dist;
+    if (current_depth - bias > closest_depth) {
+      shadow += 1.0;
+    }
+  }
+  shadow /= float(n_samples);
+
   return shadow;
 }
 

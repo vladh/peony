@@ -167,9 +167,9 @@ void init_state(Memory *memory, State *state) {
 
   control_init(&state->control);
 
-  state->shadow_map_width = 1024;
-  state->shadow_map_height = 1024;
-  state->shadow_near_clip_dist = 1.0f;
+  state->shadow_map_width = 2048;
+  state->shadow_map_height = 2048;
+  state->shadow_near_clip_dist = 0.1f;
   state->shadow_far_clip_dist = 25.0f;
 }
 
@@ -215,6 +215,7 @@ GLFWwindow* init_window(State *state) {
   }
 
   glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
   glEnable(GL_MULTISAMPLE);
 
   glViewport(0, 0, state->window_width, state->window_height);
@@ -516,30 +517,6 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
 }
 
 void init_shadow_buffers(Memory *memory, State *state) {
-#if 0
-  glGenFramebuffers(1, &state->shadow_framebuffer);
-
-  glGenTextures(1, &state->shadow_map_texture);
-  glBindTexture(GL_TEXTURE_2D, state->shadow_map_texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-    state->shadow_map_width, state->shadow_map_height,
-    0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
-    );
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, state->shadow_map_texture, 0
-  );
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif
-
   glGenFramebuffers(1, &state->shadow_framebuffer);
   glGenTextures(1, &state->shadow_cubemap);
   glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemap);
@@ -550,6 +527,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
       0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
     );
   }
+  real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
