@@ -1,12 +1,12 @@
 void scene_resources_init_shaders(Memory *memory, State *state) {
-  shader_make_asset(
-    &state->entity_shader_asset,
+  state->entity_shader_asset = shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
     "entity",
     "src/shaders/entity.vert", "src/shaders/entity.frag"
   );
 
-  shader_make_asset(
-    &state->entity_depth_shader_asset,
+  state->entity_depth_shader_asset = shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
     "entity_depth",
     "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
     "src/shaders/entity_depth.geom"

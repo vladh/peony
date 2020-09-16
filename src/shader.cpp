@@ -32,12 +32,18 @@ uint32 shader_load(const char *path, const char *source, GLenum shader_type) {
   return shader;
 }
 
+void shader_init_program(uint32 shader_program) {
+  uint32 uniform_block_index = glGetUniformBlockIndex(shader_program, "shader_common");
+  glUniformBlockBinding(shader_program, uniform_block_index, 0);
+}
+
 uint32 shader_make_program(uint32 vertex_shader, uint32 fragment_shader) {
   uint32 shader_program = glCreateProgram();
   glAttachShader(shader_program, vertex_shader);
   glAttachShader(shader_program, fragment_shader);
   glLinkProgram(shader_program);
   shader_assert_program_status_ok(shader_program);
+  shader_init_program(shader_program);
   return shader_program;
 }
 
@@ -50,7 +56,7 @@ uint32 shader_make_program(
   glAttachShader(shader_program, geometry_shader);
   glLinkProgram(shader_program);
   shader_assert_program_status_ok(shader_program);
-
+  shader_init_program(shader_program);
   return shader_program;
 }
 

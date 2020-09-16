@@ -142,7 +142,6 @@ void init_state(Memory *memory, State *state) {
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
   Light *light1 = array_push(&state->lights);
-  light1->is_point_light = true;
   light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
   light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -153,7 +152,6 @@ void init_state(Memory *memory, State *state) {
   light1->attenuation_quadratic = 0.032f;
 
   Light *light2 = array_push(&state->lights);
-  light2->is_point_light = true;
   light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
   light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -283,7 +281,10 @@ void set_render_mode(State *state, RenderMode render_mode) {
 }
 
 void draw_entity(State *state, Entity *entity) {
+#if 0
+  // TODO: Remove.
   Camera *camera = state->camera_active;
+#endif
 
   if (entity->type == ENTITY_MODEL) {
     assert(entity->model_asset);
@@ -298,9 +299,9 @@ void draw_entity(State *state, Entity *entity) {
       shader_asset = entity->shader_asset;
     } else {
       if (state->render_mode == RENDERMODE_REGULAR) {
-        shader_asset = &state->entity_shader_asset;
+        shader_asset = state->entity_shader_asset;
       } else if (state->render_mode == RENDERMODE_DEPTH) {
-        shader_asset = &state->entity_depth_shader_asset;
+        shader_asset = state->entity_depth_shader_asset;
       } else {
         log_error("Could not find shader asset for entity %s", entity->name);
         shader_asset = nullptr;
@@ -308,18 +309,22 @@ void draw_entity(State *state, Entity *entity) {
     }
     uint32 shader_program = shader_asset->shader.program;
     glUseProgram(shader_program);
+    shader_set_bool(shader_program, "should_draw_normals", false);
     shader_set_mat4(shader_program, "model", &model_matrix);
+    shader_set_vec3(shader_program, "entity_color", &entity->color);
+
+#if 0
+    // TODO: Remove.
+    shader_set_float(shader_program, "far_clip_dist", state->shadow_far_clip_dist);
     shader_set_mat4(shader_program, "view", &camera->view);
     shader_set_mat4(shader_program, "projection", &camera->projection);
     shader_set_vec3(shader_program, "depth_light_position", &state->lights.items[0].position);
     shader_set_float(shader_program, "far_clip_dist", state->shadow_far_clip_dist);
     shader_set_float(shader_program, "t", (real32)state->t);
     shader_set_vec3(shader_program, "camera_position", &camera->position);
-    shader_set_vec3(shader_program, "entity_color", &entity->color);
-    shader_set_bool(shader_program, "should_draw_normals", false);
 
+    // TODO: Remove.
     char uniform_name[128];
-
     // TODO: The uniforms stay the same for all objects.
     // We should only set them once.
     for (uint32 idx = 0; idx < 6; idx++) {
@@ -327,12 +332,10 @@ void draw_entity(State *state, Entity *entity) {
       shader_set_mat4(shader_program, uniform_name, &state->shadow_transforms[idx]);
     }
 
+    // TODO: Remove
     shader_set_int(shader_program, "n_lights", state->lights.size);
     for (uint32 idx = 0; idx < state->lights.size; idx++) {
       Light *light = &state->lights.items[idx];
-
-      util_join(uniform_name, "lights[", idx, "].is_point_light");
-      shader_set_bool(shader_program, uniform_name, light->is_point_light);
 
       util_join(uniform_name, "lights[", idx, "].position");
       shader_set_vec3(shader_program, uniform_name, &light->position);
@@ -358,6 +361,7 @@ void draw_entity(State *state, Entity *entity) {
       util_join(uniform_name, "lights[", idx, "].attenuation_quadratic");
       shader_set_float(shader_program, uniform_name, light->attenuation_quadratic);
     }
+#endif
 
     Model *model = &(entity->model_asset->model);
     models_draw_model(model, shader_program);
@@ -391,8 +395,33 @@ void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
 
 void render_scene(Memory *memory, State *state) {
   camera_update_matrices(
-    &state->camera_main, state->window_width, state->window_height
+    state->camera_active, state->window_width, state->window_height
   );
+
+  // NOTE: Do we want to optimise this copying?
+  ShaderCommon *shader_common = &state->shader_common;
+  shader_common->view = state->camera_active->view;
+  shader_common->projection = state->camera_active->projection;
+  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
+  shader_common->camera_position = state->camera_active->position;
+  shader_common->depth_light_position = state->lights.items[0].position;
+  shader_common->t = (float)state->t;
+  shader_common->far_clip_dist = state->shadow_far_clip_dist;
+  shader_common->n_lights = state->lights.size;
+  memcpy(shader_common->lights, state->lights.items, sizeof(Light) * state->lights.size);
+
+#if 0
+  // TODO: Remove.
+  shader_common->lights = state->lights.items;
+  for (uint32 idx = 0; idx < 8; idx++) {
+    shader_common->lights[idx] = state->lights.items[idx];
+  }
+#endif
+
+  glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
   draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_tag(memory, state, "light");
   draw_all_entities_with_name(memory, state, "floor");
@@ -403,7 +432,7 @@ void render_scene(Memory *memory, State *state) {
 }
 
 void update_and_render(Memory *memory, State *state) {
-  // TODO: Clean this up a bit.
+  // TODO: Clean this function up a bit.
   real64 t_now = glfwGetTime();
   state->dt = t_now - state->t;
   state->t = t_now;
@@ -458,6 +487,14 @@ void update_and_render(Memory *memory, State *state) {
 #endif
 }
 
+void init_shader_buffers(Memory *memory, State *state) {
+  glGenBuffers(1, &state->ubo_shader_common);
+  glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+  glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
+}
+
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
     process_input_continuous(window, state);
@@ -490,6 +527,8 @@ int main() {
 #if USE_SHADOWS
   init_shadow_buffers(&memory, state);
 #endif
+
+  init_shader_buffers(&memory, state);
 
   scene_resources_init_models(&memory, state);
   scene_resources_init_shaders(&memory, state);

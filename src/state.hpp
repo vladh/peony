@@ -18,8 +18,8 @@ struct State {
 
   Array<Entity> entities;
   Array<Entity*> found_entities;
-  ShaderAsset entity_shader_asset;
-  ShaderAsset entity_depth_shader_asset;
+  ShaderAsset *entity_shader_asset;
+  ShaderAsset *entity_depth_shader_asset;
 
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset*> model_assets;
@@ -32,11 +32,11 @@ struct State {
   real32 shadow_near_clip_dist;
   real32 shadow_far_clip_dist;
   uint32 shadow_framebuffer;
-
-  uint32 shadow_map_texture;
-
   uint32 shadow_cubemap;
   glm::mat4 shadow_transforms[6];
+
+  uint32 ubo_shader_common;
+  ShaderCommon shader_common;
 
   RenderMode render_mode;
 };
