@@ -323,38 +323,40 @@ void draw_entity(State *state, Entity *entity) {
     // TODO: The uniforms stay the same for all objects.
     // We should only set them once.
     for (uint32 idx = 0; idx < 6; idx++) {
-      sprintf(uniform_name, "shadow_transforms[%d]", idx);
+      util_join(uniform_name, "shadow_transforms[", idx, "]");
       shader_set_mat4(shader_program, uniform_name, &state->shadow_transforms[idx]);
     }
 
     shader_set_int(shader_program, "n_lights", state->lights.size);
     for (uint32 idx = 0; idx < state->lights.size; idx++) {
-      sprintf(uniform_name, "lights[%d].is_point_light", idx);
-      shader_set_bool(shader_program, uniform_name, state->lights.items[idx].is_point_light);
+      Light *light = &state->lights.items[idx];
 
-      sprintf(uniform_name, "lights[%d].position", idx);
-      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].position);
+      util_join(uniform_name, "lights[", idx, "].is_point_light");
+      shader_set_bool(shader_program, uniform_name, light->is_point_light);
 
-      sprintf(uniform_name, "lights[%d].direction", idx);
-      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].direction);
+      util_join(uniform_name, "lights[", idx, "].position");
+      shader_set_vec3(shader_program, uniform_name, &light->position);
 
-      sprintf(uniform_name, "lights[%d].ambient", idx);
-      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].ambient);
+      util_join(uniform_name, "lights[", idx, "].direction");
+      shader_set_vec3(shader_program, uniform_name, &light->direction);
 
-      sprintf(uniform_name, "lights[%d].diffuse", idx);
-      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].diffuse);
+      util_join(uniform_name, "lights[", idx, "].ambient");
+      shader_set_vec3(shader_program, uniform_name, &light->ambient);
 
-      sprintf(uniform_name, "lights[%d].specular", idx);
-      shader_set_vec3(shader_program, uniform_name, &state->lights.items[idx].specular);
+      util_join(uniform_name, "lights[", idx, "].diffuse");
+      shader_set_vec3(shader_program, uniform_name, &light->diffuse);
 
-      sprintf(uniform_name, "lights[%d].attenuation_constant", idx);
-      shader_set_float(shader_program, uniform_name, state->lights.items[idx].attenuation_constant);
+      util_join(uniform_name, "lights[", idx, "].specular");
+      shader_set_vec3(shader_program, uniform_name, &light->specular);
 
-      sprintf(uniform_name, "lights[%d].attenuation_linear", idx);
-      shader_set_float(shader_program, uniform_name, state->lights.items[idx].attenuation_linear);
+      util_join(uniform_name, "lights[", idx, "].attenuation_constant");
+      shader_set_float(shader_program, uniform_name, light->attenuation_constant);
 
-      sprintf(uniform_name, "lights[%d].attenuation_quadratic", idx);
-      shader_set_float(shader_program, uniform_name, state->lights.items[idx].attenuation_quadratic);
+      util_join(uniform_name, "lights[", idx, "].attenuation_linear");
+      shader_set_float(shader_program, uniform_name, light->attenuation_linear);
+
+      util_join(uniform_name, "lights[", idx, "].attenuation_quadratic");
+      shader_set_float(shader_program, uniform_name, light->attenuation_quadratic);
     }
 
     Model *model = &(entity->model_asset->model);
