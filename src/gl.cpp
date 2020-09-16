@@ -14,7 +14,7 @@
 
 
 #define USE_POSTPROCESSING false
-#define USE_SHADOWS false
+#define USE_SHADOWS true
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -572,7 +572,9 @@ void init_objects(Memory *memory, State *state) {
 #if USE_POSTPROCESSING || USE_SHADOWS
   init_screenquad(memory, state);
 #endif
+#if 0
   init_alpaca(memory, state);
+#endif
 }
 
 void set_render_mode(State *state, RenderMode render_mode) {
@@ -758,7 +760,9 @@ void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_tag(memory, state, "light");
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
+#if 0
   draw_all_entities_with_name(memory, state, "alpaca");
+#endif
 }
 
 void update_and_render(Memory *memory, State *state) {
@@ -778,8 +782,8 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
 #if USE_SHADOWS
-  /* glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer); */
-  /* glViewport(0, 0, state->shadow_map_width, state->shadow_map_height); */
+  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
+  glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
 
   glClear(GL_DEPTH_BUFFER_BIT);
 
