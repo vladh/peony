@@ -21,6 +21,7 @@ char* util_load_file(const char *path) {
   size_t fsize = ftell(f);
   fseek(f, 0, SEEK_SET);
 
+  // TODO: Remove `malloc()` and take Memory to use.
   char *string = (char*)malloc(fsize + 1);
   size_t result = fread(string, fsize, 1, f);
   fclose(f);
