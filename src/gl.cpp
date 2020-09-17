@@ -397,7 +397,6 @@ void update_and_render(Memory *memory, State *state) {
   // Render shadow map
 #if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    log_info("Rendering to: shadow framebuffer %d", idx);
     camera_create_shadow_transforms(
       state->shadow_transforms, state->lights.items[idx].position,
       state->shadow_map_width, state->shadow_map_height,
@@ -429,7 +428,6 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render normal scene
 #if !USE_POSTPROCESSING
-  log_info("Rendering to: main framebuffer");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
