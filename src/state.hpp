@@ -27,6 +27,7 @@ struct State {
   Array<Light> lights;
 
   uint32 postprocessing_framebuffer;
+  uint32 postprocessing_color_texture;
 
   uint32 shadow_map_width;
   uint32 shadow_map_height;
