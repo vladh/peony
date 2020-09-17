@@ -163,7 +163,7 @@ internal void models_load_mesh_textures(
 
   for (uint32 idx = 0; idx < mesh->n_diffuse_textures; idx++) {
     material->GetTexture(aiTextureType_DIFFUSE, idx, &texture_filename_aistring);
-    sprintf(texture_path, "%s/%s", model->directory, texture_filename_aistring.C_Str());
+    util_join(texture_path, model->directory, "/", texture_filename_aistring.C_Str());
     mesh->diffuse_textures[idx] = models_load_texture_from_file(
       texture_path
     );
@@ -171,7 +171,7 @@ internal void models_load_mesh_textures(
 
   for (uint32 idx = 0; idx < mesh->n_specular_textures; idx++) {
     material->GetTexture(aiTextureType_SPECULAR, idx, &texture_filename_aistring);
-    sprintf(texture_path, "%s/%s", model->directory, texture_filename_aistring.C_Str());
+    util_join(texture_path, model->directory, "/", texture_filename_aistring.C_Str());
     mesh->specular_textures[idx] = models_load_texture_from_file(
       texture_path
     );
@@ -355,7 +355,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   for (uint32 idx = 0; idx < MAX_N_TEXTURES; idx++) {
     texture_idx++;
     glActiveTexture(GL_TEXTURE0 + texture_idx);
-    sprintf(uniform_name, "diffuse_textures[%d]", idx);
+    util_join(uniform_name, "diffuse_textures[", idx, "]");
     shader_set_int(shader_program, uniform_name, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->diffuse_textures[idx]);
   }
@@ -363,7 +363,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   for (uint32 idx = 0; idx < MAX_N_TEXTURES; idx++) {
     texture_idx++;
     glActiveTexture(GL_TEXTURE0 + texture_idx);
-    sprintf(uniform_name, "specular_textures[%d]", idx);
+    util_join(uniform_name, "specular_textures[", idx, "]");
     shader_set_int(shader_program, uniform_name, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->specular_textures[idx]);
   }
@@ -375,7 +375,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
     texture_idx++;
     glActiveTexture(GL_TEXTURE0 + texture_idx);
-    sprintf(uniform_name, "depth_textures[%d]", idx);
+    util_join(uniform_name, "depth_textures[", idx, "]");
     shader_set_int(shader_program, uniform_name, texture_idx);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
   }

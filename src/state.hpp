@@ -6,8 +6,11 @@ struct State {
   Camera *camera_active;
   Control control;
 
+  real64 target_fps;
+  real64 target_frame_duration_s;
   real64 t;
   real64 dt;
+
   bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
   bool32 should_draw_normals;

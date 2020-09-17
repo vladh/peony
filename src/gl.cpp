@@ -134,6 +134,11 @@ void init_state(Memory *memory, State *state) {
   array_init<ModelAsset*>(&memory->asset_memory_pool, &state->model_assets, 128);
   array_init<Light>(&memory->asset_memory_pool, &state->lights, MAX_N_LIGHTS);
 
+  state->t = 0;
+  state->dt = 0;
+  state->target_fps = 165.0f;
+  state->target_frame_duration_s = 1 / state->target_fps;
+
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
   state->should_draw_normals = false;
@@ -180,7 +185,7 @@ GLFWwindow* init_window(State *state) {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_SAMPLES, 4);
 
-#ifdef __APPLE__
+#if defined(__APPLE__)
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
@@ -377,9 +382,8 @@ void render_scene(Memory *memory, State *state) {
 }
 
 void update_and_render(Memory *memory, State *state) {
-  real64 t_now = glfwGetTime();
-  state->dt = t_now - state->t;
-  state->t = t_now;
+  real64 t_start = glfwGetTime();
+  state->t = t_start;
 
   scene_update(memory, state);
 
@@ -432,6 +436,22 @@ void update_and_render(Memory *memory, State *state) {
   draw_all_entities_with_name(memory, state, "screenquad");
   glEnable(GL_DEPTH_TEST);
 #endif
+
+  real64 t_end_prewait = glfwGetTime();
+  real64 dt_prewait = t_end_prewait - t_start;
+
+  real64 time_to_wait = state->target_frame_duration_s - dt_prewait;
+
+  if (time_to_wait < 0) {
+    log_warning("Frame took too long! %.6fs", state->dt);
+  } else {
+    util_sleep(time_to_wait);
+  }
+
+  real64 t_end = glfwGetTime();
+  state->dt = t_end - t_start;
+
+  log_info("%.2f FPS", 1 / state->dt);
 }
 
 void init_shader_buffers(Memory *memory, State *state) {
