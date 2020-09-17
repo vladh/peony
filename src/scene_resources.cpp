@@ -47,11 +47,13 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "goose", "resources/", "miniGoose.fbx"
   );
 #if USE_SHADOWS
-  models_add_texture_to_mesh(
-    &goose_model_asset->model.meshes.items[0],
-    TEXTURE_DEPTH,
-    state->shadow_cubemap
-  );
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    models_add_texture_to_mesh(
+      &goose_model_asset->model.meshes.items[0],
+      TEXTURE_DEPTH,
+      state->shadow_cubemaps[idx]
+    );
+  }
 #endif
 
   // Axes
@@ -116,11 +118,13 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "floor", "resources/", "cube.obj"
   );
 #if USE_SHADOWS
-  models_add_texture_to_mesh(
-    &floor_model_asset->model.meshes.items[0],
-    TEXTURE_DEPTH,
-    state->shadow_cubemap
-  );
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    models_add_texture_to_mesh(
+      &floor_model_asset->model.meshes.items[0],
+      TEXTURE_DEPTH,
+      state->shadow_cubemaps[idx]
+    );
+  }
 #endif
 
   // Light

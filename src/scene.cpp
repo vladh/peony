@@ -177,13 +177,6 @@ void scene_update(Memory *memory, State *state) {
     sin(state->t) * 5.0f
   );
 
-  // Shadow transforms
-  camera_create_shadow_transforms(
-    state->shadow_transforms, state->lights.items[0].position,
-    state->shadow_map_width, state->shadow_map_height,
-    state->shadow_near_clip_dist, state->shadow_far_clip_dist
-  );
-
   // Light entities
   entity_get_all_with_tag(
     state->entities, "light", &state->found_entities
