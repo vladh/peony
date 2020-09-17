@@ -19,13 +19,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
 
   shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets), "screenquad",
-#if USE_POSTPROCESSING
     "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
-#elif USE_SHADOWS
-    "src/shaders/depth.vert", "src/shaders/depth.frag"
-#else
-    "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
-#endif
   );
 
   shader_make_asset(
@@ -93,7 +87,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   // Screenquad
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  models_make_asset_from_data(
+  ModelAsset *screenquad_model_asset = models_make_asset_from_data(
     memory,
     array_push<ModelAsset*>(
       &state->model_assets,
@@ -104,6 +98,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
     screenquad_vertices, 6,
     nullptr, 0,
     "screenquad", GL_TRIANGLES
+  );
+  models_add_texture_to_mesh(
+    &screenquad_model_asset->model.meshes.items[0],
+    TEXTURE_DIFFUSE,
+    state->postprocessing_color_texture
   );
 
   // Floor

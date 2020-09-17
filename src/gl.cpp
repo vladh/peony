@@ -219,9 +219,8 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
   glGenFramebuffers(1, &state->postprocessing_framebuffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
 
-  uint32 color_texture;
-  glGenTextures(1, &color_texture);
-  glBindTexture(GL_TEXTURE_2D, color_texture);
+  glGenTextures(1, &state->postprocessing_color_texture);
+  glBindTexture(GL_TEXTURE_2D, state->postprocessing_color_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
     0, GL_RGB, GL_UNSIGNED_BYTE, NULL
@@ -230,7 +229,7 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glFramebufferTexture2D(
     GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    color_texture, 0
+    state->postprocessing_color_texture, 0
   );
 
   uint32 rbo;
@@ -314,11 +313,9 @@ void draw_entity(State *state, Entity *entity) {
     glUseProgram(shader_program);
     shader_set_mat4(shader_program, "model", &model_matrix);
     if (state->render_mode == RENDERMODE_REGULAR) {
-      // Only used in RENDERMODE_REGULAR
       shader_set_bool(shader_program, "should_draw_normals", state->should_draw_normals);
       shader_set_vec3(shader_program, "entity_color", &entity->color);
     } else if (state->render_mode == RENDERMODE_DEPTH) {
-      // Only used when rendering to RENDERMODE_DEPTH
       shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);
     }
     models_draw_model(&entity->model_asset->model, shader_program);
@@ -416,22 +413,16 @@ void update_and_render(Memory *memory, State *state) {
   }
 #endif
 
-  // Render scene to postprocesisng buffer
 #if USE_POSTPROCESSING
+  // Render scene to postprocessing buffer
   glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  set_render_mode(state, RENDERMODE_REGULAR);
-  render_scene(memory, state);
-#endif
-
+#else
   // Render normal scene
-#if !USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
-#endif
 
   // Render postprocessing/shadow framebuffer onto quad
 #if USE_POSTPROCESSING
