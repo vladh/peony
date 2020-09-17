@@ -19,9 +19,9 @@ struct Mesh {
   Array<uint32> indices;
 
   uint32 n_diffuse_textures;
-  uint32 diffuse_textures[32];
+  uint32 diffuse_textures[MAX_N_TEXTURES];
   uint32 n_specular_textures;
-  uint32 specular_textures[32];
+  uint32 specular_textures[MAX_N_TEXTURES];
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 

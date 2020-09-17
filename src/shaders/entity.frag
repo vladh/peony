@@ -2,6 +2,53 @@
 
 #define MAX_N_LIGHTS 32
 #define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
+#define MAX_N_TEXTURES 32
+#define USE_SHADOWS true
+
+// NOTE: We need this hack because GLSL doesn't allow us to index samplerCubes
+// by non-constant indices, so we can't do depth_textures[idx_light].
+// Hopefully this will go away in the future (deferred lighting?).
+
+#define RUN_CALCULATE_SHADOWS(idx_light, idx_texture) { \
+  if (idx_texture < n_depth_textures && idx_light == idx_texture) { \
+    shadow += calculate_shadows(fs_in.frag_position, idx_light, depth_textures[idx_texture]); \
+  } \
+}
+
+#define RUN_CALCULATE_SHADOWS_32(idx_light) { \
+  RUN_CALCULATE_SHADOWS(idx_light, 0); \
+  RUN_CALCULATE_SHADOWS(idx_light, 1); \
+  RUN_CALCULATE_SHADOWS(idx_light, 2); \
+  RUN_CALCULATE_SHADOWS(idx_light, 3); \
+  RUN_CALCULATE_SHADOWS(idx_light, 4); \
+  RUN_CALCULATE_SHADOWS(idx_light, 5); \
+  RUN_CALCULATE_SHADOWS(idx_light, 6); \
+  RUN_CALCULATE_SHADOWS(idx_light, 7); \
+  RUN_CALCULATE_SHADOWS(idx_light, 8); \
+  RUN_CALCULATE_SHADOWS(idx_light, 9); \
+  RUN_CALCULATE_SHADOWS(idx_light, 10); \
+  RUN_CALCULATE_SHADOWS(idx_light, 11); \
+  RUN_CALCULATE_SHADOWS(idx_light, 12); \
+  RUN_CALCULATE_SHADOWS(idx_light, 13); \
+  RUN_CALCULATE_SHADOWS(idx_light, 14); \
+  RUN_CALCULATE_SHADOWS(idx_light, 15); \
+  RUN_CALCULATE_SHADOWS(idx_light, 16); \
+  RUN_CALCULATE_SHADOWS(idx_light, 17); \
+  RUN_CALCULATE_SHADOWS(idx_light, 18); \
+  RUN_CALCULATE_SHADOWS(idx_light, 19); \
+  RUN_CALCULATE_SHADOWS(idx_light, 20); \
+  RUN_CALCULATE_SHADOWS(idx_light, 21); \
+  RUN_CALCULATE_SHADOWS(idx_light, 22); \
+  RUN_CALCULATE_SHADOWS(idx_light, 23); \
+  RUN_CALCULATE_SHADOWS(idx_light, 24); \
+  RUN_CALCULATE_SHADOWS(idx_light, 25); \
+  RUN_CALCULATE_SHADOWS(idx_light, 26); \
+  RUN_CALCULATE_SHADOWS(idx_light, 27); \
+  RUN_CALCULATE_SHADOWS(idx_light, 28); \
+  RUN_CALCULATE_SHADOWS(idx_light, 29); \
+  RUN_CALCULATE_SHADOWS(idx_light, 30); \
+  RUN_CALCULATE_SHADOWS(idx_light, 31); \
+}
 
 struct Light {
   vec3 position;
@@ -34,9 +81,9 @@ layout (std140) uniform shader_common {
 };
 
 uniform int n_diffuse_textures;
-uniform sampler2D diffuse_textures[32];
+uniform sampler2D diffuse_textures[MAX_N_TEXTURES];
 uniform int n_specular_textures;
-uniform sampler2D specular_textures[32];
+uniform sampler2D specular_textures[MAX_N_TEXTURES];
 uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
@@ -59,7 +106,7 @@ vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-float calculate_shadows(vec3 frag_position, int idx_light) {
+float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
   vec3 frag_to_light = fs_in.frag_position - lights[idx_light].position;
   float current_depth = length(frag_to_light);
 
@@ -72,10 +119,10 @@ float calculate_shadows(vec3 frag_position, int idx_light) {
 
   for (int i = 0; i < n_samples; i++) {
     float closest_depth = texture(
-      /* depth_textures[idx_light], */
-      depth_textures[0],
+      depth_texture,
       frag_to_light + grid_sampling_offsets[i] * sample_radius
     ).r * far_clip_dist;
+
     if (current_depth - bias > closest_depth) {
       shadow += 1.0;
     }
@@ -128,8 +175,9 @@ void main() {
     diffuse *= attenuation;
     specular *= attenuation;
 
-    if (n_depth_textures >= n_lights) {
-      float shadow = calculate_shadows(fs_in.frag_position, idx_light);
+    if (n_depth_textures >= n_lights && USE_SHADOWS) {
+      float shadow = 0;
+      RUN_CALCULATE_SHADOWS_32(idx_light);
       lighting += (ambient + ((1.0f - shadow) * (diffuse + specular))) * entity_surface;
     } else {
       lighting += (ambient + diffuse + specular) * entity_surface;

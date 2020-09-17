@@ -15,7 +15,7 @@ struct State {
 
   uint32 window_width;
   uint32 window_height;
-  char window_title[32];
+  char window_title[128];
 
   Array<Entity> entities;
   Array<Entity*> found_entities;
