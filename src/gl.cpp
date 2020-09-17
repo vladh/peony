@@ -377,7 +377,6 @@ void render_scene(Memory *memory, State *state) {
 }
 
 void update_and_render(Memory *memory, State *state) {
-  // TODO: Clean this function up a bit.
   real64 t_now = glfwGetTime();
   state->dt = t_now - state->t;
   state->t = t_now;

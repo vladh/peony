@@ -156,7 +156,7 @@ void scene_init_objects(Memory *memory, State *state) {
   init_floor(memory, state);
   init_lights(memory, state);
   init_geese(memory, state);
-#if USE_POSTPROCESSING || USE_SHADOWS
+#if USE_POSTPROCESSING
   init_screenquad(memory, state);
 #endif
 #if USE_ALPACA
