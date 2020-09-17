@@ -35,16 +35,29 @@ char* util_load_file(const char *path) {
   return string;
 }
 
+const char* util_join(char* buf, const char* s1, const char* s2, const char* s3) {
+  strcpy(buf, s1);
+  strcat(buf, s2);
+  strcat(buf, s3);
+  return buf;
+}
+
 const char* util_join(char* buf, const char* prefix, uint32 n, const char* suffix) {
   assert(n < LEN(NUM_TO_STR));
-  strcpy(buf, prefix);
-  strcat(buf, NUM_TO_STR[n]);
-  strcat(buf, suffix);
-  return buf;
+  return util_join(buf, prefix, NUM_TO_STR[n], suffix);
 }
 
 real64 util_random(real64 min, real64 max) {
   uint32 r = rand();
   real64 r_normalized = (real64)r / (real64)RAND_MAX;
   return min + ((r_normalized) * (max - min));
+}
+
+void util_sleep(real64 s) {
+#if defined(__unix__)
+  usleep(s * 1000 * 1000); // us
+#endif
+#if defined(_WIN32) || defined(_WIN64)
+  Sleep((uint32)(s * 1000)); // ms
+#endif
 }

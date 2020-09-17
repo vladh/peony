@@ -8,6 +8,14 @@
 #include <time.h>
 #include <stdio.h>
 
+#if defined(__unix__)
+#include <unistd.h>
+#endif
+
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#endif
+
 #include <set> // Remove?
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
