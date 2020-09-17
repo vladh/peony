@@ -1,5 +1,8 @@
 #version 330 core
 
+#define MAX_N_LIGHTS 32
+#define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
+
 struct Light {
   vec3 position;
   float pad_3;
@@ -22,22 +25,20 @@ layout (std140) uniform shader_common {
   mat4 projection;
   mat4 shadow_transforms[6];
   vec3 camera_position;
-  float pad_11;
-  vec3 depth_light_position;
   float pad_15;
   float t;
   float far_clip_dist;
   int n_lights;
   float pad_19;
-  Light lights[8];
+  Light lights[MAX_N_LIGHTS];
 };
 
 uniform int n_diffuse_textures;
-uniform sampler2D diffuse_textures[16];
+uniform sampler2D diffuse_textures[32];
 uniform int n_specular_textures;
-uniform sampler2D specular_textures[16];
+uniform sampler2D specular_textures[32];
 uniform int n_depth_textures;
-uniform samplerCube depth_textures[16];
+uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
 uniform vec3 entity_color;
 uniform bool should_draw_normals;
@@ -51,15 +52,15 @@ in VS_OUT {
 out vec4 frag_color;
 
 vec3 grid_sampling_offsets[20] = vec3[] (
-  vec3(1, 1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1, 1,  1),
-  vec3(1, 1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1, 1, -1),
-  vec3(1, 1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1, 1,  0),
-  vec3(1, 0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1, 0, -1),
-  vec3(0, 1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0, 1, -1)
+  vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+  vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+  vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+  vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+  vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-float calculate_shadows(vec3 frag_position) {
-  vec3 frag_to_light = fs_in.frag_position - depth_light_position;
+float calculate_shadows(vec3 frag_position, int idx_light) {
+  vec3 frag_to_light = fs_in.frag_position - lights[idx_light].position;
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
@@ -71,6 +72,7 @@ float calculate_shadows(vec3 frag_position) {
 
   for (int i = 0; i < n_samples; i++) {
     float closest_depth = texture(
+      /* depth_textures[idx_light], */
       depth_textures[0],
       frag_to_light + grid_sampling_offsets[i] * sample_radius
     ).r * far_clip_dist;
@@ -84,11 +86,16 @@ float calculate_shadows(vec3 frag_position) {
 }
 
 void main() {
+  if (should_draw_normals) {
+    frag_color = vec4(fs_in.normal, 1.0f);
+    return;
+  }
+
   vec3 unit_normal = normalize(fs_in.normal);
   vec3 lighting = vec3(0.0f, 0.0f, 0.0f);
 
-  for (int idx = 0; idx < n_lights; idx++) {
-    Light light = lights[idx];
+  for (int idx_light = 0; idx_light < n_lights; idx_light++) {
+    Light light = lights[idx_light];
 
     vec3 entity_surface;
     if (n_diffuse_textures > 0) {
@@ -118,22 +125,16 @@ void main() {
       light.attenuation_linear * distance +
       light.attenuation_quadratic * (distance * distance)
     );
-    /* ambient *= attenuation; */
     diffuse *= attenuation;
     specular *= attenuation;
 
-    if (n_depth_textures > 0) {
-      float shadow = calculate_shadows(fs_in.frag_position);
-      /* lighting += shadow; */
+    if (n_depth_textures >= n_lights) {
+      float shadow = calculate_shadows(fs_in.frag_position, idx_light);
       lighting += (ambient + ((1.0f - shadow) * (diffuse + specular))) * entity_surface;
     } else {
       lighting += (ambient + diffuse + specular) * entity_surface;
     }
   }
 
-  if (should_draw_normals) {
-    frag_color = vec4(fs_in.normal, 1.0f);
-  } else {
-    frag_color = vec4(lighting, 1.0f);
-  }
+  frag_color = vec4(lighting, 1.0f);
 }

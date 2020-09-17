@@ -1,5 +1,7 @@
 #version 330 core
 
+#define MAX_N_LIGHTS 32
+
 struct Light {
   vec3 position;
   float pad_3;
@@ -22,14 +24,12 @@ layout (std140) uniform shader_common {
   mat4 projection;
   mat4 shadow_transforms[6];
   vec3 camera_position;
-  float pad_11;
-  vec3 depth_light_position;
   float pad_15;
   float t;
   float far_clip_dist;
   int n_lights;
   float pad_19;
-  Light lights[8];
+  Light lights[MAX_N_LIGHTS];
 };
 
 uniform mat4 model;

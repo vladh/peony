@@ -33,14 +33,6 @@ void update_drawing_options(State *state, GLFWwindow *window) {
   }
 }
 
-void toggle_wireframe(State *state) {
-  state->is_wireframe_on = !state->is_wireframe_on;
-}
-
-void toggle_cursor(State *state) {
-  state->is_cursor_disabled = !state->is_cursor_disabled;
-}
-
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (control_is_key_down(&state->control, GLFW_KEY_W)) {
     camera_move_front_back(state->camera_active, 1);
@@ -73,12 +65,17 @@ void process_input_transient(GLFWwindow *window, State *state) {
   }
 
   if (control_is_key_now_down(&state->control, GLFW_KEY_Q)) {
-    toggle_wireframe(state);
+    state->is_wireframe_on = !state->is_wireframe_on;
+    update_drawing_options(state, window);
+  }
+
+  if (control_is_key_now_down(&state->control, GLFW_KEY_E)) {
+    state->should_draw_normals = !state->should_draw_normals;
     update_drawing_options(state, window);
   }
 
   if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
-    toggle_cursor(state);
+    state->is_cursor_disabled = !state->is_cursor_disabled;
     update_drawing_options(state, window);
   }
 }
@@ -135,10 +132,11 @@ void init_state(Memory *memory, State *state) {
   array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
   array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
   array_init<ModelAsset*>(&memory->asset_memory_pool, &state->model_assets, 128);
-  array_init<Light>(&memory->asset_memory_pool, &state->lights, 32);
+  array_init<Light>(&memory->asset_memory_pool, &state->lights, MAX_N_LIGHTS);
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
+  state->should_draw_normals = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
   Light *light1 = array_push(&state->lights);
@@ -171,6 +169,8 @@ void init_state(Memory *memory, State *state) {
   state->shadow_map_height = 2048;
   state->shadow_near_clip_dist = 0.1f;
   state->shadow_far_clip_dist = 25.0f;
+  state->n_shadow_framebuffers = state->lights.size;
+  state->shadow_light_idx = 0;
 }
 
 GLFWwindow* init_window(State *state) {
@@ -251,29 +251,36 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
 }
 
 void init_shadow_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->shadow_framebuffer);
-  glGenTextures(1, &state->shadow_cubemap);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemap);
-  for (uint32 idx = 0; idx < 6; idx++) {
-    glTexImage2D(
-      GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx, 0, GL_DEPTH_COMPONENT,
-      state->shadow_map_width, state->shadow_map_height,
-      0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+  for (
+    uint32 idx_framebuffer = 0;
+    idx_framebuffer < MAX_N_SHADOW_FRAMEBUFFERS;
+    idx_framebuffer++
+  ) {
+    glGenFramebuffers(1, &state->shadow_framebuffers[idx_framebuffer]);
+    glGenTextures(1, &state->shadow_cubemaps[idx_framebuffer]);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemaps[idx_framebuffer]);
+
+    for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
+      glTexImage2D(
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx_face, 0, GL_DEPTH_COMPONENT,
+        state->shadow_map_width, state->shadow_map_height,
+        0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+      );
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx_framebuffer]);
+    glFramebufferTexture(
+      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadow_cubemaps[idx_framebuffer], 0
     );
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
-  real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
-  glFramebufferTexture(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadow_cubemap, 0
-  );
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void set_render_mode(State *state, RenderMode render_mode) {
@@ -305,9 +312,15 @@ void draw_entity(State *state, Entity *entity) {
 
     uint32 shader_program = shader_asset->shader.program;
     glUseProgram(shader_program);
-    shader_set_bool(shader_program, "should_draw_normals", false);
     shader_set_mat4(shader_program, "model", &model_matrix);
-    shader_set_vec3(shader_program, "entity_color", &entity->color);
+    if (state->render_mode == RENDERMODE_REGULAR) {
+      // Only used in RENDERMODE_REGULAR
+      shader_set_bool(shader_program, "should_draw_normals", state->should_draw_normals);
+      shader_set_vec3(shader_program, "entity_color", &entity->color);
+    } else if (state->render_mode == RENDERMODE_DEPTH) {
+      // Only used when rendering to RENDERMODE_DEPTH
+      shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);
+    }
     models_draw_model(&entity->model_asset->model, shader_program);
   } else {
     log_warning(
@@ -348,7 +361,6 @@ void render_scene(Memory *memory, State *state) {
   shader_common->projection = state->camera_active->projection;
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->camera_position = state->camera_active->position;
-  shader_common->depth_light_position = state->lights.items[0].position;
   shader_common->t = (float)state->t;
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
   shader_common->n_lights = state->lights.size;
@@ -384,16 +396,29 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
 #if USE_SHADOWS
-  glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffer);
-  glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    log_info("Rendering to: shadow framebuffer %d", idx);
+    camera_create_shadow_transforms(
+      state->shadow_transforms, state->lights.items[idx].position,
+      state->shadow_map_width, state->shadow_map_height,
+      state->shadow_near_clip_dist, state->shadow_far_clip_dist
+    );
+    state->shadow_light_idx = idx;
 
-  glClear(GL_DEPTH_BUFFER_BIT);
+    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
+    glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
 
-  set_render_mode(state, RENDERMODE_DEPTH);
-  render_scene(memory, state);
+    glClear(GL_DEPTH_BUFFER_BIT);
 
-  glViewport(0, 0, state->window_width, state->window_height);
-#elif USE_POSTPROCESSING
+    set_render_mode(state, RENDERMODE_DEPTH);
+    render_scene(memory, state);
+
+    glViewport(0, 0, state->window_width, state->window_height);
+  }
+#endif
+
+  // Render scene to postprocesisng buffer
+#if USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -404,11 +429,9 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render normal scene
 #if !USE_POSTPROCESSING
+  log_info("Rendering to: main framebuffer");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   set_render_mode(state, RENDERMODE_REGULAR);
-#if USE_SHADOWS
-  glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemap);
-#endif
   render_scene(memory, state);
 #endif
 
