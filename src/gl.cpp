@@ -206,7 +206,7 @@ void set_render_mode(State *state, RenderMode render_mode) {
 
 void draw_text(
   State *state, const char* font_name, const char *str,
-  real32 x, real32 y, real32 scale, glm::vec3 color
+  real32 x, real32 y, real32 scale, glm::vec4 color
 ) {
   ShaderAsset *shader_asset = asset_get_shader_asset_by_name(
     &state->shader_assets, "text"
@@ -217,7 +217,7 @@ void draw_text(
   Font *font = &font_asset->font;
 
   glUseProgram(shader_program);
-  shader_set_vec3(shader_program, "text_color", &color);
+  shader_set_vec4(shader_program, "text_color", &color);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, font->texture);
@@ -232,11 +232,11 @@ void draw_text(
     real32 char_x = x + character->bearing.x * scale;
     real32 char_y = y - (character->size.y - character->bearing.y) * scale;
 
+    real32 char_texture_w = (real32)character->size.x / font->atlas_width;
+    real32 char_texture_h = (real32)character->size.y / font->atlas_height;
+
     real32 w = character->size.x * scale;
     real32 h = character->size.y * scale;
-
-    real32 char_texture_w = w / font->atlas_width;
-    real32 char_texture_h = h / font->atlas_height;
 
     x += (character->advance.x >> 6) * scale;
     y += (character->advance.y >> 6) * scale;
@@ -361,9 +361,11 @@ void render_scene(Memory *memory, State *state) {
 
   // TODO: Get rid of sprintf.
   char fps_text[128];
-  sprintf(fps_text, "%.2f FPS! Nice.", state->last_fps);
+  sprintf(fps_text, "(fps %.2f)", state->last_fps);
   draw_text(
-    state, "alright-sans-regular", fps_text, 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f)
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 }
 

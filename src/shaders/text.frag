@@ -5,9 +5,9 @@ in vec2 tex_coords;
 out vec4 color;
 
 uniform sampler2D atlas_texture;
-uniform vec3 text_color;
+uniform vec4 text_color;
 
 void main() {
   vec4 sampled = vec4(1.0, 1.0, 1.0, texture(atlas_texture, tex_coords).r);
-  color = vec4(text_color, 1.0) * sampled;
+  color = text_color * sampled;
 }
