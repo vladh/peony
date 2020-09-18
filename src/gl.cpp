@@ -93,7 +93,6 @@ void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
   camera_update_mouse(state->camera_active, mouse_offset);
-  camera_update_matrices(state->camera_active, state->window_width, state->window_height);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -125,10 +124,6 @@ Memory init_memory() {
 }
 
 void init_state(Memory *memory, State *state) {
-  state->window_width = 1920;
-  state->window_height = 1080;
-  strcpy(state->window_title, "hi lol");
-
   array_init<Entity>(&memory->asset_memory_pool, &state->entities, 128);
   array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
   array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
@@ -146,45 +141,17 @@ void init_state(Memory *memory, State *state) {
   state->should_draw_normals = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
-  Light *light1 = array_push(&state->lights);
-  light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
-  light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
-  light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-  light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-  light1->attenuation_constant = 1.0f;
-  light1->attenuation_linear = 0.09f;
-  light1->attenuation_quadratic = 0.032f;
-
-  Light *light2 = array_push(&state->lights);
-  light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
-  light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-  light2->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
-  light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-  light2->attenuation_constant = 1.0f;
-  light2->attenuation_linear = 0.09f;
-  light2->attenuation_quadratic = 0.032f;
-
   camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
-  camera_update_matrices(&state->camera_main, state->window_width, state->window_height);
   state->camera_active = &state->camera_main;
 
   control_init(&state->control);
-
-  state->text_projection = glm::ortho(
-    0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
-  );
-
-  state->shadow_map_width = 2048;
-  state->shadow_map_height = 2048;
-  state->shadow_near_clip_dist = 0.1f;
-  state->shadow_far_clip_dist = 25.0f;
-  state->n_shadow_framebuffers = state->lights.size;
-  state->shadow_light_idx = 0;
 }
 
 GLFWwindow* init_window(State *state) {
+  state->window_width = 1920;
+  state->window_height = 1080;
+  strcpy(state->window_title, "hi lol");
+
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -233,73 +200,6 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
-void init_postprocessing_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->postprocessing_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-
-  glGenTextures(1, &state->postprocessing_color_texture);
-  glBindTexture(GL_TEXTURE_2D, state->postprocessing_color_texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
-    0, GL_RGB, GL_UNSIGNED_BYTE, NULL
-  );
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->postprocessing_color_texture, 0
-  );
-
-  uint32 rbo;
-  glGenRenderbuffers(1, &rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-  glRenderbufferStorage(
-    GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
-  );
-  glFramebufferRenderbuffer(
-    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_error("Framebuffer is not complete");
-  }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void init_shadow_buffers(Memory *memory, State *state) {
-  for (
-    uint32 idx_framebuffer = 0;
-    idx_framebuffer < MAX_N_SHADOW_FRAMEBUFFERS;
-    idx_framebuffer++
-  ) {
-    glGenFramebuffers(1, &state->shadow_framebuffers[idx_framebuffer]);
-    glGenTextures(1, &state->shadow_cubemaps[idx_framebuffer]);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemaps[idx_framebuffer]);
-
-    for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
-      glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx_face, 0, GL_DEPTH_COMPONENT,
-        state->shadow_map_width, state->shadow_map_height,
-        0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
-      );
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx_framebuffer]);
-    glFramebufferTexture(
-      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadow_cubemaps[idx_framebuffer], 0
-    );
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  }
-}
-
 void set_render_mode(State *state, RenderMode render_mode) {
   state->render_mode = render_mode;
 }
@@ -318,12 +218,9 @@ void draw_text(
 
   glUseProgram(shader_program);
   shader_set_vec3(shader_program, "text_color", &color);
-  // TODO: Check if we can only do this once. It is probably preserved.
-  shader_set_mat4(shader_program, "projection", &state->text_projection);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, font->texture);
-  shader_set_int(shader_program, "atlas_texture", 0);
 
   glBindVertexArray(state->text_vao);
   glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
@@ -551,6 +448,80 @@ void init_shader_buffers(Memory *memory, State *state) {
   glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
 }
 
+void init_postprocessing_buffers(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->postprocessing_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
+
+  glGenTextures(1, &state->postprocessing_color_texture);
+  glBindTexture(GL_TEXTURE_2D, state->postprocessing_color_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
+    0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    state->postprocessing_color_texture, 0
+  );
+
+  uint32 rbo;
+  glGenRenderbuffers(1, &rbo);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+  glRenderbufferStorage(
+    GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
+  );
+  glFramebufferRenderbuffer(
+    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo
+  );
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_error("Framebuffer is not complete");
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void init_shadow_buffers(Memory *memory, State *state) {
+  state->shadow_map_width = 2048;
+  state->shadow_map_height = 2048;
+  state->shadow_near_clip_dist = 0.1f;
+  state->shadow_far_clip_dist = 25.0f;
+  state->n_shadow_framebuffers = state->lights.size;
+  state->shadow_light_idx = 0;
+
+  for (
+    uint32 idx_framebuffer = 0;
+    idx_framebuffer < MAX_N_SHADOW_FRAMEBUFFERS;
+    idx_framebuffer++
+  ) {
+    glGenFramebuffers(1, &state->shadow_framebuffers[idx_framebuffer]);
+    glGenTextures(1, &state->shadow_cubemaps[idx_framebuffer]);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemaps[idx_framebuffer]);
+
+    for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
+      glTexImage2D(
+        GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx_face, 0, GL_DEPTH_COMPONENT,
+        state->shadow_map_width, state->shadow_map_height,
+        0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+      );
+    }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx_framebuffer]);
+    glFramebufferTexture(
+      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadow_cubemaps[idx_framebuffer], 0
+    );
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  }
+}
+
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
     process_input_continuous(window, state);
@@ -576,14 +547,14 @@ int main() {
     return -1;
   }
 
+  scene_init_lights(&memory, state);
+
 #if USE_POSTPROCESSING
   init_postprocessing_buffers(&memory, state);
 #endif
-
 #if USE_SHADOWS
   init_shadow_buffers(&memory, state);
 #endif
-
   init_shader_buffers(&memory, state);
 
   scene_resources_init_models(&memory, state);

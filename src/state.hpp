@@ -33,7 +33,6 @@ struct State {
 
   uint32 text_vao;
   uint32 text_vbo;
-  glm::mat4 text_projection;
 
   uint32 postprocessing_framebuffer;
   uint32 postprocessing_color_texture;
