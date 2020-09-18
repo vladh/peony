@@ -5,9 +5,11 @@
 #define MEGABYTES(value) (KILOBYTES(value) * 1024LL)
 #define GIGABYTES(value) (MEGABYTES(value) * 1024LL)
 #define TERABYTES(value) (GIGABYTES(value) * 1024LL)
-#define LEN(x) (sizeof(x) / sizeof((x)[0]))
 #define STRINGIZE_(x) #x
 #define STRINGIZE(x) STRINGIZE_(x)
+#define LEN(x) (sizeof(x) / sizeof((x)[0]))
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 typedef int8_t int8;
 typedef int16_t int16;

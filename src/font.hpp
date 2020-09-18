@@ -1,17 +1,22 @@
 #ifndef FONTS_H
 #define FONTS_H
 
+#define N_CHARS_TO_LOAD 128
+
 struct FontAsset;
 
 struct Character {
-  uint32 texture;
   glm::ivec2 size;
   glm::ivec2 bearing;
-  uint32 advance;
+  glm::ivec2 advance;
+  real32 texture_x;
 };
 
 struct Font {
   Array<Character> characters;
+  uint32 atlas_width;
+  uint32 atlas_height;
+  uint32 texture;
 };
 
 void font_load_glyphs(
