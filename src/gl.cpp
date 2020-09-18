@@ -6,6 +6,7 @@
 
 #include "gl.hpp"
 #include "log.cpp"
+#include "font.cpp"
 #include "shader.cpp"
 #include "util.cpp"
 #include "camera.cpp"
@@ -131,6 +132,7 @@ void init_state(Memory *memory, State *state) {
   array_init<Entity>(&memory->asset_memory_pool, &state->entities, 128);
   array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
   array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
+  array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 128);
   array_init<ModelAsset*>(&memory->asset_memory_pool, &state->model_assets, 128);
   array_init<Light>(&memory->asset_memory_pool, &state->lights, MAX_N_LIGHTS);
 
@@ -170,6 +172,10 @@ void init_state(Memory *memory, State *state) {
 
   control_init(&state->control);
 
+  state->text_projection = glm::ortho(
+    0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
+  );
+
   state->shadow_map_width = 2048;
   state->shadow_map_height = 2048;
   state->shadow_near_clip_dist = 0.1f;
@@ -205,8 +211,15 @@ GLFWwindow* init_window(State *state) {
   }
 
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
   glEnable(GL_MULTISAMPLE);
+
+  // NOTE: This breaks the alpaca cubes. It's probably the cubes'
+  // fault, but we should check that!
+  glEnable(GL_CULL_FACE);
+
+  // NOTE: This is for text. Does it break anything else?
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glViewport(0, 0, state->window_width, state->window_height);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -291,6 +304,60 @@ void set_render_mode(State *state, RenderMode render_mode) {
   state->render_mode = render_mode;
 }
 
+void draw_text(
+  State *state, const char *str, real32 x, real32 y, real32 scale, glm::vec3 color
+) {
+  ShaderAsset *shader_asset = asset_get_shader_asset_by_name(
+    &state->shader_assets, "text"
+  );
+  uint32 shader_program = shader_asset->shader.program;
+  glUseProgram(shader_program);
+  shader_set_vec3(shader_program, "text_color", &color);
+  // TODO: Check if we can only do this once. It is probably preserved.
+  shader_set_mat4(shader_program, "projection", &state->text_projection);
+  glActiveTexture(GL_TEXTURE0);
+  glBindVertexArray(state->text_vao);
+
+  // TODO: Actually read this code.
+  for (uint32 idx = 0; idx < strlen(str); idx++) {
+    char c = str[idx];
+    // TODO: Update with font passed to function.
+    FontAsset *font_asset = asset_get_font_asset_by_name(
+      &state->font_assets, "alright-sans-regular"
+    );
+    Character *ch = &font_asset->font.characters.items[c];
+
+    float xpos = x + ch->bearing.x * scale;
+    float ypos = y - (ch->size.y - ch->bearing.y) * scale;
+
+    float w = ch->size.x * scale;
+    float h = ch->size.y * scale;
+    // update VBO for each character
+    float vertices[6][4] = {
+      { xpos,     ypos + h,   0.0f, 0.0f },
+      { xpos,     ypos,       0.0f, 1.0f },
+      { xpos + w, ypos,       1.0f, 1.0f },
+
+      { xpos,     ypos + h,   0.0f, 0.0f },
+      { xpos + w, ypos,       1.0f, 1.0f },
+      { xpos + w, ypos + h,   1.0f, 0.0f }
+    };
+    // render glyph texture over quad
+    glBindTexture(GL_TEXTURE_2D, ch->texture);
+    // update content of VBO memory
+    glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // render quad
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+    x += (ch->advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+  }
+
+  glBindVertexArray(0);
+  glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void draw_entity(State *state, Entity *entity) {
   if (entity->type == ENTITY_MODEL) {
     assert(entity->model_asset);
@@ -358,6 +425,9 @@ void render_scene(Memory *memory, State *state) {
   );
 
   // NOTE: Do we want to optimise this copying?
+  // TODO: Some of these things don't change every frame. Do we want to do a
+  // separate block for those?
+  // TODO: Think about converting everything to vec4.
   ShaderCommon *shader_common = &state->shader_common;
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
@@ -379,6 +449,12 @@ void render_scene(Memory *memory, State *state) {
 #if USE_ALPACA
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
+
+  char lmao[128];
+  sprintf(lmao, "%.2f FPS! Nice.", state->last_fps);
+  draw_text(
+    state, lmao, 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f)
+  );
 }
 
 void update_and_render(Memory *memory, State *state) {
@@ -450,8 +526,8 @@ void update_and_render(Memory *memory, State *state) {
 
   real64 t_end = glfwGetTime();
   state->dt = t_end - t_start;
-
-  log_info("%.2f FPS", 1 / state->dt);
+  state->last_fps = 1 / state->dt;
+  log_info("%.2f FPS", state->last_fps);
 }
 
 void init_shader_buffers(Memory *memory, State *state) {
@@ -499,6 +575,7 @@ int main() {
 
   scene_resources_init_models(&memory, state);
   scene_resources_init_shaders(&memory, state);
+  scene_resources_init_fonts(&memory, state);
 
   scene_init_objects(&memory, state);
   main_loop(window, &memory, state);

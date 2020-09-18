@@ -10,6 +10,7 @@ struct State {
   real64 target_frame_duration_s;
   real64 t;
   real64 dt;
+  real64 last_fps;
 
   bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
@@ -27,7 +28,12 @@ struct State {
 
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset*> model_assets;
+  Array<FontAsset> font_assets;
   Array<Light> lights;
+
+  uint32 text_vao;
+  uint32 text_vbo;
+  glm::mat4 text_projection;
 
   uint32 postprocessing_framebuffer;
   uint32 postprocessing_color_texture;

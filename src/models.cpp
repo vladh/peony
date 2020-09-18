@@ -230,7 +230,7 @@ void models_load_model(
   );
 
   if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    log_error("ERROR::ASSIMP::%s", import.GetErrorString());
+    log_error("assimp error: %s", import.GetErrorString());
     return;
   }
 

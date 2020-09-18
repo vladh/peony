@@ -29,11 +29,14 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #include "glad.cpp"
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include "types.hpp"
 #include "render.hpp"
 #include "memory.hpp"
 #include "array.hpp"
+#include "font.hpp"
 #include "shader.hpp"
 #include "models.hpp"
 #include "entity.hpp"
