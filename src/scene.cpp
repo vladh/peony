@@ -113,7 +113,7 @@ void init_floor(Memory *memory, State *state) {
   entity_add_tag(entity, "floor");
 }
 
-void init_lights(Memory *memory, State *state) {
+void init_light_entities(Memory *memory, State *state) {
   Entity *light1 = entity_make(
     array_push<Entity>(&state->entities),
     "light1",
@@ -151,10 +151,32 @@ void init_lights(Memory *memory, State *state) {
   entity_add_tag(light2, "light");
 }
 
+void scene_init_lights(Memory *memory, State *state) {
+  Light *light1 = array_push(&state->lights);
+  light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
+  light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
+  light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
+  light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+  light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
+  light1->attenuation_constant = 1.0f;
+  light1->attenuation_linear = 0.09f;
+  light1->attenuation_quadratic = 0.032f;
+
+  Light *light2 = array_push(&state->lights);
+  light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
+  light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
+  light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
+  light2->diffuse = glm::vec3(0.5f, 0.5f, 0.5f);
+  light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
+  light2->attenuation_constant = 1.0f;
+  light2->attenuation_linear = 0.09f;
+  light2->attenuation_quadratic = 0.032f;
+}
+
 void scene_init_objects(Memory *memory, State *state) {
   init_axes(memory, state);
   init_floor(memory, state);
-  init_lights(memory, state);
+  init_light_entities(memory, state);
   init_geese(memory, state);
 #if USE_POSTPROCESSING
   init_screenquad(memory, state);

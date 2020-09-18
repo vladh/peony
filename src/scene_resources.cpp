@@ -27,10 +27,15 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     "light", "src/shaders/light.vert", "src/shaders/light.frag"
   );
 
-  shader_make_asset(
+  ShaderAsset *text_shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     "text", "src/shaders/text.vert", "src/shaders/text.frag"
   );
+  glm::mat4 text_projection = glm::ortho(
+    0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
+  );
+  glUseProgram(text_shader_asset->shader.program);
+  shader_set_mat4(text_shader_asset->shader.program, "projection", &text_projection);
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
