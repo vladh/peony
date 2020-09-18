@@ -305,55 +305,67 @@ void set_render_mode(State *state, RenderMode render_mode) {
 }
 
 void draw_text(
-  State *state, const char *str, real32 x, real32 y, real32 scale, glm::vec3 color
+  State *state, const char* font_name, const char *str,
+  real32 x, real32 y, real32 scale, glm::vec3 color
 ) {
   ShaderAsset *shader_asset = asset_get_shader_asset_by_name(
     &state->shader_assets, "text"
   );
   uint32 shader_program = shader_asset->shader.program;
+
+  FontAsset *font_asset = asset_get_font_asset_by_name(&state->font_assets, font_name);
+  Font *font = &font_asset->font;
+
   glUseProgram(shader_program);
   shader_set_vec3(shader_program, "text_color", &color);
   // TODO: Check if we can only do this once. It is probably preserved.
   shader_set_mat4(shader_program, "projection", &state->text_projection);
-  glActiveTexture(GL_TEXTURE0);
-  glBindVertexArray(state->text_vao);
 
-  // TODO: Actually read this code.
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, font->texture);
+  shader_set_int(shader_program, "atlas_texture", 0);
+
+  glBindVertexArray(state->text_vao);
+  glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
+
   for (uint32 idx = 0; idx < strlen(str); idx++) {
     char c = str[idx];
-    // TODO: Update with font passed to function.
-    FontAsset *font_asset = asset_get_font_asset_by_name(
-      &state->font_assets, "alright-sans-regular"
-    );
-    Character *ch = &font_asset->font.characters.items[c];
+    Character *character = &font->characters.items[c];
 
-    float xpos = x + ch->bearing.x * scale;
-    float ypos = y - (ch->size.y - ch->bearing.y) * scale;
+    real32 char_x = x + character->bearing.x * scale;
+    real32 char_y = y - (character->size.y - character->bearing.y) * scale;
 
-    float w = ch->size.x * scale;
-    float h = ch->size.y * scale;
-    // update VBO for each character
-    float vertices[6][4] = {
-      { xpos,     ypos + h,   0.0f, 0.0f },
-      { xpos,     ypos,       0.0f, 1.0f },
-      { xpos + w, ypos,       1.0f, 1.0f },
+    real32 w = character->size.x * scale;
+    real32 h = character->size.y * scale;
 
-      { xpos,     ypos + h,   0.0f, 0.0f },
-      { xpos + w, ypos,       1.0f, 1.0f },
-      { xpos + w, ypos + h,   1.0f, 0.0f }
+    real32 char_texture_w = w / font->atlas_width;
+    real32 char_texture_h = h / font->atlas_height;
+
+    x += (character->advance.x >> 6) * scale;
+    y += (character->advance.y >> 6) * scale;
+
+    if (w == 0 || h == 0) {
+      // Skip glyphs with no pixels, like spaces.
+      continue;
+    }
+
+    // TODO: Buffer vertices only once, use a matrix to transform the position.
+    // NOTE: The correspondence between the y and texture y is the other way
+    // around because the characters are upside down for some reason.
+    real32 vertices[6][4] = {
+      {char_x,     char_y + h,  character->texture_x,                  0},
+      {char_x,     char_y,      character->texture_x,                  char_texture_h},
+      {char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h},
+      {char_x,     char_y + h,  character->texture_x,                  0},
+      {char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h},
+      {char_x + w, char_y + h,  character->texture_x + char_texture_w, 0}
     };
-    // render glyph texture over quad
-    glBindTexture(GL_TEXTURE_2D, ch->texture);
-    // update content of VBO memory
-    glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
+
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // render quad
     glDrawArrays(GL_TRIANGLES, 0, 6);
-    // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-    x += (ch->advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
   }
 
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
   glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -450,10 +462,11 @@ void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
 
-  char lmao[128];
-  sprintf(lmao, "%.2f FPS! Nice.", state->last_fps);
+  // TODO: Get rid of sprintf.
+  char fps_text[128];
+  sprintf(fps_text, "%.2f FPS! Nice.", state->last_fps);
   draw_text(
-    state, lmao, 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f)
+    state, "alright-sans-regular", fps_text, 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f)
   );
 }
 
