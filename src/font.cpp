@@ -58,8 +58,6 @@ void font_load_glyphs(
     texture_x += glyph->bitmap.width;
   }
 
-  // TODO: Do we want to set this back?
-  /* glPixelStorei(GL_UNPACK_ALIGNMENT, 4); */
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
