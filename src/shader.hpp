@@ -7,8 +7,6 @@ struct Shader {
 
 struct ShaderAsset;
 
-#define SHADER_SET_STRUCT(type, program, obj, name, idx, attrib) shader_set_##type(program, #name "[" #idx "]." #attrib, obj.attrib)
-
 void shader_assert_shader_status_ok(uint32 shader);
 void shader_assert_program_status_ok(uint32 shader);
 uint32 shader_load(const char *source, GLenum shaderType);

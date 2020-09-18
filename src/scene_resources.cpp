@@ -26,6 +26,11 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     array_push<ShaderAsset>(&state->shader_assets),
     "light", "src/shaders/light.vert", "src/shaders/light.frag"
   );
+
+  shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
+    "text", "src/shaders/text.vert", "src/shaders/text.frag"
+  );
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
@@ -38,7 +43,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    "goose", "resources/", "miniGoose.fbx"
+    "goose", "resources/models/", "miniGoose.fbx"
   );
 #if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
@@ -82,7 +87,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   models_add_texture_to_mesh(
     &alpaca_model_asset->model.meshes.items[0],
     TEXTURE_DIFFUSE,
-    models_load_texture_from_file("resources/alpaca.jpg")
+    models_load_texture_from_file("resources/textures/alpaca.jpg")
   );
 
   // Screenquad
@@ -114,7 +119,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    "floor", "resources/", "cube.obj"
+    "floor", "resources/models/", "cube.obj"
   );
 #if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
@@ -135,6 +140,35 @@ void scene_resources_init_models(Memory *memory, State *state) {
         &memory->asset_memory_pool, sizeof(ModelAsset)
       )
     ),
-    "light", "resources/", "cube.obj"
+    "light", "resources/models/", "cube.obj"
   );
+}
+
+void scene_resources_init_fonts(Memory *memory, State *state) {
+  FT_Library ft_library;
+
+  if (FT_Init_FreeType(&ft_library)) {
+    log_error("Could not init FreeType");
+    return;
+  }
+
+  font_make_asset(
+    memory,
+    array_push<FontAsset>(&state->font_assets),
+    &ft_library,
+    "alright-sans-regular",
+    "resources/fonts/AlrightSans-Regular.otf"
+  );
+
+  FT_Done_FreeType(ft_library);
+
+  glGenVertexArrays(1, &state->text_vao);
+  glGenBuffers(1, &state->text_vbo);
+  glBindVertexArray(state->text_vao);
+  glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindVertexArray(0);
 }
