@@ -79,7 +79,7 @@ FontAsset* font_make_asset(
   }
 
   // TODO: Support multiple sizes somehow.
-  FT_Set_Pixel_Sizes(face, 0, 48);
+  FT_Set_Pixel_Sizes(face, 0, 18);
 
   font_load_glyphs(asset, face);
 

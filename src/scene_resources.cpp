@@ -161,8 +161,9 @@ void scene_resources_init_fonts(Memory *memory, State *state) {
     memory,
     array_push<FontAsset>(&state->font_assets),
     &ft_library,
-    "alright-sans-regular",
-    "resources/fonts/AlrightSans-Regular.otf"
+    "main-font",
+    /* "resources/fonts/AlrightSans-Regular.otf" */
+    "resources/fonts/iosevka-regular.ttf"
   );
 
   FT_Done_FreeType(ft_library);
