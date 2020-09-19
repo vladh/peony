@@ -337,11 +337,7 @@ void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
   }
 }
 
-void render_scene(Memory *memory, State *state) {
-  camera_update_matrices(
-    state->camera_active, state->window_width, state->window_height
-  );
-
+void copy_scene_data_to_ubo(Memory *memory, State *state) {
   // NOTE: Do we want to optimise this copying?
   // TODO: Some of these things don't change every frame. Do we want to do a
   // separate block for those?
@@ -359,8 +355,9 @@ void render_scene(Memory *memory, State *state) {
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-  draw_all_entities_with_tag(memory, state, "light");
+void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
   draw_all_entities_with_name(memory, state, "temple");
@@ -373,6 +370,8 @@ void render_scene(Memory *memory, State *state) {
 }
 
 void render_scene_forward(Memory *memory, State *state) {
+  draw_all_entities_with_tag(memory, state, "light");
+
   glEnable(GL_BLEND);
 
   // TODO: Get rid of sprintf.
@@ -399,6 +398,10 @@ void update_and_render(Memory *memory, State *state) {
   state->t = t_start;
 
   scene_update(memory, state);
+  camera_update_matrices(
+    state->camera_active, state->window_width, state->window_height
+  );
+  copy_scene_data_to_ubo(memory, state);
 
   // Clear main framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
