@@ -102,7 +102,6 @@ void scene_init_objects(Memory *memory, State *state) {
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "goose"));
   }
 
-#if USE_DEFERRED || USE_POSTPROCESSING
   // Screenquad
   entity = entity_make(
     array_push<Entity>(&state->entities),
@@ -114,7 +113,6 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "screenquad"));
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "screenquad"));
-#endif
 
 #if USE_ALPACA
   // Alpaca

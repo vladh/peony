@@ -34,9 +34,6 @@ struct State {
   uint32 text_vao;
   uint32 text_vbo;
 
-  uint32 postprocessing_framebuffer;
-  uint32 postprocessing_color_texture;
-
   uint32 shadow_map_width;
   uint32 shadow_map_height;
   real32 shadow_near_clip_dist;
