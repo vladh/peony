@@ -1,8 +1,9 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_POSTPROCESSING false
+#define USE_POSTPROCESSING true
 #define USE_SHADOWS true
 #define USE_ALPACA false
+#define USE_AXES false
 
 #include "gl.hpp"
 #include "log.cpp"
@@ -293,12 +294,19 @@ void draw_entity(State *state, Entity *entity) {
     uint32 shader_program = shader_asset->shader.program;
     glUseProgram(shader_program);
     shader_set_mat4(shader_program, "model", &model_matrix);
+
     if (state->render_mode == RENDERMODE_REGULAR) {
       shader_set_bool(shader_program, "should_draw_normals", state->should_draw_normals);
       shader_set_vec3(shader_program, "entity_color", &entity->color);
     } else if (state->render_mode == RENDERMODE_DEPTH) {
       shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);
     }
+
+    // TODO: Do this in a better way?
+    if (strcmp(shader_asset->info.name, "screenquad") == 0) {
+      shader_set_float(shader_program, "exposure", state->camera_active->exposure);
+    }
+
     models_draw_model(&entity->model_asset->model, shader_program);
   } else {
     log_warning(
@@ -352,20 +360,29 @@ void render_scene(Memory *memory, State *state) {
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
   draw_all_entities_with_tag(memory, state, "light");
-  draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
   draw_all_entities_with_name(memory, state, "temple");
+#if USE_AXES
+  draw_all_entities_with_name(memory, state, "axes");
+#endif
 #if USE_ALPACA
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
 
   // TODO: Get rid of sprintf.
+  const real32 row_height = 30.0f;
   char fps_text[128];
   sprintf(fps_text, "(fps %.2f)", state->last_fps);
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+  sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 }
@@ -457,8 +474,8 @@ void init_postprocessing_buffers(Memory *memory, State *state) {
   glGenTextures(1, &state->postprocessing_color_texture);
   glBindTexture(GL_TEXTURE_2D, state->postprocessing_color_texture);
   glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGB, state->window_width, state->window_height,
-    0, GL_RGB, GL_UNSIGNED_BYTE, NULL
+    GL_TEXTURE_2D, 0, GL_RGBA16F, state->window_width, state->window_height,
+    0, GL_RGBA, GL_FLOAT, NULL
   );
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -488,7 +505,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
   state->shadow_map_width = 2048;
   state->shadow_map_height = 2048;
   state->shadow_near_clip_dist = 0.1f;
-  state->shadow_far_clip_dist = 25.0f;
+  state->shadow_far_clip_dist = 75.0f;
   state->n_shadow_framebuffers = state->lights.size;
   state->shadow_light_idx = 0;
 

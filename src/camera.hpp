@@ -18,6 +18,7 @@ struct Camera {
   real32 far_clip_dist;
   glm::mat4 view;
   glm::mat4 projection;
+  real32 exposure;
 };
 
 void camera_init(Camera *camera);
