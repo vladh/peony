@@ -142,9 +142,6 @@ void scene_init_objects(Memory *memory, State *state) {
 }
 
 void scene_update(Memory *memory, State *state) {
-  // Camera
-  state->camera_active->exposure = ((real32)sin(state->t) / 2) + 0.8f;
-
   // Lights
   state->lights.items[0].position = glm::vec3(
     sin(state->t) * 3.0f,

@@ -4,6 +4,7 @@
 #define USE_SHADOWS true
 #define USE_ALPACA false
 #define USE_AXES false
+#define SHOULD_LIMIT_FRAMES false
 
 #include "gl.hpp"
 #include "log.cpp"
@@ -443,6 +444,7 @@ void update_and_render(Memory *memory, State *state) {
   glEnable(GL_DEPTH_TEST);
 #endif
 
+#if SHOULD_LIMIT_FRAMES
   real64 t_end_prewait = glfwGetTime();
   real64 dt_prewait = t_end_prewait - t_start;
 
@@ -453,6 +455,7 @@ void update_and_render(Memory *memory, State *state) {
   } else {
     util_sleep(time_to_wait);
   }
+#endif
 
   real64 t_end = glfwGetTime();
   state->dt = t_end - t_start;
