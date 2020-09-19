@@ -1,8 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_POSTPROCESSING false
 // TODO: Remove this, it should be always on.
-#define USE_DEFERRED true
 #define USE_SHADOWS true
 #define USE_ALPACA false
 #define USE_AXES false
@@ -405,14 +403,7 @@ void update_and_render(Memory *memory, State *state) {
 
   // Clear main framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#if USE_DEFERRED
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-#else
-  glClearColor(
-    state->background_color.r, state->background_color.g,
-    state->background_color.b, state->background_color.a
-  );
-#endif
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Render shadow map
@@ -437,35 +428,23 @@ void update_and_render(Memory *memory, State *state) {
   }
 #endif
 
-#if USE_POSTPROCESSING
-  // Render scene to postprocessing buffer
-  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#else
-  // Render normal scene
+  // Geometry pass
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
 
-  // Render postprocessing/shadow framebuffer onto quad
-#if USE_DEFERRED || USE_POSTPROCESSING
+  // Lighting pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
-#if USE_DEFERRED
   glClearColor(
     state->background_color.r, state->background_color.g,
     state->background_color.b, state->background_color.a
   );
-#else
-  glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
-#endif
   glClear(GL_COLOR_BUFFER_BIT);
   draw_all_entities_with_name(memory, state, "screenquad");
   glEnable(GL_DEPTH_TEST);
-#endif
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   render_scene_forward(memory, state);
@@ -493,40 +472,6 @@ void init_shader_buffers(Memory *memory, State *state) {
   glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
   glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
-}
-
-void init_postprocessing_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->postprocessing_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-
-  glGenTextures(1, &state->postprocessing_color_texture);
-  glBindTexture(GL_TEXTURE_2D, state->postprocessing_color_texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F, state->window_width, state->window_height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->postprocessing_color_texture, 0
-  );
-
-  uint32 rbo;
-  glGenRenderbuffers(1, &rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-  glRenderbufferStorage(
-    GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
-  );
-  glFramebufferRenderbuffer(
-    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_error("Framebuffer is not complete");
-  }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void init_shadow_buffers(Memory *memory, State *state) {
@@ -663,9 +608,6 @@ int main() {
   scene_init_lights(&memory, state);
 
   init_deferred_lighting_buffers(&memory, state);
-#if USE_POSTPROCESSING
-  init_postprocessing_buffers(&memory, state);
-#endif
 #if USE_SHADOWS
   init_shadow_buffers(&memory, state);
 #endif

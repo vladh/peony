@@ -56,13 +56,6 @@ void scene_resources_init_models(Memory *memory, State *state) {
     nullptr, 0,
     "screenquad", GL_TRIANGLES
   );
-#if USE_POSTPROCESSING
-  models_add_texture(
-    &model_asset->model, TEXTURE_DIFFUSE,
-    state->postprocessing_color_texture
-  );
-#endif
-#if USE_DEFERRED
   models_add_texture(
     &model_asset->model, TEXTURE_DIFFUSE,
     /* state->postprocessing_color_texture */
@@ -76,7 +69,6 @@ void scene_resources_init_models(Memory *memory, State *state) {
     &model_asset->model, TEXTURE_DIFFUSE,
     state->g_albedospec_texture
   );
-#endif
 #if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
