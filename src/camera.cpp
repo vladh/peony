@@ -9,6 +9,7 @@ void camera_init(Camera *camera, CameraType type) {
   camera->fov = 90.0f;
   camera->near_clip_dist = 0.1f;
   camera->far_clip_dist = 100.0f;
+  camera->exposure = 1.0f;
 }
 
 void camera_update_matrices_ortho(
