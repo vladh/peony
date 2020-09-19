@@ -128,7 +128,7 @@ void init_state(Memory *memory, State *state) {
   array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
   array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
   array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 128);
-  array_init<ModelAsset*>(&memory->asset_memory_pool, &state->model_assets, 128);
+  array_init<ModelAsset>(&memory->asset_memory_pool, &state->model_assets, 128);
   array_init<Light>(&memory->asset_memory_pool, &state->lights, MAX_N_LIGHTS);
 
   state->t = 0;
@@ -182,7 +182,7 @@ GLFWwindow* init_window(State *state) {
 
   // NOTE: This breaks the alpaca cubes. It's probably the cubes'
   // fault, but we should check that!
-  glEnable(GL_CULL_FACE);
+  /* glEnable(GL_CULL_FACE); */
 
   // NOTE: This is for text. Does it break anything else?
   glEnable(GL_BLEND);
@@ -351,10 +351,11 @@ void render_scene(Memory *memory, State *state) {
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
-  draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_tag(memory, state, "light");
+  draw_all_entities_with_name(memory, state, "axes");
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
+  draw_all_entities_with_name(memory, state, "temple");
 #if USE_ALPACA
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
@@ -439,7 +440,6 @@ void update_and_render(Memory *memory, State *state) {
   real64 t_end = glfwGetTime();
   state->dt = t_end - t_start;
   state->last_fps = 1 / state->dt;
-  log_info("%.2f FPS", state->last_fps);
 }
 
 void init_shader_buffers(Memory *memory, State *state) {

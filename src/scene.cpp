@@ -1,156 +1,3 @@
-void init_geese(Memory *memory, State *state) {
-  uint32 n_geese = 10;
-
-  for (uint8 idx = 0; idx < n_geese; idx++) {
-    real64 scale = util_random(0.2f, 0.4f);
-    Entity *entity = entity_make(
-      array_push<Entity>(&state->entities),
-      "goose",
-      ENTITY_MODEL,
-      glm::vec3(
-        util_random(-8.0f, 8.0f),
-        0.1f,
-        util_random(-8.0f, 8.0f)
-      ),
-      glm::vec3(scale, scale, scale),
-      glm::angleAxis(
-        glm::radians(-90.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f)
-      )
-    );
-
-    entity_set_color(entity, glm::vec3(1.0f, 0.0f, 0.0f));
-    entity_set_model_asset(
-      entity, asset_get_model_asset_by_name(&state->model_assets, "goose")
-    );
-    entity_add_tag(entity, "goose");
-  }
-}
-
-void init_axes(Memory *memory, State *state) {
-  Entity *entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "axes",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.1f, 0.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-
-  entity_set_shader_asset(
-    entity, asset_get_shader_asset_by_name(&state->shader_assets, "axes")
-  );
-  entity_set_model_asset(
-    entity, asset_get_model_asset_by_name(&state->model_assets, "axes")
-  );
-  entity_add_tag(entity, "axes");
-}
-
-void init_alpaca(Memory *memory, State *state) {
-  uint32 n_alpacas = 10;
-
-  for (uint8 idx = 0; idx < n_alpacas; idx++) {
-    real64 scale = util_random(1.0f, 1.4f);
-    Entity *entity = entity_make(
-      array_push<Entity>(&state->entities),
-      "alpaca",
-      ENTITY_MODEL,
-      glm::vec3(
-        util_random(-6.0f, 6.0f),
-        util_random(1.0f, 6.0f),
-        util_random(-6.0f, 6.0f)
-      ),
-      glm::vec3(scale, scale, scale),
-      glm::angleAxis(
-        glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
-      )
-    );
-
-    entity_set_model_asset(
-      entity, asset_get_model_asset_by_name(&state->model_assets, "alpaca")
-    );
-    entity_add_tag(entity, "alpaca");
-  }
-}
-
-void init_screenquad(Memory *memory, State *state) {
-  Entity *entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "screenquad",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(1.0f, 1.0f, 1.0f),
-    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))
-  );
-
-  entity_set_shader_asset(
-    entity, asset_get_shader_asset_by_name(&state->shader_assets, "screenquad")
-  );
-  entity_set_model_asset(
-    entity, asset_get_model_asset_by_name(&state->model_assets, "screenquad")
-  );
-  entity_add_tag(entity, "screenquad");
-}
-
-void init_floor(Memory *memory, State *state) {
-  Entity *entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "floor",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec3(150.0f, 0.1f, 150.0f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-
-  entity_set_color(entity, glm::vec3(1.0f, 1.0f, 1.0f));
-  entity_set_model_asset(
-    entity, asset_get_model_asset_by_name(&state->model_assets, "floor")
-  );
-  entity_add_tag(entity, "floor");
-}
-
-void init_light_entities(Memory *memory, State *state) {
-  Entity *light1 = entity_make(
-    array_push<Entity>(&state->entities),
-    "light1",
-    ENTITY_MODEL,
-    state->lights.items[0].position,
-    glm::vec3(0.3f, 0.3f, 0.3f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-  entity_set_shader_asset(
-    light1, asset_get_shader_asset_by_name(&state->shader_assets, "light")
-  );
-  entity_set_model_asset(
-    light1, asset_get_model_asset_by_name(&state->model_assets, "light")
-  );
-  entity_add_tag(light1, "light");
-
-  Entity *light2 = entity_make(
-    array_push<Entity>(&state->entities),
-    "light2",
-    ENTITY_MODEL,
-    state->lights.items[1].position,
-    glm::vec3(0.3f, 0.3f, 0.3f),
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
-    )
-  );
-  entity_set_shader_asset(
-    light2, asset_get_shader_asset_by_name(&state->shader_assets, "light")
-  );
-  entity_set_model_asset(
-    light2, asset_get_model_asset_by_name(&state->model_assets, "light")
-  );
-  entity_add_tag(light2, "light");
-}
-
 void scene_init_lights(Memory *memory, State *state) {
   Light *light1 = array_push(&state->lights);
   light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
@@ -174,15 +21,121 @@ void scene_init_lights(Memory *memory, State *state) {
 }
 
 void scene_init_objects(Memory *memory, State *state) {
-  init_axes(memory, state);
-  init_floor(memory, state);
-  init_light_entities(memory, state);
-  init_geese(memory, state);
+  Entity *entity;
+
+  // Axes
+  entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "axes",
+    ENTITY_MODEL,
+    glm::vec3(0.0f, 0.1f, 0.0f),
+    glm::vec3(1.0f),
+    glm::angleAxis(
+      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  );
+  entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "axes"));
+  entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "axes"));
+
+  // Floor
+  entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "floor",
+    ENTITY_MODEL,
+    glm::vec3(0.0f),
+    glm::vec3(150.0f, 0.1f, 150.0f),
+    glm::angleAxis(
+      glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+    )
+  );
+  entity_set_color(entity, glm::vec3(1.0f, 1.0f, 1.0f));
+  entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "floor"));
+
+  // Tmple
+  entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "temple",
+    ENTITY_MODEL,
+    glm::vec3(25.0f, 0.0f, 0.0f),
+    glm::vec3(0.7f),
+    glm::angleAxis(
+      glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)
+    )
+  );
+  entity_set_color(entity, glm::vec3(0.64f, 0.64f, 0.64f));
+  entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "temple"));
+
+  // Light entities
+  for (uint32 idx = 0; idx < state->lights.size; idx++) {
+    entity = entity_make(
+      array_push<Entity>(&state->entities),
+      "light",
+      ENTITY_MODEL,
+      state->lights.items[idx].position,
+      glm::vec3(0.3f, 0.3f, 0.3f),
+      glm::angleAxis(
+        glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+      )
+    );
+    entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "light"));
+    entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "light"));
+    entity_add_tag(entity, "light");
+  }
+
+  uint32 n_geese = 10;
+  for (uint8 idx = 0; idx < n_geese; idx++) {
+    real32 scale = (real32)util_random(0.2f, 0.4f);
+    entity = entity_make(
+      array_push<Entity>(&state->entities),
+      "goose",
+      ENTITY_MODEL,
+      glm::vec3(0.0f),
+      glm::vec3(scale),
+      glm::angleAxis(
+        glm::radians(-90.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f)
+      )
+    );
+    entity_set_color(entity, glm::vec3(1.0f, 0.0f, 0.0f));
+    entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "goose"));
+  }
+
 #if USE_POSTPROCESSING
-  init_screenquad(memory, state);
+  // Screenquad
+  entity = entity_make(
+    array_push<Entity>(&state->entities),
+    "screenquad",
+    ENTITY_MODEL,
+    glm::vec3(0.0f),
+    glm::vec3(1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))
+  );
+  entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "screenquad"));
+  entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "screenquad"));
 #endif
+
 #if USE_ALPACA
-  init_alpaca(memory, state);
+  // Alpaca
+  uint32 n_alpacas = 10;
+  for (uint8 idx = 0; idx < n_alpacas; idx++) {
+    real64 scale = util_random(1.0f, 1.4f);
+    entity = entity_make(
+      array_push<Entity>(&state->entities),
+      "alpaca",
+      ENTITY_MODEL,
+      glm::vec3(
+        util_random(-6.0f, 6.0f),
+        util_random(1.0f, 6.0f),
+        util_random(-6.0f, 6.0f)
+      ),
+      glm::vec3(scale, scale, scale),
+      glm::angleAxis(
+        glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
+      )
+    );
+
+    entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "alpaca"));
+  }
 #endif
 }
 
@@ -215,14 +168,16 @@ void scene_update(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
 
+    real32 x_offset = -10.0f;
     real32 period_offset = (real32)idx;
-    real32 spin_speed_factor = 0.3f;
-    real32 radius_offset = (2.0f + (idx * 1.0f));
+    /* real32 spin_speed_factor = 0.3f; */
+    real32 spin_speed_factor = 0.0f;
+    real32 radius_offset = (2.0f + (idx * 0.5f));
     real32 pos_arg = ((real32)state->t * spin_speed_factor) + period_offset;
     real32 spin_deg_per_t = 90.0f;
 
     entity->position = glm::vec3(
-      sin(pos_arg) * radius_offset,
+      x_offset + sin(pos_arg) * radius_offset,
       entity->position.y,
       cos(pos_arg) * radius_offset
     );
