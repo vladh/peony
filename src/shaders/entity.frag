@@ -96,7 +96,13 @@ in VS_OUT {
   vec3 frag_position;
 } fs_in;
 
+#if 0
 out vec4 frag_color;
+#endif
+
+layout (location = 0) out vec3 g_position;
+layout (location = 1) out vec3 g_normal;
+layout (location = 2) out vec4 g_albedospec;
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -107,14 +113,14 @@ vec3 grid_sampling_offsets[20] = vec3[] (
 );
 
 float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = fs_in.frag_position - lights[idx_light].position;
+  vec3 frag_to_light = frag_position - lights[idx_light].position;
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
   float bias = 0.30f;
   int n_samples = 20;
 
-  float view_distance = length(camera_position - fs_in.frag_position);
+  float view_distance = length(camera_position - frag_position);
   float sample_radius = (1.0f + (view_distance / far_clip_dist)) / 25.0f;
 
   for (int i = 0; i < n_samples; i++) {
@@ -132,6 +138,7 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
   return shadow;
 }
 
+#if 0
 void main() {
   if (should_draw_normals) {
     frag_color = vec4(fs_in.normal, 1.0f);
@@ -185,4 +192,21 @@ void main() {
   }
 
   frag_color = vec4(lighting, 1.0f);
+}
+#endif
+
+void main() {
+  vec3 unit_normal = normalize(fs_in.normal);
+
+  vec3 entity_surface;
+  if (n_diffuse_textures > 0) {
+    entity_surface = texture(diffuse_textures[0], fs_in.tex_coords).rgb;
+  } else {
+    entity_surface = entity_color;
+  }
+
+  g_position = fs_in.frag_position;
+  g_normal = unit_normal;
+  g_albedospec.rgb = entity_surface;
+  g_albedospec.a = texture(specular_textures[0], fs_in.tex_coords).r;
 }
