@@ -260,15 +260,18 @@ ModelAsset* models_make_asset_from_file(
   return model_asset;
 }
 
-void models_add_texture_to_mesh(
-  Mesh *mesh, TextureType type, uint32 texture
+void models_add_texture(
+  Model *model, TextureType type, uint32 texture
 ) {
-  if (type == TEXTURE_DIFFUSE) {
-    mesh->diffuse_textures[mesh->n_diffuse_textures++] = texture;
-  } else if (type == TEXTURE_SPECULAR) {
-    mesh->specular_textures[mesh->n_specular_textures++] = texture;
-  } else if (type == TEXTURE_DEPTH) {
-    mesh->depth_textures[mesh->n_depth_textures++] = texture;
+  for (uint32 idx = 0; idx < model->meshes.size; idx++) {
+    Mesh *mesh = &model->meshes.items[idx];
+    if (type == TEXTURE_DIFFUSE) {
+      mesh->diffuse_textures[mesh->n_diffuse_textures++] = texture;
+    } else if (type == TEXTURE_SPECULAR) {
+      mesh->specular_textures[mesh->n_specular_textures++] = texture;
+    } else if (type == TEXTURE_DEPTH) {
+      mesh->depth_textures[mesh->n_depth_textures++] = texture;
+    }
   }
 }
 

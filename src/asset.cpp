@@ -25,10 +25,10 @@ FontAsset* asset_get_font_asset_by_name(
 }
 
 ModelAsset* asset_get_model_asset_by_name(
-  Array<ModelAsset*> *model_assets, const char *name
+  Array<ModelAsset> *model_assets, const char *name
 ) {
   for (uint32 idx = 0; idx < model_assets->size; idx++) {
-    ModelAsset *asset = *(model_assets->items + idx);
+    ModelAsset *asset = model_assets->items + idx;
     if (strcmp(asset->info.name, name) == 0) {
       return asset;
     }

@@ -39,37 +39,33 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
-  // Goose
-  ModelAsset *goose_model_asset = models_make_asset_from_file(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    "goose", "resources/models/", "miniGoose.fbx"
+  ModelAsset *model_asset;
+
+  // Light
+  models_make_asset_from_file(
+    memory, array_push<ModelAsset>(&state->model_assets),
+    "light", "resources/models/", "cube.obj"
   );
-#if USE_SHADOWS
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture_to_mesh(
-      &goose_model_asset->model.meshes.items[0],
-      TEXTURE_DEPTH,
-      state->shadow_cubemaps[idx]
-    );
-  }
-#endif
+
+  // Screenquad
+  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
+  model_asset = models_make_asset_from_data(
+    memory,
+    array_push<ModelAsset>(&state->model_assets),
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad", GL_TRIANGLES
+  );
+  models_add_texture(
+    &model_asset->model, TEXTURE_DIFFUSE,
+    state->postprocessing_color_texture
+  );
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
   models_make_asset_from_data(
     memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
+    array_push<ModelAsset>(&state->model_assets),
     axes_vertices, 6,
     nullptr, 0,
     "axes", GL_LINES
@@ -77,76 +73,59 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   // Alpaca
   real32 alpaca_vertices[] = ALPACA_VERTICES;
-  ModelAsset *alpaca_model_asset = models_make_asset_from_data(
+  model_asset = models_make_asset_from_data(
     memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
+    array_push<ModelAsset>(&state->model_assets),
     alpaca_vertices, 36,
     nullptr, 0,
     "alpaca", GL_TRIANGLES
   );
-  models_add_texture_to_mesh(
-    &alpaca_model_asset->model.meshes.items[0],
-    TEXTURE_DIFFUSE,
+  models_add_texture(
+    &model_asset->model, TEXTURE_DIFFUSE,
     models_load_texture_from_file("resources/textures/alpaca.jpg")
   );
 
-  // Screenquad
-  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  ModelAsset *screenquad_model_asset = models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    screenquad_vertices, 6,
-    nullptr, 0,
-    "screenquad", GL_TRIANGLES
-  );
-  models_add_texture_to_mesh(
-    &screenquad_model_asset->model.meshes.items[0],
-    TEXTURE_DIFFUSE,
-    state->postprocessing_color_texture
-  );
-
-  // Floor
-  ModelAsset *floor_model_asset = models_make_asset_from_file(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    "floor", "resources/models/", "cube.obj"
+  // Goose
+  model_asset = models_make_asset_from_file(
+    memory, array_push<ModelAsset>(&state->model_assets),
+    "goose", "resources/models/", "miniGoose.fbx"
   );
 #if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture_to_mesh(
-      &floor_model_asset->model.meshes.items[0],
-      TEXTURE_DEPTH,
+    models_add_texture(
+      &model_asset->model, TEXTURE_DEPTH,
       state->shadow_cubemaps[idx]
     );
   }
 #endif
 
-  // Light
-  models_make_asset_from_file(
-    memory,
-    array_push<ModelAsset*>(
-      &state->model_assets,
-      (ModelAsset*)memory_push_memory_to_pool(
-        &memory->asset_memory_pool, sizeof(ModelAsset)
-      )
-    ),
-    "light", "resources/models/", "cube.obj"
+  // Floor
+  model_asset = models_make_asset_from_file(
+    memory, array_push<ModelAsset>(&state->model_assets),
+    "floor", "resources/models/", "cube.obj"
   );
+#if USE_SHADOWS
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    models_add_texture(
+      &model_asset->model, TEXTURE_DEPTH,
+      state->shadow_cubemaps[idx]
+    );
+  }
+#endif
+
+  // Temple
+  model_asset = models_make_asset_from_file(
+    memory, array_push<ModelAsset>(&state->model_assets),
+    "temple", "resources/models/", "pantheon.obj"
+  );
+#if USE_SHADOWS
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    models_add_texture(
+      &model_asset->model, TEXTURE_DEPTH,
+      state->shadow_cubemaps[idx]
+    );
+  }
+#endif
 }
 
 void scene_resources_init_fonts(Memory *memory, State *state) {

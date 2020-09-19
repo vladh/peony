@@ -27,7 +27,7 @@ struct State {
   ShaderAsset *entity_depth_shader_asset;
 
   Array<ShaderAsset> shader_assets;
-  Array<ModelAsset*> model_assets;
+  Array<ModelAsset> model_assets;
   Array<FontAsset> font_assets;
   Array<Light> lights;
 
