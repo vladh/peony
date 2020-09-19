@@ -1,9 +1,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_POSTPROCESSING true
+#define USE_POSTPROCESSING false
+// TODO: Remove this, it should be always on.
+#define USE_DEFERRED true
 #define USE_SHADOWS true
 #define USE_ALPACA false
 #define USE_AXES false
+#define SHOULD_LIMIT_FRAMES false
 
 #include "gl.hpp"
 #include "log.cpp"
@@ -185,8 +188,6 @@ GLFWwindow* init_window(State *state) {
   // fault, but we should check that!
   /* glEnable(GL_CULL_FACE); */
 
-  // NOTE: This is for text. Does it break anything else?
-  glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glViewport(0, 0, state->window_width, state->window_height);
@@ -369,6 +370,10 @@ void render_scene(Memory *memory, State *state) {
 #if USE_ALPACA
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
+}
+
+void render_scene_forward(Memory *memory, State *state) {
+  glEnable(GL_BLEND);
 
   // TODO: Get rid of sprintf.
   const real32 row_height = 30.0f;
@@ -385,6 +390,8 @@ void render_scene(Memory *memory, State *state) {
     15.0f, state->window_height - 35.0f - row_height,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
+
+  glDisable(GL_BLEND);
 }
 
 void update_and_render(Memory *memory, State *state) {
@@ -393,11 +400,16 @@ void update_and_render(Memory *memory, State *state) {
 
   scene_update(memory, state);
 
+  // Clear main framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#if USE_DEFERRED
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+#else
   glClearColor(
     state->background_color.r, state->background_color.g,
     state->background_color.b, state->background_color.a
   );
+#endif
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Render shadow map
@@ -428,31 +440,44 @@ void update_and_render(Memory *memory, State *state) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
   // Render normal scene
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
 
   // Render postprocessing/shadow framebuffer onto quad
-#if USE_POSTPROCESSING
+#if USE_DEFERRED || USE_POSTPROCESSING
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
+#if USE_DEFERRED
+  glClearColor(
+    state->background_color.r, state->background_color.g,
+    state->background_color.b, state->background_color.a
+  );
+#else
   glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+#endif
   glClear(GL_COLOR_BUFFER_BIT);
   draw_all_entities_with_name(memory, state, "screenquad");
   glEnable(GL_DEPTH_TEST);
 #endif
 
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  render_scene_forward(memory, state);
+
+#if SHOULD_LIMIT_FRAMES
   real64 t_end_prewait = glfwGetTime();
   real64 dt_prewait = t_end_prewait - t_start;
 
   real64 time_to_wait = state->target_frame_duration_s - dt_prewait;
-
   if (time_to_wait < 0) {
     log_warning("Frame took too long! %.6fs", state->dt);
   } else {
     util_sleep(time_to_wait);
   }
+#endif
 
   real64 t_end = glfwGetTime();
   state->dt = t_end - t_start;
@@ -541,6 +566,72 @@ void init_shadow_buffers(Memory *memory, State *state) {
   }
 }
 
+void init_deferred_lighting_buffers(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->g_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+
+  // Position color buffer
+  glGenTextures(1, &state->g_position_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_position_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->g_position_texture, 0
+  );
+
+  // Normal color buffer
+  glGenTextures(1, &state->g_normal_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_normal_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, state->g_normal_texture, 0
+  );
+
+  // Color + specular color buffer
+  glGenTextures(1, &state->g_albedospec_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_albedospec_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, state->g_albedospec_texture, 0
+  );
+
+  uint32 attachments[3] = {
+    GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2
+  };
+  glDrawBuffers(3, attachments);
+
+  uint32 rbo_depth;
+  glGenRenderbuffers(1, &rbo_depth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+  glRenderbufferStorage(
+    GL_RENDERBUFFER, GL_DEPTH_COMPONENT, state->window_width, state->window_height
+  );
+  glFramebufferRenderbuffer(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
+  );
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_error("Framebuffer not complete!");
+  }
+}
+
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
     process_input_continuous(window, state);
@@ -568,6 +659,7 @@ int main() {
 
   scene_init_lights(&memory, state);
 
+  init_deferred_lighting_buffers(&memory, state);
 #if USE_POSTPROCESSING
   init_postprocessing_buffers(&memory, state);
 #endif

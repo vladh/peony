@@ -50,6 +50,11 @@ struct State {
   uint32 ubo_shader_common;
   ShaderCommon shader_common;
 
+  uint32 g_buffer;
+  uint32 g_position_texture;
+  uint32 g_normal_texture;
+  uint32 g_albedospec_texture;
+
   RenderMode render_mode;
 };
 
