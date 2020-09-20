@@ -173,6 +173,7 @@ GLFWwindow* init_window(State *state) {
     return nullptr;
   }
   glfwMakeContextCurrent(window);
+  glfwSetWindowPos(window, 100, 100);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     log_error("Failed to initialize GLAD");
@@ -434,6 +435,17 @@ void update_and_render(Memory *memory, State *state) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
+
+
+  // Copy depth from geometry pass to lighting pass
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(
+    0, 0, state->window_width, state->window_height,
+    0, 0, state->window_width, state->window_height,
+    GL_DEPTH_BUFFER_BIT, GL_NEAREST
+  );
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Lighting pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
