@@ -19,6 +19,7 @@ void memory_reset_pool(MemoryPool *pool) {
 
 void memory_zero_out_pool(MemoryPool *pool) {
   memset(pool->memory, 0, pool->size);
+  memory_reset_pool(pool);
 }
 
 void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size) {

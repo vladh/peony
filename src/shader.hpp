@@ -10,15 +10,15 @@ struct ShaderAsset;
 void shader_assert_shader_status_ok(uint32 shader);
 void shader_assert_program_status_ok(uint32 shader);
 uint32 shader_load(const char *source, GLenum shaderType);
-uint32 shader_make_program(uint32 vertexShader, uint32 fragmentShader);
+uint32 shader_make_program(uint32 vertex_shader, uint32 fragment_shader);
 uint32 shader_make_program(
   uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
 );
 uint32 shader_make_program_with_paths(
-  const char *vert_path, const char *frag_path
+  Memory *memory, const char *vert_path, const char *frag_path
 );
 uint32 shader_make_program_with_paths(
-  const char *vert_path, const char *frag_path, const char *geom_path
+  MemoryPool *memory, const char *vert_path, const char *frag_path, const char *geom_path
 );
 ShaderAsset* shader_make_asset(
   ShaderAsset *asset, const char *name,
