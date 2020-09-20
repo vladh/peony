@@ -1,6 +1,6 @@
 #version 330 core
 
-#define MAX_N_LIGHTS 32
+#define MAX_N_LIGHTS 8
 
 struct Light {
   vec3 position;

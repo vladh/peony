@@ -14,7 +14,6 @@ struct State {
 
   bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
-  bool32 should_draw_normals;
   glm::vec4 background_color;
 
   uint32 window_width;
