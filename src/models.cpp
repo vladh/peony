@@ -242,9 +242,6 @@ void models_load_model(
   );
 
   models_load_model_node(memory, model, scene->mRootNode, scene);
-
-  memory_reset_pool(&memory->temp_memory_pool);
-  memory_zero_out_pool(&memory->temp_memory_pool);
 }
 
 ModelAsset* models_make_asset_from_file(
@@ -257,6 +254,8 @@ ModelAsset* models_make_asset_from_file(
   models_load_model(
     memory, &model_asset->model, directory, filename
   );
+  // TODO: Replace with memory_reset_pool().
+  memory_zero_out_pool(&memory->temp_memory_pool);
   return model_asset;
 }
 
@@ -341,7 +340,7 @@ ModelAsset* models_make_asset_from_data(
 
   models_setup_mesh(mesh);
 
-  memory_reset_pool(&memory->temp_memory_pool);
+  // TODO: Replace with memory_reset_pool().
   memory_zero_out_pool(&memory->temp_memory_pool);
 
   return model_asset;

@@ -1,41 +1,47 @@
 void scene_resources_init_shaders(Memory *memory, State *state) {
   state->entity_shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
+    memory,
     "entity",
-    "src/shaders/entity.vert", "src/shaders/entity.frag"
+    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
 
   state->entity_depth_shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
+    memory,
     "entity_depth",
-    "src/shaders/entity_depth.vert", "src/shaders/entity_depth.frag",
-    "src/shaders/entity_depth.geom"
+    SHADER_DIR"entity_depth.vert", SHADER_DIR"entity_depth.frag",
+    SHADER_DIR"entity_depth.geom"
   );
 
   shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "axes", "src/shaders/axes.vert", "src/shaders/axes.frag"
-  );
-
-  shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets), "screenquad",
-    "src/shaders/postprocessing.vert", "src/shaders/postprocessing.frag"
+    memory,
+    "axes", SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
   );
 
   shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "light", "src/shaders/light.vert", "src/shaders/light.frag"
+    memory,
+    "screenquad", SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag"
+  );
+
+  shader_make_asset(
+    array_push<ShaderAsset>(&state->shader_assets),
+    memory,
+    "light", SHADER_DIR"light.vert", SHADER_DIR"light.frag"
   );
 
   ShaderAsset *text_shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
-    "text", "src/shaders/text.vert", "src/shaders/text.frag"
+    memory,
+    "text", SHADER_DIR"text.vert", SHADER_DIR"text.frag"
   );
   glm::mat4 text_projection = glm::ortho(
     0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
   );
   glUseProgram(text_shader_asset->shader.program);
-  shader_set_mat4(text_shader_asset->shader.program, "projection", &text_projection);
+  shader_set_mat4(text_shader_asset->shader.program, "text_projection", &text_projection);
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
