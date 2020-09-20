@@ -1,8 +1,8 @@
 #version 330 core
 
-#define MAX_N_LIGHTS 32
+#define MAX_N_LIGHTS 8
 #define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
-#define MAX_N_TEXTURES 32
+#define MAX_N_TEXTURES 8
 #define USE_SHADOWS true
 
 // NOTE: We need this hack because GLSL doesn't allow us to index samplerCubes
@@ -15,7 +15,7 @@
   } \
 }
 
-#define RUN_CALCULATE_SHADOWS_32(frag_position, idx_light) { \
+#define RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light) { \
   RUN_CALCULATE_SHADOWS(frag_position, idx_light, 0); \
   RUN_CALCULATE_SHADOWS(frag_position, idx_light, 1); \
   RUN_CALCULATE_SHADOWS(frag_position, idx_light, 2); \
@@ -24,30 +24,6 @@
   RUN_CALCULATE_SHADOWS(frag_position, idx_light, 5); \
   RUN_CALCULATE_SHADOWS(frag_position, idx_light, 6); \
   RUN_CALCULATE_SHADOWS(frag_position, idx_light, 7); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 8); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 9); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 10); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 11); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 12); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 13); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 14); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 15); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 16); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 17); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 18); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 19); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 20); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 21); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 22); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 23); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 24); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 25); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 26); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 27); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 28); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 29); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 30); \
-  RUN_CALCULATE_SHADOWS(frag_position, idx_light, 31); \
 }
 
 #define GAMMA 2.2
@@ -111,18 +87,6 @@ vec3 add_tone_mapping(vec3 rgb) {
   // Exposure tone mapping
   return vec3(1.0) - exp(-rgb * exposure);
 }
-
-#if 0
-void main() {
-  vec3 rgb = texture(diffuse_textures[0], fs_in.tex_coords).rgb;
-
-  rgb = add_tone_mapping(rgb);
-  rgb = correct_gamma(rgb);
-  /* rgb = invert(rgb); */
-
-  frag_color = vec4(rgb, 1.0f);
-}
-#endif
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -201,7 +165,7 @@ void main() {
 
     if (n_depth_textures >= n_lights && USE_SHADOWS) {
       float shadow = 0;
-      RUN_CALCULATE_SHADOWS_32(frag_position, idx_light);
+      RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
       lighting += (ambient + ((1.0f - shadow) * (diffuse + specular))) * diffuse_texture_0;
     } else {
       lighting += (ambient + diffuse + specular) * diffuse_texture_0;

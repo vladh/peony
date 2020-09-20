@@ -355,6 +355,13 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   shader_set_int(shader_program, "n_specular_textures", mesh->n_specular_textures);
   shader_set_int(shader_program, "n_depth_textures", mesh->n_depth_textures);
 
+  // TODO: Make it so we only have to bind the textures we're using,
+  // not every single one every time.
+
+  // NOTE: We have to bind the memory for all textures, not just the ones we're
+  // using. If we only bind the 0th, and we have code that looks like
+  // textures[1] in GLSL, even if it doesn't get run because it's inside a
+  // conditional, it will crash.
   for (uint32 idx = 0; idx < MAX_N_TEXTURES; idx++) {
     texture_idx++;
     glActiveTexture(GL_TEXTURE0 + texture_idx);
@@ -371,10 +378,6 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
     glBindTexture(GL_TEXTURE_2D, mesh->specular_textures[idx]);
   }
 
-  // NOTE: We have to bind the memory for all textures, not just the ones we're
-  // using.  If we only bind the 0th, and we have code that looks like
-  // textures[1] in GLSL, even if it doesn't get run because it's inside a
-  // conditional, it will crash.
   for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
     texture_idx++;
     glActiveTexture(GL_TEXTURE0 + texture_idx);

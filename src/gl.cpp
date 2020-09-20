@@ -72,11 +72,6 @@ void process_input_transient(GLFWwindow *window, State *state) {
     update_drawing_options(state, window);
   }
 
-  if (control_is_key_now_down(&state->control, GLFW_KEY_E)) {
-    state->should_draw_normals = !state->should_draw_normals;
-    update_drawing_options(state, window);
-  }
-
   if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
     update_drawing_options(state, window);
@@ -140,7 +135,6 @@ void init_state(Memory *memory, State *state) {
 
   state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
-  state->should_draw_normals = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
   camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
@@ -296,7 +290,6 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_mat4(shader_program, "model", &model_matrix);
 
     if (state->render_mode == RENDERMODE_REGULAR) {
-      shader_set_bool(shader_program, "should_draw_normals", state->should_draw_normals);
       shader_set_vec3(shader_program, "entity_color", &entity->color);
     } else if (state->render_mode == RENDERMODE_DEPTH) {
       shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);

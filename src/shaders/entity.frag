@@ -1,8 +1,8 @@
 #version 330 core
 
-#define MAX_N_LIGHTS 32
+#define MAX_N_LIGHTS 8
 #define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
-#define MAX_N_TEXTURES 32
+#define MAX_N_TEXTURES 8
 #define USE_SHADOWS true
 
 // NOTE: We need this hack because GLSL doesn't allow us to index samplerCubes
@@ -88,17 +88,12 @@ uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
 uniform vec3 entity_color;
-uniform bool should_draw_normals;
 
 in VS_OUT {
   vec3 normal;
   vec2 tex_coords;
   vec3 frag_position;
 } fs_in;
-
-#if 0
-out vec4 frag_color;
-#endif
 
 layout (location = 0) out vec3 g_position;
 layout (location = 1) out vec3 g_normal;
@@ -137,63 +132,6 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
 
   return shadow;
 }
-
-#if 0
-void main() {
-  if (should_draw_normals) {
-    frag_color = vec4(fs_in.normal, 1.0f);
-    return;
-  }
-
-  vec3 unit_normal = normalize(fs_in.normal);
-  vec3 lighting = vec3(0.0f, 0.0f, 0.0f);
-
-  for (int idx_light = 0; idx_light < n_lights; idx_light++) {
-    Light light = lights[idx_light];
-
-    vec3 entity_surface;
-    if (n_diffuse_textures > 0) {
-      entity_surface = texture(diffuse_textures[0], fs_in.tex_coords).rgb;
-    } else {
-      entity_surface = entity_color;
-    }
-
-    // Ambient
-    vec3 ambient = light.ambient;
-
-    // Diffuse
-    vec3 light_dir = normalize(light.position - fs_in.frag_position);
-    float diffuse_intensity = max(dot(unit_normal, light_dir), 0.0f);
-    vec3 diffuse = light.diffuse * diffuse_intensity;
-
-    // Specular
-    vec3 view_dir = normalize(camera_position - fs_in.frag_position);
-    vec3 reflect_dir = reflect(-light_dir, unit_normal);
-    float specular_intensity = pow(max(dot(view_dir, reflect_dir), 0.0), 32);
-    vec3 specular = light.specular * specular_intensity;
-
-    // Attenuation
-    float distance = length(light.position - fs_in.frag_position);
-    float attenuation = 1.0 / (
-      light.attenuation_constant +
-      light.attenuation_linear * distance +
-      light.attenuation_quadratic * (distance * distance)
-    );
-    diffuse *= attenuation;
-    specular *= attenuation;
-
-    if (n_depth_textures >= n_lights && USE_SHADOWS) {
-      float shadow = 0;
-      RUN_CALCULATE_SHADOWS_32(idx_light);
-      lighting += (ambient + ((1.0f - shadow) * (diffuse + specular))) * entity_surface;
-    } else {
-      lighting += (ambient + diffuse + specular) * entity_surface;
-    }
-  }
-
-  frag_color = vec4(lighting, 1.0f);
-}
-#endif
 
 void main() {
   vec3 unit_normal = normalize(fs_in.normal);
