@@ -71,6 +71,8 @@ void main() {
   vec3 diffuse_texture_0 = texture(diffuse_textures[2], fs_in.tex_coords).rgb;
   float specular_texture_0 = texture(diffuse_textures[2], fs_in.tex_coords).a;
 
+  // Skip pixels with no normal. These are the background pixels, hence
+  // letting the background color shine through.
   if (normal == vec3(0.0f, 0.0f, 0.0f)) {
     discard;
   }

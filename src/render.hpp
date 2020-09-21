@@ -8,19 +8,20 @@ enum RenderMode {
 
 struct Light {
   glm::vec3 position;
-  float pad_3;
+  real32 pad_position;
   glm::vec3 direction;
-  float pad_7;
+  real32 pad_direction;
   glm::vec3 ambient;
-  float pad_11;
+  real32 pad_ambient;
   glm::vec3 diffuse;
-  float pad_15;
+  real32 pad_diffuse;
   glm::vec3 specular;
-  float pad_19;
+  real32 pad_specular;
+  glm::vec4 color;
   real32 attenuation_constant;
   real32 attenuation_linear;
   real32 attenuation_quadratic;
-  float pad_23;
+  real32 pad_attenuation;
 };
 
 struct ShaderCommon {
