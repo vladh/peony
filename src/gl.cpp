@@ -21,12 +21,6 @@
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
-  if (state->is_wireframe_on) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  } else {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-
   if (state->is_cursor_disabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   } else {
@@ -63,11 +57,6 @@ void process_input_continuous(GLFWwindow *window, State *state) {
 void process_input_transient(GLFWwindow *window, State *state) {
   if (control_is_key_now_down(&state->control, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
-  }
-
-  if (control_is_key_now_down(&state->control, GLFW_KEY_Q)) {
-    state->is_wireframe_on = !state->is_wireframe_on;
-    update_drawing_options(state, window);
   }
 
   if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
@@ -131,7 +120,6 @@ void init_state(Memory *memory, State *state) {
   state->target_fps = 165.0f;
   state->target_frame_duration_s = 1 / state->target_fps;
 
-  state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
