@@ -1,6 +1,9 @@
 #ifndef GL_H
 #define GL_H
 
+#define SHADER_DIR "src/shaders/"
+#define SHADER_COMMON_PATH SHADER_DIR"common.glsl"
+
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>

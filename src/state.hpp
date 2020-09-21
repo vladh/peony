@@ -12,9 +12,7 @@ struct State {
   real64 dt;
   real64 last_fps;
 
-  bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
-  bool32 should_draw_normals;
   glm::vec4 background_color;
 
   uint32 window_width;
@@ -34,9 +32,6 @@ struct State {
   uint32 text_vao;
   uint32 text_vbo;
 
-  uint32 postprocessing_framebuffer;
-  uint32 postprocessing_color_texture;
-
   uint32 shadow_map_width;
   uint32 shadow_map_height;
   real32 shadow_near_clip_dist;
@@ -49,6 +44,11 @@ struct State {
 
   uint32 ubo_shader_common;
   ShaderCommon shader_common;
+
+  uint32 g_buffer;
+  uint32 g_position_texture;
+  uint32 g_normal_texture;
+  uint32 g_albedospec_texture;
 
   RenderMode render_mode;
 };

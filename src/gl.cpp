@@ -1,7 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_POSTPROCESSING true
-#define USE_SHADOWS true
 #define USE_ALPACA false
 #define USE_AXES false
 #define SHOULD_LIMIT_FRAMES false
@@ -23,12 +21,6 @@
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
-  if (state->is_wireframe_on) {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-  } else {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-
   if (state->is_cursor_disabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   } else {
@@ -65,16 +57,6 @@ void process_input_continuous(GLFWwindow *window, State *state) {
 void process_input_transient(GLFWwindow *window, State *state) {
   if (control_is_key_now_down(&state->control, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
-  }
-
-  if (control_is_key_now_down(&state->control, GLFW_KEY_Q)) {
-    state->is_wireframe_on = !state->is_wireframe_on;
-    update_drawing_options(state, window);
-  }
-
-  if (control_is_key_now_down(&state->control, GLFW_KEY_E)) {
-    state->should_draw_normals = !state->should_draw_normals;
-    update_drawing_options(state, window);
   }
 
   if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
@@ -138,9 +120,7 @@ void init_state(Memory *memory, State *state) {
   state->target_fps = 165.0f;
   state->target_frame_duration_s = 1 / state->target_fps;
 
-  state->is_wireframe_on = false;
   state->is_cursor_disabled = true;
-  state->should_draw_normals = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
   camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
@@ -173,6 +153,7 @@ GLFWwindow* init_window(State *state) {
     return nullptr;
   }
   glfwMakeContextCurrent(window);
+  glfwSetWindowPos(window, 100, 100);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     log_error("Failed to initialize GLAD");
@@ -186,8 +167,6 @@ GLFWwindow* init_window(State *state) {
   // fault, but we should check that!
   /* glEnable(GL_CULL_FACE); */
 
-  // NOTE: This is for text. Does it break anything else?
-  glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glViewport(0, 0, state->window_width, state->window_height);
@@ -297,7 +276,6 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_mat4(shader_program, "model", &model_matrix);
 
     if (state->render_mode == RENDERMODE_REGULAR) {
-      shader_set_bool(shader_program, "should_draw_normals", state->should_draw_normals);
       shader_set_vec3(shader_program, "entity_color", &entity->color);
     } else if (state->render_mode == RENDERMODE_DEPTH) {
       shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);
@@ -337,11 +315,7 @@ void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
   }
 }
 
-void render_scene(Memory *memory, State *state) {
-  camera_update_matrices(
-    state->camera_active, state->window_width, state->window_height
-  );
-
+void copy_scene_data_to_ubo(Memory *memory, State *state) {
   // NOTE: Do we want to optimise this copying?
   // TODO: Some of these things don't change every frame. Do we want to do a
   // separate block for those?
@@ -359,8 +333,9 @@ void render_scene(Memory *memory, State *state) {
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
 
-  draw_all_entities_with_tag(memory, state, "light");
+void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
   draw_all_entities_with_name(memory, state, "temple");
@@ -370,6 +345,12 @@ void render_scene(Memory *memory, State *state) {
 #if USE_ALPACA
   draw_all_entities_with_name(memory, state, "alpaca");
 #endif
+}
+
+void render_scene_forward(Memory *memory, State *state) {
+  draw_all_entities_with_tag(memory, state, "light");
+
+  glEnable(GL_BLEND);
 
   // TODO: Get rid of sprintf.
   const real32 row_height = 30.0f;
@@ -386,6 +367,8 @@ void render_scene(Memory *memory, State *state) {
     15.0f, state->window_height - 35.0f - row_height,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
+
+  glDisable(GL_BLEND);
 }
 
 void update_and_render(Memory *memory, State *state) {
@@ -393,16 +376,17 @@ void update_and_render(Memory *memory, State *state) {
   state->t = t_start;
 
   scene_update(memory, state);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(
-    state->background_color.r, state->background_color.g,
-    state->background_color.b, state->background_color.a
+  camera_update_matrices(
+    state->camera_active, state->window_width, state->window_height
   );
+  copy_scene_data_to_ubo(memory, state);
+
+  // Clear main framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Render shadow map
-#if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     camera_create_shadow_transforms(
       state->shadow_transforms, state->lights.items[idx].position,
@@ -421,35 +405,44 @@ void update_and_render(Memory *memory, State *state) {
 
     glViewport(0, 0, state->window_width, state->window_height);
   }
-#endif
 
-#if USE_POSTPROCESSING
-  // Render scene to postprocessing buffer
-  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
+  // Geometry pass
+  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#else
-  // Render normal scene
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-#endif
   set_render_mode(state, RENDERMODE_REGULAR);
   render_scene(memory, state);
 
-  // Render postprocessing/shadow framebuffer onto quad
-#if USE_POSTPROCESSING
+
+  // Copy depth from geometry pass to lighting pass
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(
+    0, 0, state->window_width, state->window_height,
+    0, 0, state->window_width, state->window_height,
+    GL_DEPTH_BUFFER_BIT, GL_NEAREST
+  );
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  // Lighting pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
-  glClearColor(1.0f, 0.0f, 1.0f, 1.0f);
+  glClearColor(
+    state->background_color.r, state->background_color.g,
+    state->background_color.b, state->background_color.a
+  );
   glClear(GL_COLOR_BUFFER_BIT);
   draw_all_entities_with_name(memory, state, "screenquad");
   glEnable(GL_DEPTH_TEST);
-#endif
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  render_scene_forward(memory, state);
 
 #if SHOULD_LIMIT_FRAMES
   real64 t_end_prewait = glfwGetTime();
   real64 dt_prewait = t_end_prewait - t_start;
 
   real64 time_to_wait = state->target_frame_duration_s - dt_prewait;
-
   if (time_to_wait < 0) {
     log_warning("Frame took too long! %.6fs", state->dt);
   } else {
@@ -468,40 +461,6 @@ void init_shader_buffers(Memory *memory, State *state) {
   glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
   glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
-}
-
-void init_postprocessing_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->postprocessing_framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->postprocessing_framebuffer);
-
-  glGenTextures(1, &state->postprocessing_color_texture);
-  glBindTexture(GL_TEXTURE_2D, state->postprocessing_color_texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F, state->window_width, state->window_height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->postprocessing_color_texture, 0
-  );
-
-  uint32 rbo;
-  glGenRenderbuffers(1, &rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-  glRenderbufferStorage(
-    GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, state->window_width, state->window_height
-  );
-  glFramebufferRenderbuffer(
-    GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_error("Framebuffer is not complete");
-  }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void init_shadow_buffers(Memory *memory, State *state) {
@@ -544,6 +503,72 @@ void init_shadow_buffers(Memory *memory, State *state) {
   }
 }
 
+void init_deferred_lighting_buffers(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->g_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+
+  // Position color buffer
+  glGenTextures(1, &state->g_position_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_position_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->g_position_texture, 0
+  );
+
+  // Normal color buffer
+  glGenTextures(1, &state->g_normal_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_normal_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, state->g_normal_texture, 0
+  );
+
+  // Color + specular color buffer
+  glGenTextures(1, &state->g_albedospec_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_albedospec_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, state->g_albedospec_texture, 0
+  );
+
+  uint32 attachments[3] = {
+    GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2
+  };
+  glDrawBuffers(3, attachments);
+
+  uint32 rbo_depth;
+  glGenRenderbuffers(1, &rbo_depth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+  glRenderbufferStorage(
+    GL_RENDERBUFFER, GL_DEPTH_COMPONENT, state->window_width, state->window_height
+  );
+  glFramebufferRenderbuffer(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
+  );
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_error("Framebuffer not complete!");
+  }
+}
+
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
     process_input_continuous(window, state);
@@ -571,12 +596,8 @@ int main() {
 
   scene_init_lights(&memory, state);
 
-#if USE_POSTPROCESSING
-  init_postprocessing_buffers(&memory, state);
-#endif
-#if USE_SHADOWS
+  init_deferred_lighting_buffers(&memory, state);
   init_shadow_buffers(&memory, state);
-#endif
   init_shader_buffers(&memory, state);
 
   scene_resources_init_models(&memory, state);
