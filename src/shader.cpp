@@ -60,41 +60,55 @@ uint32 shader_make_program(
   return shader_program;
 }
 
-uint32 shader_make_program_with_paths(
-  const char *vert_path, const char *frag_path
-) {
-  return shader_make_program(
-    shader_load(vert_path, util_load_file(vert_path), GL_VERTEX_SHADER),
-    shader_load(frag_path, util_load_file(frag_path), GL_FRAGMENT_SHADER)
+const char* shader_load_file(Memory *memory, const char *path) {
+  // TODO: It's a bit wasteful to add `common.glsl` to every single
+  // shader. Maybe it would be better to somehow do it selectively.
+  return util_load_two_files(
+    &memory->temp_memory_pool, SHADER_COMMON_PATH, path
   );
 }
 
 uint32 shader_make_program_with_paths(
-  const char *vert_path, const char *frag_path, const char *geom_path
+  Memory *memory, const char *vert_path, const char *frag_path
 ) {
   return shader_make_program(
-    shader_load(vert_path, util_load_file(vert_path), GL_VERTEX_SHADER),
-    shader_load(frag_path, util_load_file(frag_path), GL_FRAGMENT_SHADER),
-    shader_load(geom_path, util_load_file(geom_path), GL_GEOMETRY_SHADER)
+    shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
+    shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER)
   );
+}
+
+uint32 shader_make_program_with_paths(
+  Memory *memory, const char *vert_path, const char *frag_path, const char *geom_path
+) {
+  uint32 shader_program = shader_make_program(
+    shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
+    shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER),
+    shader_load(geom_path, shader_load_file(memory, geom_path), GL_GEOMETRY_SHADER)
+  );
+  return shader_program;
 }
 
 ShaderAsset* shader_make_asset(
-  ShaderAsset *asset, const char *name,
+  ShaderAsset *asset, Memory *memory, const char *name,
   const char *vertex_path, const char* frag_path
 ) {
-  uint32 program = shader_make_program_with_paths(vertex_path, frag_path);
+  uint32 program = shader_make_program_with_paths(
+    memory, vertex_path, frag_path
+  );
   asset->info.name = name;
   asset->shader.program = program;
+
+  memory_reset_pool(&memory->temp_memory_pool);
+
   return asset;
 }
 
 ShaderAsset* shader_make_asset(
-  ShaderAsset *asset, const char *name,
+  ShaderAsset *asset, Memory *memory, const char *name,
   const char *vertex_path, const char *frag_path, const char *geom_path
 ) {
   uint32 program = shader_make_program_with_paths(
-    vertex_path, frag_path, geom_path
+    memory, vertex_path, frag_path, geom_path
   );
   asset->info.name = name;
   asset->shader.program = program;
