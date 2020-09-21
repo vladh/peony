@@ -3,7 +3,6 @@
 #define MAX_N_LIGHTS 8
 #define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
 #define MAX_N_TEXTURES 8
-#define USE_SHADOWS true
 
 // NOTE: We need this hack because GLSL doesn't allow us to index samplerCubes
 // by non-constant indices, so we can't do depth_textures[idx_light].

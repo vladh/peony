@@ -105,7 +105,7 @@ void main() {
     diffuse *= attenuation;
     specular *= attenuation;
 
-    if (n_depth_textures >= n_lights && USE_SHADOWS) {
+    if (n_depth_textures >= n_lights) {
       float shadow = 0;
       RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
       lighting += (ambient + ((1.0f - shadow) * (diffuse + specular))) * diffuse_texture_0;

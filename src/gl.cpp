@@ -1,7 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-// TODO: Remove this, it should be always on.
-#define USE_SHADOWS true
 #define USE_ALPACA false
 #define USE_AXES false
 #define SHOULD_LIMIT_FRAMES false
@@ -401,7 +399,6 @@ void update_and_render(Memory *memory, State *state) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Render shadow map
-#if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     camera_create_shadow_transforms(
       state->shadow_transforms, state->lights.items[idx].position,
@@ -420,7 +417,6 @@ void update_and_render(Memory *memory, State *state) {
 
     glViewport(0, 0, state->window_width, state->window_height);
   }
-#endif
 
   // Geometry pass
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
@@ -613,9 +609,7 @@ int main() {
   scene_init_lights(&memory, state);
 
   init_deferred_lighting_buffers(&memory, state);
-#if USE_SHADOWS
   init_shadow_buffers(&memory, state);
-#endif
   init_shader_buffers(&memory, state);
 
   scene_resources_init_models(&memory, state);

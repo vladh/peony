@@ -75,14 +75,12 @@ void scene_resources_init_models(Memory *memory, State *state) {
     &model_asset->model, TEXTURE_DIFFUSE,
     state->g_albedospec_texture
   );
-#if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
       state->shadow_cubemaps[idx]
     );
   }
-#endif
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
@@ -113,42 +111,36 @@ void scene_resources_init_models(Memory *memory, State *state) {
     memory, array_push<ModelAsset>(&state->model_assets),
     "goose", "resources/models/", "miniGoose.fbx"
   );
-#if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
       state->shadow_cubemaps[idx]
     );
   }
-#endif
 
   // Floor
   model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
     "floor", "resources/models/", "cube.obj"
   );
-#if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
       state->shadow_cubemaps[idx]
     );
   }
-#endif
 
   // Temple
   model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
     "temple", "resources/models/", "pantheon.obj"
   );
-#if USE_SHADOWS
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
       state->shadow_cubemaps[idx]
     );
   }
-#endif
 }
 
 void scene_resources_init_fonts(Memory *memory, State *state) {
