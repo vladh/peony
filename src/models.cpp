@@ -54,24 +54,20 @@ void models_setup_mesh(Mesh *mesh) {
     mesh->indices.items, GL_STATIC_DRAW
   );
 
-  // TODO: Somehow fix these janky locations.
   uint32 location;
 
-  /* location = glGetAttribLocation(shader_program, "position"); */
   location = 0;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
     location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0
   );
 
-  /* location = glGetAttribLocation(shader_program, "normal"); */
   location = 1;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
     location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal)
   );
 
-  /* location = glGetAttribLocation(shader_program, "tex_coords"); */
   location = 2;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
@@ -254,8 +250,7 @@ ModelAsset* models_make_asset_from_file(
   models_load_model(
     memory, &model_asset->model, directory, filename
   );
-  // TODO: Replace with memory_reset_pool().
-  memory_zero_out_pool(&memory->temp_memory_pool);
+  memory_reset_pool(&memory->temp_memory_pool);
   return model_asset;
 }
 
@@ -340,8 +335,7 @@ ModelAsset* models_make_asset_from_data(
 
   models_setup_mesh(mesh);
 
-  // TODO: Replace with memory_reset_pool().
-  memory_zero_out_pool(&memory->temp_memory_pool);
+  memory_reset_pool(&memory->temp_memory_pool);
 
   return model_asset;
 }
