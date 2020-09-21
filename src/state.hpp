@@ -12,7 +12,6 @@ struct State {
   real64 dt;
   real64 last_fps;
 
-  bool32 is_wireframe_on;
   bool32 is_cursor_disabled;
   glm::vec4 background_color;
 
