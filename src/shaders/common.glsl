@@ -27,19 +27,20 @@
 
 struct Light {
   vec3 position;
-  float pad_3;
+  float pad_position;
   vec3 direction;
-  float pad_7;
+  float pad_direction;
   vec3 ambient;
-  float pad_11;
+  float pad_ambient;
   vec3 diffuse;
-  float pad_15;
+  float pad_diffuse;
   vec3 specular;
-  float pad_19;
+  float pad_specular;
+  vec4 color;
   float attenuation_constant;
   float attenuation_linear;
   float attenuation_quadratic;
-  float pad_23;
+  float pad_attenuation;
 };
 
 layout (std140) uniform shader_common {
