@@ -98,8 +98,7 @@ ShaderAsset* shader_make_asset(
   asset->info.name = name;
   asset->shader.program = program;
 
-  // TODO: Replace with memory_reset_pool().
-  memory_zero_out_pool(&memory->temp_memory_pool);
+  memory_reset_pool(&memory->temp_memory_pool);
 
   return asset;
 }
