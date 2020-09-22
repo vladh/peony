@@ -23,8 +23,8 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
   shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
-    "screenquad", SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag"
-    /* "screenquad", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag" */
+    /* "screenquad", SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag" */
+    "screenquad", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
   );
 
   shader_make_asset(

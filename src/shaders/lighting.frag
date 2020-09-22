@@ -39,7 +39,7 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
-  float bias = 0.30f;
+  float bias = 0.50f;
   int n_samples = 20;
 
   float view_distance = length(camera_position - frag_position);
@@ -156,8 +156,7 @@ void main() {
       RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
     }
 
-    // Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1.0f - shadow);
-    Lo += albedo * (1.0f - shadow);
+    Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1.0f - shadow);
   }
 
   vec3 ambient = vec3(0.03) * albedo * ao;

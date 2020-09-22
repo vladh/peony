@@ -382,7 +382,6 @@ void update_and_render(Memory *memory, State *state) {
   camera_update_matrices(
     state->camera_active, state->window_width, state->window_height
   );
-  copy_scene_data_to_ubo(memory, state);
 
   // Clear main framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -404,6 +403,7 @@ void update_and_render(Memory *memory, State *state) {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     set_render_mode(state, RENDERMODE_DEPTH);
+    copy_scene_data_to_ubo(memory, state);
     render_scene(memory, state);
 
     glViewport(0, 0, state->window_width, state->window_height);
@@ -414,8 +414,8 @@ void update_and_render(Memory *memory, State *state) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   set_render_mode(state, RENDERMODE_REGULAR);
+  copy_scene_data_to_ubo(memory, state);
   render_scene(memory, state);
-
 
   // Copy depth from geometry pass to lighting pass
   glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
@@ -439,6 +439,7 @@ void update_and_render(Memory *memory, State *state) {
   glEnable(GL_DEPTH_TEST);
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  copy_scene_data_to_ubo(memory, state);
   render_scene_forward(memory, state);
 
 #if SHOULD_LIMIT_FRAMES
@@ -455,7 +456,7 @@ void update_and_render(Memory *memory, State *state) {
 
   real64 t_end = glfwGetTime();
   state->dt = t_end - t_start;
-  state->last_fps = 1 / state->dt;
+  state->last_fps = 1.0f / state->dt;
 }
 
 void init_shader_buffers(Memory *memory, State *state) {

@@ -2,8 +2,8 @@ void scene_init_lights(Memory *memory, State *state) {
   Light *light1 = array_push(&state->lights);
   light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  light1->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f);
-  /* light1->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f); */
+  /* light1->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f); */
+  light1->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f);
   light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
   light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f) * glm::vec3(light1->color);
   light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -14,8 +14,8 @@ void scene_init_lights(Memory *memory, State *state) {
   Light *light2 = array_push(&state->lights);
   light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  light2->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f);
-  /* light2->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f); */
+  /* light2->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f); */
+  light2->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f);
   light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
   light2->diffuse = glm::vec3(20.0f, 20.0f, 20.0f) * glm::vec3(light2->color);
   light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
