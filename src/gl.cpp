@@ -344,6 +344,7 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 void render_scene(Memory *memory, State *state) {
   draw_all_entities_with_name(memory, state, "floor");
   draw_all_entities_with_name(memory, state, "goose");
+  draw_all_entities_with_name(memory, state, "sphere");
   draw_all_entities_with_name(memory, state, "temple");
 #if USE_AXES
   draw_all_entities_with_name(memory, state, "axes");

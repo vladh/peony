@@ -9,5 +9,11 @@ const char* util_join(char* buf, const char* s1, const char* s2, const char* s3)
 const char* util_join(char* buf, const char* prefix, uint32 n, const char* suffix);
 real64 util_random(real64 min, real64 max);
 void util_sleep(real64 s);
+void util_make_sphere(
+  uint32 n_x_segments, uint32 n_y_segments,
+  uint32 *vertex_data_length, uint32 *index_data_length,
+  uint32 *n_vertices, uint32 *n_indices,
+  real32 *vertex_data, uint32 *index_data
+);
 
 #endif
