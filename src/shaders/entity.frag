@@ -5,8 +5,6 @@ uniform sampler2D specular_textures[MAX_N_TEXTURES];
 uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
-uniform vec3 entity_color;
-
 in VS_OUT {
   vec3 normal;
   vec2 tex_coords;
@@ -53,6 +51,8 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
 
 void main() {
   vec3 unit_normal = normalize(fs_in.normal);
+
+  vec3 entity_color = vec3(1.0f, 0.0f, 0.0f);
 
   vec3 entity_surface;
   if (n_diffuse_textures > 0) {

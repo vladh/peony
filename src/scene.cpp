@@ -3,6 +3,7 @@ void scene_init_lights(Memory *memory, State *state) {
   light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
   light1->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f);
+  /* light1->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f); */
   light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
   light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f) * glm::vec3(light1->color);
   light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -11,10 +12,10 @@ void scene_init_lights(Memory *memory, State *state) {
   light1->attenuation_quadratic = 0.032f;
 
   Light *light2 = array_push(&state->lights);
-  glm::vec3 light2_color = glm::vec3(1.0f, 0.8f, 0.6f);
   light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
   light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
   light2->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f);
+  /* light2->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f); */
   light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
   light2->diffuse = glm::vec3(20.0f, 20.0f, 20.0f) * glm::vec3(light2->color);
   light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -51,10 +52,9 @@ void scene_init_objects(Memory *memory, State *state) {
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
   );
-  entity_set_color(entity, glm::vec3(1.0f, 1.0f, 1.0f));
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "floor"));
 
-  // Tmple
+  // Temple
   entity = entity_make(
     array_push<Entity>(&state->entities),
     "temple",
@@ -65,7 +65,6 @@ void scene_init_objects(Memory *memory, State *state) {
       glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)
     )
   );
-  entity_set_color(entity, glm::vec3(0.64f, 0.64f, 0.64f));
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "temple"));
 
   // Light entities
@@ -99,7 +98,6 @@ void scene_init_objects(Memory *memory, State *state) {
         glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
-    entity_set_color(entity, glm::vec3(1.0f, 0.0f, 0.0f));
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "goose"));
   }
 

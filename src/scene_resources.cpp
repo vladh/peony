@@ -24,6 +24,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
     "screenquad", SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag"
+    /* "screenquad", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag" */
   );
 
   shader_make_asset(
@@ -111,6 +112,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     memory, array_push<ModelAsset>(&state->model_assets),
     "goose", "resources/models/", "miniGoose.fbx"
   );
+  models_set_pbr(
+    &model_asset->model, glm::vec3(1.0f, 0.0f, 0.0f), 1, 0, 0
+  );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
@@ -123,6 +127,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     memory, array_push<ModelAsset>(&state->model_assets),
     "floor", "resources/models/", "cube.obj"
   );
+  models_set_pbr(
+    &model_asset->model, glm::vec3(1.0f, 1.0f, 1.0f), 1, 0, 0
+  );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
@@ -134,6 +141,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
   model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
     "temple", "resources/models/", "pantheon.obj"
+  );
+  models_set_pbr(
+    &model_asset->model, glm::vec3(0.64f, 0.64f, 0.64f), 1, 0, 0
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(

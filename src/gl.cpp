@@ -276,7 +276,7 @@ void draw_entity(State *state, Entity *entity) {
     shader_set_mat4(shader_program, "model", &model_matrix);
 
     if (state->render_mode == RENDERMODE_REGULAR) {
-      shader_set_vec3(shader_program, "entity_color", &entity->color);
+
     } else if (state->render_mode == RENDERMODE_DEPTH) {
       shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);
     }
@@ -286,6 +286,9 @@ void draw_entity(State *state, Entity *entity) {
       shader_set_float(shader_program, "exposure", state->camera_active->exposure);
     }
 
+#if 0
+    log_info("%s", shader_asset->info.name);
+#endif
     models_draw_model(&entity->model_asset->model, shader_program);
   } else {
     log_warning(

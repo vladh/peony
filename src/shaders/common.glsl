@@ -1,5 +1,7 @@
 #version 330 core
 
+#define PI 3.14159265359
+
 #define MAX_N_LIGHTS 8
 #define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
 #define MAX_N_TEXTURES 8
