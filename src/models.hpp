@@ -25,7 +25,7 @@ struct Mesh {
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
-  glm::vec3 albedo;
+  glm::vec4 albedo;
   real32 metallic;
   real32 roughness;
   real32 ao;
@@ -74,7 +74,7 @@ void models_add_texture(
   Model *model, TextureType type, uint32 texture
 );
 void models_set_pbr(
-  Model *model, glm::vec3 albedo, real32 metallic, real32 roughness, real32 ao
+  Model *model, glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 );
 
 #endif

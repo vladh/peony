@@ -270,7 +270,7 @@ void models_add_texture(
 }
 
 void models_set_pbr(
-  Model *model, glm::vec3 albedo, real32 metallic, real32 roughness, real32 ao
+  Model *model, glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 ) {
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
     Mesh *mesh = &model->meshes.items[idx];
@@ -391,16 +391,10 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
     glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
   }
 
-#if 0
-  log_info("albedo %f %f %f", mesh->albedo.x, mesh->albedo.y, mesh->albedo.z);
-  log_info("metallic %f", mesh->metallic);
-  log_info("roughness %f", mesh->roughness);
-  log_info("ao %f", mesh->ao);
-  shader_set_vec3(shader_program, "albedo", &mesh->albedo);
+  shader_set_vec4(shader_program, "albedo", &mesh->albedo);
   shader_set_float(shader_program, "metallic", mesh->metallic);
   shader_set_float(shader_program, "roughness", mesh->roughness);
   shader_set_float(shader_program, "ao", mesh->ao);
-#endif
 
   glActiveTexture(GL_TEXTURE0);
 

@@ -97,22 +97,20 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 void main() {
-  vec3 albedo = vec3(0.5f, 0.0f, 0.0f);
-  float metallic = 1.0;
-  float roughness = 0.5;
-  float ao = 1.0;
-
-  // retrieve data from G-buffer
   vec3 frag_position = texture(diffuse_textures[0], fs_in.tex_coords).rgb;
   vec3 normal = texture(diffuse_textures[1], fs_in.tex_coords).rgb;
-  vec3 diffuse_texture_0 = texture(diffuse_textures[2], fs_in.tex_coords).rgb;
-  float specular_texture_0 = texture(diffuse_textures[2], fs_in.tex_coords).a;
 
   // Skip pixels with no normal. These are the background pixels, hence
   // letting the background color shine through.
   if (normal == vec3(0.0f, 0.0f, 0.0f)) {
     discard;
   }
+
+  vec3 albedo = texture(diffuse_textures[2], fs_in.tex_coords).rgb;
+  vec4 pbr_texture = texture(diffuse_textures[3], fs_in.tex_coords);
+  float metallic = pbr_texture.r;
+  float roughness = pbr_texture.g;
+  float ao = pbr_texture.b;
 
   vec3 N = normalize(normal);
   vec3 V = normalize(camera_position - frag_position);
