@@ -74,7 +74,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
   models_add_texture(
     &model_asset->model, TEXTURE_DIFFUSE,
-    state->g_albedospec_texture
+    state->g_albedo_texture
+  );
+  models_add_texture(
+    &model_asset->model, TEXTURE_DIFFUSE,
+    state->g_pbr_texture
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
@@ -113,7 +117,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "goose", "resources/models/", "miniGoose.fbx"
   );
   models_set_pbr(
-    &model_asset->model, glm::vec3(1.0f, 0.0f, 0.0f), 1, 0, 0
+    &model_asset->model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 1.0f, 0.5f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
@@ -128,7 +132,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "floor", "resources/models/", "cube.obj"
   );
   models_set_pbr(
-    &model_asset->model, glm::vec3(1.0f, 1.0f, 1.0f), 1, 0, 0
+    &model_asset->model, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, 0.025f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
@@ -143,7 +147,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "temple", "resources/models/", "pantheon.obj"
   );
   models_set_pbr(
-    &model_asset->model, glm::vec3(0.64f, 0.64f, 0.64f), 1, 0, 0
+    &model_asset->model, glm::vec4(0.64f, 0.64f, 0.64f, 1.0f), 1.0f, 0.5f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(

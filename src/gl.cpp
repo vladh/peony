@@ -286,9 +286,6 @@ void draw_entity(State *state, Entity *entity) {
       shader_set_float(shader_program, "exposure", state->camera_active->exposure);
     }
 
-#if 0
-    log_info("%s", shader_asset->info.name);
-#endif
     models_draw_model(&entity->model_asset->model, shader_program);
   } else {
     log_warning(
@@ -511,7 +508,6 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glGenFramebuffers(1, &state->g_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
 
-  // Position color buffer
   glGenTextures(1, &state->g_position_texture);
   glBindTexture(GL_TEXTURE_2D, state->g_position_texture);
   glTexImage2D(
@@ -525,7 +521,6 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
     GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->g_position_texture, 0
   );
 
-  // Normal color buffer
   glGenTextures(1, &state->g_normal_texture);
   glBindTexture(GL_TEXTURE_2D, state->g_normal_texture);
   glTexImage2D(
@@ -539,9 +534,8 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
     GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, state->g_normal_texture, 0
   );
 
-  // Color + specular color buffer
-  glGenTextures(1, &state->g_albedospec_texture);
-  glBindTexture(GL_TEXTURE_2D, state->g_albedospec_texture);
+  glGenTextures(1, &state->g_albedo_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_albedo_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA,
     state->window_width, state->window_height,
@@ -550,13 +544,27 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, state->g_albedospec_texture, 0
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, state->g_albedo_texture, 0
   );
 
-  uint32 attachments[3] = {
-    GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2
+  glGenTextures(1, &state->g_pbr_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_pbr_texture);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA,
+    state->window_width, state->window_height,
+    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
+  );
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, state->g_pbr_texture, 0
+  );
+
+  uint32 attachments[4] = {
+    GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
+    GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
   };
-  glDrawBuffers(3, attachments);
+  glDrawBuffers(4, attachments);
 
   uint32 rbo_depth;
   glGenRenderbuffers(1, &rbo_depth);
