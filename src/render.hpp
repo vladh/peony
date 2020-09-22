@@ -7,21 +7,10 @@ enum RenderMode {
 };
 
 struct Light {
-  glm::vec3 position;
-  real32 pad_position;
-  glm::vec3 direction;
-  real32 pad_direction;
-  glm::vec3 ambient;
-  real32 pad_ambient;
-  glm::vec3 diffuse;
-  real32 pad_diffuse;
-  glm::vec3 specular;
-  real32 pad_specular;
+  glm::vec4 position;
+  glm::vec4 direction;
   glm::vec4 color;
-  real32 attenuation_constant;
-  real32 attenuation_linear;
-  real32 attenuation_quadratic;
-  real32 pad_attenuation;
+  glm::vec4 attenuation;
 };
 
 struct ShaderCommon {
@@ -29,10 +18,10 @@ struct ShaderCommon {
   glm::mat4 projection;
   glm::mat4 shadow_transforms[6];
   glm::vec3 camera_position;
-  float pad_15;
+  float pad_camera;
   float t;
   float far_clip_dist;
   int n_lights;
-  float pad_19;
+  float pad_floats;
   Light lights[MAX_N_LIGHTS];
 };

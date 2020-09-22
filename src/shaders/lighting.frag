@@ -8,10 +8,11 @@ vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-uniform int n_diffuse_textures;
-uniform sampler2D diffuse_textures[MAX_N_TEXTURES];
-uniform int n_specular_textures;
-uniform sampler2D specular_textures[MAX_N_TEXTURES];
+uniform sampler2D g_position_texture;
+uniform sampler2D g_normal_texture;
+uniform sampler2D g_albedo_texture;
+uniform sampler2D g_pbr_texture;
+
 uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
@@ -35,7 +36,7 @@ vec3 add_tone_mapping(vec3 rgb) {
 }
 
 float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = frag_position - lights[idx_light].position;
+  vec3 frag_to_light = frag_position - vec3(lights[idx_light].position);
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
@@ -97,8 +98,8 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 void main() {
-  vec3 frag_position = texture(diffuse_textures[0], fs_in.tex_coords).rgb;
-  vec3 normal = texture(diffuse_textures[1], fs_in.tex_coords).rgb;
+  vec3 frag_position = texture(g_position_texture, fs_in.tex_coords).rgb;
+  vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
 
   // Skip pixels with no normal. These are the background pixels, hence
   // letting the background color shine through.
@@ -106,8 +107,8 @@ void main() {
     discard;
   }
 
-  vec3 albedo = texture(diffuse_textures[2], fs_in.tex_coords).rgb;
-  vec4 pbr_texture = texture(diffuse_textures[3], fs_in.tex_coords);
+  vec3 albedo = texture(g_albedo_texture, fs_in.tex_coords).rgb;
+  vec4 pbr_texture = texture(g_pbr_texture, fs_in.tex_coords);
   float metallic = pbr_texture.r;
   float roughness = pbr_texture.g;
   float ao = pbr_texture.b;
@@ -123,14 +124,14 @@ void main() {
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
     Light light = lights[idx_light];
 
-    vec3 L = normalize(light.position - frag_position);
+    vec3 L = normalize(vec3(light.position) - frag_position);
     vec3 H = normalize(V + L);
 
-    float distance = length(light.position - frag_position);
+    float distance = length(vec3(light.position) - frag_position);
     float attenuation = 1.0 / (
-      light.attenuation_constant +
-      light.attenuation_linear * distance +
-      light.attenuation_quadratic * (distance * distance)
+      light.attenuation[0] +
+      light.attenuation[1] * distance +
+      light.attenuation[2] * (distance * distance)
     );
     vec3 radiance = vec3(light.color) * attenuation;
 

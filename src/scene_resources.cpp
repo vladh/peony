@@ -23,7 +23,6 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
   shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
-    /* "screenquad", SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag" */
     "screenquad", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
   );
 
@@ -63,27 +62,22 @@ void scene_resources_init_models(Memory *memory, State *state) {
     nullptr, 0,
     "screenquad", GL_TRIANGLES
   );
+  models_set_is_screenquad(&model_asset->model);
   models_add_texture(
-    &model_asset->model, TEXTURE_DIFFUSE,
-    /* state->postprocessing_color_texture */
-    state->g_position_texture
+    &model_asset->model, TEXTURE_G_POSITION, state->g_position_texture
   );
   models_add_texture(
-    &model_asset->model, TEXTURE_DIFFUSE,
-    state->g_normal_texture
+    &model_asset->model, TEXTURE_G_NORMAL, state->g_normal_texture
   );
   models_add_texture(
-    &model_asset->model, TEXTURE_DIFFUSE,
-    state->g_albedo_texture
+    &model_asset->model, TEXTURE_G_ALBEDO, state->g_albedo_texture
   );
   models_add_texture(
-    &model_asset->model, TEXTURE_DIFFUSE,
-    state->g_pbr_texture
+    &model_asset->model, TEXTURE_G_PBR, state->g_pbr_texture
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
-      &model_asset->model, TEXTURE_DEPTH,
-      state->shadow_cubemaps[idx]
+      &model_asset->model, TEXTURE_DEPTH, state->shadow_cubemaps[idx]
     );
   }
 
@@ -98,6 +92,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Alpaca
+#if USE_ALPACA
   real32 alpaca_vertices[] = ALPACA_VERTICES;
   model_asset = models_make_asset_from_data(
     memory,
@@ -110,14 +105,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
     &model_asset->model, TEXTURE_DIFFUSE,
     models_load_texture_from_file("resources/textures/alpaca.jpg")
   );
+#endif
 
   // Goose
   model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
     "goose", "resources/models/", "miniGoose.fbx"
   );
-  models_set_pbr(
-    &model_asset->model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 1.0f, 0.025f, 1.0f
+  models_set_static_pbr(
+    &model_asset->model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
@@ -131,8 +127,8 @@ void scene_resources_init_models(Memory *memory, State *state) {
     memory, array_push<ModelAsset>(&state->model_assets),
     "floor", "resources/models/", "cube.obj"
   );
-  models_set_pbr(
-    &model_asset->model, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 1.0f, 0.025f, 1.0f
+  models_set_static_pbr(
+    &model_asset->model, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f, 1.0f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
@@ -146,7 +142,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     memory, array_push<ModelAsset>(&state->model_assets),
     "temple", "resources/models/", "pantheon.obj"
   );
-  models_set_pbr(
+  models_set_static_pbr(
     &model_asset->model, glm::vec4(0.64f, 0.64f, 0.64f, 1.0f), 0.0f, 1.0f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {

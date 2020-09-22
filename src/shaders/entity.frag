@@ -1,19 +1,20 @@
-uniform int n_diffuse_textures;
-uniform sampler2D diffuse_textures[MAX_N_TEXTURES];
-uniform int n_specular_textures;
-uniform sampler2D specular_textures[MAX_N_TEXTURES];
 uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
-uniform vec4 albedo;
-uniform float metallic;
-uniform float roughness;
-uniform float ao;
+uniform sampler2D albedo_texture;
+uniform sampler2D metallic_texture;
+uniform sampler2D roughness_texture;
+uniform sampler2D ao_texture;
+
+uniform vec4 albedo_static;
+uniform float metallic_static;
+uniform float roughness_static;
+uniform float ao_static;
 
 in VS_OUT {
+  vec3 frag_position;
   vec3 normal;
   vec2 tex_coords;
-  vec3 frag_position;
 } fs_in;
 
 layout (location = 0) out vec3 g_position;
@@ -30,7 +31,7 @@ vec3 grid_sampling_offsets[20] = vec3[] (
 );
 
 float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = frag_position - lights[idx_light].position;
+  vec3 frag_to_light = frag_position - vec3(lights[idx_light].position);
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
@@ -57,20 +58,36 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
 
 void main() {
   vec3 unit_normal = normalize(fs_in.normal);
-
-#if 0
-  vec3 entity_color = vec3(1.0f, 0.0f, 0.0f);
-
-  vec3 entity_surface;
-  if (n_diffuse_textures > 0) {
-    entity_surface = texture(diffuse_textures[0], fs_in.tex_coords).rgb;
-  } else {
-    entity_surface = entity_color;
-  }
-#endif
-
   g_position = fs_in.frag_position;
   g_normal = unit_normal;
-  g_albedo = albedo;
+
+  vec3 albedo;
+  if (albedo_static.x < 0) {
+    g_albedo = texture(albedo_texture, fs_in.tex_coords);
+  } else {
+    g_albedo = albedo_static;
+  }
+
+  float metallic;
+  if (metallic_static < 0) {
+    metallic = texture(metallic_texture, fs_in.tex_coords).r;
+  } else {
+    metallic = metallic_static;
+  }
+
+  float roughness;
+  if (roughness_static < 0) {
+    roughness = texture(roughness_texture, fs_in.tex_coords).r;
+  } else {
+    roughness = roughness_static;
+  }
+
+  float ao;
+  if (ao_static < 0) {
+    ao = texture(ao_texture, fs_in.tex_coords).r;
+  } else {
+    ao = ao_static;
+  }
+
   g_pbr = vec4(metallic, roughness, ao, 1.0f);
 }

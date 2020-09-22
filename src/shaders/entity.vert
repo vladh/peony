@@ -5,9 +5,9 @@ layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 tex_coords;
 
 out VS_OUT {
+  vec3 frag_position;
   vec3 normal;
   vec2 tex_coords;
-  vec3 frag_position;
 } vs_out;
 
 void main() {

@@ -5,7 +5,9 @@ struct ModelAsset;
 struct Memory;
 
 enum TextureType {
-  TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH
+  TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH,
+  TEXTURE_ALBEDO, TEXTURE_METALLIC, TEXTURE_ROUGHNESS, TEXTURE_AO,
+  TEXTURE_G_POSITION, TEXTURE_G_NORMAL, TEXTURE_G_ALBEDO, TEXTURE_G_PBR
 };
 
 struct Vertex {
@@ -18,18 +20,28 @@ struct Mesh {
   Array<Vertex> vertices;
   Array<uint32> indices;
 
-  uint32 n_diffuse_textures;
-  uint32 diffuse_textures[MAX_N_TEXTURES];
-  uint32 n_specular_textures;
-  uint32 specular_textures[MAX_N_TEXTURES];
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
-  glm::vec4 albedo;
-  real32 metallic;
-  real32 roughness;
-  real32 ao;
+  // Loaded texture maps.
+  uint32 albedo_texture;
+  uint32 metallic_texture;
+  uint32 roughness_texture;
+  uint32 ao_texture;
 
+  // Hardcoded values for when we can't load a texture.
+  glm::vec4 albedo_static;
+  real32 metallic_static;
+  real32 roughness_static;
+  real32 ao_static;
+
+  // G-buffer used for lighting shader.
+  uint32 g_position_texture;
+  uint32 g_normal_texture;
+  uint32 g_albedo_texture;
+  uint32 g_pbr_texture;
+
+  bool32 is_screenquad;
   bool32 does_use_indices;
   uint32 vao;
   uint32 vbo;
@@ -39,18 +51,27 @@ struct Mesh {
 
 struct Model {
   Array<Mesh> meshes;
+#if 0
   bool32 should_load_textures_from_file;
+#endif
   const char *directory;
 };
 
 uint32 models_load_texture_from_file(const char *path);
 void models_setup_mesh(Mesh *mesh);
+void models_init_mesh(Mesh *mesh, uint32 mode);
 void models_load_mesh(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 );
 void models_draw_mesh(Mesh *mesh, uint32 shader_program);
 void models_draw_model(Model *model, uint32 shader_program);
+#if 0
+void models_load_mesh_textures(
+  Memory *memory, Model *model,
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+);
+#endif
 void models_load_model_node(
   Memory *memory, Model *model,
   aiNode *node, const aiScene *scene
@@ -63,6 +84,7 @@ ModelAsset* models_make_asset_from_file(
   Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
 );
+void models_set_is_screenquad(Model *model);
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
   real32 *vertex_data, uint32 n_vertices,
@@ -73,7 +95,7 @@ ModelAsset* models_make_asset_from_data(
 void models_add_texture(
   Model *model, TextureType type, uint32 texture
 );
-void models_set_pbr(
+void models_set_static_pbr(
   Model *model, glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 );
 
