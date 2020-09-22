@@ -1,27 +1,15 @@
 void scene_init_lights(Memory *memory, State *state) {
   Light *light1 = array_push(&state->lights);
-  light1->position = glm::vec3(0.0f, 1.0f, 0.0f);
-  light1->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  /* light1->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f); */
-  light1->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f);
-  light1->ambient = glm::vec3(0.5f, 0.5f, 0.5f);
-  light1->diffuse = glm::vec3(0.5f, 0.5f, 0.5f) * glm::vec3(light1->color);
-  light1->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-  light1->attenuation_constant = 1.0f;
-  light1->attenuation_linear = 0.09f;
-  light1->attenuation_quadratic = 0.032f;
+  light1->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+  light1->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  light1->color = glm::vec4(25.0f, 25.0f, 25.0f, 1.0f);
+  light1->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
 
   Light *light2 = array_push(&state->lights);
-  light2->position = glm::vec3(0.0f, 1.0f, 0.0f);
-  light2->direction = glm::vec3(0.0f, 0.0f, 0.0f);
-  /* light2->color = glm::vec4(1.0f, 0.8f, 0.6f, 1.0f); */
-  light2->color = glm::vec4(300.0f, 300.0f, 300.0f, 1.0f);
-  light2->ambient = glm::vec3(0.0f, 0.0f, 0.0f);
-  light2->diffuse = glm::vec3(20.0f, 20.0f, 20.0f) * glm::vec3(light2->color);
-  light2->specular = glm::vec3(1.0f, 1.0f, 1.0f);
-  light2->attenuation_constant = 1.0f;
-  light2->attenuation_linear = 0.09f;
-  light2->attenuation_quadratic = 0.032f;
+  light2->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+  light2->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+  light2->color = glm::vec4(25.0f, 25.0f, 25.0f, 1.0f);
+  light2->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
 }
 
 void scene_init_objects(Memory *memory, State *state) {
@@ -33,7 +21,7 @@ void scene_init_objects(Memory *memory, State *state) {
     "axes",
     ENTITY_MODEL,
     glm::vec3(0.0f, 0.1f, 0.0f),
-    glm::vec3(1.0f),
+    glm::vec3(1.0f, 1.0f, 1.0f),
     glm::angleAxis(
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
@@ -60,7 +48,7 @@ void scene_init_objects(Memory *memory, State *state) {
     "temple",
     ENTITY_MODEL,
     glm::vec3(25.0f, 0.0f, 0.0f),
-    glm::vec3(0.7f),
+    glm::vec3(0.7f, 0.7f, 0.7f),
     glm::angleAxis(
       glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)
     )
@@ -127,7 +115,7 @@ void scene_init_objects(Memory *memory, State *state) {
         util_random(1.0f, 6.0f),
         util_random(-6.0f, 6.0f)
       ),
-      glm::vec3(scale, scale, scale),
+      glm::vec3(scale),
       glm::angleAxis(
         glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
       )
@@ -140,15 +128,17 @@ void scene_init_objects(Memory *memory, State *state) {
 
 void scene_update(Memory *memory, State *state) {
   // Lights
-  state->lights.items[0].position = glm::vec3(
+  state->lights.items[0].position = glm::vec4(
     sin(state->t) * 3.0f,
-    1.0f,
-    0.0f
+    2.0f,
+    0.0f,
+    1.0f
   );
-  state->lights.items[1].position = glm::vec3(
+  state->lights.items[1].position = glm::vec4(
     cos(state->t) * 3.0f,
-    3.0f,
-    sin(state->t) * 5.0f
+    5.0f,
+    sin(state->t) * 5.0f,
+    1.0f
   );
 
   // Light entities
@@ -157,7 +147,7 @@ void scene_update(Memory *memory, State *state) {
   );
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
-    entity->position = state->lights.items[idx].position;
+    entity->position = glm::vec3(state->lights.items[idx].position);
   }
 
   // Geese

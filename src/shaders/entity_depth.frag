@@ -6,7 +6,7 @@ in GS_OUT {
 
 void main() {
   float light_distance = length(
-    fs_in.frag_position.xyz - lights[shadow_light_idx].position
+    fs_in.frag_position.xyz - vec3(lights[shadow_light_idx].position)
   ) / far_clip_dist;
   gl_FragDepth = light_distance;
 }

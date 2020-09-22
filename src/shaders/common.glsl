@@ -28,21 +28,10 @@
 }
 
 struct Light {
-  vec3 position;
-  float pad_position;
-  vec3 direction;
-  float pad_direction;
-  vec3 ambient;
-  float pad_ambient;
-  vec3 diffuse;
-  float pad_diffuse;
-  vec3 specular;
-  float pad_specular;
+  vec4 position;
+  vec4 direction;
   vec4 color;
-  float attenuation_constant;
-  float attenuation_linear;
-  float attenuation_quadratic;
-  float pad_attenuation;
+  vec4 attenuation;
 };
 
 layout (std140) uniform shader_common {
@@ -50,10 +39,10 @@ layout (std140) uniform shader_common {
   mat4 projection;
   mat4 shadow_transforms[6];
   vec3 camera_position;
-  float pad_15;
+  float pad_camera;
   float t;
   float far_clip_dist;
   int n_lights;
-  float pad_19;
+  float pad_floats;
   Light lights[MAX_N_LIGHTS];
 };
