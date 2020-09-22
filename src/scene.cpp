@@ -2,13 +2,13 @@ void scene_init_lights(Memory *memory, State *state) {
   Light *light1 = array_push(&state->lights);
   light1->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
   light1->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  light1->color = glm::vec4(25.0f, 25.0f, 25.0f, 1.0f);
+  light1->color = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
   light1->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
 
   Light *light2 = array_push(&state->lights);
   light2->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
   light2->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  light2->color = glm::vec4(25.0f, 25.0f, 25.0f, 1.0f);
+  light2->color = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
   light2->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
 }
 
@@ -72,6 +72,7 @@ void scene_init_objects(Memory *memory, State *state) {
     entity_add_tag(entity, "light");
   }
 
+  // Geese
   uint32 n_geese = 10;
   for (uint8 idx = 0; idx < n_geese; idx++) {
     real32 scale = (real32)util_random(0.2f, 0.4f);
@@ -79,14 +80,30 @@ void scene_init_objects(Memory *memory, State *state) {
       array_push<Entity>(&state->entities),
       "goose",
       ENTITY_MODEL,
-      glm::vec3(0.0f),
+      glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(scale),
       glm::angleAxis(
-        glm::radians(-90.0f),
-        glm::vec3(1.0f, 0.0f, 0.0f)
+        glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "goose"));
+  }
+
+  // Spheres
+  uint32 n_spheres = 10;
+  for (uint8 idx = 0; idx < n_spheres; idx++) {
+    real32 scale = 0.8f;
+    entity = entity_make(
+      array_push<Entity>(&state->entities),
+      "sphere",
+      ENTITY_MODEL,
+      glm::vec3(0.0f, 1.0f, 0.0f),
+      glm::vec3(scale),
+      glm::angleAxis(
+        glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+      )
+    );
+    entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "sphere"));
   }
 
   // Screenquad
@@ -129,13 +146,13 @@ void scene_init_objects(Memory *memory, State *state) {
 void scene_update(Memory *memory, State *state) {
   // Lights
   state->lights.items[0].position = glm::vec4(
-    sin(state->t) * 3.0f,
+    sin(state->t) * 3.0f - 6.0f,
     2.0f,
     0.0f,
     1.0f
   );
   state->lights.items[1].position = glm::vec4(
-    cos(state->t) * 3.0f,
+    cos(state->t) * 3.0f - 6.0f,
     5.0f,
     sin(state->t) * 5.0f,
     1.0f
@@ -150,6 +167,24 @@ void scene_update(Memory *memory, State *state) {
     entity->position = glm::vec3(state->lights.items[idx].position);
   }
 
+  // Spheres
+  entity_get_all_with_name(
+    state->entities, "sphere", &state->found_entities
+  );
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+
+    real32 spin_deg_per_t = 90.0f;
+
+    entity->position = glm::vec3(
+      -10.0f, entity->position.y, (real32)idx * 2.0f
+    );
+    entity->rotation *= glm::angleAxis(
+      glm::radians(spin_deg_per_t * (real32)state->dt),
+      glm::vec3(0.0f, 1.0f, 0.0f)
+    );
+  }
+
   // Geese
   entity_get_all_with_name(
     state->entities, "goose", &state->found_entities
@@ -157,7 +192,7 @@ void scene_update(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
 
-    real32 x_offset = -10.0f;
+    real32 x_offset = -30.0f;
     real32 period_offset = (real32)idx;
     /* real32 spin_speed_factor = 0.3f; */
     real32 spin_speed_factor = 0.0f;

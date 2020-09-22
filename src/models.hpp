@@ -42,11 +42,10 @@ struct Mesh {
   uint32 g_pbr_texture;
 
   bool32 is_screenquad;
-  bool32 does_use_indices;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
-  uint32 mode;
+  GLenum mode;
 };
 
 struct Model {
@@ -90,7 +89,7 @@ ModelAsset* models_make_asset_from_data(
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *name,
-  uint32 mode
+  GLenum mode
 );
 void models_add_texture(
   Model *model, TextureType type, uint32 texture

@@ -100,3 +100,54 @@ void util_sleep(real64 s) {
   Sleep((uint32)(s * 1000)); // ms
 #endif
 }
+
+void util_make_sphere(
+  uint32 n_x_segments, uint32 n_y_segments,
+  uint32 *n_vertices, uint32 *n_indices,
+  real32 *vertex_data, uint32 *index_data
+) {
+  uint32 idx_vertices = 0;
+  uint32 idx_indices = 0;
+  *n_vertices = 0;
+  *n_indices = 0;
+
+  for (uint32 y = 0; y <= n_y_segments; y++) {
+    for (uint32 x = 0; x <= n_x_segments; x++) {
+      real32 x_segment = (real32)x / (real32)n_x_segments;
+      real32 y_segment = (real32)y / (real32)n_y_segments;
+      real32 x_pos = cos(x_segment * 2.0f * PI) * sin(y_segment * PI);
+      real32 y_pos = cos(y_segment * PI);
+      real32 z_pos = sin(x_segment * 2.0f * PI) * sin(y_segment * PI);
+
+      // Position
+      vertex_data[idx_vertices++] = x_pos;
+      vertex_data[idx_vertices++] = y_pos;
+      vertex_data[idx_vertices++] = z_pos;
+      // Normal
+      vertex_data[idx_vertices++] = x_pos;
+      vertex_data[idx_vertices++] = y_pos;
+      vertex_data[idx_vertices++] = z_pos;
+      // Tex coords
+      vertex_data[idx_vertices++] = x_segment;
+      vertex_data[idx_vertices++] = y_segment;
+
+      (*n_vertices)++;
+    }
+  }
+
+  for (uint32 y = 0; y < n_y_segments; ++y) {
+    if (y % 2 == 0) {
+      for (int32 x = n_x_segments; x >= 0; x--) {
+        index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
+        index_data[idx_indices++] = y * (n_x_segments + 1) + x;
+        (*n_indices) += 2;
+      }
+    } else {
+      for (uint32 x = 0; x <= n_x_segments; x++) {
+        index_data[idx_indices++] = y * (n_x_segments + 1) + x;
+        index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
+        (*n_indices) += 2;
+      }
+    }
+  }
+}

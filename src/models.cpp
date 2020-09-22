@@ -128,8 +128,6 @@ internal void models_load_mesh_indices(
     n_indices += face.mNumIndices;
   }
 
-  mesh->does_use_indices = (n_indices > 0);
-
   mesh->indices.size = 0;
   mesh->indices.max_size = n_indices;
   mesh->indices.items = (uint32*)memory_push_memory_to_pool(
@@ -338,7 +336,7 @@ ModelAsset* models_make_asset_from_data(
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *name,
-  uint32 mode
+  GLenum mode
 ) {
   model_asset->info.name = name;
 
@@ -364,7 +362,7 @@ ModelAsset* models_make_asset_from_data(
   // Vertices
   // NOTE: We are copying this data around for no real reason.
   // It probably doesn't matter as this is pretty much debug code,
-  // but it might be good to improvei t.
+  // but it might be good to improve it.
   mesh->vertices.size = 0;
   mesh->vertices.max_size = n_vertices;
   mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
@@ -394,7 +392,6 @@ ModelAsset* models_make_asset_from_data(
   }
 
   // Indices
-  mesh->does_use_indices = (n_indices > 0);
   mesh->indices.size = n_indices;
   mesh->indices.max_size = n_indices;
   mesh->indices.items = index_data;

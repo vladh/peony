@@ -56,11 +56,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
   // Screenquad
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
   model_asset = models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset>(&state->model_assets),
+    memory, array_push<ModelAsset>(&state->model_assets),
     screenquad_vertices, 6,
     nullptr, 0,
-    "screenquad", GL_TRIANGLES
+    "screenquad",
+    GL_TRIANGLES
   );
   models_set_is_screenquad(&model_asset->model);
   models_add_texture(
@@ -84,22 +84,22 @@ void scene_resources_init_models(Memory *memory, State *state) {
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
   models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset>(&state->model_assets),
+    memory, array_push<ModelAsset>(&state->model_assets),
     axes_vertices, 6,
     nullptr, 0,
-    "axes", GL_LINES
+    "axes",
+    GL_LINES
   );
 
   // Alpaca
 #if USE_ALPACA
   real32 alpaca_vertices[] = ALPACA_VERTICES;
   model_asset = models_make_asset_from_data(
-    memory,
-    array_push<ModelAsset>(&state->model_assets),
+    memory, array_push<ModelAsset>(&state->model_assets),
     alpaca_vertices, 36,
     nullptr, 0,
-    "alpaca", GL_TRIANGLES
+    "alpaca",
+    GL_TRIANGLES
   );
   models_add_texture(
     &model_asset->model, TEXTURE_DIFFUSE,
@@ -114,6 +114,54 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
   models_set_static_pbr(
     &model_asset->model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
+  );
+
+  // Sphere
+  uint32 n_x_segments = 64;
+  uint32 n_y_segments = 64;
+  uint32 vertex_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 8 * 2;
+  uint32 index_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 2 * 2;
+
+  uint32 n_vertices;
+  uint32 n_indices;
+
+  real32 *vertex_data = (real32*)memory_push_memory_to_pool(
+    &memory->temp_memory_pool, sizeof(real32) * (vertex_data_length * 2)
+  );
+  uint32 *index_data = (uint32*)memory_push_memory_to_pool(
+    &memory->temp_memory_pool, sizeof(uint32) * (index_data_length * 2)
+  );
+
+  util_make_sphere(
+    n_x_segments, n_y_segments,
+    &n_vertices, &n_indices,
+    vertex_data, index_data
+  );
+
+  model_asset = models_make_asset_from_data(
+    memory, array_push<ModelAsset>(&state->model_assets),
+    vertex_data, n_vertices,
+    index_data, n_indices,
+    "sphere",
+    GL_TRIANGLE_STRIP
+  );
+  memory_reset_pool(&memory->temp_memory_pool);
+
+  models_add_texture(
+    &model_asset->model, TEXTURE_ALBEDO,
+    models_load_texture_from_file("resources/textures/rusted_iron/albedo.png")
+  );
+  models_add_texture(
+    &model_asset->model, TEXTURE_METALLIC,
+    models_load_texture_from_file("resources/textures/rusted_iron/metallic.png")
+  );
+  models_add_texture(
+    &model_asset->model, TEXTURE_ROUGHNESS,
+    models_load_texture_from_file("resources/textures/rusted_iron/roughness.png")
+  );
+  models_add_texture(
+    &model_asset->model, TEXTURE_AO,
+    models_load_texture_from_file("resources/textures/rusted_iron/ao.png")
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
