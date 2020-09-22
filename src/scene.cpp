@@ -2,14 +2,14 @@ void scene_init_lights(Memory *memory, State *state) {
   Light *light1 = array_push(&state->lights);
   light1->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
   light1->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  light1->color = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
+  light1->color = glm::vec4(8.0f, 8.0f, 8.0f, 1.0f);
   light1->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
 
   Light *light2 = array_push(&state->lights);
   light2->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
   light2->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  light2->color = glm::vec4(10.0f, 10.0f, 10.0f, 1.0f);
-  light2->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
+  light2->color = glm::vec4(14.0f, 12.0f, 10.0f, 1.0f);
+  light2->attenuation = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void scene_init_objects(Memory *memory, State *state) {
@@ -149,13 +149,13 @@ void scene_update(Memory *memory, State *state) {
     sin(state->t) * 3.0f - 6.0f,
     2.0f,
     0.0f,
-    1.0f
+    state->lights.items[0].position.w
   );
   state->lights.items[1].position = glm::vec4(
-    cos(state->t) * 3.0f - 6.0f,
-    5.0f,
-    sin(state->t) * 5.0f,
-    1.0f
+    -4.0f,
+    16.0f,
+    0.0f,
+    state->lights.items[1].position.w
   );
 
   // Light entities
