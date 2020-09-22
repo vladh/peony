@@ -270,45 +270,59 @@ ModelAsset* models_make_asset_from_file(
 }
 
 void models_add_texture(
+  Model *model, uint32 idx_mesh, TextureType type, uint32 texture
+) {
+  Mesh *mesh = &model->meshes.items[idx_mesh];
+  if (type == TEXTURE_DIFFUSE || type == TEXTURE_SPECULAR) {
+    log_warning("No diffuse or specular textures here, buddy!");
+  } else if (type == TEXTURE_DEPTH) {
+    mesh->depth_textures[mesh->n_depth_textures++] = texture;
+  } else if (type == TEXTURE_ALBEDO) {
+    mesh->albedo_texture = texture;
+  } else if (type == TEXTURE_METALLIC) {
+    mesh->metallic_texture = texture;
+  } else if (type == TEXTURE_ROUGHNESS) {
+    mesh->roughness_texture = texture;
+  } else if (type == TEXTURE_AO) {
+    mesh->ao_texture = texture;
+  } else if (type == TEXTURE_G_POSITION) {
+    mesh->g_position_texture = texture;
+  } else if (type == TEXTURE_G_NORMAL) {
+    mesh->g_normal_texture = texture;
+  } else if (type == TEXTURE_G_ALBEDO) {
+    mesh->g_albedo_texture = texture;
+  } else if (type == TEXTURE_G_PBR) {
+    mesh->g_pbr_texture = texture;
+  } else {
+    log_warning("Can't bind that texture type, pal.");
+  }
+}
+
+void models_add_texture(
   Model *model, TextureType type, uint32 texture
 ) {
-  for (uint32 idx = 0; idx < model->meshes.size; idx++) {
-    Mesh *mesh = &model->meshes.items[idx];
-    if (type == TEXTURE_DIFFUSE || type == TEXTURE_SPECULAR) {
-      log_warning("No diffuse or specular textures here, buddy!");
-    } else if (type == TEXTURE_DEPTH) {
-      mesh->depth_textures[mesh->n_depth_textures++] = texture;
-    } else if (type == TEXTURE_ALBEDO) {
-      mesh->albedo_texture = texture;
-    } else if (type == TEXTURE_METALLIC) {
-      mesh->metallic_texture = texture;
-    } else if (type == TEXTURE_ROUGHNESS) {
-      mesh->roughness_texture = texture;
-    } else if (type == TEXTURE_AO) {
-      mesh->ao_texture = texture;
-    } else if (type == TEXTURE_G_POSITION) {
-      mesh->g_position_texture = texture;
-    } else if (type == TEXTURE_G_NORMAL) {
-      mesh->g_normal_texture = texture;
-    } else if (type == TEXTURE_G_ALBEDO) {
-      mesh->g_albedo_texture = texture;
-    } else if (type == TEXTURE_G_PBR) {
-      mesh->g_pbr_texture = texture;
-    } else {
-      log_warning("Can't bind that texture type, pal.");
-    }
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    models_add_texture(model, idx_mesh, type, texture);
   }
 }
 
 void models_set_static_pbr(
-  Model *model, glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
+  Model *model, uint32 idx_mesh,
+  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 ) {
-  for (uint32 idx = 0; idx < model->meshes.size; idx++) {
-    Mesh *mesh = &model->meshes.items[idx];
-    mesh->albedo_static = albedo;
-    mesh->metallic_static = metallic;
-    mesh->roughness_static = roughness;
-    mesh->ao_static = ao;
+  Mesh *mesh = &model->meshes.items[idx_mesh];
+  mesh->albedo_static = albedo;
+  mesh->metallic_static = metallic;
+  mesh->roughness_static = roughness;
+  mesh->ao_static = ao;
+}
+
+void models_set_static_pbr(
+  Model *model,
+  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
+) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    models_set_static_pbr(model, idx_mesh, albedo, metallic, roughness, ao);
   }
 }
 

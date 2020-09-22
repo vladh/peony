@@ -95,8 +95,16 @@ ModelAsset* models_make_asset_from_data(
 void models_add_texture(
   Model *model, TextureType type, uint32 texture
 );
+void models_add_texture(
+  Model *model, uint32 idx_mesh, TextureType type, uint32 texture
+);
 void models_set_static_pbr(
-  Model *model, glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
+  Model *model,
+  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
+);
+void models_set_static_pbr(
+  Model *model, uint32 idx_mesh,
+  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 );
 
 #endif
