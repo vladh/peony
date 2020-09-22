@@ -25,6 +25,11 @@ struct Mesh {
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
+  glm::vec3 albedo;
+  real32 metallic;
+  real32 roughness;
+  real32 ao;
+
   bool32 does_use_indices;
   uint32 vao;
   uint32 vbo;
@@ -64,6 +69,12 @@ ModelAsset* models_make_asset_from_data(
   uint32 *index_data, uint32 n_indices,
   const char *name,
   uint32 mode
+);
+void models_add_texture(
+  Model *model, TextureType type, uint32 texture
+);
+void models_set_pbr(
+  Model *model, glm::vec3 albedo, real32 metallic, real32 roughness, real32 ao
 );
 
 #endif
