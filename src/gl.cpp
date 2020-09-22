@@ -481,7 +481,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
   state->shadow_map_width = 2048;
   state->shadow_map_height = 2048;
   state->shadow_near_clip_dist = 0.1f;
-  state->shadow_far_clip_dist = 75.0f;
+  state->shadow_far_clip_dist = 200.0f;
   state->n_shadow_framebuffers = state->lights.size;
   state->shadow_light_idx = 0;
 
