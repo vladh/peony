@@ -2,7 +2,6 @@
 
 #define USE_ALPACA false
 #define USE_AXES false
-#define SHOULD_LIMIT_FRAMES false
 
 #include "gl.hpp"
 #include "log.cpp"
@@ -57,6 +56,11 @@ void process_input_continuous(GLFWwindow *window, State *state) {
 void process_input_transient(GLFWwindow *window, State *state) {
   if (control_is_key_now_down(&state->control, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
+  }
+
+  if (control_is_key_now_down(&state->control, GLFW_KEY_F)) {
+    state->should_limit_fps = !state->should_limit_fps;
+    update_drawing_options(state, window);
   }
 
   if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
@@ -121,6 +125,7 @@ void init_state(Memory *memory, State *state) {
   state->target_frame_duration_s = 1 / state->target_fps;
 
   state->is_cursor_disabled = true;
+  state->should_limit_fps = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
   camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
@@ -153,6 +158,7 @@ GLFWwindow* init_window(State *state) {
     return nullptr;
   }
   glfwMakeContextCurrent(window);
+  glfwSwapInterval(0);
   glfwSetWindowPos(window, 100, 100);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -361,10 +367,16 @@ void render_scene_forward(Memory *memory, State *state) {
     15.0f, state->window_height - 35.0f,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
+  sprintf(fps_text, "(dt %f)", state->dt);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height * 1,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
   sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
   draw_text(
     state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height,
+    15.0f, state->window_height - 35.0f - row_height * 2,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 
@@ -439,17 +451,17 @@ void update_and_render(Memory *memory, State *state) {
   copy_scene_data_to_ubo(memory, state);
   render_scene_forward(memory, state);
 
-#if SHOULD_LIMIT_FRAMES
-  real64 t_end_prewait = glfwGetTime();
-  real64 dt_prewait = t_end_prewait - t_start;
+  if (state->should_limit_fps) {
+    real64 t_end_prewait = glfwGetTime();
+    real64 dt_prewait = t_end_prewait - t_start;
 
-  real64 time_to_wait = state->target_frame_duration_s - dt_prewait;
-  if (time_to_wait < 0) {
-    log_warning("Frame took too long! %.6fs", state->dt);
-  } else {
-    util_sleep(time_to_wait);
+    real64 time_to_wait = state->target_frame_duration_s - dt_prewait;
+    if (time_to_wait < 0) {
+      log_warning("Frame took too long! %.6fs", state->dt);
+    } else {
+      util_sleep(time_to_wait);
+    }
   }
-#endif
 
   real64 t_end = glfwGetTime();
   state->dt = t_end - t_start;

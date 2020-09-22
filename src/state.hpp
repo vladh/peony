@@ -13,6 +13,7 @@ struct State {
   real64 last_fps;
 
   bool32 is_cursor_disabled;
+  bool32 should_limit_fps;
   glm::vec4 background_color;
 
   uint32 window_width;
