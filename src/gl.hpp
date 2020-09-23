@@ -32,7 +32,7 @@
 #include <assimp/postprocess.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
-#include "glad.cpp"
+#include "glad/glad.cpp"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
