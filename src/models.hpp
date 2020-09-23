@@ -1,6 +1,8 @@
 #ifndef MODELS_H
 #define MODELS_H
 
+#define MAX_N_MESHES 2048
+
 struct ModelAsset;
 struct Memory;
 
@@ -20,6 +22,7 @@ struct Vertex {
 struct Mesh {
   Array<Vertex> vertices;
   Array<uint32> indices;
+  glm::mat4 transform;
 
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
@@ -73,10 +76,6 @@ void models_load_mesh_textures(
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 );
 #endif
-void models_load_model_node(
-  Memory *memory, Model *model,
-  aiNode *node, const aiScene *scene
-);
 void models_load_model(
   Memory *memory, Model *model,
   const char *directory, const char *filename

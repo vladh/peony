@@ -15,5 +15,8 @@ void util_make_sphere(
   uint32 *n_vertices, uint32 *n_indices,
   real32 *vertex_data, uint32 *index_data
 );
+glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from);
+void log_aimatrix4x4(aiMatrix4x4* matrix);
+void log_mat4(glm::mat4 *t);
 
 #endif

@@ -151,3 +151,43 @@ void util_make_sphere(
     }
   }
 }
+
+glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from) {
+  glm::mat4 to;
+
+  to[0][0] = (GLfloat)from->a1;
+  to[0][1] = (GLfloat)from->b1;
+  to[0][2] = (GLfloat)from->c1;
+  to[0][3] = (GLfloat)from->d1;
+
+  to[1][0] = (GLfloat)from->a2;
+  to[1][1] = (GLfloat)from->b2;
+  to[1][2] = (GLfloat)from->c2;
+  to[1][3] = (GLfloat)from->d2;
+
+  to[2][0] = (GLfloat)from->a3;
+  to[2][1] = (GLfloat)from->b3;
+  to[2][2] = (GLfloat)from->c3;
+  to[2][3] = (GLfloat)from->d3;
+
+  to[3][0] = (GLfloat)from->a4;
+  to[3][1] = (GLfloat)from->b4;
+  to[3][2] = (GLfloat)from->c4;
+  to[3][3] = (GLfloat)from->d4;
+
+  return to;
+}
+
+void log_aimatrix4x4(aiMatrix4x4 *t) {
+  log_info("(%f, %f, %f, %f)", t->a1, t->b1, t->c1, t->d1);
+  log_info("(%f, %f, %f, %f)", t->a2, t->b2, t->c2, t->d2);
+  log_info("(%f, %f, %f, %f)", t->a3, t->b3, t->c3, t->d3);
+  log_info("(%f, %f, %f, %f)", t->a4, t->b4, t->c4, t->d4);
+}
+
+void log_mat4(glm::mat4 *t) {
+  log_info("(%f, %f, %f, %f)", (*t)[0][0], (*t)[1][0], (*t)[2][0], (*t)[3][0]);
+  log_info("(%f, %f, %f, %f)", (*t)[0][1], (*t)[1][1], (*t)[2][1], (*t)[3][1]);
+  log_info("(%f, %f, %f, %f)", (*t)[0][2], (*t)[1][2], (*t)[2][2], (*t)[3][2]);
+  log_info("(%f, %f, %f, %f)", (*t)[0][3], (*t)[1][3], (*t)[2][3], (*t)[3][3]);
+}

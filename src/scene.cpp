@@ -47,8 +47,10 @@ void scene_init_objects(Memory *memory, State *state) {
     array_push<Entity>(&state->entities),
     "temple",
     ENTITY_MODEL,
-    glm::vec3(25.0f, 0.0f, 0.0f),
-    glm::vec3(0.7f, 0.7f, 0.7f),
+    glm::vec3(0.0f),
+    glm::vec3(0.1f),
+    /* glm::vec3(25.0f, 0.0f, 0.0f), */
+    /* glm::vec3(0.7f, 0.7f, 0.7f), */
     glm::angleAxis(
       glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)
     )
@@ -83,7 +85,7 @@ void scene_init_objects(Memory *memory, State *state) {
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec3(scale),
       glm::angleAxis(
-        glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)
+        glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "goose"));
@@ -207,7 +209,7 @@ void scene_update(Memory *memory, State *state) {
     );
     entity->rotation *= glm::angleAxis(
       glm::radians(spin_deg_per_t * (real32)state->dt),
-      glm::vec3(0.0f, 0.0f, 1.0f)
+      glm::vec3(0.0f, 1.0f, 0.0f)
     );
   }
 

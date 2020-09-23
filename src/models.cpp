@@ -86,8 +86,6 @@ internal void models_load_mesh_vertices(
     "vertices"
   );
 
-  log_info("Attempting to load %d vertices", mesh_data->mNumVertices);
-
   if (!mesh_data->mNormals) {
     log_warning("Model does not have normals.");
   }
@@ -178,6 +176,8 @@ void models_init_mesh(Mesh *mesh, uint32 mode) {
   mesh->mode = mode;
   mesh->is_screenquad = false;
 
+  mesh->transform = glm::mat4(1.0f);
+
   mesh->albedo_texture = 0;
   mesh->metallic_texture = 0;
   mesh->roughness_texture = 0;
@@ -192,9 +192,11 @@ void models_init_mesh(Mesh *mesh, uint32 mode) {
 
 void models_load_mesh(
   Memory *memory, Model *model,
-  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+  glm::mat4 transform
 ) {
   models_init_mesh(mesh, GL_TRIANGLES);
+  mesh->transform = transform;
   models_load_mesh_vertices(
     memory, model, mesh, mesh_data, scene
   );
@@ -213,19 +215,26 @@ void models_load_mesh(
 
 void models_load_model_node(
   Memory *memory, Model *model,
-  aiNode *node, const aiScene *scene
+  aiNode *node, const aiScene *scene,
+  glm::mat4 accumulated_transform
 ) {
+  glm::mat4 node_transform = aimatrix4x4_to_glm(&node->mTransformation);
+  glm::mat4 transform = accumulated_transform * node_transform;
+
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     models_load_mesh(
       memory, model,
       array_push(&model->meshes),
-      mesh_data, scene
+      mesh_data, scene,
+      transform
     );
   }
 
   for (uint32 idx = 0; idx < node->mNumChildren; idx++) {
-    models_load_model_node(memory, model, node->mChildren[idx], scene);
+    models_load_model_node(
+      memory, model, node->mChildren[idx], scene, transform
+    );
   }
 }
 
@@ -238,24 +247,36 @@ void models_load_model(
     path, sizeof(path), "%s/%s", directory, filename
   );
 
-  Assimp::Importer import;
-  const aiScene *scene = import.ReadFile(
-    path, aiProcess_Triangulate | aiProcess_FlipUVs
+  const aiScene *scene = aiImportFile(
+    path,
+    aiProcess_Triangulate |
+    aiProcess_FlipUVs
+#if 0
+    aiProcess_JoinIdenticalVertices |
+    aiProcess_SortByPType |
+    aiProcess_GenNormals |
+    // NOTE: Uncomment this when changing to proper normal mapping.
+    aiProcess_CalcTangentSpace |
+#endif
   );
 
-  if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    log_error("assimp error: %s", import.GetErrorString());
+  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+    log_error("assimp error: %s", aiGetErrorString());
     return;
   }
 
   model->meshes.size = 0;
-  model->meshes.max_size = 512;
+  model->meshes.max_size = MAX_N_MESHES;
   model->meshes.items = (Mesh*)memory_push_memory_to_pool(
     &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
     "meshes"
   );
 
-  models_load_model_node(memory, model, scene->mRootNode, scene);
+  models_load_model_node(
+    memory, model, scene->mRootNode, scene, glm::mat4(1.0f)
+  );
+
+  aiReleaseImport(scene);
 }
 
 ModelAsset* models_make_asset_from_file(
@@ -416,6 +437,7 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
   char uniform_name[128];
   uint32 texture_idx = 0;
 
+  shader_set_mat4(shader_program, "mesh_transform", &mesh->transform);
   shader_set_int(shader_program, "n_depth_textures", mesh->n_depth_textures);
 
   // TODO: We have to bind every single texture. This is a bit slow, so what
