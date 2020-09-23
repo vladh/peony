@@ -192,7 +192,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
   // Temple
   model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
-    "temple", "resources/models/", "pantheon.obj"
+    /* "temple", "resources/models/", "pantheon.obj" */
+    /* "temple", "resources/models/", "Stones_AssetKit.fbx" */
+    "temple", "resources/models/", "shop.fbx"
   );
   models_set_static_pbr(
     &model_asset->model, glm::vec4(0.64f, 0.64f, 0.64f, 1.0f), 0.0f, 1.0f, 1.0f
