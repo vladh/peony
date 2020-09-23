@@ -2,7 +2,7 @@ void scene_init_lights(Memory *memory, State *state) {
   Light *light1 = array_push(&state->lights);
   light1->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
   light1->direction = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
-  light1->color = glm::vec4(8.0f, 8.0f, 8.0f, 1.0f);
+  light1->color = glm::vec4(5.0f, 5.0f, 5.0f, 1.0f);
   light1->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
 
   Light *light2 = array_push(&state->lights);

@@ -5,11 +5,14 @@ uniform sampler2D albedo_texture;
 uniform sampler2D metallic_texture;
 uniform sampler2D roughness_texture;
 uniform sampler2D ao_texture;
+uniform sampler2D normal_texture;
 
 uniform vec4 albedo_static;
 uniform float metallic_static;
 uniform float roughness_static;
 uniform float ao_static;
+
+uniform bool should_use_normal_map;
 
 in VS_OUT {
   vec3 frag_position;
@@ -56,10 +59,36 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
   return shadow;
 }
 
+// A simplified way to get our tangent-normals to world-space from LearnOpenGL.
+// Don't really understand how this works!
+// We probably want to convert this to the regular way of calculating them
+// in the future, but since we're using both PBR and deferred lighting,
+// it would be a bit troublesome to integrate into the code.
+vec3 get_normal_from_map() {
+  vec3 tangent_normal = texture(normal_texture, fs_in.tex_coords).xyz * 2.0 - 1.0;
+
+  vec3 Q1 = dFdx(fs_in.frag_position);
+  vec3 Q2 = dFdy(fs_in.frag_position);
+  vec2 st1 = dFdx(fs_in.tex_coords);
+  vec2 st2 = dFdy(fs_in.tex_coords);
+
+  vec3 N = normalize(fs_in.normal);
+  vec3 T = normalize((Q1 * st2.t) - (Q2 * st1.t));
+  vec3 B = -normalize(cross(N, T));
+  mat3 TBN = mat3(T, B, N);
+
+  return normalize(TBN * tangent_normal);
+}
+
 void main() {
   vec3 unit_normal = normalize(fs_in.normal);
   g_position = fs_in.frag_position;
-  g_normal = unit_normal;
+
+  if (should_use_normal_map) {
+    g_normal = get_normal_from_map();
+  } else {
+    g_normal = unit_normal;
+  }
 
   vec3 albedo;
   if (albedo_static.x < 0) {

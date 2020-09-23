@@ -7,6 +7,7 @@ struct Memory;
 enum TextureType {
   TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH,
   TEXTURE_ALBEDO, TEXTURE_METALLIC, TEXTURE_ROUGHNESS, TEXTURE_AO,
+  TEXTURE_NORMAL,
   TEXTURE_G_POSITION, TEXTURE_G_NORMAL, TEXTURE_G_ALBEDO, TEXTURE_G_PBR
 };
 
@@ -28,6 +29,7 @@ struct Mesh {
   uint32 metallic_texture;
   uint32 roughness_texture;
   uint32 ao_texture;
+  uint32 normal_texture;
 
   // Hardcoded values for when we can't load a texture.
   glm::vec4 albedo_static;

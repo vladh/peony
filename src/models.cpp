@@ -177,6 +177,13 @@ void models_load_mesh_textures(
 void models_init_mesh(Mesh *mesh, uint32 mode) {
   mesh->mode = mode;
   mesh->is_screenquad = false;
+
+  mesh->albedo_texture = 0;
+  mesh->metallic_texture = 0;
+  mesh->roughness_texture = 0;
+  mesh->ao_texture = 0;
+  mesh->normal_texture = 0;
+
   mesh->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
   mesh->metallic_static = -1.0f;
   mesh->roughness_static = -1.0f;
@@ -283,6 +290,8 @@ void models_add_texture(
     mesh->roughness_texture = texture;
   } else if (type == TEXTURE_AO) {
     mesh->ao_texture = texture;
+  } else if (type == TEXTURE_NORMAL) {
+    mesh->normal_texture = texture;
   } else if (type == TEXTURE_G_POSITION) {
     mesh->g_position_texture = texture;
   } else if (type == TEXTURE_G_NORMAL) {
@@ -409,12 +418,8 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
 
   shader_set_int(shader_program, "n_depth_textures", mesh->n_depth_textures);
 
-  // TODO: Make it so we only have to bind the textures we're using,
-  // not every single one every time.
-  // NOTE: We have to bind the memory for all textures, not just the ones we're
-  // using. If we only bind the 0th, and we have code that looks like
-  // textures[1] in GLSL, even if it doesn't get run because it's inside a
-  // conditional, it will crash.
+  // TODO: We have to bind every single texture. This is a bit slow, so what
+  // would be a way to get around this?
   for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
     util_join(uniform_name, "depth_textures[", idx, "]");
@@ -459,6 +464,16 @@ void models_draw_mesh(Mesh *mesh, uint32 shader_program) {
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
     shader_set_int(shader_program, "ao_texture", texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->ao_texture);
+
+    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+    shader_set_int(shader_program, "normal_texture", texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->normal_texture);
+  }
+
+  if (mesh->normal_texture != 0) {
+    shader_set_bool(shader_program, "should_use_normal_map", true);
+  } else {
+    shader_set_bool(shader_program, "should_use_normal_map", false);
   }
 
   glActiveTexture(GL_TEXTURE0);

@@ -163,6 +163,10 @@ void scene_resources_init_models(Memory *memory, State *state) {
     &model_asset->model, TEXTURE_AO,
     models_load_texture_from_file("resources/textures/rusted_iron/ao.png")
   );
+  models_add_texture(
+    &model_asset->model, TEXTURE_NORMAL,
+    models_load_texture_from_file("resources/textures/rusted_iron/normal.png")
+  );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
       &model_asset->model, TEXTURE_DEPTH,
