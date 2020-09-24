@@ -11,6 +11,7 @@ void shader_assert_shader_status_ok(uint32 shader, const char* path) {
   }
 }
 
+
 void shader_assert_program_status_ok(uint32 program) {
   int32 status;
   glGetProgramiv(program, GL_LINK_STATUS, &status);
@@ -24,6 +25,7 @@ void shader_assert_program_status_ok(uint32 program) {
   }
 }
 
+
 uint32 shader_load(const char *path, const char *source, GLenum shader_type) {
   uint32 shader = glCreateShader(shader_type);
   glShaderSource(shader, 1, &source, NULL);
@@ -32,18 +34,6 @@ uint32 shader_load(const char *path, const char *source, GLenum shader_type) {
   return shader;
 }
 
-void shader_init(Shader *shader, uint32 program) {
-  shader->program = program;
-  // TODO: Is there a better way to do this?
-  for (uint16 idx = 0; idx < LEN(shader->uniform_locations); idx++) {
-    shader->uniform_locations[idx] = -1;
-  }
-}
-
-void shader_init_program(uint32 shader_program) {
-  uint32 uniform_block_index = glGetUniformBlockIndex(shader_program, "shader_common");
-  glUniformBlockBinding(shader_program, uniform_block_index, 0);
-}
 
 uint32 shader_make_program(uint32 vertex_shader, uint32 fragment_shader) {
   uint32 shader_program = glCreateProgram();
@@ -51,9 +41,9 @@ uint32 shader_make_program(uint32 vertex_shader, uint32 fragment_shader) {
   glAttachShader(shader_program, fragment_shader);
   glLinkProgram(shader_program);
   shader_assert_program_status_ok(shader_program);
-  shader_init_program(shader_program);
   return shader_program;
 }
+
 
 uint32 shader_make_program(
   uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
@@ -64,9 +54,9 @@ uint32 shader_make_program(
   glAttachShader(shader_program, geometry_shader);
   glLinkProgram(shader_program);
   shader_assert_program_status_ok(shader_program);
-  shader_init_program(shader_program);
   return shader_program;
 }
+
 
 const char* shader_load_file(Memory *memory, const char *path) {
   // TODO: It's a bit wasteful to add `common.glsl` to every single
@@ -76,92 +66,161 @@ const char* shader_load_file(Memory *memory, const char *path) {
   );
 }
 
-uint32 shader_make_program_with_paths(
-  Memory *memory, const char *vert_path, const char *frag_path
-) {
-  return shader_make_program(
-    shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
-    shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER)
-  );
+
+void shader_init(Shader *shader) {
+  /*
+    Intrinsic uniform: A uniform declared by a shader. We only care
+      about intrinsic uniforms in the Shader struct.
+
+    Active uniforms: A uniform used in a shader, which can be either
+      an intrinsic uniform, or a uniform from another source such as a
+      uniform buffer object.
+  */
+  // TODO: Is there a better way to do this?
+  for (uint16 idx = 0; idx < LEN(shader->uniform_locations); idx++) {
+    shader->uniform_locations[idx] = -1;
+  }
+
+  // Bind uniform block
+  uint32 uniform_block_index = glGetUniformBlockIndex(shader->program, "shader_common");
+  glUniformBlockBinding(shader->program, uniform_block_index, 0);
+
+  // Load uniforms
+  uint32 n_intrinsic_uniforms = 0;
+  GLint n_active_uniforms;
+  char uniform_name[MAX_UNIFORM_NAME_LENGTH];
+  GLint uniform_name_length;
+  GLint uniform_size;
+  GLenum uniform_type;
+
+  glGetProgramiv(shader->program, GL_ACTIVE_UNIFORMS, &n_active_uniforms);
+
+  for (GLint idx = 0; idx < n_active_uniforms; idx++) {
+    glGetActiveUniform(
+      shader->program, (GLuint)idx, MAX_UNIFORM_NAME_LENGTH,
+      &uniform_name_length, &uniform_size, &uniform_type, uniform_name
+    );
+    GLint location = glGetUniformLocation(shader->program, uniform_name);
+    if (location != -1) {
+      shader->intrinsic_uniform_locations[n_intrinsic_uniforms] = location;
+      strcpy(shader->intrinsic_uniform_names[n_intrinsic_uniforms], uniform_name);
+      n_intrinsic_uniforms++;
+    }
+  }
+
+  shader->n_intrinsic_uniforms = n_intrinsic_uniforms;
+
+  for (uint32 idx = 0; idx < shader->n_intrinsic_uniforms; idx++) {
+    log_info("%s at %d", shader->intrinsic_uniform_names[idx], shader->intrinsic_uniform_locations[idx]);
+  }
+
+  log_fatal("Nice");
 }
 
-uint32 shader_make_program_with_paths(
-  Memory *memory, const char *vert_path, const char *frag_path, const char *geom_path
+
+void shader_init(
+  Shader *shader, Memory *memory,
+  const char* vert_path, const char *frag_path, const char *geom_path
 ) {
-  uint32 shader_program = shader_make_program(
+  shader->program = shader_make_program(
     shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
     shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER),
     shader_load(geom_path, shader_load_file(memory, geom_path), GL_GEOMETRY_SHADER)
   );
-  return shader_program;
+
+  shader_init(shader);
 }
+
+
+void shader_init(
+  Shader *shader, Memory *memory,
+  const char* vert_path, const char *frag_path
+) {
+  shader->program = shader_make_program(
+    shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
+    shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER)
+  );
+
+  shader_init(shader);
+}
+
 
 ShaderAsset* shader_make_asset(
   ShaderAsset *asset, Memory *memory, const char *name,
-  const char *vertex_path, const char* frag_path
+  const char *vert_path, const char* frag_path
 ) {
-  uint32 program = shader_make_program_with_paths(
-    memory, vertex_path, frag_path
-  );
+  log_info("Making shader asset %s", name);
   asset->info.name = name;
-
-  shader_init(&asset->shader, program);
-
+  shader_init(&asset->shader, memory, vert_path, frag_path);
   memory_reset_pool(&memory->temp_memory_pool);
-
   return asset;
 }
+
 
 ShaderAsset* shader_make_asset(
   ShaderAsset *asset, Memory *memory, const char *name,
-  const char *vertex_path, const char *frag_path, const char *geom_path
+  const char *vert_path, const char *frag_path, const char *geom_path
 ) {
-  uint32 program = shader_make_program_with_paths(
-    memory, vertex_path, frag_path, geom_path
-  );
   asset->info.name = name;
-
-  shader_init(&asset->shader, program);
-
+  shader_init(&asset->shader, memory, vert_path, frag_path, geom_path);
+  memory_reset_pool(&memory->temp_memory_pool);
   return asset;
 }
 
-uint32 shader_get_uniform_location(Shader *shader, const char *name) {
-  return glGetUniformLocation(shader->program, name);
+
+int32 shader_get_uniform_location(Shader *shader, UniformName name) {
+  int32 uniform_idx = -1;
+  for (uint32 idx = 0; idx < shader->n_intrinsic_uniforms; idx++) {
+    if (strcmp(shader->intrinsic_uniform_names[idx], name) == 0) {
+      uniform_idx = idx;
+      break;
+    }
+  }
+  assert(uniform_idx != -1);
+  return shader->intrinsic_uniform_locations[uniform_idx];
 }
 
-void shader_set_int(Shader *shader, const char *name, uint32 value) {
+
+void shader_set_int(Shader *shader, UniformName name, uint32 value) {
   glUniform1i(shader_get_uniform_location(shader, name), value);
 }
 
-void shader_set_bool(Shader *shader, const char *name, bool value) {
+
+void shader_set_bool(Shader *shader, UniformName name, bool value) {
   shader_set_int(shader, name, (uint32)value);
 }
 
-void shader_set_float(Shader *shader, const char *name, float value) {
+
+void shader_set_float(Shader *shader, UniformName name, float value) {
   glUniform1f(shader_get_uniform_location(shader, name), value);
 }
 
-void shader_set_vec2(Shader *shader, const char *name, glm::vec2 *value) {
+
+void shader_set_vec2(Shader *shader, UniformName name, glm::vec2 *value) {
   glUniform2fv(shader_get_uniform_location(shader, name), 1, glm::value_ptr(*value));
 }
 
-void shader_set_vec3(Shader *shader, const char *name, glm::vec3 *value) {
+
+void shader_set_vec3(Shader *shader, UniformName name, glm::vec3 *value) {
   glUniform3fv(shader_get_uniform_location(shader, name), 1, glm::value_ptr(*value));
 }
 
-void shader_set_vec4(Shader *shader, const char *name, glm::vec4 *value) {
+
+void shader_set_vec4(Shader *shader, UniformName name, glm::vec4 *value) {
   glUniform4fv(shader_get_uniform_location(shader, name), 1, glm::value_ptr(*value));
 }
 
-void shader_set_mat2(Shader *shader, const char *name, glm::mat2 *mat) {
+
+void shader_set_mat2(Shader *shader, UniformName name, glm::mat2 *mat) {
   glUniformMatrix2fv(shader_get_uniform_location(shader, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
-void shader_set_mat3(Shader *shader, const char *name, glm::mat3 *mat) {
+
+void shader_set_mat3(Shader *shader, UniformName name, glm::mat3 *mat) {
   glUniformMatrix3fv(shader_get_uniform_location(shader, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
-void shader_set_mat4(Shader *shader, const char *name, glm::mat4 *mat) {
+
+void shader_set_mat4(Shader *shader, UniformName name, glm::mat4 *mat) {
   glUniformMatrix4fv(shader_get_uniform_location(shader, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }

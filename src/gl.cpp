@@ -5,6 +5,10 @@
 #define USE_AXES false
 
 #include "gl.hpp"
+
+global_variable uint32 global_shader_oops = 0;
+global_variable uint32 global_shader_cache = 0;
+
 #include "log.cpp"
 #include "pack.cpp"
 #include "font.cpp"
@@ -28,6 +32,7 @@ void update_drawing_options(State *state, GLFWwindow *window) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   }
 }
+
 
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (control_is_key_down(&state->control, GLFW_KEY_W)) {
@@ -55,6 +60,7 @@ void process_input_continuous(GLFWwindow *window, State *state) {
   }
 }
 
+
 void process_input_transient(GLFWwindow *window, State *state) {
   if (control_is_key_now_down(&state->control, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
@@ -71,6 +77,7 @@ void process_input_transient(GLFWwindow *window, State *state) {
   }
 }
 
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   state->window_width = width;
@@ -79,17 +86,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 }
 
+
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
   camera_update_mouse(state->camera_active, mouse_offset);
 }
 
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   control_update_keys(&state->control, key, scancode, action, mods);
   process_input_transient(window, state);
 }
+
 
 Memory init_memory() {
   Memory memory;
@@ -113,6 +123,7 @@ Memory init_memory() {
   return memory;
 }
 
+
 void init_state(Memory *memory, State *state) {
   array_init<Entity>(&memory->asset_memory_pool, &state->entities, 128);
   array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
@@ -135,6 +146,7 @@ void init_state(Memory *memory, State *state) {
 
   control_init(&state->control);
 }
+
 
 GLFWwindow* init_window(State *state) {
 #ifdef USE_1440P
@@ -199,9 +211,11 @@ GLFWwindow* init_window(State *state) {
   return window;
 }
 
+
 void set_render_mode(State *state, RenderMode render_mode) {
   state->render_mode = render_mode;
 }
+
 
 void draw_text(
   State *state, const char* font_name, const char *str,
@@ -216,7 +230,7 @@ void draw_text(
   Font *font = &font_asset->font;
 
   glUseProgram(shader->program);
-  shader_set_vec4(shader, "text_color", &color);
+  shader_set_vec4(shader, UNIFORM_TEXT_COLOR, &color);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, font->texture);
@@ -266,6 +280,7 @@ void draw_text(
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+
 void draw_entity(State *state, Entity *entity) {
   if (entity->type == ENTITY_MODEL) {
     assert(entity->model_asset);
@@ -279,6 +294,7 @@ void draw_entity(State *state, Entity *entity) {
     if (entity->shader_asset) {
       shader_asset = entity->shader_asset;
     } else {
+      // TODO: Was this a problem or not?
       if (state->render_mode == RENDERMODE_REGULAR) {
         shader_asset = state->entity_shader_asset;
       } else if (state->render_mode == RENDERMODE_DEPTH) {
@@ -292,17 +308,16 @@ void draw_entity(State *state, Entity *entity) {
     Shader *shader = &shader_asset->shader;
     glUseProgram(shader->program);
 
-    shader_set_mat4(shader, "model", &model_matrix);
+    {
+      shader_set_mat4(shader, UNIFORM_MODEL, &model_matrix);
 
-    if (state->render_mode == RENDERMODE_REGULAR) {
+      /* if (state->render_mode == RENDERMODE_DEPTH) { */
+        shader_set_int(shader, UNIFORM_SHADOW_LIGHT_IDX, state->shadow_light_idx);
+      /* } */
 
-    } else if (state->render_mode == RENDERMODE_DEPTH) {
-      shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
-    }
-
-    // TODO: Do this in a better way?
-    if (strcmp(shader_asset->info.name, "screenquad") == 0) {
-      shader_set_float(shader, "exposure", state->camera_active->exposure);
+      /* if (strcmp(shader_asset->info.name, "screenquad") == 0) { */
+        shader_set_float(shader, UNIFORM_EXPOSURE, state->camera_active->exposure);
+      /* } */
     }
 
     models_draw_model(&entity->model_asset->model, shader);
@@ -314,6 +329,7 @@ void draw_entity(State *state, Entity *entity) {
   }
 }
 
+
 void draw_all_entities_with_name(Memory *memory, State *state, const char* name) {
   entity_get_all_with_name(
     state->entities, name, &state->found_entities
@@ -324,6 +340,7 @@ void draw_all_entities_with_name(Memory *memory, State *state, const char* name)
   }
 }
 
+
 void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
   entity_get_all_with_tag(
     state->entities, tag, &state->found_entities
@@ -333,6 +350,7 @@ void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
     draw_entity(state, entity);
   }
 }
+
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
   // NOTE: Do we want to optimise this copying?
@@ -367,11 +385,13 @@ void render_scene(Memory *memory, State *state) {
 #endif
 }
 
+
 void render_scene_forward(Memory *memory, State *state) {
   draw_all_entities_with_tag(memory, state, "light");
 
   glEnable(GL_BLEND);
 
+  // TODO: Make this nicer.
   // TODO: Get rid of sprintf.
   const real32 row_height = 30.0f;
   char fps_text[128];
@@ -405,9 +425,22 @@ void render_scene_forward(Memory *memory, State *state) {
     15.0f, state->window_height - 35.0f - row_height * 4,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
+  sprintf(fps_text, "(shader_oops %d)", global_shader_oops);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height * 5,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+  sprintf(fps_text, "(shader_cache %d)", global_shader_cache);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height * 6,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
 
   glDisable(GL_BLEND);
 }
+
 
 void update_and_render(Memory *memory, State *state) {
   scene_update(memory, state);
@@ -475,6 +508,7 @@ void update_and_render(Memory *memory, State *state) {
   render_scene_forward(memory, state);
 }
 
+
 void init_shader_buffers(Memory *memory, State *state) {
   glGenBuffers(1, &state->ubo_shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
@@ -482,6 +516,7 @@ void init_shader_buffers(Memory *memory, State *state) {
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
   glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
 }
+
 
 void init_shadow_buffers(Memory *memory, State *state) {
   state->shadow_map_width = 2048;
@@ -522,6 +557,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
   }
 }
+
 
 void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glGenFramebuffers(1, &state->g_buffer);
@@ -600,6 +636,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   }
 }
 
+
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
     real64 t_start = glfwGetTime();
@@ -630,9 +667,11 @@ void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   }
 }
 
+
 void destroy_window() {
   glfwTerminate();
 }
+
 
 int main() {
   srand((uint32)time(NULL));

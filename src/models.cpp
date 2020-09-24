@@ -457,72 +457,70 @@ ModelAsset* models_make_asset_from_data(
   return model_asset;
 }
 
-void models_draw_mesh(Mesh *mesh, Shader *shader) {
-  char uniform_name[128];
+void model_set_uniforms_for_mesh(Mesh *mesh, Shader *shader) {
   uint32 texture_idx = 0;
 
-  shader_set_mat4(shader, "mesh_transform", &mesh->transform);
-  shader_set_int(shader, "n_depth_textures", mesh->n_depth_textures);
+  shader_set_mat4(shader, UNIFORM_MESH_TRANSFORM, &mesh->transform);
+  shader_set_int(shader, UNIFORM_N_DEPTH_TEXTURES, mesh->n_depth_textures);
 
-  // TODO: We have to bind every single texture. This is a bit slow, so what
-  // would be a way to get around this?
   for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    util_join(uniform_name, "depth_textures[", idx, "]");
-    shader_set_int(shader, uniform_name, texture_idx);
+    shader_set_int(shader, DEPTH_TEXTURE_UNIFORM_NAMES[idx], texture_idx);
     glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
   }
 
   if (mesh->is_screenquad) {
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_position_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_G_POSITION_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->g_position_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_normal_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_G_NORMAL_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->g_normal_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_albedo_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_G_ALBEDO_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->g_albedo_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_pbr_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_G_PBR_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->g_pbr_texture);
   } else {
-    shader_set_vec4(shader, "albedo_static", &mesh->albedo_static);
-    shader_set_float(shader, "metallic_static", mesh->metallic_static);
-    shader_set_float(shader, "roughness_static", mesh->roughness_static);
-    shader_set_float(shader, "ao_static", mesh->ao_static);
+    shader_set_vec4(shader, UNIFORM_ALBEDO_STATIC, &mesh->albedo_static);
+    shader_set_float(shader, UNIFORM_METALLIC_STATIC, mesh->metallic_static);
+    shader_set_float(shader, UNIFORM_ROUGHNESS_STATIC, mesh->roughness_static);
+    shader_set_float(shader, UNIFORM_AO_STATIC, mesh->ao_static);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "albedo_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_ALBEDO_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->albedo_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "metallic_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_METALLIC_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->metallic_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "roughness_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_ROUGHNESS_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->roughness_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "ao_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_AO_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->ao_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "normal_texture", texture_idx);
+    shader_set_int(shader, UNIFORM_NORMAL_TEXTURE, texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->normal_texture);
   }
 
   if (mesh->normal_texture != 0) {
-    shader_set_bool(shader, "should_use_normal_map", true);
+    shader_set_bool(shader, UNIFORM_SHOULD_USE_NORMAL_MAP, true);
   } else {
-    shader_set_bool(shader, "should_use_normal_map", false);
+    shader_set_bool(shader, UNIFORM_SHOULD_USE_NORMAL_MAP, false);
   }
+}
 
-  glActiveTexture(GL_TEXTURE0);
+void models_draw_mesh(Mesh *mesh, Shader *shader) {
+  model_set_uniforms_for_mesh(mesh, shader);
 
   glBindVertexArray(mesh->vao);
   if (mesh->indices.size > 0) {
