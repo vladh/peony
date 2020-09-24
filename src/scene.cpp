@@ -41,6 +41,7 @@ void scene_init_objects(Memory *memory, State *state) {
       glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
     )
   );
+  entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "entity"));
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "floor"));
 
   // Temple
@@ -57,6 +58,7 @@ void scene_init_objects(Memory *memory, State *state) {
         glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)
       )
     );
+    entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "entity"));
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "temple"));
   }
 
@@ -91,6 +93,7 @@ void scene_init_objects(Memory *memory, State *state) {
         glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
+    entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "entity"));
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "goose"));
   }
 
@@ -108,6 +111,7 @@ void scene_init_objects(Memory *memory, State *state) {
         glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
+    entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "entity"));
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "sphere"));
   }
 
@@ -142,7 +146,7 @@ void scene_init_objects(Memory *memory, State *state) {
         glm::radians(-90.0f + (30.0f * idx)), glm::vec3(1.0f, 0.0f, 0.0f)
       )
     );
-
+    entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "entity"));
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "alpaca"));
   }
 #endif
@@ -179,7 +183,7 @@ void scene_update(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
     Entity *entity = state->found_entities.items[idx];
 
-    real32 spin_deg_per_t = 90.0f;
+    real32 spin_deg_per_t = 45.0f;
 
     entity->position = glm::vec3(
       -10.0f, entity->position.y, (real32)idx * 2.0f
