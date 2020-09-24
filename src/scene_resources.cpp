@@ -180,7 +180,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "floor", "resources/models/", "cube.obj"
   );
   models_set_static_pbr(
-    &model_asset->model, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), 0.0f, 1.0f, 1.0f
+    &model_asset->model, glm::vec4(0.9f, 0.8f, 0.7f, 1.0f), 0.0f, 1.0f, 1.0f
   );
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     models_add_texture(
