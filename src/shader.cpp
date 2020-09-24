@@ -77,8 +77,8 @@ void shader_init(Shader *shader) {
       uniform buffer object.
   */
   // TODO: Is there a better way to do this?
-  for (uint16 idx = 0; idx < LEN(shader->uniform_locations); idx++) {
-    shader->uniform_locations[idx] = -1;
+  for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
+    shader->intrinsic_uniform_locations[idx] = -1;
   }
 
   // Bind uniform block
@@ -109,12 +109,6 @@ void shader_init(Shader *shader) {
   }
 
   shader->n_intrinsic_uniforms = n_intrinsic_uniforms;
-
-  for (uint32 idx = 0; idx < shader->n_intrinsic_uniforms; idx++) {
-    log_info("%s at %d", shader->intrinsic_uniform_names[idx], shader->intrinsic_uniform_locations[idx]);
-  }
-
-  log_fatal("Nice");
 }
 
 
@@ -149,7 +143,6 @@ ShaderAsset* shader_make_asset(
   ShaderAsset *asset, Memory *memory, const char *name,
   const char *vert_path, const char* frag_path
 ) {
-  log_info("Making shader asset %s", name);
   asset->info.name = name;
   shader_init(&asset->shader, memory, vert_path, frag_path);
   memory_reset_pool(&memory->temp_memory_pool);
@@ -168,7 +161,7 @@ ShaderAsset* shader_make_asset(
 }
 
 
-int32 shader_get_uniform_location(Shader *shader, UniformName name) {
+int32 shader_get_uniform_location(Shader *shader, const char *name) {
   int32 uniform_idx = -1;
   for (uint32 idx = 0; idx < shader->n_intrinsic_uniforms; idx++) {
     if (strcmp(shader->intrinsic_uniform_names[idx], name) == 0) {
@@ -176,51 +169,64 @@ int32 shader_get_uniform_location(Shader *shader, UniformName name) {
       break;
     }
   }
-  assert(uniform_idx != -1);
+  if (uniform_idx == -1) {
+    log_error("Had to look up location for uniform: %s", name);
+    global_shader_oops++;
+    GLint location = glGetUniformLocation(shader->program, name);
+    if (location != -1) {
+      shader->intrinsic_uniform_locations[shader->n_intrinsic_uniforms] = location;
+      strcpy(shader->intrinsic_uniform_names[shader->n_intrinsic_uniforms], name);
+      shader->n_intrinsic_uniforms++;
+    } else {
+      log_fatal("Could not get uniform: %s", name);
+    }
+  } else {
+    global_shader_cache++;
+  }
   return shader->intrinsic_uniform_locations[uniform_idx];
 }
 
 
-void shader_set_int(Shader *shader, UniformName name, uint32 value) {
+void shader_set_int(Shader *shader, const char *name, uint32 value) {
   glUniform1i(shader_get_uniform_location(shader, name), value);
 }
 
 
-void shader_set_bool(Shader *shader, UniformName name, bool value) {
+void shader_set_bool(Shader *shader, const char *name, bool value) {
   shader_set_int(shader, name, (uint32)value);
 }
 
 
-void shader_set_float(Shader *shader, UniformName name, float value) {
+void shader_set_float(Shader *shader, const char *name, float value) {
   glUniform1f(shader_get_uniform_location(shader, name), value);
 }
 
 
-void shader_set_vec2(Shader *shader, UniformName name, glm::vec2 *value) {
+void shader_set_vec2(Shader *shader, const char *name, glm::vec2 *value) {
   glUniform2fv(shader_get_uniform_location(shader, name), 1, glm::value_ptr(*value));
 }
 
 
-void shader_set_vec3(Shader *shader, UniformName name, glm::vec3 *value) {
+void shader_set_vec3(Shader *shader, const char *name, glm::vec3 *value) {
   glUniform3fv(shader_get_uniform_location(shader, name), 1, glm::value_ptr(*value));
 }
 
 
-void shader_set_vec4(Shader *shader, UniformName name, glm::vec4 *value) {
+void shader_set_vec4(Shader *shader, const char *name, glm::vec4 *value) {
   glUniform4fv(shader_get_uniform_location(shader, name), 1, glm::value_ptr(*value));
 }
 
 
-void shader_set_mat2(Shader *shader, UniformName name, glm::mat2 *mat) {
+void shader_set_mat2(Shader *shader, const char *name, glm::mat2 *mat) {
   glUniformMatrix2fv(shader_get_uniform_location(shader, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
 
-void shader_set_mat3(Shader *shader, UniformName name, glm::mat3 *mat) {
+void shader_set_mat3(Shader *shader, const char *name, glm::mat3 *mat) {
   glUniformMatrix3fv(shader_get_uniform_location(shader, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }
 
 
-void shader_set_mat4(Shader *shader, UniformName name, glm::mat4 *mat) {
+void shader_set_mat4(Shader *shader, const char *name, glm::mat4 *mat) {
   glUniformMatrix4fv(shader_get_uniform_location(shader, name), 1, GL_FALSE, glm::value_ptr(*mat));
 }

@@ -9,6 +9,17 @@ const char *NUM_TO_STR[128] = {
   "112", "113", "114", "115", "116", "117", "118", "119", "120", "121", "122", "123", "124", "125", "126", "127"
 };
 
+const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
+  "depth_textures[0]",
+  "depth_textures[1]",
+  "depth_textures[2]",
+  "depth_textures[3]",
+  "depth_textures[4]",
+  "depth_textures[5]",
+  "depth_textures[6]",
+  "depth_textures[7]"
+};
+
 #define AXIS_SIZE 20.0f
 
 #define AXES_VERTICES {\

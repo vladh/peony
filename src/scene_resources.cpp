@@ -23,7 +23,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
   shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
-    "screenquad", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
+    "lighting", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
   );
 
   shader_make_asset(
@@ -41,7 +41,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
   );
   glUseProgram(text_shader_asset->shader.program);
-  shader_set_mat4(&text_shader_asset->shader, UNIFORM_TEXT_PROJECTION, &text_projection);
+  shader_set_mat4(&text_shader_asset->shader, "text_projection", &text_projection);
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
@@ -62,7 +62,6 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "screenquad",
     GL_TRIANGLES
   );
-  models_set_is_screenquad(&model_asset->model);
   models_add_texture(
     &model_asset->model, TEXTURE_G_POSITION, state->g_position_texture
   );
@@ -115,6 +114,12 @@ void scene_resources_init_models(Memory *memory, State *state) {
   models_set_static_pbr(
     &model_asset->model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
   );
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    models_add_texture(
+      &model_asset->model, TEXTURE_DEPTH,
+      state->shadow_cubemaps[idx]
+    );
+  }
 
   // Sphere
   uint32 n_x_segments = 64;

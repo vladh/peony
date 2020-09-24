@@ -12,6 +12,7 @@
 #include <math.h>
 #include <time.h>
 #include <stdio.h>
+#include <signal.h>
 
 #if defined(__unix__)
 #include <unistd.h>

@@ -82,7 +82,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   state->window_width = width;
   state->window_height = height;
-  log_info("%d x %d", state->window_width, state->window_height);
+  log_info("Window is now: %d x %d", state->window_width, state->window_height);
   glViewport(0, 0, width, height);
 }
 
@@ -230,7 +230,7 @@ void draw_text(
   Font *font = &font_asset->font;
 
   glUseProgram(shader->program);
-  shader_set_vec4(shader, UNIFORM_TEXT_COLOR, &color);
+  shader_set_vec4(shader, "text_color", &color);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, font->texture);
@@ -291,36 +291,31 @@ void draw_entity(State *state, Entity *entity) {
     model_matrix = model_matrix * glm::toMat4(entity->rotation);
 
     ShaderAsset *shader_asset;
-    if (entity->shader_asset) {
+
+    if (state->render_mode == RENDERMODE_DEPTH) {
+      shader_asset = state->entity_depth_shader_asset;
+    } else if (entity->shader_asset) {
       shader_asset = entity->shader_asset;
     } else {
-      // TODO: Was this a problem or not?
-      if (state->render_mode == RENDERMODE_REGULAR) {
-        shader_asset = state->entity_shader_asset;
-      } else if (state->render_mode == RENDERMODE_DEPTH) {
-        shader_asset = state->entity_depth_shader_asset;
-      } else {
-        log_error("Could not find shader asset for entity %s", entity->name);
-        shader_asset = nullptr;
-      }
+      log_error("Could not find shader asset for entity %s", entity->name);
+      shader_asset = nullptr;
     }
 
     Shader *shader = &shader_asset->shader;
     glUseProgram(shader->program);
 
     {
-      shader_set_mat4(shader, UNIFORM_MODEL, &model_matrix);
-
-      /* if (state->render_mode == RENDERMODE_DEPTH) { */
-        shader_set_int(shader, UNIFORM_SHADOW_LIGHT_IDX, state->shadow_light_idx);
-      /* } */
-
-      /* if (strcmp(shader_asset->info.name, "screenquad") == 0) { */
-        shader_set_float(shader, UNIFORM_EXPOSURE, state->camera_active->exposure);
-      /* } */
+      if (strcmp(shader_asset->info.name, "lighting") == 0) {
+        shader_set_float(shader, "exposure", state->camera_active->exposure);
+      } else {
+        shader_set_mat4(shader, "model", &model_matrix);
+        if (strcmp(shader_asset->info.name, "entity_depth") == 0) {
+          shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
+        }
+      }
     }
 
-    models_draw_model(&entity->model_asset->model, shader);
+    models_draw_model(&entity->model_asset->model, shader_asset, state->render_mode);
   } else {
     log_warning(
       "Do not know how to draw entity '%s' of type '%d'",

@@ -1,6 +1,3 @@
-uniform int n_depth_textures;
-uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
-
 uniform sampler2D albedo_texture;
 uniform sampler2D metallic_texture;
 uniform sampler2D roughness_texture;
