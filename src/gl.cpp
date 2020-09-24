@@ -5,6 +5,7 @@
 
 #include "gl.hpp"
 #include "log.cpp"
+#include "pack.cpp"
 #include "font.cpp"
 #include "shader.cpp"
 #include "util.cpp"
