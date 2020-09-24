@@ -11,7 +11,7 @@ unsigned char *util_load_image(
 unsigned char *util_load_image(
   const char *path, int32 *width, int32 *height, int32 *n_channels
 ) {
-  util_load_image(path, width, height, n_channels, true);
+  return util_load_image(path, width, height, n_channels, true);
 }
 
 void util_free_image(unsigned char *image_data) {
