@@ -178,7 +178,6 @@ void models_load_mesh_textures(
 
 void models_init_mesh(Mesh *mesh, uint32 mode) {
   mesh->mode = mode;
-  mesh->is_screenquad = false;
 
   mesh->transform = glm::mat4(1.0f);
 
@@ -378,13 +377,6 @@ void models_set_static_pbr(
   }
 }
 
-void models_set_is_screenquad(Model *model) {
-  for (uint32 idx = 0; idx < model->meshes.size; idx++) {
-    Mesh *mesh = &model->meshes.items[idx];
-    mesh->is_screenquad = true;
-  }
-}
-
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
   real32 *vertex_data, uint32 n_vertices,
@@ -457,70 +449,80 @@ ModelAsset* models_make_asset_from_data(
   return model_asset;
 }
 
-void model_set_uniforms_for_mesh(Mesh *mesh, Shader *shader) {
+void model_set_uniforms_for_mesh(
+  Mesh *mesh, ShaderAsset *shader_asset, RenderMode render_mode
+) {
+  Shader *shader = &shader_asset->shader;
   uint32 texture_idx = 0;
 
-  shader_set_mat4(shader, UNIFORM_MESH_TRANSFORM, &mesh->transform);
-  shader_set_int(shader, UNIFORM_N_DEPTH_TEXTURES, mesh->n_depth_textures);
+  bool is_lighting = (strcmp(shader_asset->info.name, "lighting") == 0);
+  bool is_entity = (strcmp(shader_asset->info.name, "entity") == 0);
+  bool is_entity_depth = (strcmp(shader_asset->info.name, "entity_depth") == 0);
 
-  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, DEPTH_TEXTURE_UNIFORM_NAMES[idx], texture_idx);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
+  if (is_entity || is_entity_depth) {
+    shader_set_mat4(shader, "mesh_transform", &mesh->transform);
   }
 
-  if (mesh->is_screenquad) {
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_G_POSITION_TEXTURE, texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_position_texture);
+  if (is_entity) {
+    shader_set_vec4(shader, "albedo_static", &mesh->albedo_static);
+    shader_set_float(shader, "metallic_static", mesh->metallic_static);
+    shader_set_float(shader, "roughness_static", mesh->roughness_static);
+    shader_set_float(shader, "ao_static", mesh->ao_static);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_G_NORMAL_TEXTURE, texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_normal_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_G_ALBEDO_TEXTURE, texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_albedo_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_G_PBR_TEXTURE, texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_pbr_texture);
-  } else {
-    shader_set_vec4(shader, UNIFORM_ALBEDO_STATIC, &mesh->albedo_static);
-    shader_set_float(shader, UNIFORM_METALLIC_STATIC, mesh->metallic_static);
-    shader_set_float(shader, UNIFORM_ROUGHNESS_STATIC, mesh->roughness_static);
-    shader_set_float(shader, UNIFORM_AO_STATIC, mesh->ao_static);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_ALBEDO_TEXTURE, texture_idx);
+    shader_set_int(shader, "albedo_texture", texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->albedo_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_METALLIC_TEXTURE, texture_idx);
+    shader_set_int(shader, "metallic_texture", texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->metallic_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_ROUGHNESS_TEXTURE, texture_idx);
+    shader_set_int(shader, "roughness_texture", texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->roughness_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_AO_TEXTURE, texture_idx);
+    shader_set_int(shader, "ao_texture", texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->ao_texture);
 
     glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, UNIFORM_NORMAL_TEXTURE, texture_idx);
+    shader_set_int(shader, "normal_texture", texture_idx);
     glBindTexture(GL_TEXTURE_2D, mesh->normal_texture);
-  }
 
-  if (mesh->normal_texture != 0) {
-    shader_set_bool(shader, UNIFORM_SHOULD_USE_NORMAL_MAP, true);
-  } else {
-    shader_set_bool(shader, UNIFORM_SHOULD_USE_NORMAL_MAP, false);
+    if (mesh->normal_texture != 0) {
+      shader_set_bool(shader, "should_use_normal_map", true);
+    } else {
+      shader_set_bool(shader, "should_use_normal_map", false);
+    }
+  } else if (is_lighting) {
+    shader_set_int(shader, "n_depth_textures", mesh->n_depth_textures);
+
+    for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, DEPTH_TEXTURE_UNIFORM_NAMES[idx], texture_idx);
+      glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
+    }
+
+    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+    shader_set_int(shader, "g_position_texture", texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->g_position_texture);
+
+    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+    shader_set_int(shader, "g_normal_texture", texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->g_normal_texture);
+
+    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+    shader_set_int(shader, "g_albedo_texture", texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->g_albedo_texture);
+
+    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+    shader_set_int(shader, "g_pbr_texture", texture_idx);
+    glBindTexture(GL_TEXTURE_2D, mesh->g_pbr_texture);
   }
 }
 
-void models_draw_mesh(Mesh *mesh, Shader *shader) {
-  model_set_uniforms_for_mesh(mesh, shader);
+void models_draw_mesh(Mesh *mesh, ShaderAsset *shader_asset, RenderMode render_mode) {
+  model_set_uniforms_for_mesh(mesh, shader_asset, render_mode);
 
   glBindVertexArray(mesh->vao);
   if (mesh->indices.size > 0) {
@@ -531,8 +533,8 @@ void models_draw_mesh(Mesh *mesh, Shader *shader) {
   glBindVertexArray(0);
 }
 
-void models_draw_model(Model *model, Shader *shader) {
+void models_draw_model(Model *model, ShaderAsset *shader_asset, RenderMode render_mode) {
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
-    models_draw_mesh(&model->meshes.items[idx], shader);
+    models_draw_mesh(&model->meshes.items[idx], shader_asset, render_mode);
   }
 }

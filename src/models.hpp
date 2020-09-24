@@ -47,7 +47,6 @@ struct Mesh {
   uint32 g_albedo_texture;
   uint32 g_pbr_texture;
 
-  bool32 is_screenquad;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
@@ -70,8 +69,7 @@ void models_load_mesh(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 );
-void models_draw_mesh(Mesh *mesh, uint32 shader_program);
-void models_draw_model(Model *model, uint32 shader_program);
+void models_draw_model(Model *model, ShaderAsset *shader_asset, RenderMode render_mode);
 #if 0
 void models_load_mesh_textures(
   Memory *memory, Model *model,
@@ -86,7 +84,6 @@ ModelAsset* models_make_asset_from_file(
   Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
 );
-void models_set_is_screenquad(Model *model);
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
   real32 *vertex_data, uint32 n_vertices,

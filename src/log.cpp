@@ -5,7 +5,8 @@ void log_fatal(const char *format, ...) {
   vfprintf(stderr, format, vargs);
   fprintf(stderr, "\n");
   va_end(vargs);
-  exit(-1);
+  raise(SIGABRT);
+  /* exit(-1); */
 }
 
 void log_error(const char *format, ...) {

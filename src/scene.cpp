@@ -124,7 +124,7 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::vec3(1.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f))
   );
-  entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "screenquad"));
+  entity_set_shader_asset(entity, asset_get_shader_asset_by_name(&state->shader_assets, "lighting"));
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "screenquad"));
 
 #if USE_ALPACA
