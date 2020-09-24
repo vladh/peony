@@ -1,7 +1,12 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-unsigned char* util_load_image(const char *path, int32 *width, int32 *height, int32 *n_channels);
+unsigned char *util_load_image(
+  const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
+);
+unsigned char *util_load_image(
+  const char *path, int32 *width, int32 *height, int32 *n_channels
+);
 void util_free_image(unsigned char *image_data);
 const char* util_load_two_files(MemoryPool *pool, const char *path1, const char* path2);
 const char* util_load_file(MemoryPool *pool, const char *path);

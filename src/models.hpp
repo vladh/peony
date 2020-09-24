@@ -62,6 +62,7 @@ struct Model {
   const char *directory;
 };
 
+uint32 models_load_texture_from_file(const char *path, bool should_flip);
 uint32 models_load_texture_from_file(const char *path);
 void models_setup_mesh(Mesh *mesh);
 void models_init_mesh(Mesh *mesh, uint32 mode);

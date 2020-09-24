@@ -1,10 +1,10 @@
-uint32 models_load_texture_from_file(const char *path) {
+uint32 models_load_texture_from_file(const char *path, bool should_flip) {
   uint32 texture_id;
   glGenTextures(1, &texture_id);
 
   int32 width, height, n_components;
   unsigned char *data = util_load_image(
-    path, &width, &height, &n_components
+    path, &width, &height, &n_components, should_flip
   );
 
   if (data) {
@@ -33,6 +33,10 @@ uint32 models_load_texture_from_file(const char *path) {
   }
 
   return texture_id;
+}
+
+uint32 models_load_texture_from_file(const char *path) {
+  return models_load_texture_from_file(path, true);
 }
 
 void models_setup_mesh(Mesh *mesh) {
@@ -108,7 +112,7 @@ internal void models_load_mesh_vertices(
     if (mesh_data->mTextureCoords[0]) {
       glm::vec2 tex_coords;
       tex_coords.x = mesh_data->mTextureCoords[0][idx].x;
-      tex_coords.y = mesh_data->mTextureCoords[0][idx].y;
+      tex_coords.y = 1 - mesh_data->mTextureCoords[0][idx].y;
       vertex->tex_coords = tex_coords;
     } else {
       vertex->tex_coords = glm::vec2(0.0f, 0.0f);
