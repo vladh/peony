@@ -210,13 +210,13 @@ void draw_text(
   ShaderAsset *shader_asset = asset_get_shader_asset_by_name(
     &state->shader_assets, "text"
   );
-  uint32 shader_program = shader_asset->shader.program;
+  Shader *shader = &shader_asset->shader;
 
   FontAsset *font_asset = asset_get_font_asset_by_name(&state->font_assets, font_name);
   Font *font = &font_asset->font;
 
-  glUseProgram(shader_program);
-  shader_set_vec4(shader_program, "text_color", &color);
+  glUseProgram(shader->program);
+  shader_set_vec4(shader, "text_color", &color);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, font->texture);
@@ -289,22 +289,23 @@ void draw_entity(State *state, Entity *entity) {
       }
     }
 
-    uint32 shader_program = shader_asset->shader.program;
-    glUseProgram(shader_program);
-    shader_set_mat4(shader_program, "model", &model_matrix);
+    Shader *shader = &shader_asset->shader;
+    glUseProgram(shader->program);
+
+    shader_set_mat4(shader, "model", &model_matrix);
 
     if (state->render_mode == RENDERMODE_REGULAR) {
 
     } else if (state->render_mode == RENDERMODE_DEPTH) {
-      shader_set_int(shader_program, "shadow_light_idx", state->shadow_light_idx);
+      shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
     }
 
     // TODO: Do this in a better way?
     if (strcmp(shader_asset->info.name, "screenquad") == 0) {
-      shader_set_float(shader_program, "exposure", state->camera_active->exposure);
+      shader_set_float(shader, "exposure", state->camera_active->exposure);
     }
 
-    models_draw_model(&entity->model_asset->model, shader_program);
+    models_draw_model(&entity->model_asset->model, shader);
   } else {
     log_warning(
       "Do not know how to draw entity '%s' of type '%d'",

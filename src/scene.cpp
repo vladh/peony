@@ -44,7 +44,7 @@ void scene_init_objects(Memory *memory, State *state) {
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "floor"));
 
   // Temple
-  for (uint32 idx = 0; idx < 3; idx++) {
+  for (uint32 idx = 0; idx < 2; idx++) {
     entity = entity_make(
       array_push<Entity>(&state->entities),
       "temple",
