@@ -44,19 +44,21 @@ void scene_init_objects(Memory *memory, State *state) {
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "floor"));
 
   // Temple
-  entity = entity_make(
-    array_push<Entity>(&state->entities),
-    "temple",
-    ENTITY_MODEL,
-    glm::vec3(0.0f, 0.1f, 0.0f),
-    glm::vec3(0.1f),
-    /* glm::vec3(25.0f, 0.0f, 0.0f), */
-    /* glm::vec3(0.7f, 0.7f, 0.7f), */
-    glm::angleAxis(
-      glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)
-    )
-  );
-  entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "temple"));
+  for (uint32 idx = 0; idx < 3; idx++) {
+    entity = entity_make(
+      array_push<Entity>(&state->entities),
+      "temple",
+      ENTITY_MODEL,
+      glm::vec3(0.0f, 0.1f, 0.0f),
+      glm::vec3(0.1f),
+      /* glm::vec3(25.0f, 0.0f, 0.0f), */
+      /* glm::vec3(0.7f, 0.7f, 0.7f), */
+      glm::angleAxis(
+        glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)
+      )
+    );
+    entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "temple"));
+  }
 
   // Light entities
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
@@ -212,6 +214,15 @@ void scene_update(Memory *memory, State *state) {
       glm::radians(spin_deg_per_t * (real32)state->dt),
       glm::vec3(0.0f, 1.0f, 0.0f)
     );
+  }
+
+  // Temple
+  entity_get_all_with_name(
+    state->entities, "temple", &state->found_entities
+  );
+  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
+    Entity *entity = state->found_entities.items[idx];
+    entity->position.z = idx * (real32)sin(state->t) * 5;
   }
 
   // Alpaca
