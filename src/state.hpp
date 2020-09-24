@@ -11,6 +11,7 @@ struct State {
   real64 t;
   real64 dt;
   real64 last_fps;
+  real64 last_effective_fps;
 
   bool32 is_cursor_disabled;
   bool32 should_limit_fps;

@@ -377,25 +377,31 @@ void render_scene_forward(Memory *memory, State *state) {
   sprintf(fps_text, "(fps %.2f)", state->last_fps);
   draw_text(
     state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f,
+    15.0f, state->window_height - 35.0f - row_height * 0,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
-  sprintf(fps_text, "(dt %f)", state->dt);
+  sprintf(fps_text, "(effective_fps %.2f)", state->last_effective_fps);
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f - row_height * 1,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
-  sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
+  sprintf(fps_text, "(dt %f)", state->dt);
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f - row_height * 2,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
-  sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+  sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f - row_height * 3,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+  sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height * 4,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 
@@ -403,9 +409,6 @@ void render_scene_forward(Memory *memory, State *state) {
 }
 
 void update_and_render(Memory *memory, State *state) {
-  real64 t_start = glfwGetTime();
-  state->t = t_start;
-
   scene_update(memory, state);
   camera_update_matrices(
     state->camera_active, state->window_width, state->window_height
@@ -469,19 +472,6 @@ void update_and_render(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   copy_scene_data_to_ubo(memory, state);
   render_scene_forward(memory, state);
-
-  real64 t_end = glfwGetTime();
-  state->dt = t_end - t_start;
-  state->last_fps = 1.0f / state->dt;
-
-  if (state->should_limit_fps) {
-    real64 time_to_wait = state->target_frame_duration_s - state->dt;
-    if (time_to_wait < 0) {
-      log_warning("Frame took too long! %.6fs", state->dt);
-    } else {
-      util_sleep(time_to_wait);
-    }
-  }
 }
 
 void init_shader_buffers(Memory *memory, State *state) {
@@ -611,8 +601,29 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
 
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   while(!glfwWindowShouldClose(window)) {
+    real64 t_start = glfwGetTime();
+    state->t = t_start;
+
     process_input_continuous(window, state);
     update_and_render(memory, state);
+
+    real64 t_presleep_end = glfwGetTime();
+    real64 presleep_dt = t_presleep_end - t_start;
+    state->last_effective_fps = 1.0f / presleep_dt;
+
+    if (state->should_limit_fps) {
+      real64 time_to_wait = state->target_frame_duration_s - state->dt;
+      if (time_to_wait < 0) {
+        log_warning("Frame took too long! %.6fs", state->dt);
+      } else {
+        util_sleep(time_to_wait);
+      }
+    }
+
+    real64 t_end = glfwGetTime();
+    state->dt = t_end - t_start;
+    state->last_fps = 1.0f / state->dt;
+
     glfwSwapBuffers(window);
     glfwPollEvents();
   }
