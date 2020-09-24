@@ -1,5 +1,5 @@
 #define GAMMA 2.2
-#define USE_SHADOWS false
+#define USE_SHADOWS true
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -41,7 +41,8 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
-  float bias = 0.50f;
+  // float bias = 0.50f;
+  float bias = 0.05f;
   int n_samples = 20;
 
   float view_distance = length(camera_position - frag_position);

@@ -1,5 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#define USE_1440P true
 #define USE_ALPACA false
 #define USE_AXES false
 
@@ -136,8 +137,13 @@ void init_state(Memory *memory, State *state) {
 }
 
 GLFWwindow* init_window(State *state) {
+#ifdef USE_1440P
+  state->window_width = 2560;
+  state->window_height = 1440;
+#else
   state->window_width = 1920;
   state->window_height = 1080;
+#endif
   strcpy(state->window_title, "hi lol");
 
   glfwInit();
@@ -160,7 +166,12 @@ GLFWwindow* init_window(State *state) {
   }
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
+
+#ifdef USE_1440P
+  glfwSetWindowPos(window, 0, 0);
+#else
   glfwSetWindowPos(window, 100, 100);
+#endif
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     log_error("Failed to initialize GLAD");
@@ -375,10 +386,16 @@ void render_scene_forward(Memory *memory, State *state) {
     15.0f, state->window_height - 35.0f - row_height * 1,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
-  sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+  sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f - row_height * 2,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+  sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height * 3,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 
@@ -453,21 +470,18 @@ void update_and_render(Memory *memory, State *state) {
   copy_scene_data_to_ubo(memory, state);
   render_scene_forward(memory, state);
 
-  if (state->should_limit_fps) {
-    real64 t_end_prewait = glfwGetTime();
-    real64 dt_prewait = t_end_prewait - t_start;
+  real64 t_end = glfwGetTime();
+  state->dt = t_end - t_start;
+  state->last_fps = 1.0f / state->dt;
 
-    real64 time_to_wait = state->target_frame_duration_s - dt_prewait;
+  if (state->should_limit_fps) {
+    real64 time_to_wait = state->target_frame_duration_s - state->dt;
     if (time_to_wait < 0) {
       log_warning("Frame took too long! %.6fs", state->dt);
     } else {
       util_sleep(time_to_wait);
     }
   }
-
-  real64 t_end = glfwGetTime();
-  state->dt = t_end - t_start;
-  state->last_fps = 1.0f / state->dt;
 }
 
 void init_shader_buffers(Memory *memory, State *state) {
