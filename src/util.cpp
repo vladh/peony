@@ -1,11 +1,17 @@
 unsigned char *util_load_image(
-  const char *path, int32 *width, int32 *height, int32 *n_channels
+  const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
 ) {
-  stbi_set_flip_vertically_on_load(true);
+  stbi_set_flip_vertically_on_load(should_flip);
   unsigned char *image_data = stbi_load(
     path, width, height, n_channels, 0
   );
   return image_data;
+}
+
+unsigned char *util_load_image(
+  const char *path, int32 *width, int32 *height, int32 *n_channels
+) {
+  util_load_image(path, width, height, n_channels, true);
 }
 
 void util_free_image(unsigned char *image_data) {

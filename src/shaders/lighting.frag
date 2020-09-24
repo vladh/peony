@@ -159,7 +159,7 @@ void main() {
     Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1.0f - shadow);
   }
 
-  vec3 ambient = vec3(0.73) * albedo * ao;
+  vec3 ambient = vec3(0.03) * albedo * ao;
   vec3 color = ambient + Lo;
 
   color = add_tone_mapping(color);

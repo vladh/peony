@@ -148,7 +148,7 @@ void scene_init_objects(Memory *memory, State *state) {
 void scene_update(Memory *memory, State *state) {
   // Lights
   state->lights.items[0].position = glm::vec4(
-    sin(state->t) * 3.0f - 6.0f,
+    sin(state->t) * 3.0f - 12.0f,
     2.0f,
     0.0f,
     state->lights.items[0].position.w
