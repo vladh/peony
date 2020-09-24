@@ -41,7 +41,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
   );
   glUseProgram(text_shader_asset->shader.program);
-  shader_set_mat4(text_shader_asset->shader.program, "text_projection", &text_projection);
+  shader_set_mat4(&text_shader_asset->shader, "text_projection", &text_projection);
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
