@@ -52,7 +52,7 @@ void scene_init_objects(Memory *memory, State *state) {
     /* glm::vec3(25.0f, 0.0f, 0.0f), */
     /* glm::vec3(0.7f, 0.7f, 0.7f), */
     glm::angleAxis(
-      glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)
+      glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)
     )
   );
   entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "temple"));

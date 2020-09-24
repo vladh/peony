@@ -193,10 +193,12 @@ void models_init_mesh(Mesh *mesh, uint32 mode) {
 void models_load_mesh(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-  glm::mat4 transform
+  glm::mat4 transform,
+  Pack indices_pack
 ) {
   models_init_mesh(mesh, GL_TRIANGLES);
   mesh->transform = transform;
+  mesh->indices_pack = indices_pack;
   models_load_mesh_vertices(
     memory, model, mesh, mesh_data, scene
   );
@@ -216,7 +218,8 @@ void models_load_mesh(
 void models_load_model_node(
   Memory *memory, Model *model,
   aiNode *node, const aiScene *scene,
-  glm::mat4 accumulated_transform
+  glm::mat4 accumulated_transform,
+  Pack indices_pack
 ) {
   glm::mat4 node_transform = aimatrix4x4_to_glm(&node->mTransformation);
   glm::mat4 transform = accumulated_transform * node_transform;
@@ -227,13 +230,19 @@ void models_load_model_node(
       memory, model,
       array_push(&model->meshes),
       mesh_data, scene,
-      transform
+      transform,
+      indices_pack
     );
   }
 
   for (uint32 idx = 0; idx < node->mNumChildren; idx++) {
+    Pack new_indices_pack = indices_pack;
+    // NOTE: We can only store 4 bits per pack element. Our indices can be way bigger than
+    // that, but that's fine. We don't need that much precision. Just smash the number up
+    // if it's bigger.
+    pack_push(&new_indices_pack, (uint8)idx);
     models_load_model_node(
-      memory, model, node->mChildren[idx], scene, transform
+      memory, model, node->mChildren[idx], scene, transform, new_indices_pack
     );
   }
 }
@@ -273,7 +282,7 @@ void models_load_model(
   );
 
   models_load_model_node(
-    memory, model, scene->mRootNode, scene, glm::mat4(1.0f)
+    memory, model, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
   );
 
   aiReleaseImport(scene);
@@ -331,6 +340,17 @@ void models_add_texture(
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
     models_add_texture(model, idx_mesh, type, texture);
+  }
+}
+
+void models_add_texture_for_node_idx(
+  Model *model, TextureType type, uint32 texture, uint8 node_depth, uint8 node_idx
+) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    Mesh *mesh = &model->meshes.items[idx_mesh];
+    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
+      models_add_texture(model, idx_mesh, type, texture);
+    }
   }
 }
 

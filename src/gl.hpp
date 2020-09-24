@@ -4,6 +4,8 @@
 #define SHADER_DIR "src/shaders/"
 #define SHADER_COMMON_PATH SHADER_DIR"common.glsl"
 
+// TODO: Decide which ones we should actually be including.
+// Add assert.h?
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -19,7 +21,8 @@
 #include <windows.h>
 #endif
 
-#include <set> // Remove?
+// TODO: Remove set?
+#include <set>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -37,6 +40,7 @@
 #include FT_FREETYPE_H
 
 #include "types.hpp"
+#include "pack.hpp"
 #include "render.hpp"
 #include "memory.hpp"
 #include "array.hpp"

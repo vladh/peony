@@ -23,6 +23,7 @@ struct Mesh {
   Array<Vertex> vertices;
   Array<uint32> indices;
   glm::mat4 transform;
+  uint64 indices_pack;
 
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
@@ -97,6 +98,9 @@ void models_add_texture(
 );
 void models_add_texture(
   Model *model, uint32 idx_mesh, TextureType type, uint32 texture
+);
+void models_add_texture_for_node_idx(
+  Model *model, TextureType type, uint32 texture, uint8 node_depth, uint8 node_idx
 );
 void models_set_static_pbr(
   Model *model,

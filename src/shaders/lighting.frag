@@ -1,4 +1,5 @@
 #define GAMMA 2.2
+#define USE_SHADOWS false
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -151,14 +152,14 @@ void main() {
 
     float shadow = 0;
 
-    if (n_depth_textures >= n_lights) {
+    if (USE_SHADOWS && n_depth_textures >= n_lights) {
       RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
     }
 
     Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1.0f - shadow);
   }
 
-  vec3 ambient = vec3(0.03) * albedo * ao;
+  vec3 ambient = vec3(0.73) * albedo * ao;
   vec3 color = ambient + Lo;
 
   color = add_tone_mapping(color);
