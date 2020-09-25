@@ -121,9 +121,9 @@ void util_make_sphere(
     for (uint32 x = 0; x <= n_x_segments; x++) {
       real32 x_segment = (real32)x / (real32)n_x_segments;
       real32 y_segment = (real32)y / (real32)n_y_segments;
-      real32 x_pos = cos(x_segment * 2.0f * (real32)PI) * sin(y_segment * (real32)PI);
-      real32 y_pos = cos(y_segment * (real32)PI);
-      real32 z_pos = sin(x_segment * 2.0f * (real32)PI) * sin(y_segment * (real32)PI);
+      real32 x_pos = cos(x_segment * 2.0f * PI32) * sin(y_segment * PI32);
+      real32 y_pos = cos(y_segment * PI32);
+      real32 z_pos = sin(x_segment * 2.0f * PI32) * sin(y_segment * PI32);
 
       // Position
       vertex_data[idx_vertices++] = x_pos;
