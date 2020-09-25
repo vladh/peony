@@ -1,5 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#define USE_OPENGL_4 false
+#define USE_OPENGL_DEBUG false
 #define USE_1440P true
 #define USE_ALPACA false
 #define USE_AXES false
@@ -100,6 +102,103 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 }
 
 
+void APIENTRY debug_message_callback(
+  GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
+  const char *message, const void *userParam
+) {
+  // Ignore insignificant error/warning codes
+  if (
+    // Framebuffer detailed info: The driver allocated storage for
+    // renderbuffer 1.
+    id == 131169 ||
+    // Program/shader state performance warning: Vertex shader in program 19
+    // is being recompiled based on GL state.
+    id == 131218 ||
+    // Buffer detailed info: Buffer object 1522 (bound to
+    // GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING_ARB (0), and GL_ARRAY_BUFFER_ARB,
+    // usage hint is GL_DYNAMIC_DRAW) will use VIDEO memory as the source for
+    // buffer object operations.
+    id == 131185 ||
+    // Texture state usage warning: The texture object (0) bound to texture
+    // image unit 4 does not have a defined base level and cannot be used for
+    // texture mapping.
+    id == 131204
+  ) {
+    return;
+  }
+
+  log_warning("Debug message (%d): %s", id, message);
+
+  switch (source) {
+    case GL_DEBUG_SOURCE_API:
+      log_warning("Source: API");
+      break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+      log_warning("Source: Window System");
+      break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+      log_warning("Source: Shader Compiler");
+      break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+      log_warning("Source: Third Party");
+      break;
+    case GL_DEBUG_SOURCE_APPLICATION:
+      log_warning("Source: Application");
+      break;
+    case GL_DEBUG_SOURCE_OTHER:
+      log_warning("Source: Other");
+      break;
+  }
+
+  switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+      log_warning("Type: Error");
+      break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+      log_warning("Type: Deprecated Behaviour");
+      break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+      log_warning("Type: Undefined Behaviour");
+      break;
+    case GL_DEBUG_TYPE_PORTABILITY:
+      log_warning("Type: Portability");
+      break;
+    case GL_DEBUG_TYPE_PERFORMANCE:
+      log_warning("Type: Performance");
+      break;
+    case GL_DEBUG_TYPE_MARKER:
+      log_warning("Type: Marker");
+      break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:
+      log_warning("Type: Push Group");
+      break;
+    case GL_DEBUG_TYPE_POP_GROUP:
+      log_warning("Type: Pop Group");
+      break;
+    case GL_DEBUG_TYPE_OTHER:
+      log_warning("Type: Other");
+      break;
+  }
+
+  switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+      log_warning("Severity: high");
+      break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+      log_warning("Severity: medium");
+      break;
+    case GL_DEBUG_SEVERITY_LOW:
+      log_warning("Severity: low");
+      break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+      log_warning("Severity: notification");
+      break;
+  }
+
+  log_newline();
+}
+
+
 Memory init_memory() {
   Memory memory;
 
@@ -158,13 +257,27 @@ GLFWwindow* init_window(State *state) {
   strcpy(state->window_title, "hi lol");
 
   glfwInit();
+
+#if USE_OPENGL_4
+  log_info("Using OpenGL 4.3");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#else
+  log_info("Using OpenGL 3.3");
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#endif
+
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_SAMPLES, 4);
 
 #if defined(__APPLE__)
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+#if USE_OPENGL_DEBUG
+  log_info("Using OpenGL debug context");
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
   GLFWwindow *window = glfwCreateWindow(
@@ -176,6 +289,7 @@ GLFWwindow* init_window(State *state) {
     return nullptr;
   }
   glfwMakeContextCurrent(window);
+
   glfwSwapInterval(0);
 
 #ifdef USE_1440P
@@ -191,6 +305,20 @@ GLFWwindow* init_window(State *state) {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
+
+#if USE_OPENGL_DEBUG
+  GLint flags;
+  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(debug_message_callback, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+  } else {
+    log_fatal("Tried to initialise OpenGL debug output but couldn't");
+  }
+#endif
 
   // NOTE: This breaks the alpaca cubes. It's probably the cubes'
   // fault, but we should check that!
