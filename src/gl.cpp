@@ -8,9 +8,6 @@
 
 #include "gl.hpp"
 
-global_variable uint32 global_shader_oops = 0;
-global_variable uint32 global_shader_cache = 0;
-
 #include "log.cpp"
 #include "pack.cpp"
 #include "font.cpp"
@@ -545,18 +542,6 @@ void render_scene_forward(Memory *memory, State *state) {
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f - row_height * 4,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(shader_oops %d)", global_shader_oops);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 5,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(shader_cache %d)", global_shader_cache);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 6,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 

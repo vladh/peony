@@ -170,7 +170,6 @@ int32 shader_get_uniform_location(Shader *shader, const char *name) {
   }
   if (uniform_idx == -1) {
     log_error("Had to look up location for uniform: %s", name);
-    global_shader_oops++;
     GLint location = glGetUniformLocation(shader->program, name);
     if (location != -1) {
       uniform_idx = shader->n_intrinsic_uniforms;
@@ -180,8 +179,6 @@ int32 shader_get_uniform_location(Shader *shader, const char *name) {
     } else {
       log_fatal("Could not get uniform: %s", name);
     }
-  } else {
-    global_shader_cache++;
   }
   return shader->intrinsic_uniform_locations[uniform_idx];
 }
