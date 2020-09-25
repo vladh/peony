@@ -86,6 +86,9 @@ void shader_init(Shader *shader) {
   glUniformBlockBinding(shader->program, uniform_block_index, 0);
 
   // Load uniforms
+  // NOTE: We may want to skip all this stuff, because fallback on loading the locations
+  // in `shader_set_*` anyway. But, it's kind of cool to know we're loading everything we can
+  // up front in this function.
   uint32 n_intrinsic_uniforms = 0;
   GLint n_active_uniforms;
   char uniform_name[MAX_UNIFORM_NAME_LENGTH];

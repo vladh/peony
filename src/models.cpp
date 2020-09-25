@@ -261,15 +261,17 @@ void models_load_model(
 
   const aiScene *scene = aiImportFile(
     path,
-    aiProcess_Triangulate |
-    aiProcess_FlipUVs
-#if 0
-    aiProcess_JoinIdenticalVertices |
-    aiProcess_SortByPType |
-    aiProcess_GenNormals |
+    aiProcess_Triangulate
+    | aiProcess_JoinIdenticalVertices
+    | aiProcess_SortByPType
+    | aiProcess_GenNormals
+    | aiProcess_FlipUVs
+    // NOTE: This might break something in the future, let's look out for it.
+    | aiProcess_OptimizeMeshes
+    // NOTE: Use with caution, goes full YOLO.
+    /* aiProcess_OptimizeGraph */
     // NOTE: Uncomment this when changing to proper normal mapping.
-    aiProcess_CalcTangentSpace |
-#endif
+    /* | aiProcess_CalcTangentSpace */
   );
 
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
