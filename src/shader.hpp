@@ -7,6 +7,19 @@
 
 struct Shader {
   uint32 program;
+
+  // 0 = unbound, > 0 is a TextureSet.id
+  uint32 last_bound_texture_set_id;
+
+  /*
+  Intrinsic uniform: A uniform declared by a shader. We only care
+    about intrinsic uniforms in the Shader struct.
+
+  Active uniforms: A uniform used in a shader, which can be either
+    an intrinsic uniform, or a uniform from another source such as a
+    uniform buffer object.
+  */
+
   uint32 n_intrinsic_uniforms;
   int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
   char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];

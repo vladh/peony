@@ -2,6 +2,7 @@
 #define MODELS_H
 
 #define MAX_N_MESHES 2048
+#define MAX_N_TEXTURE_SETS 8
 
 struct ModelAsset;
 struct Memory;
@@ -19,11 +20,11 @@ struct Vertex {
   glm::vec2 tex_coords;
 };
 
-struct Mesh {
-  Array<Vertex> vertices;
-  Array<uint32> indices;
-  glm::mat4 transform;
-  uint64 indices_pack;
+struct TextureSet {
+  // Valid `id` cannot be 0, as that is used for "unbound".
+  // The `id` should be enough to distinguish between texture sets of
+  // different models, so it should be more or less globally unique.
+  uint32 id;
 
   uint32 n_depth_textures;
   uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
@@ -46,7 +47,14 @@ struct Mesh {
   uint32 g_normal_texture;
   uint32 g_albedo_texture;
   uint32 g_pbr_texture;
+};
 
+struct Mesh {
+  Array<Vertex> vertices;
+  Array<uint32> indices;
+  TextureSet *texture_set;
+  glm::mat4 transform;
+  uint64 indices_pack;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
@@ -55,35 +63,21 @@ struct Mesh {
 
 struct Model {
   Array<Mesh> meshes;
-#if 0
+  Array<TextureSet> texture_sets;
+
   bool32 should_load_textures_from_file;
-#endif
   const char *directory;
 };
 
 uint32 models_load_texture_from_file(const char *path, bool should_flip);
+
 uint32 models_load_texture_from_file(const char *path);
-void models_setup_mesh(Mesh *mesh);
-void models_init_mesh(Mesh *mesh, uint32 mode);
-void models_load_mesh(
-  Memory *memory, Model *model,
-  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
-);
-void models_draw_model(Model *model, ShaderAsset *shader_asset, RenderMode render_mode);
-#if 0
-void models_load_mesh_textures(
-  Memory *memory, Model *model,
-  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
-);
-#endif
-void models_load_model(
-  Memory *memory, Model *model,
-  const char *directory, const char *filename
-);
+
 ModelAsset* models_make_asset_from_file(
   Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
 );
+
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
   real32 *vertex_data, uint32 n_vertices,
@@ -91,6 +85,17 @@ ModelAsset* models_make_asset_from_data(
   const char *name,
   GLenum mode
 );
+
+TextureSet* models_add_texture_set(Model *model);
+
+void models_set_texture_set(Model *model, uint32 idx_mesh, TextureSet *texture_set);
+
+void models_set_texture_set(Model *model, TextureSet *texture_set);
+
+void models_set_texture_set_for_node_idx(
+  Model *model, TextureSet *texture_set, uint8 node_depth, uint8 node_idx
+);
+
 void models_add_texture(
   Model *model, TextureType type, uint32 texture
 );
@@ -108,5 +113,7 @@ void models_set_static_pbr(
   Model *model, uint32 idx_mesh,
   glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 );
+
+void models_draw_model(Model *model, ShaderAsset *shader_asset, RenderMode render_mode);
 
 #endif

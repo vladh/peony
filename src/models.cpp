@@ -35,11 +35,33 @@ uint32 models_load_texture_from_file(const char *path, bool should_flip) {
   return texture_id;
 }
 
+
 uint32 models_load_texture_from_file(const char *path) {
   return models_load_texture_from_file(path, true);
 }
 
-void models_setup_mesh(Mesh *mesh) {
+
+void models_init(Model *model, Memory *memory, const char *directory) {
+  model->should_load_textures_from_file = false;
+  model->directory = directory;
+
+  model->meshes.size = 0;
+  model->meshes.max_size = MAX_N_MESHES;
+  model->meshes.items = (Mesh*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
+    "meshes"
+  );
+
+  model->texture_sets.size = 0;
+  model->texture_sets.max_size = MAX_N_TEXTURE_SETS;
+  model->texture_sets.items = (TextureSet*)memory_push_memory_to_pool(
+    &memory->asset_memory_pool, sizeof(TextureSet) * model->texture_sets.max_size,
+    "texture_sets"
+  );
+}
+
+
+void models_setup_mesh_vertex_buffers(Mesh *mesh) {
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
   glGenBuffers(1, &mesh->ebo);
@@ -79,7 +101,8 @@ void models_setup_mesh(Mesh *mesh) {
   );
 }
 
-internal void models_load_mesh_vertices(
+
+void models_load_mesh_vertices(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 ) {
@@ -120,7 +143,8 @@ internal void models_load_mesh_vertices(
   }
 }
 
-internal void models_load_mesh_indices(
+
+void models_load_mesh_indices(
   Memory *memory, Model *model,
   Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
 ) {
@@ -144,6 +168,7 @@ internal void models_load_mesh_indices(
     }
   }
 }
+
 
 #if 0
 void models_load_mesh_textures(
@@ -176,22 +201,13 @@ void models_load_mesh_textures(
 }
 #endif
 
+
 void models_init_mesh(Mesh *mesh, uint32 mode) {
-  mesh->mode = mode;
-
   mesh->transform = glm::mat4(1.0f);
-
-  mesh->albedo_texture = 0;
-  mesh->metallic_texture = 0;
-  mesh->roughness_texture = 0;
-  mesh->ao_texture = 0;
-  mesh->normal_texture = 0;
-
-  mesh->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
-  mesh->metallic_static = -1.0f;
-  mesh->roughness_static = -1.0f;
-  mesh->ao_static = -1.0f;
+  mesh->texture_set = nullptr;
+  mesh->mode = mode;
 }
+
 
 void models_load_mesh(
   Memory *memory, Model *model,
@@ -215,8 +231,9 @@ void models_load_mesh(
     );
   }
 #endif
-  models_setup_mesh(mesh);
+  models_setup_mesh_vertex_buffers(mesh);
 }
+
 
 void models_load_model_node(
   Memory *memory, Model *model,
@@ -250,6 +267,7 @@ void models_load_model_node(
   }
 }
 
+
 void models_load_model(
   Memory *memory, Model *model,
   const char *directory, const char *filename
@@ -279,13 +297,6 @@ void models_load_model(
     return;
   }
 
-  model->meshes.size = 0;
-  model->meshes.max_size = MAX_N_MESHES;
-  model->meshes.items = (Mesh*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
-    "meshes"
-  );
-
   models_load_model_node(
     memory, model, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
   );
@@ -293,15 +304,13 @@ void models_load_model(
   aiReleaseImport(scene);
 }
 
+
 ModelAsset* models_make_asset_from_file(
   Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
 ) {
   model_asset->info.name = name;
-#if 0
-  model_asset->model.should_load_textures_from_file = true;
-#endif
-  model_asset->model.directory = directory;
+  models_init(&model_asset->model, memory, directory);
   models_load_model(
     memory, &model_asset->model, directory, filename
   );
@@ -309,75 +318,6 @@ ModelAsset* models_make_asset_from_file(
   return model_asset;
 }
 
-void models_add_texture(
-  Model *model, uint32 idx_mesh, TextureType type, uint32 texture
-) {
-  Mesh *mesh = &model->meshes.items[idx_mesh];
-  if (type == TEXTURE_DIFFUSE || type == TEXTURE_SPECULAR) {
-    log_warning("No diffuse or specular textures here, buddy!");
-  } else if (type == TEXTURE_DEPTH) {
-    mesh->depth_textures[mesh->n_depth_textures++] = texture;
-  } else if (type == TEXTURE_ALBEDO) {
-    mesh->albedo_texture = texture;
-  } else if (type == TEXTURE_METALLIC) {
-    mesh->metallic_texture = texture;
-  } else if (type == TEXTURE_ROUGHNESS) {
-    mesh->roughness_texture = texture;
-  } else if (type == TEXTURE_AO) {
-    mesh->ao_texture = texture;
-  } else if (type == TEXTURE_NORMAL) {
-    mesh->normal_texture = texture;
-  } else if (type == TEXTURE_G_POSITION) {
-    mesh->g_position_texture = texture;
-  } else if (type == TEXTURE_G_NORMAL) {
-    mesh->g_normal_texture = texture;
-  } else if (type == TEXTURE_G_ALBEDO) {
-    mesh->g_albedo_texture = texture;
-  } else if (type == TEXTURE_G_PBR) {
-    mesh->g_pbr_texture = texture;
-  } else {
-    log_warning("Can't bind that texture type, pal.");
-  }
-}
-
-void models_add_texture(
-  Model *model, TextureType type, uint32 texture
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
-    models_add_texture(model, idx_mesh, type, texture);
-  }
-}
-
-void models_add_texture_for_node_idx(
-  Model *model, TextureType type, uint32 texture, uint8 node_depth, uint8 node_idx
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
-    Mesh *mesh = &model->meshes.items[idx_mesh];
-    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      models_add_texture(model, idx_mesh, type, texture);
-    }
-  }
-}
-
-void models_set_static_pbr(
-  Model *model, uint32 idx_mesh,
-  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
-) {
-  Mesh *mesh = &model->meshes.items[idx_mesh];
-  mesh->albedo_static = albedo;
-  mesh->metallic_static = metallic;
-  mesh->roughness_static = roughness;
-  mesh->ao_static = ao;
-}
-
-void models_set_static_pbr(
-  Model *model,
-  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
-    models_set_static_pbr(model, idx_mesh, albedo, metallic, roughness, ao);
-  }
-}
 
 ModelAsset* models_make_asset_from_data(
   Memory *memory, ModelAsset *model_asset,
@@ -389,22 +329,9 @@ ModelAsset* models_make_asset_from_data(
   model_asset->info.name = name;
 
   Model *model = &model_asset->model;
+  models_init(model, memory, "");
 
-#if 0
-  model->should_load_textures_from_file = false;
-#endif
-  model->directory = "";
-
-  model->meshes.size = 0;
-  model->meshes.max_size = 1;
-  model->meshes.items = (Mesh*)memory_push_memory_to_pool(
-    &memory->asset_memory_pool, sizeof(Mesh) * model->meshes.max_size,
-    "meshes"
-  );
-
-  Mesh *mesh = model->meshes.items;
-  model->meshes.size++;
-
+  Mesh *mesh = array_push<Mesh>(&model->meshes);
   models_init_mesh(&model->meshes.items[0], mode);
 
   // Vertices
@@ -444,14 +371,159 @@ ModelAsset* models_make_asset_from_data(
   mesh->indices.max_size = n_indices;
   mesh->indices.items = index_data;
 
-  models_setup_mesh(mesh);
+  models_setup_mesh_vertex_buffers(mesh);
 
   memory_reset_pool(&memory->temp_memory_pool);
 
   return model_asset;
 }
 
-void model_set_uniforms_for_mesh(
+
+void models_init_texture_set(TextureSet *texture_set, uint32 id) {
+  texture_set->id = id;
+
+  texture_set->n_depth_textures = 0;
+
+  texture_set->albedo_texture = 0;
+  texture_set->metallic_texture = 0;
+  texture_set->roughness_texture = 0;
+  texture_set->ao_texture = 0;
+  texture_set->normal_texture = 0;
+
+  texture_set->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+  texture_set->metallic_static = -1.0f;
+  texture_set->roughness_static = -1.0f;
+  texture_set->ao_static = -1.0f;
+
+  texture_set->g_position_texture = 0;
+  texture_set->g_normal_texture = 0;
+  texture_set->g_albedo_texture = 0;
+  texture_set->g_pbr_texture = 0;
+}
+
+
+TextureSet* models_add_texture_set(Model *model) {
+  // NOTE: As an ID for the texture set, we take its index in the
+  // texture set array, plus one. This means that valid indices start from
+  // 1 on. This is so we can use 0 as an "unset" value. We might want to do
+  // something else in the future, but this should do.
+  /* uint32 texture_set_id = model->texture_sets.size + 1; */
+
+  // We initialise texture_set ids to something random and hopefully
+  // more or less globally unique.
+  // TODO: Change this to something actually less likely to collide.
+  uint32 texture_set_id = (uint32)util_random(0, UINT32_MAX);
+
+  TextureSet *texture_set = array_push(&model->texture_sets);
+
+  models_init_texture_set(texture_set, texture_set_id);
+  return texture_set;
+}
+
+
+void models_set_texture_set(Model *model, uint32 idx_mesh, TextureSet *texture_set) {
+  Mesh *mesh = &model->meshes.items[idx_mesh];
+  mesh->texture_set = texture_set;
+}
+
+
+void models_set_texture_set(Model *model, TextureSet *texture_set) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    models_set_texture_set(model, idx_mesh, texture_set);
+  }
+}
+
+
+void models_set_texture_set_for_node_idx(
+  Model *model, TextureSet *texture_set, uint8 node_depth, uint8 node_idx
+) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    Mesh *mesh = &model->meshes.items[idx_mesh];
+    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
+      models_set_texture_set(model, idx_mesh, texture_set);
+    }
+  }
+}
+
+
+#if 0
+void models_add_texture(
+  Model *model, uint32 idx_mesh, TextureType type, uint32 texture
+) {
+  Mesh *mesh = &model->meshes.items[idx_mesh];
+  if (type == TEXTURE_DIFFUSE || type == TEXTURE_SPECULAR) {
+    log_warning("No diffuse or specular textures here, buddy!");
+  } else if (type == TEXTURE_DEPTH) {
+    mesh->depth_textures[mesh->n_depth_textures++] = texture;
+  } else if (type == TEXTURE_ALBEDO) {
+    mesh->albedo_texture = texture;
+  } else if (type == TEXTURE_METALLIC) {
+    mesh->metallic_texture = texture;
+  } else if (type == TEXTURE_ROUGHNESS) {
+    mesh->roughness_texture = texture;
+  } else if (type == TEXTURE_AO) {
+    mesh->ao_texture = texture;
+  } else if (type == TEXTURE_NORMAL) {
+    mesh->normal_texture = texture;
+  } else if (type == TEXTURE_G_POSITION) {
+    mesh->g_position_texture = texture;
+  } else if (type == TEXTURE_G_NORMAL) {
+    mesh->g_normal_texture = texture;
+  } else if (type == TEXTURE_G_ALBEDO) {
+    mesh->g_albedo_texture = texture;
+  } else if (type == TEXTURE_G_PBR) {
+    mesh->g_pbr_texture = texture;
+  } else {
+    log_warning("Can't bind that texture type, pal.");
+  }
+}
+
+
+void models_add_texture(
+  Model *model, TextureType type, uint32 texture
+) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    models_add_texture(model, idx_mesh, type, texture);
+  }
+}
+
+
+void models_add_texture_for_node_idx(
+  Model *model, TextureType type, uint32 texture, uint8 node_depth, uint8 node_idx
+) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    Mesh *mesh = &model->meshes.items[idx_mesh];
+    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
+      models_add_texture(model, idx_mesh, type, texture);
+    }
+  }
+}
+
+
+void models_set_static_pbr(
+  Model *model, uint32 idx_mesh,
+  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
+) {
+  Mesh *mesh = &model->meshes.items[idx_mesh];
+  mesh->albedo_static = albedo;
+  mesh->metallic_static = metallic;
+  mesh->roughness_static = roughness;
+  mesh->ao_static = ao;
+}
+
+
+void models_set_static_pbr(
+  Model *model,
+  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
+) {
+  for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
+    models_set_static_pbr(model, idx_mesh, albedo, metallic, roughness, ao);
+  }
+}
+#endif
+
+
+void models_set_uniforms_for_mesh(
   Mesh *mesh, ShaderAsset *shader_asset, RenderMode render_mode
 ) {
   Shader *shader = &shader_asset->shader;
@@ -465,66 +537,79 @@ void model_set_uniforms_for_mesh(
     shader_set_mat4(shader, "mesh_transform", &mesh->transform);
   }
 
-  if (is_entity) {
-    shader_set_vec4(shader, "albedo_static", &mesh->albedo_static);
-    shader_set_float(shader, "metallic_static", mesh->metallic_static);
-    shader_set_float(shader, "roughness_static", mesh->roughness_static);
-    shader_set_float(shader, "ao_static", mesh->ao_static);
+  if (mesh->texture_set && mesh->texture_set->id != shader->last_bound_texture_set_id) {
+    shader->last_bound_texture_set_id = mesh->texture_set->id;
 
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "albedo_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->albedo_texture);
+    if (is_entity) {
+      shader_set_vec4(shader, "albedo_static", &mesh->texture_set->albedo_static);
+      shader_set_float(shader, "metallic_static", mesh->texture_set->metallic_static);
+      shader_set_float(shader, "roughness_static", mesh->texture_set->roughness_static);
+      shader_set_float(shader, "ao_static", mesh->texture_set->ao_static);
 
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "metallic_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->metallic_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "roughness_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->roughness_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "ao_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->ao_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "normal_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->normal_texture);
-
-    if (mesh->normal_texture != 0) {
-      shader_set_bool(shader, "should_use_normal_map", true);
-    } else {
-      shader_set_bool(shader, "should_use_normal_map", false);
-    }
-  } else if (is_lighting) {
-    shader_set_int(shader, "n_depth_textures", mesh->n_depth_textures);
-
-    for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
       glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-      shader_set_int(shader, DEPTH_TEXTURE_UNIFORM_NAMES[idx], texture_idx);
-      glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->depth_textures[idx]);
+      shader_set_int(shader, "albedo_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->albedo_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "metallic_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->metallic_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "roughness_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->roughness_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "ao_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->ao_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "normal_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->normal_texture);
+
+      if (mesh->texture_set->normal_texture != 0) {
+        shader_set_bool(shader, "should_use_normal_map", true);
+      } else {
+        shader_set_bool(shader, "should_use_normal_map", false);
+      }
+    } else if (is_lighting) {
+      shader_set_int(shader, "n_depth_textures", mesh->texture_set->n_depth_textures);
+
+      for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
+      /* for (uint32 idx = 0; idx < mesh->texture_set->n_depth_textures; idx++) { */
+        log_info(
+          "setting %s to %d",
+          DEPTH_TEXTURE_UNIFORM_NAMES[idx],
+          mesh->texture_set->depth_textures[idx]
+        );
+        glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+        shader_set_int(shader, DEPTH_TEXTURE_UNIFORM_NAMES[idx], texture_idx);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mesh->texture_set->depth_textures[idx]);
+      }
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "g_position_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->g_position_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "g_normal_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->g_normal_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "g_albedo_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->g_albedo_texture);
+
+      glActiveTexture(GL_TEXTURE0 + (++texture_idx));
+      shader_set_int(shader, "g_pbr_texture", texture_idx);
+      glBindTexture(GL_TEXTURE_2D, mesh->texture_set->g_pbr_texture);
     }
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_position_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_position_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_normal_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_normal_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_albedo_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_albedo_texture);
-
-    glActiveTexture(GL_TEXTURE0 + (++texture_idx));
-    shader_set_int(shader, "g_pbr_texture", texture_idx);
-    glBindTexture(GL_TEXTURE_2D, mesh->g_pbr_texture);
   }
 }
 
-void models_draw_mesh(Mesh *mesh, ShaderAsset *shader_asset, RenderMode render_mode) {
-  model_set_uniforms_for_mesh(mesh, shader_asset, render_mode);
+
+void models_draw_mesh(
+  Mesh *mesh, ShaderAsset *shader_asset, RenderMode render_mode
+) {
+  models_set_uniforms_for_mesh(mesh, shader_asset, render_mode);
 
   glBindVertexArray(mesh->vao);
   if (mesh->indices.size > 0) {
@@ -535,8 +620,11 @@ void models_draw_mesh(Mesh *mesh, ShaderAsset *shader_asset, RenderMode render_m
   glBindVertexArray(0);
 }
 
+
 void models_draw_model(Model *model, ShaderAsset *shader_asset, RenderMode render_mode) {
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
-    models_draw_mesh(&model->meshes.items[idx], shader_asset, render_mode);
+    models_draw_mesh(
+      &model->meshes.items[idx], shader_asset, render_mode
+    );
   }
 }
