@@ -46,6 +46,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
 
 void scene_resources_init_models(Memory *memory, State *state) {
   ModelAsset *model_asset;
+  TextureSet *texture_set;
 
   // Light
   models_make_asset_from_file(
@@ -62,23 +63,16 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "screenquad",
     GL_TRIANGLES
   );
-  models_add_texture(
-    &model_asset->model, TEXTURE_G_POSITION, state->g_position_texture
-  );
-  models_add_texture(
-    &model_asset->model, TEXTURE_G_NORMAL, state->g_normal_texture
-  );
-  models_add_texture(
-    &model_asset->model, TEXTURE_G_ALBEDO, state->g_albedo_texture
-  );
-  models_add_texture(
-    &model_asset->model, TEXTURE_G_PBR, state->g_pbr_texture
-  );
+  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set->g_position_texture = state->g_position_texture;
+  texture_set->g_normal_texture = state->g_normal_texture;
+  texture_set->g_albedo_texture = state->g_albedo_texture;
+  texture_set->g_pbr_texture = state->g_pbr_texture;
+  texture_set->n_depth_textures = state->n_shadow_framebuffers;
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture(
-      &model_asset->model, TEXTURE_DEPTH, state->shadow_cubemaps[idx]
-    );
+    texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
   }
+  models_set_texture_set(&model_asset->model, texture_set);
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
@@ -100,10 +94,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "alpaca",
     GL_TRIANGLES
   );
-  models_add_texture(
-    &model_asset->model, TEXTURE_DIFFUSE,
-    models_load_texture_from_file("resources/textures/alpaca.jpg")
+  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set->g_albedo_texture = models_load_texture_from_file(
+    "resources/textures/alpaca.jpg"
   );
+  models_set_texture_set(&model_asset->model, texture_set);
 #endif
 
   // Goose
@@ -111,15 +106,12 @@ void scene_resources_init_models(Memory *memory, State *state) {
     memory, array_push<ModelAsset>(&state->model_assets),
     "goose", "resources/models/", "miniGoose.fbx"
   );
-  models_set_static_pbr(
-    &model_asset->model, glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
-  );
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture(
-      &model_asset->model, TEXTURE_DEPTH,
-      state->shadow_cubemaps[idx]
-    );
-  }
+  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+  texture_set->metallic_static = 0.0f;
+  texture_set->roughness_static = 1.0f;
+  texture_set->ao_static = 1.0f;
+  models_set_texture_set(&model_asset->model, texture_set);
 
   // Sphere
   uint32 n_x_segments = 64;
@@ -150,49 +142,36 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "sphere",
     GL_TRIANGLE_STRIP
   );
-  memory_reset_pool(&memory->temp_memory_pool);
 
-  models_add_texture(
-    &model_asset->model, TEXTURE_ALBEDO,
-    models_load_texture_from_file("resources/textures/rusted_iron/albedo.png")
+  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set->albedo_texture = models_load_texture_from_file(
+    "resources/textures/rusted_iron/albedo.png"
   );
-  models_add_texture(
-    &model_asset->model, TEXTURE_METALLIC,
-    models_load_texture_from_file("resources/textures/rusted_iron/metallic.png")
+  texture_set->metallic_texture = models_load_texture_from_file(
+    "resources/textures/rusted_iron/metallic.png"
   );
-  models_add_texture(
-    &model_asset->model, TEXTURE_ROUGHNESS,
-    models_load_texture_from_file("resources/textures/rusted_iron/roughness.png")
+  texture_set->roughness_texture = models_load_texture_from_file(
+    "resources/textures/rusted_iron/roughness.png"
   );
-  models_add_texture(
-    &model_asset->model, TEXTURE_AO,
-    models_load_texture_from_file("resources/textures/rusted_iron/ao.png")
+  texture_set->ao_texture = models_load_texture_from_file(
+    "resources/textures/rusted_iron/ao.png"
   );
-  models_add_texture(
-    &model_asset->model, TEXTURE_NORMAL,
-    models_load_texture_from_file("resources/textures/rusted_iron/normal.png")
+  texture_set->normal_texture = models_load_texture_from_file(
+    "resources/textures/rusted_iron/normal.png"
   );
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture(
-      &model_asset->model, TEXTURE_DEPTH,
-      state->shadow_cubemaps[idx]
-    );
-  }
+  models_set_texture_set(&model_asset->model, texture_set);
 
   // Floor
   model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
     "floor", "resources/models/", "cube.obj"
   );
-  models_set_static_pbr(
-    &model_asset->model, glm::vec4(0.9f, 0.8f, 0.7f, 1.0f), 0.0f, 1.0f, 1.0f
-  );
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture(
-      &model_asset->model, TEXTURE_DEPTH,
-      state->shadow_cubemaps[idx]
-    );
-  }
+  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set->albedo_static = glm::vec4(0.9f, 0.8f, 0.7f, 1.0f);
+  texture_set->metallic_static = 0.0f;
+  texture_set->roughness_static = 1.0f;
+  texture_set->ao_static = 1.0f;
+  models_set_texture_set(&model_asset->model, texture_set);
 
   // Temple
   model_asset = models_make_asset_from_file(
@@ -202,89 +181,64 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "temple", "resources/models/", "shop.fbx"
   );
 
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_ALBEDO,
-    models_load_texture_from_file("resources/textures/shop/03_-_Default_BaseColor.tga.png"),
-    0, 0
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_METALLIC,
-    models_load_texture_from_file("resources/textures/shop/03_-_Default_Metallic.tga.png"),
-    0, 0
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_NORMAL,
-    models_load_texture_from_file("resources/textures/shop/03_-_Default_Normal.tga.png"),
-    0, 0
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_ROUGHNESS,
-    models_load_texture_from_file("resources/textures/shop/03_-_Default_Roughness.tga.png"),
-    0, 0
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_AO,
-    models_load_texture_from_file("resources/textures/shop/AO-3.tga.png"),
-    0, 0
-  );
-
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_ALBEDO,
-    models_load_texture_from_file("resources/textures/shop/01_-_Default_BaseColor.tga.png"),
-    0, 1
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_METALLIC,
-    models_load_texture_from_file("resources/textures/shop/01_-_Default_Metallic.tga.png"),
-    0, 1
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_NORMAL,
-    models_load_texture_from_file("resources/textures/shop/01_-_Default_Normal.tga.png"),
-    0, 1
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_ROUGHNESS,
-    models_load_texture_from_file("resources/textures/shop/01_-_Default_Roughness.tga.png"),
-    0, 1
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_AO,
-    models_load_texture_from_file("resources/textures/shop/AO-1.tga.png"),
-    0, 1
-  );
-
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_ALBEDO,
-    models_load_texture_from_file("resources/textures/shop/02_-_Default_BaseColor.tga.png"),
-    0, 2
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_METALLIC,
-    models_load_texture_from_file("resources/textures/shop/02_-_Default_Metallic.tga.png"),
-    0, 2
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_NORMAL,
-    models_load_texture_from_file("resources/textures/shop/02_-_Default_Normal.tga.png"),
-    0, 2
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_ROUGHNESS,
-    models_load_texture_from_file("resources/textures/shop/02_-_Default_Roughness.tga.png"),
-    0, 2
-  );
-  models_add_texture_for_node_idx(
-    &model_asset->model, TEXTURE_AO,
-    models_load_texture_from_file("resources/textures/shop/AO-2.tga.png"),
-    0, 2
-  );
-
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    models_add_texture(
-      &model_asset->model, TEXTURE_DEPTH,
-      state->shadow_cubemaps[idx]
+  {
+    texture_set = models_add_texture_set(&model_asset->model);
+    texture_set->albedo_texture = models_load_texture_from_file(
+      "resources/textures/shop/03_-_Default_BaseColor.tga.png"
     );
+    texture_set->metallic_texture = models_load_texture_from_file(
+      "resources/textures/shop/03_-_Default_Metallic.tga.png"
+    );
+    texture_set->normal_texture = models_load_texture_from_file(
+      "resources/textures/shop/03_-_Default_Normal.tga.png"
+    );
+    texture_set->roughness_texture = models_load_texture_from_file(
+      "resources/textures/shop/03_-_Default_Roughness.tga.png"
+    );
+    texture_set->ao_texture = models_load_texture_from_file(
+      "resources/textures/shop/AO-3.tga.png"
+    );
+    models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 0);
+  }
+
+  {
+    texture_set = models_add_texture_set(&model_asset->model);
+    texture_set->albedo_texture = models_load_texture_from_file(
+      "resources/textures/shop/01_-_Default_BaseColor.tga.png"
+    );
+    texture_set->metallic_texture = models_load_texture_from_file(
+      "resources/textures/shop/01_-_Default_Metallic.tga.png"
+    );
+    texture_set->normal_texture = models_load_texture_from_file(
+      "resources/textures/shop/01_-_Default_Normal.tga.png"
+    );
+    texture_set->roughness_texture = models_load_texture_from_file(
+      "resources/textures/shop/01_-_Default_Roughness.tga.png"
+    );
+    texture_set->ao_texture = models_load_texture_from_file(
+      "resources/textures/shop/AO-1.tga.png"
+    );
+    models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 1);
+  }
+
+  {
+    texture_set = models_add_texture_set(&model_asset->model);
+    texture_set->albedo_texture = models_load_texture_from_file(
+      "resources/textures/shop/02_-_Default_BaseColor.tga.png"
+    );
+    texture_set->metallic_texture = models_load_texture_from_file(
+      "resources/textures/shop/02_-_Default_Metallic.tga.png"
+    );
+    texture_set->normal_texture = models_load_texture_from_file(
+      "resources/textures/shop/02_-_Default_Normal.tga.png"
+    );
+    texture_set->roughness_texture = models_load_texture_from_file(
+      "resources/textures/shop/02_-_Default_Roughness.tga.png"
+    );
+    texture_set->ao_texture = models_load_texture_from_file(
+      "resources/textures/shop/AO-2.tga.png"
+    );
+    models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 2);
   }
 }
 

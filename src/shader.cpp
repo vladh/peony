@@ -67,19 +67,15 @@ const char* shader_load_file(Memory *memory, const char *path) {
 }
 
 
-void shader_init(Shader *shader) {
-  /*
-    Intrinsic uniform: A uniform declared by a shader. We only care
-      about intrinsic uniforms in the Shader struct.
+void shader_init(Shader *shader, uint32 program) {
+  shader->program = program;
 
-    Active uniforms: A uniform used in a shader, which can be either
-      an intrinsic uniform, or a uniform from another source such as a
-      uniform buffer object.
-  */
   // TODO: Is there a better way to do this?
   for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
     shader->intrinsic_uniform_locations[idx] = -1;
   }
+
+  shader->last_bound_texture_set_id = 0;
 
   // Bind uniform block
   uint32 uniform_block_index = glGetUniformBlockIndex(shader->program, "shader_common");
@@ -119,13 +115,13 @@ void shader_init(
   Shader *shader, Memory *memory,
   const char* vert_path, const char *frag_path, const char *geom_path
 ) {
-  shader->program = shader_make_program(
+  uint32 program = shader_make_program(
     shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
     shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER),
     shader_load(geom_path, shader_load_file(memory, geom_path), GL_GEOMETRY_SHADER)
   );
 
-  shader_init(shader);
+  shader_init(shader, program);
 }
 
 
@@ -133,12 +129,12 @@ void shader_init(
   Shader *shader, Memory *memory,
   const char* vert_path, const char *frag_path
 ) {
-  shader->program = shader_make_program(
+  uint32 program = shader_make_program(
     shader_load(vert_path, shader_load_file(memory, vert_path), GL_VERTEX_SHADER),
     shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER)
   );
 
-  shader_init(shader);
+  shader_init(shader, program);
 }
 
 
@@ -177,8 +173,9 @@ int32 shader_get_uniform_location(Shader *shader, const char *name) {
     global_shader_oops++;
     GLint location = glGetUniformLocation(shader->program, name);
     if (location != -1) {
-      shader->intrinsic_uniform_locations[shader->n_intrinsic_uniforms] = location;
-      strcpy(shader->intrinsic_uniform_names[shader->n_intrinsic_uniforms], name);
+      uniform_idx = shader->n_intrinsic_uniforms;
+      shader->intrinsic_uniform_locations[uniform_idx] = location;
+      strcpy(shader->intrinsic_uniform_names[uniform_idx], name);
       shader->n_intrinsic_uniforms++;
     } else {
       log_fatal("Could not get uniform: %s", name);

@@ -19,7 +19,6 @@ global_variable uint32 global_shader_cache = 0;
 #include "memory.cpp"
 #include "control.cpp"
 #include "entity.cpp"
-#include "array.cpp"
 #include "models.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
