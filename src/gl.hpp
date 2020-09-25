@@ -36,7 +36,13 @@
 #include <assimp/postprocess.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
-#include "glad/glad.cpp"
+
+#if USE_OPENGL_4
+#include "glad/glad_430.cpp"
+#else
+#include "glad/glad_330.cpp"
+#endif
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
