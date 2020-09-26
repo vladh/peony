@@ -3,7 +3,6 @@
 #define USE_OPENGL_4 false
 #define USE_OPENGL_DEBUG false
 #define USE_1440P true
-#define USE_AXES false
 
 #include "gl.hpp"
 
@@ -416,33 +415,18 @@ void draw_entity(State *state, Entity *entity) {
       entity->model_asset, state->render_mode, &model_matrix,
       state->entity_depth_shader_asset
     );
+  } else if (entity->type == ENTITY_SCREENQUAD) {
+    assert(entity->model_asset);
+
+    models_draw_model(
+      entity->model_asset, state->render_mode, nullptr,
+      state->entity_depth_shader_asset
+    );
   } else {
     log_warning(
       "Do not know how to draw entity '%s' of type '%d'",
       entity->name, entity->type
     );
-  }
-}
-
-
-void draw_all_entities_with_name(Memory *memory, State *state, const char* name) {
-  entity_get_all_with_name(
-    state->entities, name, &state->found_entities
-  );
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    draw_entity(state, entity);
-  }
-}
-
-
-void draw_all_entities_with_tag(Memory *memory, State *state, const char* tag) {
-  entity_get_all_with_tag(
-    state->entities, tag, &state->found_entities
-  );
-  for (uint32 idx = 0; idx < state->found_entities.size; idx++) {
-    Entity *entity = state->found_entities.items[idx];
-    draw_entity(state, entity);
   }
 }
 
@@ -469,64 +453,61 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
-void render_scene(Memory *memory, State *state) {
-  draw_all_entities_with_name(memory, state, "floor");
-  draw_all_entities_with_name(memory, state, "goose");
-  draw_all_entities_with_name(memory, state, "sphere");
-  draw_all_entities_with_name(memory, state, "temple");
-#if USE_AXES
-  draw_all_entities_with_name(memory, state, "axes");
-#endif
-}
 
+void render_scene(Memory *memory, State *state, RenderPass render_pass) {
+  for (uint32 idx = 0; idx < state->entities.size; idx++) {
+    Entity *entity = &state->entities.items[idx];
+    if (entity->target_render_pass == render_pass) {
+      draw_entity(state, entity);
+    }
+  }
 
-void render_scene_forward(Memory *memory, State *state) {
-  draw_all_entities_with_tag(memory, state, "light");
+  // TODO: Move this into the entity system.
+  if (render_pass == RENDERPASS_FORWARD) {
+    glEnable(GL_BLEND);
 
-  glEnable(GL_BLEND);
+    // TODO: Get rid of sprintf.
+    const real32 row_height = 30.0f;
+    char fps_text[128];
+    sprintf(fps_text, "(fps %.2f)", state->last_fps);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 0,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    sprintf(fps_text, "(effective_fps %.2f)", state->last_effective_fps);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 1,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    sprintf(fps_text, "(dt %f)", state->dt);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 2,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 3,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 4,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    sprintf(fps_text, "(oopses %d)", global_oopses);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 5,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
 
-  // TODO: Make this nicer.
-  // TODO: Get rid of sprintf.
-  const real32 row_height = 30.0f;
-  char fps_text[128];
-  sprintf(fps_text, "(fps %.2f)", state->last_fps);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 0,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(effective_fps %.2f)", state->last_effective_fps);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 1,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(dt %f)", state->dt);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 2,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 3,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 4,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-  sprintf(fps_text, "(oopses %d)", global_oopses);
-  draw_text(
-    state, "main-font", fps_text,
-    15.0f, state->window_height - 35.0f - row_height * 5,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-
-  glDisable(GL_BLEND);
+    glDisable(GL_BLEND);
+  }
 }
 
 
@@ -557,7 +538,7 @@ void update_and_render(Memory *memory, State *state) {
 
     set_render_mode(state, RENDERMODE_DEPTH);
     copy_scene_data_to_ubo(memory, state);
-    render_scene(memory, state);
+    render_scene(memory, state, RENDERPASS_DEFERRED);
 
     glViewport(0, 0, state->window_width, state->window_height);
   }
@@ -568,7 +549,7 @@ void update_and_render(Memory *memory, State *state) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   set_render_mode(state, RENDERMODE_REGULAR);
   copy_scene_data_to_ubo(memory, state);
-  render_scene(memory, state);
+  render_scene(memory, state, RENDERPASS_DEFERRED);
 
   // Copy depth from geometry pass to lighting pass
   glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
@@ -588,12 +569,13 @@ void update_and_render(Memory *memory, State *state) {
     state->background_color.b, state->background_color.a
   );
   glClear(GL_COLOR_BUFFER_BIT);
-  draw_all_entities_with_name(memory, state, "screenquad");
+  render_scene(memory, state, RENDERPASS_LIGHTING);
   glEnable(GL_DEPTH_TEST);
 
+  // Forward pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   copy_scene_data_to_ubo(memory, state);
-  render_scene_forward(memory, state);
+  render_scene(memory, state, RENDERPASS_FORWARD);
 }
 
 
