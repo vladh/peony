@@ -74,7 +74,6 @@ void scene_init_objects(Memory *memory, State *state) {
       )
     );
     entity_set_model_asset(entity, asset_get_model_asset_by_name(&state->model_assets, "light"));
-    entity_add_tag(entity, "light");
   }
 
   // Geese
