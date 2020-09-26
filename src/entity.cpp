@@ -31,19 +31,6 @@ void entity_set_model_asset(Entity *entity, ModelAsset *asset) {
   entity->model_asset = asset;
 }
 
-void entity_add_tag(Entity *entity, const char *tag_name) {
-  entity->tags.insert(EntityTag(tag_name));
-}
-
-void entity_remove_tag(Entity *entity, const char *tag_name) {
-  entity->tags.erase(entity->tags.find(tag_name));
-}
-
-bool32 entity_has_tag(Entity *entity, const char *tag_name) {
-  /* return entity->tags.size() > 0 && entity->tags.contains(tag_name); */
-  return entity->tags.size() > 0 && entity->tags.count(tag_name) > 0;
-}
-
 void entity_get_all_with_name(
   Array<Entity> entities, const char *name,
   Array<Entity*> *found_entities
@@ -52,20 +39,6 @@ void entity_get_all_with_name(
   for (uint32 idx = 0; idx < entities.size; idx++) {
     Entity *entity = entities.items + idx;
     if (strcmp(entity->name, name) == 0) {
-      assert(found_entities->size < found_entities->max_size);
-      found_entities->items[found_entities->size++] = entity;
-    }
-  }
-}
-
-void entity_get_all_with_tag(
-  Array<Entity> entities, const char *tag_name,
-  Array<Entity*> *found_entities
-) {
-  found_entities->size = 0;
-  for (uint32 idx = 0; idx < entities.size; idx++) {
-    Entity *entity = entities.items + idx;
-    if (entity_has_tag(entity, tag_name)) {
       assert(found_entities->size < found_entities->max_size);
       found_entities->items[found_entities->size++] = entity;
     }
