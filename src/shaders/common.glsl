@@ -39,10 +39,10 @@ layout (std140) uniform shader_common {
   mat4 projection;
   mat4 shadow_transforms[6];
   vec3 camera_position;
-  float pad_camera;
+  float exposure;
   float t;
   float far_clip_dist;
   int n_lights;
-  float pad_floats;
+  int shadow_light_idx;
   Light lights[MAX_N_LIGHTS];
 };

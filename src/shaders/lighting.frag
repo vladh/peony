@@ -17,8 +17,6 @@ uniform sampler2D g_pbr_texture;
 uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
-uniform float exposure;
-
 in VS_OUT {
   vec2 tex_coords;
 } fs_in;

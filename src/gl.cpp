@@ -413,7 +413,8 @@ void draw_entity(State *state, Entity *entity) {
     model_matrix = model_matrix * glm::toMat4(entity->rotation);
 
     models_draw_model(
-      entity->model_asset, state->render_mode, &model_matrix, state
+      entity->model_asset, state->render_mode, &model_matrix,
+      state->entity_depth_shader_asset
     );
   } else {
     log_warning(
@@ -456,9 +457,11 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   shader_common->projection = state->camera_active->projection;
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
+  shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
   shader_common->n_lights = state->lights.size;
+  shader_common->shadow_light_idx = state->shadow_light_idx;
   memcpy(shader_common->lights, state->lights.items, sizeof(Light) * state->lights.size);
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);

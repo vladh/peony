@@ -561,14 +561,15 @@ void models_set_texture_set_for_node_idx(
 
 
 void models_prepare_mesh_shader_for_draw(
-  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix, State *state,
+  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix,
+  ShaderAsset *entity_depth_shader_asset,
   uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
 ) {
   // TODO: This function is a bit of a mess of dependencies, clean it up.
 
   ShaderAsset *shader_asset;
-  if (state->render_mode == RENDERMODE_DEPTH) {
-    shader_asset = state->entity_depth_shader_asset;
+  if (render_mode == RENDERMODE_DEPTH) {
+    shader_asset = entity_depth_shader_asset;
   } else {
     shader_asset = mesh->shader_asset;
   }
@@ -578,15 +579,9 @@ void models_prepare_mesh_shader_for_draw(
     glUseProgram(shader->program);
     *last_used_shader_program = shader->program;
 
-    {
-      if (strcmp(shader_asset->info.name, "lighting") == 0) {
-        shader_set_float(shader, "exposure", state->camera_active->exposure);
-      } else {
-        shader_set_mat4(shader, "model", model_matrix);
-        if (strcmp(shader_asset->info.name, "entity_depth") == 0) {
-          shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
-        }
-      }
+    // TODO: Improve this check to remove strcmp.
+    if (!(strcmp(shader_asset->info.name, "lighting") == 0)) {
+      shader_set_mat4(shader, "model", model_matrix);
     }
   }
 
@@ -611,11 +606,13 @@ void models_prepare_mesh_shader_for_draw(
 
 
 void models_draw_mesh(
-  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix, State *state,
+  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix,
+  ShaderAsset *entity_depth_shader_asset,
   uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
 ) {
   models_prepare_mesh_shader_for_draw(
-    mesh, render_mode, model_matrix, state,
+    mesh, render_mode, model_matrix,
+    entity_depth_shader_asset,
     last_used_texture_set_id, last_used_shader_program
   );
 
@@ -630,14 +627,16 @@ void models_draw_mesh(
 
 
 void models_draw_model(
-  ModelAsset *model_asset, RenderMode render_mode, glm::mat4 *model_matrix, State *state
+  ModelAsset *model_asset, RenderMode render_mode, glm::mat4 *model_matrix,
+  ShaderAsset *entity_depth_shader_asset
 ) {
   Model *model = &model_asset->model;
   uint32 last_used_texture_set_id = 0;
   uint32 last_used_shader_program = 0;
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
     models_draw_mesh(
-      &model->meshes.items[idx], render_mode, model_matrix, state,
+      &model->meshes.items[idx], render_mode, model_matrix,
+      entity_depth_shader_asset,
       &last_used_texture_set_id, &last_used_shader_program
     );
   }
