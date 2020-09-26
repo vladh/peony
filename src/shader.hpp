@@ -5,6 +5,13 @@
 #define MAX_UNIFORM_NAME_LENGTH 64
 #define MAX_N_TEXTURE_UNITS 80
 
+enum ShaderType {
+  SHADER_ENTITY,
+  SHADER_ENTITY_DEPTH,
+  SHADER_OTHER_OBJECT,
+  SHADER_LIGHTING,
+  SHADER_UI
+};
 
 struct Shader {
   uint32 program;
@@ -12,6 +19,7 @@ struct Shader {
   uint32 texture_units[MAX_N_TEXTURE_UNITS];
   GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
   bool did_set_texture_uniforms;
+  ShaderType type;
 
   /*
   Intrinsic uniform: A uniform declared by a shader. We only care
@@ -30,12 +38,12 @@ struct Shader {
 struct ShaderAsset;
 
 ShaderAsset* shader_make_asset(
-  ShaderAsset *asset, const char *name,
-  const char *vertex_path, const char *frag_path
+  ShaderAsset *asset, Memory *memory, const char *name, ShaderType type,
+  const char *vert_path, const char* frag_path
 );
 ShaderAsset* shader_make_asset(
-  ShaderAsset *asset, const char *name,
-  const char *vertex_path, const char *frag_path, const char *geom_path
+  ShaderAsset *asset, Memory *memory, const char *name, ShaderType type,
+  const char *vert_path, const char *frag_path, const char *geom_path
 );
 void shader_set_int(Shader *shader, const char *name, uint32 value);
 void shader_set_bool(Shader *shader, const char *name, bool value);

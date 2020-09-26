@@ -430,7 +430,7 @@ void models_bind_texture_uniforms_for_mesh(Mesh *mesh) {
     return;
   }
 
-  if (strcmp(shader_asset->info.name, "entity") == 0) {
+  if (shader->type == SHADER_ENTITY) {
     glUseProgram(shader->program);
 
     bool should_use_normal_map = texture_set->normal_texture != 0;
@@ -465,7 +465,7 @@ void models_bind_texture_uniforms_for_mesh(Mesh *mesh) {
       shader, "normal_texture",
       shader_add_texture_unit(shader, texture_set->normal_texture, GL_TEXTURE_2D)
     );
-  } else if (strcmp(shader_asset->info.name, "lighting") == 0) {
+  } else if (shader->type == SHADER_LIGHTING) {
     glUseProgram(shader->program);
 
     shader_set_int(shader, "n_depth_textures", texture_set->n_depth_textures);
@@ -565,8 +565,6 @@ void models_prepare_mesh_shader_for_draw(
   ShaderAsset *entity_depth_shader_asset,
   uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
 ) {
-  // TODO: This function is a bit of a mess of dependencies, clean it up.
-
   ShaderAsset *shader_asset;
   if (render_mode == RENDERMODE_DEPTH) {
     shader_asset = entity_depth_shader_asset;
@@ -579,8 +577,10 @@ void models_prepare_mesh_shader_for_draw(
     glUseProgram(shader->program);
     *last_used_shader_program = shader->program;
 
-    // TODO: Improve this check to remove strcmp.
-    if (!(strcmp(shader_asset->info.name, "lighting") == 0)) {
+    if (
+      shader->type == SHADER_ENTITY || shader->type == SHADER_ENTITY_DEPTH ||
+      shader->type == SHADER_OTHER_OBJECT
+    ) {
       shader_set_mat4(shader, "model", model_matrix);
     }
   }
@@ -596,10 +596,7 @@ void models_prepare_mesh_shader_for_draw(
     *last_used_texture_set_id = mesh->texture_set->id;
   }
 
-  bool is_entity = (strcmp(shader_asset->info.name, "entity") == 0);
-  bool is_entity_depth = (strcmp(shader_asset->info.name, "entity_depth") == 0);
-
-  if (is_entity || is_entity_depth) {
+  if (shader->type == SHADER_ENTITY || shader->type == SHADER_ENTITY_DEPTH) {
     shader_set_mat4(shader, "mesh_transform", &mesh->transform);
   }
 }
