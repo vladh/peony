@@ -67,6 +67,16 @@ const char* shader_load_file(Memory *memory, const char *path) {
 }
 
 
+uint32 shader_add_texture_unit(
+  Shader *shader, uint32 texture_unit, GLenum texture_unit_type
+) {
+  uint32 idx = ++shader->n_texture_units;
+  shader->texture_units[idx] = texture_unit;
+  shader->texture_unit_types[idx] = texture_unit_type;
+  return idx;
+}
+
+
 void shader_init(Shader *shader, uint32 program) {
   shader->program = program;
 
@@ -75,7 +85,10 @@ void shader_init(Shader *shader, uint32 program) {
     shader->intrinsic_uniform_locations[idx] = -1;
   }
 
-  shader->last_bound_texture_set_id = 0;
+  shader->n_texture_units = 0;
+  memset(shader->texture_units, 0, sizeof(shader->texture_units));
+
+  shader->did_set_texture_uniforms = false;
 
   // Bind uniform block
   uint32 uniform_block_index = glGetUniformBlockIndex(shader->program, "shader_common");

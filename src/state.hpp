@@ -23,13 +23,14 @@ struct State {
 
   Array<Entity> entities;
   Array<Entity*> found_entities;
-  ShaderAsset *entity_shader_asset;
-  ShaderAsset *entity_depth_shader_asset;
 
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset> model_assets;
   Array<FontAsset> font_assets;
   Array<Light> lights;
+
+  ShaderAsset *text_shader_asset;
+  ShaderAsset *entity_depth_shader_asset;
 
   uint32 text_vao;
   uint32 text_vbo;

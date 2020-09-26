@@ -3,10 +3,11 @@
 #define USE_OPENGL_4 false
 #define USE_OPENGL_DEBUG false
 #define USE_1440P true
-#define USE_ALPACA false
 #define USE_AXES false
 
 #include "gl.hpp"
+
+global_variable uint32 global_oopses;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -345,9 +346,7 @@ void draw_text(
   State *state, const char* font_name, const char *str,
   real32 x, real32 y, real32 scale, glm::vec4 color
 ) {
-  ShaderAsset *shader_asset = asset_get_shader_asset_by_name(
-    &state->shader_assets, "text"
-  );
+  ShaderAsset *shader_asset = state->text_shader_asset;
   Shader *shader = &shader_asset->shader;
 
   FontAsset *font_asset = asset_get_font_asset_by_name(&state->font_assets, font_name);
@@ -414,32 +413,9 @@ void draw_entity(State *state, Entity *entity) {
     model_matrix = glm::scale(model_matrix, entity->scale);
     model_matrix = model_matrix * glm::toMat4(entity->rotation);
 
-    ShaderAsset *shader_asset;
-
-    if (state->render_mode == RENDERMODE_DEPTH) {
-      shader_asset = state->entity_depth_shader_asset;
-    } else if (entity->shader_asset) {
-      shader_asset = entity->shader_asset;
-    } else {
-      log_error("Could not find shader asset for entity %s", entity->name);
-      shader_asset = nullptr;
-    }
-
-    Shader *shader = &shader_asset->shader;
-    glUseProgram(shader->program);
-
-    {
-      if (strcmp(shader_asset->info.name, "lighting") == 0) {
-        shader_set_float(shader, "exposure", state->camera_active->exposure);
-      } else {
-        shader_set_mat4(shader, "model", &model_matrix);
-        if (strcmp(shader_asset->info.name, "entity_depth") == 0) {
-          shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
-        }
-      }
-    }
-
-    models_draw_model(&entity->model_asset->model, shader_asset, state->render_mode);
+    models_draw_model(
+      entity->model_asset, state->render_mode, &model_matrix, state
+    );
   } else {
     log_warning(
       "Do not know how to draw entity '%s' of type '%d'",
@@ -499,9 +475,6 @@ void render_scene(Memory *memory, State *state) {
 #if USE_AXES
   draw_all_entities_with_name(memory, state, "axes");
 #endif
-#if USE_ALPACA
-  draw_all_entities_with_name(memory, state, "alpaca");
-#endif
 }
 
 
@@ -542,6 +515,12 @@ void render_scene_forward(Memory *memory, State *state) {
   draw_text(
     state, "main-font", fps_text,
     15.0f, state->window_height - 35.0f - row_height * 4,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+  sprintf(fps_text, "(oopses %d)", global_oopses);
+  draw_text(
+    state, "main-font", fps_text,
+    15.0f, state->window_height - 35.0f - row_height * 5,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 

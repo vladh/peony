@@ -53,6 +53,7 @@ struct Mesh {
   Array<Vertex> vertices;
   Array<uint32> indices;
   TextureSet *texture_set;
+  ShaderAsset *shader_asset;
   glm::mat4 transform;
   uint64 indices_pack;
   uint32 vao;
@@ -114,6 +115,16 @@ void models_set_static_pbr(
   glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
 );
 
-void models_draw_model(Model *model, ShaderAsset *shader_asset, RenderMode render_mode);
+void models_set_shader_asset(Model *model, uint32 idx_mesh, ShaderAsset *shader_asset);
+
+void models_set_shader_asset(Model *model, ShaderAsset *shader_asset);
+
+void models_set_shader_asset_for_node_idx(
+  Model *model, ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+);
+
+void models_draw_model(
+  Model *model, RenderMode render_mode, glm::mat4 *model_matrix, State *state
+);
 
 #endif
