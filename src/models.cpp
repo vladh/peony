@@ -430,9 +430,9 @@ void models_bind_texture_uniforms_for_mesh(Mesh *mesh) {
     return;
   }
 
-  glUseProgram(shader->program);
-
   if (strcmp(shader_asset->info.name, "entity") == 0) {
+    glUseProgram(shader->program);
+
     bool should_use_normal_map = texture_set->normal_texture != 0;
     shader_set_bool(shader, "should_use_normal_map", should_use_normal_map);
 
@@ -466,6 +466,8 @@ void models_bind_texture_uniforms_for_mesh(Mesh *mesh) {
       shader_add_texture_unit(shader, texture_set->normal_texture, GL_TEXTURE_2D)
     );
   } else if (strcmp(shader_asset->info.name, "lighting") == 0) {
+    glUseProgram(shader->program);
+
     shader_set_int(shader, "n_depth_textures", texture_set->n_depth_textures);
 
     for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
@@ -559,11 +561,11 @@ void models_set_texture_set_for_node_idx(
 
 
 void models_prepare_mesh_shader_for_draw(
-  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix, State *state
+  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix, State *state,
+  uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
 ) {
   // TODO: This function is a bit of a mess of dependencies, clean it up.
 
-  /* global_oopses++; */
   ShaderAsset *shader_asset;
   if (state->render_mode == RENDERMODE_DEPTH) {
     shader_asset = state->entity_depth_shader_asset;
@@ -572,8 +574,21 @@ void models_prepare_mesh_shader_for_draw(
   }
   Shader *shader = &shader_asset->shader;
 
-  // TODO: Don't bind this if it's already bound.
-  glUseProgram(shader->program);
+  if (shader->program != *last_used_shader_program) {
+    glUseProgram(shader->program);
+    *last_used_shader_program = shader->program;
+  }
+
+  if (mesh->texture_set && (mesh->texture_set->id != *last_used_texture_set_id)) {
+    global_oopses++;
+    for (uint32 idx = 1; idx < shader->n_texture_units + 1; idx++) {
+      if (shader->texture_units[idx] != 0) {
+        glActiveTexture(GL_TEXTURE0 + idx);
+        glBindTexture(shader->texture_unit_types[idx], shader->texture_units[idx]);
+      }
+    }
+    *last_used_texture_set_id = mesh->texture_set->id;
+  }
 
   {
     if (strcmp(shader_asset->info.name, "lighting") == 0) {
@@ -592,18 +607,17 @@ void models_prepare_mesh_shader_for_draw(
   if (is_entity || is_entity_depth) {
     shader_set_mat4(shader, "mesh_transform", &mesh->transform);
   }
-
-  for (uint32 idx = 1; idx < shader->n_texture_units + 1; idx++) {
-    glActiveTexture(GL_TEXTURE0 + idx);
-    glBindTexture(shader->texture_unit_types[idx], shader->texture_units[idx]);
-  }
 }
 
 
 void models_draw_mesh(
-  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix, State *state
+  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix, State *state,
+  uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
 ) {
-  models_prepare_mesh_shader_for_draw(mesh, render_mode, model_matrix, state);
+  models_prepare_mesh_shader_for_draw(
+    mesh, render_mode, model_matrix, state,
+    last_used_texture_set_id, last_used_shader_program
+  );
 
   glBindVertexArray(mesh->vao);
   if (mesh->indices.size > 0) {
@@ -619,9 +633,12 @@ void models_draw_model(
   ModelAsset *model_asset, RenderMode render_mode, glm::mat4 *model_matrix, State *state
 ) {
   Model *model = &model_asset->model;
+  uint32 last_used_texture_set_id = 0;
+  uint32 last_used_shader_program = 0;
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
     models_draw_mesh(
-      &model->meshes.items[idx], render_mode, model_matrix, state
+      &model->meshes.items[idx], render_mode, model_matrix, state,
+      &last_used_texture_set_id, &last_used_shader_program
     );
   }
 }
