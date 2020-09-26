@@ -7,7 +7,7 @@
 
 #include "gl.hpp"
 
-global_variable uint32 global_oopses;
+global_variable uint32 global_oopses = 0;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -400,7 +400,6 @@ void draw_text(
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
-  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 
