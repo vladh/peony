@@ -577,6 +577,17 @@ void models_prepare_mesh_shader_for_draw(
   if (shader->program != *last_used_shader_program) {
     glUseProgram(shader->program);
     *last_used_shader_program = shader->program;
+
+    {
+      if (strcmp(shader_asset->info.name, "lighting") == 0) {
+        shader_set_float(shader, "exposure", state->camera_active->exposure);
+      } else {
+        shader_set_mat4(shader, "model", model_matrix);
+        if (strcmp(shader_asset->info.name, "entity_depth") == 0) {
+          shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
+        }
+      }
+    }
   }
 
   if (mesh->texture_set && (mesh->texture_set->id != *last_used_texture_set_id)) {
@@ -588,17 +599,6 @@ void models_prepare_mesh_shader_for_draw(
       }
     }
     *last_used_texture_set_id = mesh->texture_set->id;
-  }
-
-  {
-    if (strcmp(shader_asset->info.name, "lighting") == 0) {
-      shader_set_float(shader, "exposure", state->camera_active->exposure);
-    } else {
-      shader_set_mat4(shader, "model", model_matrix);
-      if (strcmp(shader_asset->info.name, "entity_depth") == 0) {
-        shader_set_int(shader, "shadow_light_idx", state->shadow_light_idx);
-      }
-    }
   }
 
   bool is_entity = (strcmp(shader_asset->info.name, "entity") == 0);
