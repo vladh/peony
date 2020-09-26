@@ -2,7 +2,7 @@
 #define ENTITY_H
 
 enum EntityType {
-  ENTITY_MODEL
+  ENTITY_MODEL, ENTITY_SCREENQUAD
 };
 
 struct EntityTag {
@@ -21,6 +21,7 @@ struct EntityTag {
 };
 
 struct Entity {
+  RenderPass target_render_pass;
   const char *name;
   EntityType type;
   glm::vec3 position;

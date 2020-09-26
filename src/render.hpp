@@ -6,6 +6,10 @@ enum RenderMode {
   RENDERMODE_REGULAR, RENDERMODE_DEPTH
 };
 
+enum RenderPass {
+  RENDERPASS_DEFERRED, RENDERPASS_FORWARD, RENDERPASS_LIGHTING
+};
+
 struct Light {
   glm::vec4 position;
   glm::vec4 direction;

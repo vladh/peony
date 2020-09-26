@@ -1,12 +1,13 @@
 Entity* entity_make(
   Entity *entity, const char *name,
-  EntityType type,
+  EntityType type, RenderPass target_render_pass,
   glm::vec3 position, glm::vec3 scale, glm::quat rotation
 ) {
   // NOTE: Do we want all this C++ stuff here? Maybe not.
   entity = new(entity) Entity();
   entity->name = name;
   entity->type = type;
+  entity->target_render_pass = target_render_pass;
   entity->position = position;
   entity->scale = scale;
   entity->rotation = rotation;
