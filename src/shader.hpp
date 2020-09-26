@@ -3,13 +3,15 @@
 
 #define MAX_N_UNIFORMS 64
 #define MAX_UNIFORM_NAME_LENGTH 64
+#define MAX_N_TEXTURE_UNITS 80
 
 
 struct Shader {
   uint32 program;
-
-  // 0 = unbound, > 0 is a TextureSet.id
-  uint32 last_bound_texture_set_id;
+  uint32 n_texture_units;
+  uint32 texture_units[MAX_N_TEXTURE_UNITS];
+  GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
+  bool did_set_texture_uniforms;
 
   /*
   Intrinsic uniform: A uniform declared by a shader. We only care

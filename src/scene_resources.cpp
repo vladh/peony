@@ -1,35 +1,10 @@
 void scene_resources_init_shaders(Memory *memory, State *state) {
-  state->entity_shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    memory,
-    "entity",
-    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-  );
-
   state->entity_depth_shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
     "entity_depth",
     SHADER_DIR"entity_depth.vert", SHADER_DIR"entity_depth.frag",
     SHADER_DIR"entity_depth.geom"
-  );
-
-  shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    memory,
-    "axes", SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
-  );
-
-  shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    memory,
-    "lighting", SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
-  );
-
-  shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
-    memory,
-    "light", SHADER_DIR"light.vert", SHADER_DIR"light.frag"
   );
 
   ShaderAsset *text_shader_asset = shader_make_asset(
@@ -42,6 +17,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
   );
   glUseProgram(text_shader_asset->shader.program);
   shader_set_mat4(&text_shader_asset->shader, "text_projection", &text_projection);
+  state->text_shader_asset = text_shader_asset;
 }
 
 void scene_resources_init_models(Memory *memory, State *state) {
@@ -49,9 +25,18 @@ void scene_resources_init_models(Memory *memory, State *state) {
   TextureSet *texture_set;
 
   // Light
-  models_make_asset_from_file(
+  model_asset = models_make_asset_from_file(
     memory, array_push<ModelAsset>(&state->model_assets),
     "light", "resources/models/", "cube.obj"
+  );
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "light",
+      SHADER_DIR"light.vert", SHADER_DIR"light.frag"
+    )
   );
 
   // Screenquad
@@ -73,33 +58,34 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
   }
   models_set_texture_set(&model_asset->model, texture_set);
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "lighting",
+      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
+    )
+  );
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
-  models_make_asset_from_data(
+  model_asset = models_make_asset_from_data(
     memory, array_push<ModelAsset>(&state->model_assets),
     axes_vertices, 6,
     nullptr, 0,
     "axes",
     GL_LINES
   );
-
-  // Alpaca
-#if USE_ALPACA
-  real32 alpaca_vertices[] = ALPACA_VERTICES;
-  model_asset = models_make_asset_from_data(
-    memory, array_push<ModelAsset>(&state->model_assets),
-    alpaca_vertices, 36,
-    nullptr, 0,
-    "alpaca",
-    GL_TRIANGLES
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "axes",
+      SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
+    )
   );
-  texture_set = models_add_texture_set(&model_asset->model);
-  texture_set->g_albedo_texture = models_load_texture_from_file(
-    "resources/textures/alpaca.jpg"
-  );
-  models_set_texture_set(&model_asset->model, texture_set);
-#endif
 
   // Goose
   model_asset = models_make_asset_from_file(
@@ -112,6 +98,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
   texture_set->roughness_static = 1.0f;
   texture_set->ao_static = 1.0f;
   models_set_texture_set(&model_asset->model, texture_set);
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "entity",
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    )
+  );
 
   // Sphere
   uint32 n_x_segments = 64;
@@ -160,6 +155,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "resources/textures/rusted_iron/normal.png"
   );
   models_set_texture_set(&model_asset->model, texture_set);
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "entity",
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    )
+  );
 
   // Floor
   model_asset = models_make_asset_from_file(
@@ -172,6 +176,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
   texture_set->roughness_static = 1.0f;
   texture_set->ao_static = 1.0f;
   models_set_texture_set(&model_asset->model, texture_set);
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "entity",
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    )
+  );
 
   // Temple
   model_asset = models_make_asset_from_file(
@@ -199,6 +212,16 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "resources/textures/shop/AO-3.tga.png"
     );
     models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 0);
+    models_set_shader_asset_for_node_idx(
+      &model_asset->model,
+      shader_make_asset(
+        array_push<ShaderAsset>(&state->shader_assets),
+        memory,
+        "entity",
+        SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+      ),
+      0, 0
+    );
   }
 
   {
@@ -219,6 +242,16 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "resources/textures/shop/AO-1.tga.png"
     );
     models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 1);
+    models_set_shader_asset_for_node_idx(
+      &model_asset->model,
+      shader_make_asset(
+        array_push<ShaderAsset>(&state->shader_assets),
+        memory,
+        "entity",
+        SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+      ),
+      0, 1
+    );
   }
 
   {
@@ -239,6 +272,16 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "resources/textures/shop/AO-2.tga.png"
     );
     models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 2);
+    models_set_shader_asset_for_node_idx(
+      &model_asset->model,
+      shader_make_asset(
+        array_push<ShaderAsset>(&state->shader_assets),
+        memory,
+        "entity",
+        SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+      ),
+      0, 2
+    );
   }
 }
 

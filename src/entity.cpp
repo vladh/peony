@@ -10,7 +10,6 @@ Entity* entity_make(
   entity->position = position;
   entity->scale = scale;
   entity->rotation = rotation;
-  entity->shader_asset = nullptr;
   entity->model_asset = nullptr;
   return entity;
 }
@@ -25,10 +24,6 @@ void entity_set_scale(Entity *entity, glm::vec3 scale) {
 
 void entity_set_rotation(Entity *entity, glm::quat rotation) {
   entity->rotation = rotation;
-}
-
-void entity_set_shader_asset(Entity *entity, ShaderAsset *asset) {
-  entity->shader_asset = asset;
 }
 
 void entity_set_model_asset(Entity *entity, ModelAsset *asset) {
