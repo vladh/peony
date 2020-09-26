@@ -3,6 +3,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
     "entity_depth",
+    SHADER_ENTITY_DEPTH,
     SHADER_DIR"entity_depth.vert", SHADER_DIR"entity_depth.frag",
     SHADER_DIR"entity_depth.geom"
   );
@@ -10,7 +11,9 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
   ShaderAsset *text_shader_asset = shader_make_asset(
     array_push<ShaderAsset>(&state->shader_assets),
     memory,
-    "text", SHADER_DIR"text.vert", SHADER_DIR"text.frag"
+    "text",
+    SHADER_UI,
+    SHADER_DIR"text.vert", SHADER_DIR"text.frag"
   );
   glm::mat4 text_projection = glm::ortho(
     0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
@@ -35,6 +38,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
       array_push<ShaderAsset>(&state->shader_assets),
       memory,
       "light",
+      SHADER_OTHER_OBJECT,
       SHADER_DIR"light.vert", SHADER_DIR"light.frag"
     )
   );
@@ -64,6 +68,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
       array_push<ShaderAsset>(&state->shader_assets),
       memory,
       "lighting",
+      SHADER_LIGHTING,
       SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
     )
   );
@@ -83,6 +88,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
       array_push<ShaderAsset>(&state->shader_assets),
       memory,
       "axes",
+      SHADER_OTHER_OBJECT,
       SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
     )
   );
@@ -104,6 +110,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
       array_push<ShaderAsset>(&state->shader_assets),
       memory,
       "entity",
+      SHADER_ENTITY,
       SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     )
   );
@@ -161,6 +168,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
       array_push<ShaderAsset>(&state->shader_assets),
       memory,
       "entity",
+      SHADER_ENTITY,
       SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     )
   );
@@ -182,6 +190,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
       array_push<ShaderAsset>(&state->shader_assets),
       memory,
       "entity",
+      SHADER_ENTITY,
       SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     )
   );
@@ -218,6 +227,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
         array_push<ShaderAsset>(&state->shader_assets),
         memory,
         "entity",
+        SHADER_ENTITY,
         SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
       ),
       0, 0
@@ -248,6 +258,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
         array_push<ShaderAsset>(&state->shader_assets),
         memory,
         "entity",
+        SHADER_ENTITY,
         SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
       ),
       0, 1
@@ -278,6 +289,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
         array_push<ShaderAsset>(&state->shader_assets),
         memory,
         "entity",
+        SHADER_ENTITY,
         SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
       ),
       0, 2

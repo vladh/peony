@@ -77,7 +77,7 @@ uint32 shader_add_texture_unit(
 }
 
 
-void shader_init(Shader *shader, uint32 program) {
+void shader_init(Shader *shader, uint32 program, ShaderType type) {
   shader->program = program;
 
   // TODO: Is there a better way to do this?
@@ -88,6 +88,7 @@ void shader_init(Shader *shader, uint32 program) {
   shader->n_texture_units = 0;
   memset(shader->texture_units, 0, sizeof(shader->texture_units));
 
+  shader->type = type;
   shader->did_set_texture_uniforms = false;
 
   // Bind uniform block
@@ -125,7 +126,7 @@ void shader_init(Shader *shader, uint32 program) {
 
 
 void shader_init(
-  Shader *shader, Memory *memory,
+  Shader *shader, Memory *memory, ShaderType type,
   const char* vert_path, const char *frag_path, const char *geom_path
 ) {
   uint32 program = shader_make_program(
@@ -134,12 +135,12 @@ void shader_init(
     shader_load(geom_path, shader_load_file(memory, geom_path), GL_GEOMETRY_SHADER)
   );
 
-  shader_init(shader, program);
+  shader_init(shader, program, type);
 }
 
 
 void shader_init(
-  Shader *shader, Memory *memory,
+  Shader *shader, Memory *memory, ShaderType type,
   const char* vert_path, const char *frag_path
 ) {
   uint32 program = shader_make_program(
@@ -147,27 +148,27 @@ void shader_init(
     shader_load(frag_path, shader_load_file(memory, frag_path), GL_FRAGMENT_SHADER)
   );
 
-  shader_init(shader, program);
+  shader_init(shader, program, type);
 }
 
 
 ShaderAsset* shader_make_asset(
-  ShaderAsset *asset, Memory *memory, const char *name,
+  ShaderAsset *asset, Memory *memory, const char *name, ShaderType type,
   const char *vert_path, const char* frag_path
 ) {
   asset->info.name = name;
-  shader_init(&asset->shader, memory, vert_path, frag_path);
+  shader_init(&asset->shader, memory, type, vert_path, frag_path);
   memory_reset_pool(&memory->temp_memory_pool);
   return asset;
 }
 
 
 ShaderAsset* shader_make_asset(
-  ShaderAsset *asset, Memory *memory, const char *name,
+  ShaderAsset *asset, Memory *memory, const char *name, ShaderType type,
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {
   asset->info.name = name;
-  shader_init(&asset->shader, memory, vert_path, frag_path, geom_path);
+  shader_init(&asset->shader, memory, type, vert_path, frag_path, geom_path);
   memory_reset_pool(&memory->temp_memory_pool);
   return asset;
 }
