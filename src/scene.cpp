@@ -1,13 +1,44 @@
-void scene_init_lights(Memory *memory, State *state) {
-  Light *light1 = array_push(&state->lights);
-  light1->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-  light1->color = glm::vec4(9.0f, 9.0f, 9.0f, 1.0f);
-  light1->attenuation = glm::vec4(1.0f, 0.09f, 0.032f, 0.0f);
+void scene_init_screenquad(Memory *memory, State *state) {
+  ModelAsset *model_asset;
+  TextureSet *texture_set;
+  Entity *entity;
 
-  Light *light2 = array_push(&state->lights);
-  light2->position = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-  light2->color = glm::vec4(7.0f, 6.0f, 5.0f, 1.0f);
-  light2->attenuation = glm::vec4(1.0f, 0.0f, 0.0f, 0.0f);
+  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
+  model_asset = models_make_asset_from_data(
+    memory, array_push<ModelAsset>(&state->model_assets),
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad",
+    GL_TRIANGLES
+  );
+  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set->g_position_texture = state->g_position_texture;
+  texture_set->g_normal_texture = state->g_normal_texture;
+  texture_set->g_albedo_texture = state->g_albedo_texture;
+  texture_set->g_pbr_texture = state->g_pbr_texture;
+  texture_set->n_depth_textures = state->n_shadow_framebuffers;
+  log_info("Initialising %d depth textures", texture_set->n_depth_textures);
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
+  }
+  models_set_texture_set(&model_asset->model, texture_set);
+  models_set_shader_asset(
+    &model_asset->model,
+    shader_make_asset(
+      array_push<ShaderAsset>(&state->shader_assets),
+      memory,
+      "lighting",
+      SHADER_LIGHTING,
+      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
+    )
+  );
+
+  entity = state->entity_manager.add("screenquad");
+  state->entity_manager.add_drawable_component(
+    entity,
+    asset_get_model_asset_by_name(&state->model_assets, "screenquad"),
+    RENDERPASS_LIGHTING
+  );
 }
 
 void scene_init_objects(Memory *memory, State *state) {
@@ -57,21 +88,44 @@ void scene_init_objects(Memory *memory, State *state) {
     );
   }
 
-  // Light entities
-  for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    entity = state->entity_manager.add("light");
-    state->entity_manager.add_spatial_component(
-      entity,
-      state->lights.items[idx].position,
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-      glm::vec3(0.3f)
-    );
-    state->entity_manager.add_drawable_component(
-      entity,
-      asset_get_model_asset_by_name(&state->model_assets, "light"),
-      RENDERPASS_FORWARD
-    );
-  }
+  // Lights
+  entity = state->entity_manager.add("light1");
+  state->entity_manager.add_spatial_component(
+    entity,
+    glm::vec4(-5.0f, 2.0f, 0.0f, 1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(0.3f)
+  );
+  state->entity_manager.add_drawable_component(
+    entity,
+    asset_get_model_asset_by_name(&state->model_assets, "light"),
+    RENDERPASS_FORWARD
+  );
+  state->entity_manager.add_light_component(
+    entity,
+    glm::vec4(9.0f, 9.0f, 9.0f, 1.0f),
+    glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
+  );
+  array_push<EntityHandle>(&state->lights, entity->handle);
+
+  entity = state->entity_manager.add("light2");
+  state->entity_manager.add_spatial_component(
+    entity,
+    glm::vec4(-4.0f, 16.0f, 0.0f, 1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(0.3f)
+  );
+  state->entity_manager.add_drawable_component(
+    entity,
+    asset_get_model_asset_by_name(&state->model_assets, "light"),
+    RENDERPASS_FORWARD
+  );
+  state->entity_manager.add_light_component(
+    entity,
+    glm::vec4(7.0f, 6.0f, 5.0f, 1.0f),
+    glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
+  );
+  array_push<EntityHandle>(&state->lights, entity->handle);
 
   // Geese
   uint32 n_geese = 10;
@@ -106,16 +160,6 @@ void scene_init_objects(Memory *memory, State *state) {
       RENDERPASS_DEFERRED
     );
   }
-
-  // Screenquad
-  entity = state->entity_manager.add("screenquad");
-  state->entity_manager.add_drawable_component(
-    entity,
-    asset_get_model_asset_by_name(&state->model_assets, "screenquad"),
-    RENDERPASS_LIGHTING
-  );
-
-  state->entity_manager.print_all();
 }
 
 #if 0
@@ -142,19 +186,8 @@ void update_entity(State *state, Entity *entity) {
 #endif
 
 void scene_update(Memory *memory, State *state) {
-  // Lights
-  state->lights.items[0].position = glm::vec4(
-    -5.0f,
-    2.0f,
-    sin(state->t) * 3.0f + 5.0f,
-    state->lights.items[0].position.w
-  );
-  state->lights.items[1].position = glm::vec4(
-    -4.0f,
-    16.0f,
-    0.0f,
-    state->lights.items[1].position.w
-  );
+  state->entity_manager.get(state->lights.items[0])->spatial->position.z =
+    (real32)sin(state->t) * 3.0f + 5.0f;
 
 #if 0
   for (uint32 idx = 0; idx < state->entities.size; idx++) {

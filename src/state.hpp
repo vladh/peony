@@ -26,11 +26,11 @@ struct State {
   Array<DrawableComponent> drawable_components;
   Array<LightComponent> light_components;
   Array<SpatialComponent> spatial_components;
+  Array<EntityHandle> lights;
 
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset> model_assets;
   Array<FontAsset> font_assets;
-  Array<Light> lights;
 
   ShaderAsset *text_shader_asset;
   ShaderAsset *entity_depth_shader_asset;

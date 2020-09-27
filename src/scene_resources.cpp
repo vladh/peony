@@ -43,36 +43,6 @@ void scene_resources_init_models(Memory *memory, State *state) {
     )
   );
 
-  // Screenquad
-  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  model_asset = models_make_asset_from_data(
-    memory, array_push<ModelAsset>(&state->model_assets),
-    screenquad_vertices, 6,
-    nullptr, 0,
-    "screenquad",
-    GL_TRIANGLES
-  );
-  texture_set = models_add_texture_set(&model_asset->model);
-  texture_set->g_position_texture = state->g_position_texture;
-  texture_set->g_normal_texture = state->g_normal_texture;
-  texture_set->g_albedo_texture = state->g_albedo_texture;
-  texture_set->g_pbr_texture = state->g_pbr_texture;
-  texture_set->n_depth_textures = state->n_shadow_framebuffers;
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
-  }
-  models_set_texture_set(&model_asset->model, texture_set);
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
-      memory,
-      "lighting",
-      SHADER_LIGHTING,
-      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
-    )
-  );
-
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
   model_asset = models_make_asset_from_data(
