@@ -48,6 +48,8 @@ public:
     }
 
     if (spatial) {
+      // TODO: This is somehow really #slow, the multiplication in particular.
+      // Is there a better way?
       glm::mat4 model_matrix = glm::mat4(1.0f);
       model_matrix = glm::translate(model_matrix, spatial->position);
       model_matrix = glm::scale(model_matrix, spatial->scale);
@@ -181,6 +183,7 @@ public:
 
 private:
   EntityHandle last_handle = 0;
+  // TODO: std::unordered_map is #slow, find a better implementation.
   std::unordered_map<EntityHandle, Entity*> entity_handle_map;
   uint32 n_entities = 0;
 

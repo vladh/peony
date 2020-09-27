@@ -454,7 +454,7 @@ void render_scene(Memory *memory, State *state, RenderPass render_pass) {
   if (render_pass == RENDERPASS_FORWARD) {
     glEnable(GL_BLEND);
 
-    // TODO: Get rid of sprintf.
+    // TODO: Get rid of sprintf, it is #slow.
     const real32 row_height = 30.0f;
     char fps_text[128];
     sprintf(fps_text, "(fps %.2f)", state->last_fps);
