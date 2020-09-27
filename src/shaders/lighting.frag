@@ -1,5 +1,6 @@
 #define GAMMA 2.2
 #define USE_SHADOWS true
+#define USE_DEBUG_FLAT true
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -35,7 +36,7 @@ vec3 add_tone_mapping(vec3 rgb) {
 }
 
 float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = frag_position - vec3(lights[idx_light].position);
+  vec3 frag_to_light = frag_position - vec3(light_position[idx_light]);
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0f;
@@ -98,6 +99,17 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 void main() {
+  #if 0
+  if (USE_DEBUG_FLAT) {
+    vec4 normal = texture(g_normal_texture, fs_in.tex_coords);
+    if (vec3(normal) == vec3(0.0f, 0.0f, 0.0f)) {
+      discard;
+    }
+    frag_color = normal;
+    return;
+  }
+  #endif
+
   vec3 frag_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
 
@@ -122,18 +134,16 @@ void main() {
   vec3 Lo = vec3(0.0);
 
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
-    Light light = lights[idx_light];
-
-    vec3 L = normalize(vec3(light.position) - frag_position);
+    vec3 L = normalize(vec3(light_position[idx_light]) - frag_position);
     vec3 H = normalize(V + L);
 
-    float distance = length(vec3(light.position) - frag_position);
+    float distance = length(vec3(light_position[idx_light]) - frag_position);
     float attenuation = 1.0 / (
-      light.attenuation[0] +
-      light.attenuation[1] * distance +
-      light.attenuation[2] * (distance * distance)
+      light_attenuation[idx_light][0] +
+      light_attenuation[idx_light][1] * distance +
+      light_attenuation[idx_light][2] * (distance * distance)
     );
-    vec3 radiance = vec3(light.color) * attenuation;
+    vec3 radiance = vec3(light_color[idx_light]) * attenuation;
 
     float NDF = distribution_ggx(N, H, roughness);
     float G = geometry_smith(N, V, L, roughness);

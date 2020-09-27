@@ -1,9 +1,10 @@
 #ifndef SHADER_H
 #define SHADER_H
 
-#define MAX_N_UNIFORMS 64
-#define MAX_UNIFORM_NAME_LENGTH 64
-#define MAX_N_TEXTURE_UNITS 80
+constexpr uint8 MAX_N_UNIFORMS = 64;
+constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
+constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
+constexpr bool32 IS_NOT_FINDING_UNIFORM_FATAL = false;
 
 enum ShaderType {
   SHADER_ENTITY,

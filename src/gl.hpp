@@ -22,8 +22,7 @@
 #include <windows.h>
 #endif
 
-// TODO: Remove set?
-#include <set>
+#include <unordered_map>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -47,6 +46,7 @@
 #include FT_FREETYPE_H
 
 #include "types.hpp"
+#include "log.hpp"
 #include "pack.hpp"
 #include "render.hpp"
 #include "memory.hpp"
@@ -54,11 +54,10 @@
 #include "font.hpp"
 #include "shader.hpp"
 #include "models.hpp"
+#include "asset.hpp"
 #include "entity.hpp"
 #include "data.hpp"
-#include "asset.hpp"
 #include "control.hpp"
-#include "log.hpp"
 #include "util.hpp"
 #include "camera.hpp"
 #include "state.hpp"

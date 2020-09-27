@@ -30,32 +30,6 @@ vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
 );
 
-float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = frag_position - vec3(lights[idx_light].position);
-  float current_depth = length(frag_to_light);
-
-  float shadow = 0.0f;
-  float bias = 0.30f;
-  int n_samples = 20;
-
-  float view_distance = length(camera_position - frag_position);
-  float sample_radius = (1.0f + (view_distance / far_clip_dist)) / 25.0f;
-
-  for (int i = 0; i < n_samples; i++) {
-    float closest_depth = texture(
-      depth_texture,
-      frag_to_light + grid_sampling_offsets[i] * sample_radius
-    ).r * far_clip_dist;
-
-    if (current_depth - bias > closest_depth) {
-      shadow += 1.0;
-    }
-  }
-  shadow /= float(n_samples);
-
-  return shadow;
-}
-
 // A simplified way to get our tangent-normals to world-space from LearnOpenGL.
 // Don't really understand how this works!
 // We probably want to convert this to the regular way of calculating them

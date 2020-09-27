@@ -211,6 +211,10 @@ Memory init_memory() {
     "assets", MEGABYTES(256)
   );
 
+  memory.entity_memory_pool = memory_make_memory_pool(
+    "entities", MEGABYTES(64)
+  );
+
   memory.temp_memory_pool = memory_make_memory_pool(
     "temp", MEGABYTES(256)
   );
@@ -220,8 +224,17 @@ Memory init_memory() {
 
 
 void init_state(Memory *memory, State *state) {
-  array_init<Entity>(&memory->asset_memory_pool, &state->entities, 128);
-  array_init<Entity*>(&memory->asset_memory_pool, &state->found_entities, 128);
+  array_init<Entity>(&memory->entity_memory_pool, &state->entities, 128);
+  array_init<DrawableComponent>(&memory->entity_memory_pool, &state->drawable_components, 128);
+  array_init<LightComponent>(&memory->entity_memory_pool, &state->light_components, 128);
+  array_init<SpatialComponent>(&memory->entity_memory_pool, &state->spatial_components, 128);
+  new(&state->entity_manager) EntityManager(
+    &state->entities,
+    &state->drawable_components,
+    &state->light_components,
+    &state->spatial_components
+  );
+
   array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
   array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 128);
   array_init<ModelAsset>(&memory->asset_memory_pool, &state->model_assets, 128);
@@ -302,6 +315,8 @@ GLFWwindow* init_window(State *state) {
 
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
+
+  /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
 
 #if USE_OPENGL_DEBUG
   GLint flags;
@@ -402,41 +417,13 @@ void draw_text(
 }
 
 
-void draw_entity(State *state, Entity *entity) {
-  if (entity->type == ENTITY_MODEL) {
-    assert(entity->model_asset);
-
-    glm::mat4 model_matrix = glm::mat4(1.0f);
-    model_matrix = glm::translate(model_matrix, entity->position);
-    model_matrix = glm::scale(model_matrix, entity->scale);
-    model_matrix = model_matrix * glm::toMat4(entity->rotation);
-
-    models_draw_model(
-      entity->model_asset, state->render_mode, &model_matrix,
-      state->entity_depth_shader_asset
-    );
-  } else if (entity->type == ENTITY_SCREENQUAD) {
-    assert(entity->model_asset);
-
-    models_draw_model(
-      entity->model_asset, state->render_mode, nullptr,
-      state->entity_depth_shader_asset
-    );
-  } else {
-    log_warning(
-      "Do not know how to draw entity '%s' of type '%d'",
-      entity->name, entity->type
-    );
-  }
-}
-
-
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
   // NOTE: Do we want to optimise this copying?
   // TODO: Some of these things don't change every frame. Do we want to do a
   // separate block for those?
   // TODO: Think about converting everything to vec4.
   ShaderCommon *shader_common = &state->shader_common;
+  memset(shader_common, 0, sizeof(ShaderCommon));
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
@@ -444,9 +431,14 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
-  shader_common->n_lights = state->lights.size;
   shader_common->shadow_light_idx = state->shadow_light_idx;
-  memcpy(shader_common->lights, state->lights.items, sizeof(Light) * state->lights.size);
+  shader_common->n_lights = state->lights.size;
+  for (uint32 idx = 0; idx < state->lights.size; idx++) {
+    Light *light = &state->lights.items[idx];
+    shader_common->light_position[idx] = light->position;
+    shader_common->light_color[idx] = light->color;
+    shader_common->light_attenuation[idx] = light->attenuation;
+  }
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
@@ -455,12 +447,9 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
 
 void render_scene(Memory *memory, State *state, RenderPass render_pass) {
-  for (uint32 idx = 0; idx < state->entities.size; idx++) {
-    Entity *entity = &state->entities.items[idx];
-    if (entity->target_render_pass == render_pass) {
-      draw_entity(state, entity);
-    }
-  }
+  state->entity_manager.draw_all(
+    render_pass, state->render_mode, state->entity_depth_shader_asset
+  );
 
   // TODO: Move this into the entity system.
   if (render_pass == RENDERPASS_FORWARD) {
