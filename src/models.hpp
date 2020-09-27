@@ -124,7 +124,8 @@ void models_set_shader_asset_for_node_idx(
 );
 
 void models_draw_model(
-  Model *model, RenderMode render_mode, glm::mat4 *model_matrix, State *state
+  ModelAsset *model_asset, RenderMode render_mode, glm::mat4 *model_matrix,
+  ShaderAsset *entity_depth_shader_asset
 );
 
 #endif

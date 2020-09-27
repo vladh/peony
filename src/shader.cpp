@@ -191,7 +191,11 @@ int32 shader_get_uniform_location(Shader *shader, const char *name) {
       strcpy(shader->intrinsic_uniform_names[uniform_idx], name);
       shader->n_intrinsic_uniforms++;
     } else {
-      log_fatal("Could not get uniform: %s", name);
+      if (IS_NOT_FINDING_UNIFORM_FATAL) {
+        log_fatal("Could not get uniform: %s", name);
+      } else {
+        log_error("Could not get uniform: %s", name);
+      }
     }
   }
   return shader->intrinsic_uniform_locations[uniform_idx];

@@ -21,8 +21,11 @@ struct State {
   uint32 window_height;
   char window_title[128];
 
+  EntityManager entity_manager;
   Array<Entity> entities;
-  Array<Entity*> found_entities;
+  Array<DrawableComponent> drawable_components;
+  Array<LightComponent> light_components;
+  Array<SpatialComponent> spatial_components;
 
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset> model_assets;
