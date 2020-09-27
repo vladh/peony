@@ -1,6 +1,5 @@
 #define GAMMA 2.2
 #define USE_SHADOWS true
-#define USE_DEBUG_FLAT true
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -99,17 +98,6 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 void main() {
-  #if 0
-  if (USE_DEBUG_FLAT) {
-    vec4 normal = texture(g_normal_texture, fs_in.tex_coords);
-    if (vec3(normal) == vec3(0.0f, 0.0f, 0.0f)) {
-      discard;
-    }
-    frag_color = normal;
-    return;
-  }
-  #endif
-
   vec3 frag_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
 

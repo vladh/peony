@@ -32,4 +32,3 @@ void array_init(MemoryPool *pool, Array<T> *array, uint32 max_size) {
 }
 
 #endif
-

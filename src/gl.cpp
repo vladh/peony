@@ -228,6 +228,8 @@ void init_state(Memory *memory, State *state) {
   array_init<DrawableComponent>(&memory->entity_memory_pool, &state->drawable_components, 128);
   array_init<LightComponent>(&memory->entity_memory_pool, &state->light_components, 128);
   array_init<SpatialComponent>(&memory->entity_memory_pool, &state->spatial_components, 128);
+  array_init<EntityHandle>(&memory->entity_memory_pool, &state->lights, MAX_N_LIGHTS);
+
   new(&state->entity_manager) EntityManager(
     &state->entities,
     &state->drawable_components,
@@ -238,7 +240,6 @@ void init_state(Memory *memory, State *state) {
   array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
   array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 128);
   array_init<ModelAsset>(&memory->asset_memory_pool, &state->model_assets, 128);
-  array_init<Light>(&memory->asset_memory_pool, &state->lights, MAX_N_LIGHTS);
 
   state->t = 0;
   state->dt = 0;
@@ -418,12 +419,9 @@ void draw_text(
 
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
-  // NOTE: Do we want to optimise this copying?
   // TODO: Some of these things don't change every frame. Do we want to do a
   // separate block for those?
-  // TODO: Think about converting everything to vec4.
   ShaderCommon *shader_common = &state->shader_common;
-  memset(shader_common, 0, sizeof(ShaderCommon));
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
@@ -432,12 +430,13 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   shader_common->t = (float)state->t;
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
   shader_common->shadow_light_idx = state->shadow_light_idx;
+
   shader_common->n_lights = state->lights.size;
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    Light *light = &state->lights.items[idx];
-    shader_common->light_position[idx] = light->position;
-    shader_common->light_color[idx] = light->color;
-    shader_common->light_attenuation[idx] = light->attenuation;
+    Entity *light_entity = state->entity_manager.get(state->lights.items[idx]);
+    shader_common->light_position[idx] = glm::vec4(light_entity->spatial->position, 1.0f);
+    shader_common->light_color[idx] = light_entity->light->color;
+    shader_common->light_attenuation[idx] = light_entity->light->attenuation;
   }
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
@@ -513,8 +512,9 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    Entity *light_entity = state->entity_manager.get(state->lights.items[idx]);
     camera_create_shadow_transforms(
-      state->shadow_transforms, state->lights.items[idx].position,
+      state->shadow_transforms, light_entity->spatial->position,
       state->shadow_map_width, state->shadow_map_height,
       state->shadow_near_clip_dist, state->shadow_far_clip_dist
     );
@@ -744,10 +744,7 @@ int main() {
     return -1;
   }
 
-  scene_init_lights(&memory, state);
-
   init_deferred_lighting_buffers(&memory, state);
-  init_shadow_buffers(&memory, state);
   init_shader_buffers(&memory, state);
 
   scene_resources_init_models(&memory, state);
@@ -755,6 +752,12 @@ int main() {
   scene_resources_init_fonts(&memory, state);
 
   scene_init_objects(&memory, state);
+
+  init_shadow_buffers(&memory, state);
+  scene_init_screenquad(&memory, state);
+
+  /* state->entity_manager.print_all(); */
+
   main_loop(window, &memory, state);
   destroy_window();
   return 0;
