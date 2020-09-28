@@ -101,7 +101,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     &memory->temp_memory_pool, sizeof(uint32) * (index_data_length * 2)
   );
 
-  util_make_sphere(
+  Util::make_sphere(
     n_x_segments, n_y_segments,
     &n_vertices, &n_indices,
     vertex_data, index_data
@@ -116,19 +116,19 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   texture_set = models_add_texture_set(&model_asset->model);
-  texture_set->albedo_texture = models_load_texture_from_file(
+  texture_set->albedo_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/albedo.png"
   );
-  texture_set->metallic_texture = models_load_texture_from_file(
+  texture_set->metallic_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/metallic.png"
   );
-  texture_set->roughness_texture = models_load_texture_from_file(
+  texture_set->roughness_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/roughness.png"
   );
-  texture_set->ao_texture = models_load_texture_from_file(
+  texture_set->ao_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/ao.png"
   );
-  texture_set->normal_texture = models_load_texture_from_file(
+  texture_set->normal_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/normal.png"
   );
   models_set_texture_set(&model_asset->model, texture_set);
@@ -175,19 +175,19 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   {
     texture_set = models_add_texture_set(&model_asset->model);
-    texture_set->albedo_texture = models_load_texture_from_file(
+    texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/03_-_Default_BaseColor.tga.png"
     );
-    texture_set->metallic_texture = models_load_texture_from_file(
+    texture_set->metallic_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/03_-_Default_Metallic.tga.png"
     );
-    texture_set->normal_texture = models_load_texture_from_file(
+    texture_set->normal_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/03_-_Default_Normal.tga.png"
     );
-    texture_set->roughness_texture = models_load_texture_from_file(
+    texture_set->roughness_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/03_-_Default_Roughness.tga.png"
     );
-    texture_set->ao_texture = models_load_texture_from_file(
+    texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-3.tga.png"
     );
     models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 0);
@@ -206,19 +206,19 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   {
     texture_set = models_add_texture_set(&model_asset->model);
-    texture_set->albedo_texture = models_load_texture_from_file(
+    texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/01_-_Default_BaseColor.tga.png"
     );
-    texture_set->metallic_texture = models_load_texture_from_file(
+    texture_set->metallic_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/01_-_Default_Metallic.tga.png"
     );
-    texture_set->normal_texture = models_load_texture_from_file(
+    texture_set->normal_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/01_-_Default_Normal.tga.png"
     );
-    texture_set->roughness_texture = models_load_texture_from_file(
+    texture_set->roughness_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/01_-_Default_Roughness.tga.png"
     );
-    texture_set->ao_texture = models_load_texture_from_file(
+    texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-1.tga.png"
     );
     models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 1);
@@ -237,19 +237,19 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   {
     texture_set = models_add_texture_set(&model_asset->model);
-    texture_set->albedo_texture = models_load_texture_from_file(
+    texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/02_-_Default_BaseColor.tga.png"
     );
-    texture_set->metallic_texture = models_load_texture_from_file(
+    texture_set->metallic_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/02_-_Default_Metallic.tga.png"
     );
-    texture_set->normal_texture = models_load_texture_from_file(
+    texture_set->normal_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/02_-_Default_Normal.tga.png"
     );
-    texture_set->roughness_texture = models_load_texture_from_file(
+    texture_set->roughness_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/02_-_Default_Roughness.tga.png"
     );
-    texture_set->ao_texture = models_load_texture_from_file(
+    texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-2.tga.png"
     );
     models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 2);

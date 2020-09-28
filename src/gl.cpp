@@ -10,14 +10,16 @@ global_variable uint32 global_oopses = 0;
 
 #include "log.cpp"
 #include "pack.cpp"
+#include "util.cpp"
+#include "resource_manager.cpp"
 #include "font.cpp"
 #include "shader.cpp"
-#include "util.cpp"
 #include "camera.cpp"
 #include "asset.cpp"
 #include "memory.cpp"
 #include "control.cpp"
 #include "entity.cpp"
+#include "entity_manager.cpp"
 #include "models.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
@@ -713,7 +715,7 @@ void main_loop(GLFWwindow *window, Memory *memory, State *state) {
       if (time_to_wait < 0) {
         log_warning("Frame took too long! %.6fs", state->dt);
       } else {
-        util_sleep(time_to_wait);
+        Util::sleep(time_to_wait);
       }
     }
 

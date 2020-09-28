@@ -1,46 +1,3 @@
-uint32 models_load_texture_from_file(const char *path, bool should_flip) {
-  uint32 texture_id;
-  glGenTextures(1, &texture_id);
-
-  int32 width, height, n_components;
-  unsigned char *data = util_load_image(
-    path, &width, &height, &n_components, should_flip
-  );
-
-  if (data) {
-    GLenum format = GL_RGB;
-    if (n_components == 1) {
-      format = GL_RED;
-    } else if (n_components == 3) {
-      format = GL_RGB;
-    } else if (n_components == 4) {
-      format = GL_RGBA;
-    }
-
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    util_free_image(data);
-  } else {
-    log_error("Texture failed to load at path: %s", path);
-    util_free_image(data);
-  }
-
-  return texture_id;
-}
-
-
-uint32 models_load_texture_from_file(const char *path) {
-  return models_load_texture_from_file(path, true);
-}
-
-
 void models_init(Model *model, Memory *memory, const char *directory) {
   model->should_load_textures_from_file = false;
   model->directory = directory;
@@ -244,7 +201,7 @@ void models_load_model_node(
   glm::mat4 accumulated_transform,
   Pack indices_pack
 ) {
-  glm::mat4 node_transform = aimatrix4x4_to_glm(&node->mTransformation);
+  glm::mat4 node_transform = Util::aimatrix4x4_to_glm(&node->mTransformation);
   glm::mat4 transform = accumulated_transform * node_transform;
 
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
@@ -276,9 +233,9 @@ void models_load_model(
   const char *directory, const char *filename
 ) {
   char path[256];
-  snprintf(
-    path, sizeof(path), "%s/%s", directory, filename
-  );
+  strcpy(path, directory);
+  strcat(path, "/");
+  strcat(path, filename);
 
   const aiScene *scene = aiImportFile(
     path,
@@ -415,7 +372,7 @@ TextureSet* models_add_texture_set(Model *model) {
   // We initialise texture_set ids to something random and hopefully
   // more or less globally unique.
   // TODO: Change this to something actually less likely to collide.
-  uint32 texture_set_id = (uint32)util_random(0, UINT32_MAX);
+  uint32 texture_set_id = (uint32)Util::random(0, UINT32_MAX);
 
   TextureSet *texture_set = array_push(&model->texture_sets);
 

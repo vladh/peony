@@ -61,7 +61,7 @@ uint32 shader_make_program(
 const char* shader_load_file(Memory *memory, const char *path) {
   // TODO: It's a bit wasteful to add `common.glsl` to every single
   // shader. Maybe it would be better to somehow do it selectively.
-  return util_load_two_files(
+  return ResourceManager::load_two_files(
     &memory->temp_memory_pool, SHADER_COMMON_PATH, path
   );
 }
