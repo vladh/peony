@@ -39,3 +39,17 @@ void log_info(const char *format, ...) {
 void log_newline() {
   fprintf(stdout, "\n");
 }
+
+void log_aimatrix4x4(aiMatrix4x4 *t) {
+  log_info("(%f, %f, %f, %f)", t->a1, t->b1, t->c1, t->d1);
+  log_info("(%f, %f, %f, %f)", t->a2, t->b2, t->c2, t->d2);
+  log_info("(%f, %f, %f, %f)", t->a3, t->b3, t->c3, t->d3);
+  log_info("(%f, %f, %f, %f)", t->a4, t->b4, t->c4, t->d4);
+}
+
+void log_mat4(glm::mat4 *t) {
+  log_info("(%f, %f, %f, %f)", (*t)[0][0], (*t)[1][0], (*t)[2][0], (*t)[3][0]);
+  log_info("(%f, %f, %f, %f)", (*t)[0][1], (*t)[1][1], (*t)[2][1], (*t)[3][1]);
+  log_info("(%f, %f, %f, %f)", (*t)[0][2], (*t)[1][2], (*t)[2][2], (*t)[3][2]);
+  log_info("(%f, %f, %f, %f)", (*t)[0][3], (*t)[1][3], (*t)[2][3], (*t)[3][3]);
+}

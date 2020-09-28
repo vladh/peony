@@ -71,10 +71,6 @@ struct Model {
 };
 
 
-uint32 models_load_texture_from_file(const char *path, bool should_flip);
-
-uint32 models_load_texture_from_file(const char *path);
-
 ModelAsset* models_make_asset_from_file(
   Memory *memory, ModelAsset *model_asset,
   const char *name, const char *directory, const char *filename
