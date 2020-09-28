@@ -61,7 +61,9 @@ void models_init(Model *model, Memory *memory, const char *directory) {
 }
 
 
-void models_setup_mesh_vertex_buffers(Mesh *mesh) {
+void models_setup_mesh_vertex_buffers(
+  Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
+) {
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
   glGenBuffers(1, &mesh->ebo);
@@ -70,14 +72,14 @@ void models_setup_mesh_vertex_buffers(Mesh *mesh) {
 
   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   glBufferData(
-    GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->vertices.size,
-    mesh->vertices.items, GL_STATIC_DRAW
+    GL_ARRAY_BUFFER, sizeof(Vertex) * vertices->size,
+    vertices->items, GL_STATIC_DRAW
   );
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * mesh->indices.size,
-    mesh->indices.items, GL_STATIC_DRAW
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices->size,
+    indices->items, GL_STATIC_DRAW
   );
 
   uint32 location;
@@ -104,21 +106,23 @@ void models_setup_mesh_vertex_buffers(Mesh *mesh) {
 
 void models_load_mesh_vertices(
   Memory *memory, Model *model,
-  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+  Array<Vertex> *vertices
 ) {
-  mesh->vertices.size = 0;
-  mesh->vertices.max_size = mesh_data->mNumVertices;
-  mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
-    &memory->temp_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
-    "vertices"
-  );
+  // NOTE: This is probably #slow. We're copying data around from one format
+  // to another for no real reason. There would probably be a smart way to
+  // use the original data, but it's not a big bottleneck according to the
+  // profiler.
+  array_init<Vertex>(&memory->temp_memory_pool, vertices, mesh_data->mNumVertices);
 
   if (!mesh_data->mNormals) {
     log_warning("Model does not have normals.");
   }
 
+  mesh->n_vertices = mesh_data->mNumVertices;
+
   for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
-    Vertex *vertex = (Vertex*)array_push<Vertex>(&mesh->vertices);
+    Vertex *vertex = (Vertex*)array_push<Vertex>(vertices);
 
     glm::vec3 position;
     position.x = mesh_data->mVertices[idx].x;
@@ -146,7 +150,8 @@ void models_load_mesh_vertices(
 
 void models_load_mesh_indices(
   Memory *memory, Model *model,
-  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene
+  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+  Array<uint32> *indices
 ) {
   uint32 n_indices = 0;
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
@@ -154,17 +159,13 @@ void models_load_mesh_indices(
     n_indices += face.mNumIndices;
   }
 
-  mesh->indices.size = 0;
-  mesh->indices.max_size = n_indices;
-  mesh->indices.items = (uint32*)memory_push_memory_to_pool(
-    &memory->temp_memory_pool, sizeof(uint32) * mesh->indices.max_size,
-    "indices"
-  );
+  mesh->n_indices = n_indices;
+  array_init<uint32>(&memory->temp_memory_pool, indices, n_indices);
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
     for (uint32 idx_index = 0; idx_index < face.mNumIndices; idx_index++) {
-      array_push(&mesh->indices, face.mIndices[idx_index]);
+      array_push(indices, face.mIndices[idx_index]);
     }
   }
 }
@@ -215,14 +216,16 @@ void models_load_mesh(
   glm::mat4 transform,
   Pack indices_pack
 ) {
+  Array<Vertex> vertices;
+  Array<uint32> indices;
   models_init_mesh(mesh, GL_TRIANGLES);
   mesh->transform = transform;
   mesh->indices_pack = indices_pack;
   models_load_mesh_vertices(
-    memory, model, mesh, mesh_data, scene
+    memory, model, mesh, mesh_data, scene, &vertices
   );
   models_load_mesh_indices(
-    memory, model, mesh, mesh_data, scene
+    memory, model, mesh, mesh_data, scene, &indices
   );
 #if 0
   if (model->should_load_textures_from_file) {
@@ -231,7 +234,7 @@ void models_load_mesh(
     );
   }
 #endif
-  models_setup_mesh_vertex_buffers(mesh);
+  models_setup_mesh_vertex_buffers(mesh, &vertices, &indices);
 }
 
 
@@ -334,19 +337,17 @@ ModelAsset* models_make_asset_from_data(
   Mesh *mesh = array_push<Mesh>(&model->meshes);
   models_init_mesh(&model->meshes.items[0], mode);
 
-  // Vertices
   // NOTE: We are copying this data around for no real reason.
   // It probably doesn't matter as this is pretty much debug code,
   // but it might be good to improve it.
-  mesh->vertices.size = 0;
-  mesh->vertices.max_size = n_vertices;
-  mesh->vertices.items = (Vertex*)memory_push_memory_to_pool(
-    &memory->temp_memory_pool, sizeof(Vertex) * mesh->vertices.max_size,
-    "meshes"
-  );
+
+  // Vertices
+  Array<Vertex> vertices;
+  array_init<Vertex>(&memory->temp_memory_pool, &vertices, n_vertices);
+  mesh->n_vertices = n_vertices;
 
   for (uint32 idx = 0; idx < n_vertices; idx++) {
-    Vertex *vertex = (Vertex*)array_push<Vertex>(&mesh->vertices);
+    Vertex *vertex = (Vertex*)array_push<Vertex>(&vertices);
 
     glm::vec3 position;
     position.x = vertex_data[(idx * 8) + 0];
@@ -367,11 +368,13 @@ ModelAsset* models_make_asset_from_data(
   }
 
   // Indices
-  mesh->indices.size = n_indices;
-  mesh->indices.max_size = n_indices;
-  mesh->indices.items = index_data;
+  Array<uint32> indices;
+  array_init<uint32>(&memory->temp_memory_pool, &indices, n_indices);
+  indices.size = n_indices;
+  indices.items = index_data;
+  mesh->n_indices = n_indices;
 
-  models_setup_mesh_vertex_buffers(mesh);
+  models_setup_mesh_vertex_buffers(mesh, &vertices, &indices);
 
   memory_reset_pool(&memory->temp_memory_pool);
 
@@ -614,10 +617,10 @@ void models_draw_mesh(
   );
 
   glBindVertexArray(mesh->vao);
-  if (mesh->indices.size > 0) {
-    glDrawElements(mesh->mode, mesh->indices.size, GL_UNSIGNED_INT, 0);
+  if (mesh->n_indices > 0) {
+    glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
   } else {
-    glDrawArrays(mesh->mode, 0, mesh->vertices.size);
+    glDrawArrays(mesh->mode, 0, mesh->n_vertices);
   }
   glBindVertexArray(0);
 }
