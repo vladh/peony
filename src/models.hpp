@@ -50,12 +50,12 @@ struct TextureSet {
 };
 
 struct Mesh {
-  Array<Vertex> vertices;
-  Array<uint32> indices;
+  glm::mat4 transform;
   TextureSet *texture_set;
   ShaderAsset *shader_asset;
-  glm::mat4 transform;
   uint64 indices_pack;
+  uint32 n_vertices;
+  uint32 n_indices;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
