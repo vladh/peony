@@ -512,7 +512,7 @@ void models_bind_texture_uniforms_for_mesh(Mesh *mesh) {
 }
 
 
-void models_set_shader_asset(Model *model, uint32 idx_mesh, ShaderAsset *shader_asset) {
+void models_set_shader_asset_for_mesh(Model *model, uint32 idx_mesh, ShaderAsset *shader_asset) {
   Mesh *mesh = &model->meshes.items[idx_mesh];
   mesh->shader_asset = shader_asset;
   models_bind_texture_uniforms_for_mesh(mesh);
@@ -521,7 +521,7 @@ void models_set_shader_asset(Model *model, uint32 idx_mesh, ShaderAsset *shader_
 
 void models_set_shader_asset(Model *model, ShaderAsset *shader_asset) {
   for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
-    models_set_shader_asset(model, idx_mesh, shader_asset);
+    models_set_shader_asset_for_mesh(model, idx_mesh, shader_asset);
   }
 }
 
@@ -532,21 +532,16 @@ void models_set_shader_asset_for_node_idx(
   for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
     Mesh *mesh = &model->meshes.items[idx_mesh];
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      models_set_shader_asset(model, idx_mesh, shader_asset);
+      models_set_shader_asset_for_mesh(model, idx_mesh, shader_asset);
     }
   }
 }
 
 
-void models_set_texture_set(Model *model, uint32 idx_mesh, TextureSet *texture_set) {
-  Mesh *mesh = &model->meshes.items[idx_mesh];
-  mesh->texture_set = texture_set;
-}
-
-
 void models_set_texture_set(Model *model, TextureSet *texture_set) {
   for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
-    models_set_texture_set(model, idx_mesh, texture_set);
+    Mesh *mesh = &model->meshes.items[idx_mesh];
+    mesh->texture_set = texture_set;
   }
 }
 
@@ -557,7 +552,7 @@ void models_set_texture_set_for_node_idx(
   for (uint32 idx_mesh = 0; idx_mesh < model->meshes.size; idx_mesh++) {
     Mesh *mesh = &model->meshes.items[idx_mesh];
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      models_set_texture_set(model, idx_mesh, texture_set);
+      mesh->texture_set = texture_set;
     }
   }
 }

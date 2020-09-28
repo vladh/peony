@@ -70,6 +70,7 @@ struct Model {
   const char *directory;
 };
 
+
 uint32 models_load_texture_from_file(const char *path, bool should_flip);
 
 uint32 models_load_texture_from_file(const char *path);
@@ -89,33 +90,13 @@ ModelAsset* models_make_asset_from_data(
 
 TextureSet* models_add_texture_set(Model *model);
 
-void models_set_texture_set(Model *model, uint32 idx_mesh, TextureSet *texture_set);
-
 void models_set_texture_set(Model *model, TextureSet *texture_set);
 
 void models_set_texture_set_for_node_idx(
   Model *model, TextureSet *texture_set, uint8 node_depth, uint8 node_idx
 );
 
-void models_add_texture(
-  Model *model, TextureType type, uint32 texture
-);
-void models_add_texture(
-  Model *model, uint32 idx_mesh, TextureType type, uint32 texture
-);
-void models_add_texture_for_node_idx(
-  Model *model, TextureType type, uint32 texture, uint8 node_depth, uint8 node_idx
-);
-void models_set_static_pbr(
-  Model *model,
-  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
-);
-void models_set_static_pbr(
-  Model *model, uint32 idx_mesh,
-  glm::vec4 albedo, real32 metallic, real32 roughness, real32 ao
-);
-
-void models_set_shader_asset(Model *model, uint32 idx_mesh, ShaderAsset *shader_asset);
+void models_set_shader_asset_for_mesh(Model *model, uint32 idx_mesh, ShaderAsset *shader_asset);
 
 void models_set_shader_asset(Model *model, ShaderAsset *shader_asset);
 
