@@ -354,11 +354,6 @@ GLFWwindow* init_window(State *state) {
 }
 
 
-void set_render_mode(State *state, RenderMode render_mode) {
-  state->render_mode = render_mode;
-}
-
-
 void draw_text(
   State *state, const char* font_name, const char *str,
   real32 x, real32 y, real32 scale, glm::vec4 color
@@ -447,9 +442,9 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 }
 
 
-void render_scene(Memory *memory, State *state, RenderPass render_pass) {
+void render_scene(Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode) {
   state->entity_manager.draw_all(
-    render_pass, state->render_mode, state->entity_depth_shader_asset
+    render_pass, render_mode, state->entity_depth_shader_asset
   );
 
   // TODO: Move this into the entity system.
@@ -527,9 +522,8 @@ void update_and_render(Memory *memory, State *state) {
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    set_render_mode(state, RENDERMODE_DEPTH);
     copy_scene_data_to_ubo(memory, state);
-    render_scene(memory, state, RENDERPASS_DEFERRED);
+    render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH);
 
     glViewport(0, 0, state->window_width, state->window_height);
   }
@@ -538,9 +532,8 @@ void update_and_render(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  set_render_mode(state, RENDERMODE_REGULAR);
   copy_scene_data_to_ubo(memory, state);
-  render_scene(memory, state, RENDERPASS_DEFERRED);
+  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
 
   // Copy depth from geometry pass to lighting pass
   glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
@@ -560,13 +553,13 @@ void update_and_render(Memory *memory, State *state) {
     state->background_color.b, state->background_color.a
   );
   glClear(GL_COLOR_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_LIGHTING);
+  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
   glEnable(GL_DEPTH_TEST);
 
   // Forward pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   copy_scene_data_to_ubo(memory, state);
-  render_scene(memory, state, RENDERPASS_FORWARD);
+  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
 }
 
 

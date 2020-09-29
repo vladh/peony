@@ -34,11 +34,6 @@ public:
   LightComponent *light;
   SpatialComponent *spatial;
 
-  void draw(
-    RenderPass render_pass, RenderMode render_mode,
-    ShaderAsset *entity_depth_shader_asset
-  );
-
   void print();
 };
 

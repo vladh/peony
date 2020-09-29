@@ -70,7 +70,33 @@ void EntityManager::draw_all(
 ) {
   for (uint32 idx = 0; idx < entities->size; idx++) {
     Entity *entity = &entities->items[idx];
-    entity->draw(render_pass, render_mode, entity_depth_shader_asset);
+
+    if (!entity->drawable) {
+      log_warning("Trying to draw entity %s with no drawable component.", entity->debug_name);
+      continue;
+    }
+
+    if (render_pass != entity->drawable->target_render_pass) {
+      continue;
+    }
+
+    if (entity->spatial) {
+      // TODO: This is somehow really #slow, the multiplication in particular.
+      // Is there a better way?
+      glm::mat4 model_matrix = glm::mat4(1.0f);
+      model_matrix = glm::translate(model_matrix, entity->spatial->position);
+      model_matrix = glm::scale(model_matrix, entity->spatial->scale);
+      model_matrix = model_matrix * glm::toMat4(entity->spatial->rotation);
+      models_draw_model(
+        entity->drawable->model_asset,
+        render_mode, &model_matrix, entity_depth_shader_asset
+      );
+    } else {
+      models_draw_model(
+        entity->drawable->model_asset,
+        render_mode, nullptr, entity_depth_shader_asset
+      );
+    }
   }
 }
 

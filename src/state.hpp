@@ -56,8 +56,6 @@ struct State {
   uint32 g_normal_texture;
   uint32 g_albedo_texture;
   uint32 g_pbr_texture;
-
-  RenderMode render_mode;
 };
 
 #endif
