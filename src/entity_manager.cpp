@@ -66,7 +66,7 @@ Entity* EntityManager::get(EntityHandle handle) {
 
 void EntityManager::draw_all(
   RenderPass render_pass, RenderMode render_mode,
-  ShaderAsset *entity_depth_shader_asset
+  ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
 ) {
   for (uint32 idx = 0; idx < entities->size; idx++) {
     Entity *entity = &entities->items[idx];
@@ -80,21 +80,26 @@ void EntityManager::draw_all(
       continue;
     }
 
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+
     if (entity->spatial) {
       // TODO: This is somehow really #slow, the multiplication in particular.
       // Is there a better way?
-      glm::mat4 model_matrix = glm::mat4(1.0f);
       model_matrix = glm::translate(model_matrix, entity->spatial->position);
       model_matrix = glm::scale(model_matrix, entity->spatial->scale);
       model_matrix = model_matrix * glm::toMat4(entity->spatial->rotation);
-      models_draw_model(
+    }
+
+    if (render_mode == RENDERMODE_DEPTH) {
+      models_draw_model_in_depth_mode(
         entity->drawable->model_asset,
-        render_mode, &model_matrix, entity_depth_shader_asset
+        &model_matrix, entity_depth_shader_asset,
+        shadow_light_idx
       );
     } else {
       models_draw_model(
         entity->drawable->model_asset,
-        render_mode, nullptr, entity_depth_shader_asset
+        entity->spatial ? &model_matrix : nullptr
       );
     }
   }

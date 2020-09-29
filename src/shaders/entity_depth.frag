@@ -1,3 +1,5 @@
+uniform int shadow_light_idx;
+
 in GS_OUT {
   vec4 frag_position;
 } fs_in;
