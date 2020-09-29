@@ -1,34 +1,3 @@
-void Entity::draw(
-  RenderPass render_pass, RenderMode render_mode,
-  ShaderAsset *entity_depth_shader_asset
-) {
-  if (!drawable) {
-    log_warning("Trying to draw entity %d with no drawable component.", handle);
-    return;
-  }
-
-  if (render_pass != drawable->target_render_pass) {
-    return;
-  }
-
-  if (spatial) {
-    // TODO: This is somehow really #slow, the multiplication in particular.
-    // Is there a better way?
-    glm::mat4 model_matrix = glm::mat4(1.0f);
-    model_matrix = glm::translate(model_matrix, spatial->position);
-    model_matrix = glm::scale(model_matrix, spatial->scale);
-    model_matrix = model_matrix * glm::toMat4(spatial->rotation);
-    models_draw_model(
-      drawable->model_asset, render_mode, &model_matrix, entity_depth_shader_asset
-    );
-  } else {
-    models_draw_model(
-      drawable->model_asset, render_mode, nullptr, entity_depth_shader_asset
-    );
-  }
-}
-
-
 void Entity::print() {
   log_info("# Entity %d: %s", handle, debug_name);
   if (drawable) {
