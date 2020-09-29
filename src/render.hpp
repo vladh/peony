@@ -26,12 +26,7 @@ struct ShaderCommon {
   float exposure;
   float t;
   float far_clip_dist;
-  int shadow_light_idx;
-
   int n_lights;
-  float pad_oof;
-  float pad_i_guess;
-  float pad_we_wasted_some_space;
 
   glm::vec4 light_position[MAX_N_LIGHTS];
   glm::vec4 light_color[MAX_N_LIGHTS];

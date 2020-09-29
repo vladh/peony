@@ -515,81 +515,82 @@ void models_set_texture_set_for_node_idx(
 }
 
 
-void models_prepare_mesh_shader_for_draw(
-  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset,
-  uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
-) {
-  ShaderAsset *shader_asset;
-  if (render_mode == RENDERMODE_DEPTH) {
-    shader_asset = entity_depth_shader_asset;
-  } else {
-    shader_asset = mesh->shader_asset;
-  }
-  Shader *shader = &shader_asset->shader;
-
-  if (shader->program != *last_used_shader_program) {
-    glUseProgram(shader->program);
-    *last_used_shader_program = shader->program;
-
-    if (
-      shader->type == SHADER_ENTITY || shader->type == SHADER_ENTITY_DEPTH ||
-      shader->type == SHADER_OTHER_OBJECT
-    ) {
-      shader_set_mat4(shader, "model", model_matrix);
-    }
-  }
-
-  if (mesh->texture_set && (mesh->texture_set->id != *last_used_texture_set_id)) {
-    global_oopses++;
-    for (uint32 idx = 1; idx < shader->n_texture_units + 1; idx++) {
-      if (shader->texture_units[idx] != 0) {
-        glActiveTexture(GL_TEXTURE0 + idx);
-        glBindTexture(shader->texture_unit_types[idx], shader->texture_units[idx]);
-      }
-    }
-    *last_used_texture_set_id = mesh->texture_set->id;
-  }
-
-  if (shader->type == SHADER_ENTITY || shader->type == SHADER_ENTITY_DEPTH) {
-    shader_set_mat4(shader, "mesh_transform", &mesh->transform);
-  }
-}
-
-
 void models_draw_mesh(
-  Mesh *mesh, RenderMode render_mode, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset,
+  Mesh *mesh, glm::mat4 *model_matrix,
   uint32 *last_used_texture_set_id, uint32 *last_used_shader_program
 ) {
-  models_prepare_mesh_shader_for_draw(
-    mesh, render_mode, model_matrix,
-    entity_depth_shader_asset,
-    last_used_texture_set_id, last_used_shader_program
-  );
-
-  glBindVertexArray(mesh->vao);
-  if (mesh->n_indices > 0) {
-    glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
-  } else {
-    glDrawArrays(mesh->mode, 0, mesh->n_vertices);
-  }
-  glBindVertexArray(0);
 }
 
 
 void models_draw_model(
-  ModelAsset *model_asset, RenderMode render_mode, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset
+  ModelAsset *model_asset, glm::mat4 *model_matrix
 ) {
   Model *model = &model_asset->model;
   uint32 last_used_texture_set_id = 0;
   uint32 last_used_shader_program = 0;
+
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
-    models_draw_mesh(
-      &model->meshes.items[idx], render_mode, model_matrix,
-      entity_depth_shader_asset,
-      &last_used_texture_set_id, &last_used_shader_program
-    );
+    Mesh *mesh = &model->meshes.items[idx];
+    Shader *shader = &mesh->shader_asset->shader;
+
+    if (shader->program != last_used_shader_program) {
+      glUseProgram(shader->program);
+      last_used_shader_program = shader->program;
+
+      if (shader->type == SHADER_ENTITY || shader->type == SHADER_OTHER_OBJECT) {
+        shader_set_mat4(shader, "model", model_matrix);
+      }
+    }
+
+    if (mesh->texture_set && (mesh->texture_set->id != last_used_texture_set_id)) {
+      for (
+        uint32 texture_idx = 1; texture_idx < shader->n_texture_units + 1; texture_idx++
+      ) {
+        if (shader->texture_units[texture_idx] != 0) {
+          glActiveTexture(GL_TEXTURE0 + texture_idx);
+          glBindTexture(shader->texture_unit_types[texture_idx],
+            shader->texture_units[texture_idx]);
+        }
+      }
+      last_used_texture_set_id = mesh->texture_set->id;
+    }
+
+    if (shader->type == SHADER_ENTITY) {
+      shader_set_mat4(shader, "mesh_transform", &mesh->transform);
+    }
+
+    glBindVertexArray(mesh->vao);
+    if (mesh->n_indices > 0) {
+      glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
+    } else {
+      glDrawArrays(mesh->mode, 0, mesh->n_vertices);
+    }
+    glBindVertexArray(0);
+  }
+}
+
+
+void models_draw_model_in_depth_mode(
+  ModelAsset *model_asset, glm::mat4 *model_matrix,
+  ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
+) {
+  Model *model = &model_asset->model;
+
+  for (uint32 idx = 0; idx < model->meshes.size; idx++) {
+    Mesh *mesh = &model->meshes.items[idx];
+    Shader *shader = &entity_depth_shader_asset->shader;
+
+    glUseProgram(shader->program);
+    shader_set_mat4(shader, "model", model_matrix);
+    shader_set_mat4(shader, "mesh_transform", &mesh->transform);
+    shader_set_int(shader, "shadow_light_idx", shadow_light_idx);
+
+    glBindVertexArray(mesh->vao);
+    if (mesh->n_indices > 0) {
+      glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
+    } else {
+      glDrawArrays(mesh->mode, 0, mesh->n_vertices);
+    }
+    glBindVertexArray(0);
   }
 }

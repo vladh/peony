@@ -3,8 +3,9 @@
 
 typedef uint32 EntityHandle;
 
-enum EntityType {
-  ENTITY_MODEL, ENTITY_SCREENQUAD
+enum EntityBehaviour {
+  BEHAVIOUR_SHOWCASE_LIGHT,
+  BEHAVIOUR_SPINNY_BOI
 };
 
 struct Component {

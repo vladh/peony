@@ -419,14 +419,17 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   // TODO: Some of these things don't change every frame. Do we want to do a
   // separate block for those?
   ShaderCommon *shader_common = &state->shader_common;
+
+  // NOTE: These are constant.
+  shader_common->far_clip_dist = state->shadow_far_clip_dist;
+
+  // NOTE: These change every frame.
+  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
-  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
-  shader_common->far_clip_dist = state->shadow_far_clip_dist;
-  shader_common->shadow_light_idx = state->shadow_light_idx;
 
   shader_common->n_lights = state->lights.size;
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
@@ -442,9 +445,12 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 }
 
 
-void render_scene(Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode) {
+void render_scene(
+  Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode,
+  uint32 shadow_light_idx
+) {
   state->entity_manager.draw_all(
-    render_pass, render_mode, state->entity_depth_shader_asset
+    render_pass, render_mode, state->entity_depth_shader_asset, shadow_light_idx
   );
 
   // TODO: Move this into the entity system.
@@ -501,6 +507,7 @@ void update_and_render(Memory *memory, State *state) {
   camera_update_matrices(
     state->camera_active, state->window_width, state->window_height
   );
+  copy_scene_data_to_ubo(memory, state);
 
   // Clear main framebuffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -515,15 +522,15 @@ void update_and_render(Memory *memory, State *state) {
       state->shadow_map_width, state->shadow_map_height,
       state->shadow_near_clip_dist, state->shadow_far_clip_dist
     );
-    state->shadow_light_idx = idx;
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
     glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
-    copy_scene_data_to_ubo(memory, state);
-    render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH);
+    render_scene(
+      memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH, idx
+    );
 
     glViewport(0, 0, state->window_width, state->window_height);
   }
@@ -532,8 +539,7 @@ void update_and_render(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  copy_scene_data_to_ubo(memory, state);
-  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
+  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR, 0);
 
   // Copy depth from geometry pass to lighting pass
   glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
@@ -553,13 +559,12 @@ void update_and_render(Memory *memory, State *state) {
     state->background_color.b, state->background_color.a
   );
   glClear(GL_COLOR_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
+  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR, 0);
   glEnable(GL_DEPTH_TEST);
 
   // Forward pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  copy_scene_data_to_ubo(memory, state);
-  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
+  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR, 0);
 }
 
 
@@ -578,7 +583,6 @@ void init_shadow_buffers(Memory *memory, State *state) {
   state->shadow_near_clip_dist = 0.05f;
   state->shadow_far_clip_dist = 200.0f;
   state->n_shadow_framebuffers = state->lights.size;
-  state->shadow_light_idx = 0;
 
   for (
     uint32 idx_framebuffer = 0;

@@ -101,8 +101,12 @@ void models_set_shader_asset_for_node_idx(
 );
 
 void models_draw_model(
-  ModelAsset *model_asset, RenderMode render_mode, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset
+  ModelAsset *model_asset, glm::mat4 *model_matrix
+);
+
+void models_draw_model_in_depth_mode(
+  ModelAsset *model_asset, glm::mat4 *model_matrix,
+  ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
 );
 
 #endif
