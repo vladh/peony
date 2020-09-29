@@ -13,7 +13,7 @@ out VS_OUT {
 
 void main() {
   vs_out.frag_position = vec3(model * mesh_transform * vec4(position, 1.0));
-  vs_out.normal = mat3(transpose(inverse(model))) * normal;
+  vs_out.normal = mat3(transpose(inverse(model * mesh_transform))) * normal;
   vs_out.tex_coords = tex_coords;
   gl_Position = projection * view * vec4(vs_out.frag_position, 1.0);
 }
