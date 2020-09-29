@@ -186,9 +186,9 @@ void update_entity(State *state, Entity *entity) {
 #endif
 
 void scene_update(Memory *memory, State *state) {
-  real64 time_term = state->t / 1.5f;
-  real64 x_term = 0.0f + cos(time_term) * 3.0f;
-  real64 z_term = 15.0f + sin(time_term) * 3.0f;
+  real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+  real64 x_term = 0.0f + cos(time_term) * 8.0f;
+  real64 z_term = 0.0f + sin(time_term) * 8.0f;
 
   state->entity_manager.get(state->lights.items[0])->spatial->position.x =
     (real32)x_term;
