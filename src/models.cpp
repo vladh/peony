@@ -572,18 +572,18 @@ void models_draw_model(
 
 void models_draw_model_in_depth_mode(
   ModelAsset *model_asset, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
+  ShaderAsset *entity_depth_shader_asset
 ) {
   Model *model = &model_asset->model;
 
+  Shader *shader = &entity_depth_shader_asset->shader;
+
+  glUseProgram(shader->program);
+  shader_set_mat4(shader, "model", model_matrix);
+
   for (uint32 idx = 0; idx < model->meshes.size; idx++) {
     Mesh *mesh = &model->meshes.items[idx];
-    Shader *shader = &entity_depth_shader_asset->shader;
-
-    glUseProgram(shader->program);
-    shader_set_mat4(shader, "model", model_matrix);
     shader_set_mat4(shader, "mesh_transform", &mesh->transform);
-    shader_set_int(shader, "shadow_light_idx", shadow_light_idx);
 
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
