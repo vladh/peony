@@ -106,7 +106,7 @@ void models_draw_model(
 
 void models_draw_model_in_depth_mode(
   ModelAsset *model_asset, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
+  ShaderAsset *entity_depth_shader_asset
 );
 
 #endif

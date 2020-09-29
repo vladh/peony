@@ -422,6 +422,7 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
   // NOTE: These are constant.
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
+  shader_common->shadow_light_idx = state->shadow_light_idx;
 
   // NOTE: These change every frame.
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
@@ -446,11 +447,10 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
 
 void render_scene(
-  Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode,
-  uint32 shadow_light_idx
+  Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
 ) {
   state->entity_manager.draw_all(
-    render_pass, render_mode, state->entity_depth_shader_asset, shadow_light_idx
+    render_pass, render_mode, state->entity_depth_shader_asset
   );
 
   // TODO: Move this into the entity system.
@@ -528,8 +528,10 @@ void update_and_render(Memory *memory, State *state) {
 
     glClear(GL_DEPTH_BUFFER_BIT);
 
+    state->shadow_light_idx = idx;
+    copy_scene_data_to_ubo(memory, state);
     render_scene(
-      memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH, idx
+      memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
     );
 
     glViewport(0, 0, state->window_width, state->window_height);
@@ -539,7 +541,7 @@ void update_and_render(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR, 0);
+  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
 
   // Copy depth from geometry pass to lighting pass
   glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
@@ -559,12 +561,12 @@ void update_and_render(Memory *memory, State *state) {
     state->background_color.b, state->background_color.a
   );
   glClear(GL_COLOR_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR, 0);
+  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
   glEnable(GL_DEPTH_TEST);
 
   // Forward pass
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR, 0);
+  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
 }
 
 

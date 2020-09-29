@@ -28,6 +28,11 @@ struct ShaderCommon {
   float far_clip_dist;
   int n_lights;
 
+  int shadow_light_idx;
+  float pad_oops1;
+  float pad_oops2;
+  float pad_oops3;
+
   glm::vec4 light_position[MAX_N_LIGHTS];
   glm::vec4 light_color[MAX_N_LIGHTS];
   glm::vec4 light_attenuation[MAX_N_LIGHTS];

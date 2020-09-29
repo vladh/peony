@@ -66,7 +66,7 @@ Entity* EntityManager::get(EntityHandle handle) {
 
 void EntityManager::draw_all(
   RenderPass render_pass, RenderMode render_mode,
-  ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
+  ShaderAsset *entity_depth_shader_asset
 ) {
   for (uint32 idx = 0; idx < entities->size; idx++) {
     Entity *entity = &entities->items[idx];
@@ -93,8 +93,7 @@ void EntityManager::draw_all(
     if (render_mode == RENDERMODE_DEPTH) {
       models_draw_model_in_depth_mode(
         entity->drawable->model_asset,
-        &model_matrix, entity_depth_shader_asset,
-        shadow_light_idx
+        &model_matrix, entity_depth_shader_asset
       );
     } else {
       models_draw_model(

@@ -35,7 +35,7 @@ public:
 
   void draw_all(
     RenderPass render_pass, RenderMode render_mode,
-    ShaderAsset *entity_depth_shader_asset, uint32 shadow_light_idx
+    ShaderAsset *entity_depth_shader_asset
   );
 
   void print_all();
