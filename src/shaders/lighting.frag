@@ -1,5 +1,6 @@
 #define GAMMA 2.2
 #define USE_SHADOWS true
+#define SHOULD_LINEARISE_ALBEDO true
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -38,13 +39,12 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
   vec3 frag_to_light = frag_position - vec3(light_position[idx_light]);
   float current_depth = length(frag_to_light);
 
-  float shadow = 0.0f;
-  // float bias = 0.50f;
-  float bias = 0.05f;
+  float shadow = 0.0;
+  float bias = 0.20;
   int n_samples = 20;
 
   float view_distance = length(camera_position - frag_position);
-  float sample_radius = (1.0f + (view_distance / far_clip_dist)) / 25.0f;
+  float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
 
   for (int i = 0; i < n_samples; i++) {
     float closest_depth = texture(
@@ -78,21 +78,20 @@ float distribution_ggx(vec3 N, vec3 H, float roughness) {
   return num / denom;
 }
 
-float geometry_schlick_ggx(float NdotV, float roughness) {
-  float r = (roughness + 1.0);
-  float k = (r * r) / 8.0;
+float geometry_schlick_ggx(float nv, float roughness) {
+  float k = pow(roughness + 1.0, 2) / 8.0;
 
-  float num = NdotV;
-  float denom = NdotV * (1.0 - k) + k;
+  float num = nv;
+  float denom = nv * (1.0 - k) + k;
 
   return num / denom;
 }
 
 float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
-  float NdotV = max(dot(N, V), 0.0);
-  float NdotL = max(dot(N, L), 0.0);
-  float ggx2 = geometry_schlick_ggx(NdotV, roughness);
-  float ggx1 = geometry_schlick_ggx(NdotL, roughness);
+  float nv = max(dot(N, V), 0.0);
+  float nl = max(dot(N, L), 0.0);
+  float ggx1 = geometry_schlick_ggx(nv, roughness);
+  float ggx2 = geometry_schlick_ggx(nl, roughness);
 
   return ggx1 * ggx2;
 }
@@ -103,17 +102,24 @@ void main() {
 
   // Skip pixels with no normal. These are the background pixels, hence
   // letting the background color shine through.
-  if (normal == vec3(0.0f, 0.0f, 0.0f)) {
+  if (normal == vec3(0.0, 0.0, 0.0)) {
     discard;
   }
 
-  vec3 albedo = texture(g_albedo_texture, fs_in.tex_coords).rgb;
+  // Albedo is generally in sRGB space, so we convert it to linear space
+  vec3 albedo;
+  if (SHOULD_LINEARISE_ALBEDO) {
+    albedo = pow(texture(g_albedo_texture, fs_in.tex_coords).rgb, vec3(2.2));
+  } else {
+    albedo = texture(g_albedo_texture, fs_in.tex_coords).rgb;
+  }
+
   vec4 pbr_texture = texture(g_pbr_texture, fs_in.tex_coords);
   float metallic = pbr_texture.r;
   float roughness = pbr_texture.g;
   float ao = pbr_texture.b;
 
-  vec3 N = normalize(normal);
+  vec3 N = normal;
   vec3 V = normalize(camera_position - frag_position);
 
   vec3 F0 = vec3(0.04);
@@ -145,7 +151,7 @@ void main() {
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
-    float NdotL = max(dot(N, L), 0.0);
+    float nl = max(dot(N, L), 0.0);
 
     float shadow = 0;
 
@@ -153,7 +159,7 @@ void main() {
       RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
     }
 
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL * (1.0f - shadow);
+    Lo += (kD * albedo / PI + specular) * radiance * nl * (1.0 - shadow);
   }
 
   vec3 ambient = vec3(0.03) * albedo * ao;
