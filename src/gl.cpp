@@ -719,7 +719,7 @@ void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   std::chrono::steady_clock::time_point second_start = game_start;
   std::chrono::steady_clock::time_point frame_start = game_start;
   std::chrono::steady_clock::time_point last_frame_start = game_start;
-  std::chrono::microseconds frame_duration = std::chrono::microseconds(6060);
+  std::chrono::nanoseconds frame_duration = std::chrono::nanoseconds(6060606);
   uint32 n_frames_this_second = 0;
 
   while (!glfwWindowShouldClose(window)) {
