@@ -34,8 +34,8 @@ void scene_init_screenquad(Memory *memory, State *state) {
   );
 
   entity = state->entity_manager.add("screenquad");
-  state->entity_manager.add_drawable_component(
-    entity,
+  state->drawable_component_manager.add(
+    entity->handle,
     asset_get_model_asset_by_name(&state->model_assets, "screenquad"),
     RENDERPASS_LIGHTING
   );
@@ -46,28 +46,28 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Axes
   entity = state->entity_manager.add("axes");
-  state->entity_manager.add_spatial_component(
-    entity,
+  state->spatial_component_manager.add(
+    entity->handle,
     glm::vec3(0.0f, 0.1f, 0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(1.0f, 1.0f, 1.0f)
   );
-  state->entity_manager.add_drawable_component(
-    entity,
+  state->drawable_component_manager.add(
+    entity->handle,
     asset_get_model_asset_by_name(&state->model_assets, "axes"),
     RENDERPASS_FORWARD
   );
 
   // Floor
   entity = state->entity_manager.add("floor");
-  state->entity_manager.add_spatial_component(
-    entity,
+  state->spatial_component_manager.add(
+    entity->handle,
     glm::vec3(0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(150.0f, 0.1f, 150.0f)
   );
-  state->entity_manager.add_drawable_component(
-    entity,
+  state->drawable_component_manager.add(
+    entity->handle,
     asset_get_model_asset_by_name(&state->model_assets, "floor"),
     RENDERPASS_DEFERRED
   );
@@ -75,14 +75,14 @@ void scene_init_objects(Memory *memory, State *state) {
   // Temple
   for (uint32 idx = 0; idx < 1; idx++) {
     entity = state->entity_manager.add("temple");
-    state->entity_manager.add_spatial_component(
-      entity,
+    state->spatial_component_manager.add(
+      entity->handle,
       glm::vec3(0.0f, 0.1f, 0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
       glm::vec3(0.1f)
     );
-    state->entity_manager.add_drawable_component(
-      entity,
+    state->drawable_component_manager.add(
+      entity->handle,
       asset_get_model_asset_by_name(&state->model_assets, "temple"),
       RENDERPASS_DEFERRED
     );
@@ -90,38 +90,38 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Lights
   entity = state->entity_manager.add("light1");
-  state->entity_manager.add_spatial_component(
-    entity,
+  state->spatial_component_manager.add(
+    entity->handle,
     glm::vec4(-7.0f, 2.0f, 0.0f, 1.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
-  state->entity_manager.add_drawable_component(
-    entity,
+  state->drawable_component_manager.add(
+    entity->handle,
     asset_get_model_asset_by_name(&state->model_assets, "light"),
     RENDERPASS_FORWARD
   );
-  state->entity_manager.add_light_component(
-    entity,
+  state->light_component_manager.add(
+    entity->handle,
     glm::vec4(9.0f, 9.0f, 9.0f, 1.0f),
     glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
   );
   array_push<EntityHandle>(&state->lights, entity->handle);
 
   entity = state->entity_manager.add("light2");
-  state->entity_manager.add_spatial_component(
-    entity,
+  state->spatial_component_manager.add(
+    entity->handle,
     glm::vec4(-4.0f, 16.0f, 0.0f, 1.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
-  state->entity_manager.add_drawable_component(
-    entity,
+  state->drawable_component_manager.add(
+    entity->handle,
     asset_get_model_asset_by_name(&state->model_assets, "light"),
     RENDERPASS_FORWARD
   );
-  state->entity_manager.add_light_component(
-    entity,
+  state->light_component_manager.add(
+    entity->handle,
     glm::vec4(0.2f, 0.2f, 0.2f, 1.0f),
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
@@ -131,14 +131,14 @@ void scene_init_objects(Memory *memory, State *state) {
   uint32 n_geese = 10;
   for (uint8 idx = 0; idx < n_geese; idx++) {
     entity = state->entity_manager.add("goose");
-    state->entity_manager.add_spatial_component(
-      entity,
+    state->spatial_component_manager.add(
+      entity->handle,
       glm::vec3(-20.0f, 0.0f, -5.0f + (real32)idx * 2.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(0.3f)
     );
-    state->entity_manager.add_drawable_component(
-      entity,
+    state->drawable_component_manager.add(
+      entity->handle,
       asset_get_model_asset_by_name(&state->model_assets, "goose"),
       RENDERPASS_DEFERRED
     );
@@ -148,14 +148,14 @@ void scene_init_objects(Memory *memory, State *state) {
   uint32 n_spheres = 10;
   for (uint8 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
-    state->entity_manager.add_spatial_component(
-      entity,
+    state->spatial_component_manager.add(
+      entity->handle,
       glm::vec3(-8.0f, 1.0f, -5.0f + (real32)idx * 2.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(0.8f)
     );
-    state->entity_manager.add_drawable_component(
-      entity,
+    state->drawable_component_manager.add(
+      entity->handle,
       asset_get_model_asset_by_name(&state->model_assets, "sphere"),
       RENDERPASS_DEFERRED
     );
@@ -190,10 +190,10 @@ void scene_update(Memory *memory, State *state) {
   real64 x_term = 0.0f + cos(time_term) * 8.0f;
   real64 z_term = 0.0f + sin(time_term) * 8.0f;
 
-  state->entity_manager.get(state->lights.items[0])->spatial->position.x =
+  state->spatial_component_manager.get(state->lights.items[0])->position.x =
     (real32)x_term;
 
-  state->entity_manager.get(state->lights.items[0])->spatial->position.z =
+  state->spatial_component_manager.get(state->lights.items[0])->position.z =
     (real32)z_term;
 
 #if 0

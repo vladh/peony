@@ -1,3 +1,4 @@
+#if 0
 void Entity::print() {
   log_info("# Entity %d: %s", handle, debug_name);
   if (drawable) {
@@ -34,3 +35,4 @@ void Entity::print() {
   }
   log_newline();
 }
+#endif
