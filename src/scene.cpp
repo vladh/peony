@@ -73,7 +73,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 
   // Temple
-  for (uint32 idx = 0; idx < 0; idx++) {
+  for (uint32 idx = 0; idx < 1; idx++) {
     entity = state->entity_manager.add("temple");
     state->spatial_component_manager.add(
       entity->handle,
@@ -146,7 +146,7 @@ void scene_init_objects(Memory *memory, State *state) {
   }
 
   // Spheres
-  uint32 n_spheres = 480;
+  uint32 n_spheres = 128;
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
     state->spatial_component_manager.add(
