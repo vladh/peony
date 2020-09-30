@@ -20,6 +20,9 @@ global_variable uint32 global_oopses = 0;
 #include "control.cpp"
 #include "entity.cpp"
 #include "entity_manager.cpp"
+#include "drawable_component_manager.cpp"
+#include "light_component_manager.cpp"
+#include "spatial_component_manager.cpp"
 #include "models.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
@@ -233,9 +236,15 @@ void init_state(Memory *memory, State *state) {
   array_init<EntityHandle>(&memory->entity_memory_pool, &state->lights, MAX_N_LIGHTS);
 
   new(&state->entity_manager) EntityManager(
-    &state->entities,
-    &state->drawable_components,
-    &state->light_components,
+    &state->entities
+  );
+  new(&state->drawable_component_manager) DrawableComponentManager(
+    &state->drawable_components
+  );
+  new(&state->light_component_manager) LightComponentManager(
+    &state->light_components
+  );
+  new(&state->spatial_component_manager) SpatialComponentManager(
     &state->spatial_components
   );
 
@@ -434,10 +443,13 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
   shader_common->n_lights = state->lights.size;
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    Entity *light_entity = state->entity_manager.get(state->lights.items[idx]);
-    shader_common->light_position[idx] = glm::vec4(light_entity->spatial->position, 1.0f);
-    shader_common->light_color[idx] = light_entity->light->color;
-    shader_common->light_attenuation[idx] = light_entity->light->attenuation;
+    SpatialComponent *spatial_component =
+      state->spatial_component_manager.get(state->lights.items[idx]);
+    LightComponent *light_component =
+      state->light_component_manager.get(state->lights.items[idx]);
+    shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
+    shader_common->light_color[idx] = light_component->color;
+    shader_common->light_attenuation[idx] = light_component->attenuation;
   }
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
@@ -449,7 +461,8 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 void render_scene(
   Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
 ) {
-  state->entity_manager.draw_all(
+  state->drawable_component_manager.draw_all(
+    state->spatial_component_manager,
     render_pass, render_mode, state->entity_depth_shader_asset
   );
 
@@ -516,9 +529,10 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    Entity *light_entity = state->entity_manager.get(state->lights.items[idx]);
+    SpatialComponent *spatial_component =
+      state->spatial_component_manager.get(state->lights.items[idx]);
     camera_create_shadow_transforms(
-      state->shadow_transforms, light_entity->spatial->position,
+      state->shadow_transforms, spatial_component->position,
       state->shadow_map_width, state->shadow_map_height,
       state->shadow_near_clip_dist, state->shadow_far_clip_dist
     );

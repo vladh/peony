@@ -22,10 +22,15 @@ struct State {
   char window_title[128];
 
   EntityManager entity_manager;
+  DrawableComponentManager drawable_component_manager;
+  LightComponentManager light_component_manager;
+  SpatialComponentManager spatial_component_manager;
+
   Array<Entity> entities;
   Array<DrawableComponent> drawable_components;
   Array<LightComponent> light_components;
   Array<SpatialComponent> spatial_components;
+
   Array<EntityHandle> lights;
 
   Array<ShaderAsset> shader_assets;
