@@ -233,7 +233,10 @@ void init_state(Memory *memory, State *state) {
   array_init<DrawableComponent>(&memory->entity_memory_pool, &state->drawable_components, 128);
   array_init<LightComponent>(&memory->entity_memory_pool, &state->light_components, 128);
   array_init<SpatialComponent>(&memory->entity_memory_pool, &state->spatial_components, 128);
+
   array_init<EntityHandle>(&memory->entity_memory_pool, &state->lights, MAX_N_LIGHTS);
+  array_init<EntityHandle>(&memory->entity_memory_pool, &state->geese, 128);
+  array_init<EntityHandle>(&memory->entity_memory_pool, &state->spheres, 128);
 
   new(&state->entity_manager) EntityManager(
     &state->entities

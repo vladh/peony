@@ -9,15 +9,6 @@ public:
 
   Entity* get(EntityHandle handle);
 
-#if 0
-  void draw_all(
-    RenderPass render_pass, RenderMode render_mode,
-    ShaderAsset *entity_depth_shader_asset
-  );
-
-  void print_all();
-#endif
-
 private:
   EntityHandle last_handle = 0;
   // TODO: std::unordered_map is #slow, find a better implementation.

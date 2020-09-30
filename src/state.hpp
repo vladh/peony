@@ -32,6 +32,8 @@ struct State {
   Array<SpatialComponent> spatial_components;
 
   Array<EntityHandle> lights;
+  Array<EntityHandle> geese;
+  Array<EntityHandle> spheres;
 
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset> model_assets;

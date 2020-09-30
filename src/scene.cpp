@@ -142,6 +142,7 @@ void scene_init_objects(Memory *memory, State *state) {
       asset_get_model_asset_by_name(&state->model_assets, "goose"),
       RENDERPASS_DEFERRED
     );
+    array_push<EntityHandle>(&state->geese, entity->handle);
   }
 
   // Spheres
@@ -159,47 +160,55 @@ void scene_init_objects(Memory *memory, State *state) {
       asset_get_model_asset_by_name(&state->model_assets, "sphere"),
       RENDERPASS_DEFERRED
     );
+    array_push<EntityHandle>(&state->spheres, entity->handle);
   }
 }
 
-#if 0
-void update_entity(State *state, Entity *entity) {
-  if (strcmp(entity->name, "light") == 0) {
-  } else if (strcmp(entity->name, "sphere") == 0) {
-    real32 spin_deg_per_t = 45.0f;
-    entity->rotation *= glm::angleAxis(
-      glm::radians(spin_deg_per_t * (real32)state->dt),
-      glm::vec3(0.0f, 1.0f, 0.0f)
-    );
-  } else if (strcmp(entity->name, "goose") == 0) {
-    real32 spin_deg_per_t = 90.0f;
-    entity->rotation *= glm::angleAxis(
-      glm::radians(spin_deg_per_t * (real32)state->dt),
-      glm::vec3(0.0f, 1.0f, 0.0f)
-    );
-  } else if (strcmp(entity->name, "temple") == 0) {
-    if (entity->position.z != 0) {
-      entity->position.z = (real32)sin(state->t) * 5;
-    }
-  }
-}
-#endif
 
 void scene_update(Memory *memory, State *state) {
-  real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-  real64 x_term = 0.0f + cos(time_term) * 8.0f;
-  real64 z_term = 0.0f + sin(time_term) * 8.0f;
+  // TODO: Think of a better way to do this.
+  // We should rather be iterating through all SpatialComponents rather
+  // than looking everything up.
 
-  state->spatial_component_manager.get(state->lights.items[0])->position.x =
-    (real32)x_term;
+  // Lights
+  {
+    SpatialComponent *spatial = state->spatial_component_manager.get(
+      state->lights.items[0]
+    );
 
-  state->spatial_component_manager.get(state->lights.items[0])->position.z =
-    (real32)z_term;
+    real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+    real64 x_term = 0.0f + cos(time_term) * 8.0f;
+    real64 z_term = 0.0f + sin(time_term) * 8.0f;
 
-#if 0
-  for (uint32 idx = 0; idx < state->entities.size; idx++) {
-    Entity *entity = &state->entities.items[idx];
-    update_entity(state, entity);
+    spatial->position.x = (real32)x_term;
+    spatial->position.z = (real32)z_term;
   }
-#endif
+
+  // Geese
+  {
+    real32 spin_deg_per_t = 90.0f;
+    for (uint32 idx = 0; idx < state->geese.size; idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(
+        state->geese.items[idx]
+      );
+      spatial->rotation *= glm::angleAxis(
+        glm::radians(spin_deg_per_t * (real32)state->dt),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
+  }
+
+  // Spheres
+  {
+    real32 spin_deg_per_t = 45.0f;
+    for (uint32 idx = 0; idx < state->spheres.size; idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(
+        state->spheres.items[idx]
+      );
+      spatial->rotation *= glm::angleAxis(
+        glm::radians(spin_deg_per_t * (real32)state->dt),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
+  }
 }
