@@ -60,15 +60,17 @@ namespace Util {
       }
     }
 
-    for (uint32 y = 0; y < n_y_segments; ++y) {
+    for (uint32 y = 0; y < n_y_segments; y++) {
       if (y % 2 == 0) {
-        for (int32 x = n_x_segments; x >= 0; x--) {
+        /* for (int32 x = n_x_segments; x >= 0; x--) { */
+        for (uint32 x = 0; x <= n_x_segments; x++) {
           index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
           index_data[idx_indices++] = y * (n_x_segments + 1) + x;
           (*n_indices) += 2;
         }
       } else {
-        for (uint32 x = 0; x <= n_x_segments; x++) {
+        /* for (uint32 x = 0; x <= n_x_segments; x++) { */
+        for (int32 x = n_x_segments; x >= 0; x--) {
           index_data[idx_indices++] = y * (n_x_segments + 1) + x;
           index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
           (*n_indices) += 2;

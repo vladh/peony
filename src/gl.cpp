@@ -345,9 +345,7 @@ GLFWwindow* init_window(State *state) {
   }
 #endif
 
-  // NOTE: This breaks the alpaca cubes. It's probably the cubes'
-  // fault, but we should check that!
-  /* glEnable(GL_CULL_FACE); */
+  glEnable(GL_CULL_FACE);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
