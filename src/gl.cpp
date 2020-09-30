@@ -229,14 +229,14 @@ Memory init_memory() {
 
 
 void init_state(Memory *memory, State *state) {
-  array_init<Entity>(&memory->entity_memory_pool, &state->entities, 128);
-  array_init<DrawableComponent>(&memory->entity_memory_pool, &state->drawable_components, 128);
-  array_init<LightComponent>(&memory->entity_memory_pool, &state->light_components, 128);
-  array_init<SpatialComponent>(&memory->entity_memory_pool, &state->spatial_components, 128);
+  array_init<Entity>(&memory->entity_memory_pool, &state->entities, 512);
+  array_init<DrawableComponent>(&memory->entity_memory_pool, &state->drawable_components, 512);
+  array_init<LightComponent>(&memory->entity_memory_pool, &state->light_components, 512);
+  array_init<SpatialComponent>(&memory->entity_memory_pool, &state->spatial_components, 512);
 
   array_init<EntityHandle>(&memory->entity_memory_pool, &state->lights, MAX_N_LIGHTS);
-  array_init<EntityHandle>(&memory->entity_memory_pool, &state->geese, 128);
-  array_init<EntityHandle>(&memory->entity_memory_pool, &state->spheres, 128);
+  array_init<EntityHandle>(&memory->entity_memory_pool, &state->geese, 512);
+  array_init<EntityHandle>(&memory->entity_memory_pool, &state->spheres, 512);
 
   new(&state->entity_manager) EntityManager(
     &state->entities
@@ -251,14 +251,12 @@ void init_state(Memory *memory, State *state) {
     &state->spatial_components
   );
 
-  array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 128);
-  array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 128);
-  array_init<ModelAsset>(&memory->asset_memory_pool, &state->model_assets, 128);
+  array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 512);
+  array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 512);
+  array_init<ModelAsset>(&memory->asset_memory_pool, &state->model_assets, 512);
 
   state->t = 0;
   state->dt = 0;
-  state->target_fps = 165.0f;
-  state->target_frame_duration_s = 1.0f / state->target_fps;
 
   state->is_cursor_disabled = true;
   state->should_limit_fps = false;
@@ -781,8 +779,6 @@ int main() {
 
   init_shadow_buffers(&memory, state);
   scene_init_screenquad(&memory, state);
-
-  /* state->entity_manager.print_all(); */
 
   main_loop(window, &memory, state);
   destroy_window();
