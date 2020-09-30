@@ -73,7 +73,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 
   // Temple
-  for (uint32 idx = 0; idx < 1; idx++) {
+  for (uint32 idx = 0; idx < 0; idx++) {
     entity = state->entity_manager.add("temple");
     state->spatial_component_manager.add(
       entity->handle,
@@ -129,7 +129,7 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Geese
   uint32 n_geese = 10;
-  for (uint8 idx = 0; idx < n_geese; idx++) {
+  for (uint16 idx = 0; idx < n_geese; idx++) {
     entity = state->entity_manager.add("goose");
     state->spatial_component_manager.add(
       entity->handle,
@@ -146,12 +146,13 @@ void scene_init_objects(Memory *memory, State *state) {
   }
 
   // Spheres
-  uint32 n_spheres = 10;
-  for (uint8 idx = 0; idx < n_spheres; idx++) {
+  uint32 n_spheres = 480;
+  for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
     state->spatial_component_manager.add(
       entity->handle,
-      glm::vec3(-8.0f, 1.0f, -5.0f + (real32)idx * 2.0f),
+      /* glm::vec3(-8.0f, 1.0f, -5.0f + (real32)idx * 2.0f), */
+      glm::vec3(Util::random(-20.0f, 20.0f), 1.0f, Util::random(-20.0f, 20.0f)),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(0.8f)
     );
