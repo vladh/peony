@@ -16,15 +16,18 @@ SpatialComponent* SpatialComponentManager::add(
   new_component->position = position;
   new_component->rotation = rotation;
   new_component->scale = scale;
-  entity_handle_map[entity_handle] = new_component;
   return new_component;
 }
 
 
 SpatialComponent* SpatialComponentManager::get(EntityHandle handle) {
-  if (entity_handle_map.count(handle)) {
-    return entity_handle_map[handle];
-  } else {
-    return nullptr;
+  // NOTE: Normally we'd use a hash-map or something here, but
+  // std::unordered_map is slow as heck. This nice ol' array is faster.
+  // Let's look for something else if this starts showing up in the profiler.
+  for (uint32 idx = 0; idx < components->size; idx++) {
+    if (components->items[idx].entity_handle == handle) {
+      return &components->items[idx];
+    }
   }
+  return nullptr;
 }
