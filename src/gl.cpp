@@ -482,40 +482,34 @@ void render_scene(
       15.0f, state->window_height - 35.0f - row_height * 0,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(effective_fps %.2f)", state->last_effective_fps);
+    sprintf(fps_text, "(t %f)", state->t);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 1,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(t %f)", state->t);
+    sprintf(fps_text, "(dt %f)", state->dt);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 2,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(dt %f)", state->dt);
+    sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 3,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
+    sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 4,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
-    draw_text(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 5,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
     sprintf(fps_text, "(oopses %d)", global_oopses);
     draw_text(
       state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 6,
+      15.0f, state->window_height - 35.0f - row_height * 5,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
 
