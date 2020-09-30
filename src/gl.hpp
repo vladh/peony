@@ -22,7 +22,12 @@
 #include <windows.h>
 #endif
 
+// For FPS control.
+#include <chrono>
+#include <thread>
+// TODO: Remove.
 #include <unordered_map>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
