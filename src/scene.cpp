@@ -166,7 +166,7 @@ void scene_init_objects(Memory *memory, State *state) {
 
 
 void scene_update(Memory *memory, State *state) {
-  // TODO: Think of a better way to do this.
+  // TODO: Eventually move this to some kind of ActorComponent system.
   // We should rather be iterating through all SpatialComponents rather
   // than looking everything up.
 
