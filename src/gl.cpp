@@ -258,7 +258,7 @@ void init_state(Memory *memory, State *state) {
   state->t = 0;
   state->dt = 0;
   state->target_fps = 165.0f;
-  state->target_frame_duration_s = 1 / state->target_fps;
+  state->target_frame_duration_s = 1.0f / state->target_fps;
 
   state->is_cursor_disabled = true;
   state->should_limit_fps = false;
@@ -488,28 +488,34 @@ void render_scene(
       15.0f, state->window_height - 35.0f - row_height * 1,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(dt %f)", state->dt);
+    sprintf(fps_text, "(t %f)", state->t);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 2,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
+    sprintf(fps_text, "(dt %f)", state->dt);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 3,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
+    sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 4,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(oopses %d)", global_oopses);
+    sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
     draw_text(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 5,
+      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    );
+    sprintf(fps_text, "(oopses %d)", global_oopses);
+    draw_text(
+      state, "main-font", fps_text,
+      15.0f, state->window_height - 35.0f - row_height * 6,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
 
@@ -715,32 +721,40 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
 
 
 void main_loop(GLFWwindow *window, Memory *memory, State *state) {
-  while(!glfwWindowShouldClose(window)) {
-    real64 t_start = glfwGetTime();
-    state->t = t_start;
+  std::chrono::steady_clock::time_point game_start = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point second_start = game_start;
+  std::chrono::steady_clock::time_point frame_start = game_start;
+  std::chrono::steady_clock::time_point last_frame_start = game_start;
+  std::chrono::microseconds frame_duration = std::chrono::microseconds(6060);
+  uint32 n_frames_this_second = 0;
 
+  while (!glfwWindowShouldClose(window)) {
+    n_frames_this_second++;
+    last_frame_start = frame_start;
+    frame_start = std::chrono::steady_clock::now();
+    std::chrono::duration<real64> time_since_second_start = frame_start - second_start;
+    std::chrono::steady_clock::time_point frame_end_target_time = frame_start + frame_duration;
+
+    std::chrono::duration<real64> time_since_last_frame = frame_start - last_frame_start;
+    std::chrono::duration<real64> time_since_game_start = frame_start - game_start;
+    state->t = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_game_start).count();
+    state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_last_frame).count();
+
+    if (time_since_second_start >= std::chrono::seconds(1)) {
+      second_start = frame_start;
+      state->last_fps = n_frames_this_second;
+      n_frames_this_second = 0;
+    }
+
+    glfwPollEvents();
     process_input_continuous(window, state);
     update_and_render(memory, state);
 
-    real64 t_presleep_end = glfwGetTime();
-    real64 presleep_dt = t_presleep_end - t_start;
-    state->last_effective_fps = 1.0f / presleep_dt;
-
     if (state->should_limit_fps) {
-      real64 time_to_wait = state->target_frame_duration_s - state->dt;
-      if (time_to_wait < 0) {
-        log_warning("Frame took too long! %.6fs", state->dt);
-      } else {
-        Util::sleep(time_to_wait);
-      }
+      std::this_thread::sleep_until(frame_end_target_time);
     }
 
-    real64 t_end = glfwGetTime();
-    state->dt = t_end - t_start;
-    state->last_fps = 1.0f / state->dt;
-
     glfwSwapBuffers(window);
-    glfwPollEvents();
   }
 }
 
