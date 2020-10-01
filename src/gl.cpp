@@ -25,6 +25,7 @@ global_variable uint32 global_oopses = 0;
 #include "models.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
+#include "state.cpp"
 
 
 void update_drawing_options(State *state, GLFWwindow *window) {
@@ -197,47 +198,6 @@ void APIENTRY debug_message_callback(
   }
 
   log_newline();
-}
-
-
-void init_state(Memory *memory, State *state) {
-  new(&state->entities) Array<Entity>(&memory->entity_memory_pool, 512);
-  new(&state->drawable_components) Array<DrawableComponent>(&memory->entity_memory_pool, 512);
-  new(&state->light_components) Array<LightComponent>(&memory->entity_memory_pool, 512);
-  new(&state->spatial_components) Array<SpatialComponent>(&memory->entity_memory_pool, 512);
-
-  new(&state->lights) Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS);
-  new(&state->geese) Array<EntityHandle>(&memory->entity_memory_pool, 512);
-  new(&state->spheres) Array<EntityHandle>(&memory->entity_memory_pool, 512);
-
-  new(&state->entity_manager) EntityManager(
-    &state->entities
-  );
-  new(&state->drawable_component_manager) DrawableComponentManager(
-    &state->drawable_components
-  );
-  new(&state->light_component_manager) LightComponentManager(
-    &state->light_components
-  );
-  new(&state->spatial_component_manager) SpatialComponentManager(
-    &state->spatial_components
-  );
-
-  new(&state->shader_assets) Array<ShaderAsset>(&memory->asset_memory_pool, 512);
-  new(&state->font_assets) Array<FontAsset>(&memory->asset_memory_pool, 512);
-  new(&state->model_assets) Array<ModelAsset>(&memory->asset_memory_pool, 512);
-
-  new(&state->camera_main) Camera(CAMERA_PERSPECTIVE);
-  state->camera_active = &state->camera_main;
-
-  new(&state->control) Control();
-
-  state->t = 0;
-  state->dt = 0;
-
-  state->is_cursor_disabled = true;
-  state->should_limit_fps = false;
-  state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 }
 
 
@@ -724,9 +684,7 @@ void destroy_window() {
 int main() {
   srand((uint32)time(NULL));
   Memory memory;
-  State *state = (State*)memory.state_memory;
-
-  init_state(&memory, state);
+  State *state = new((State*)memory.state_memory) State(&memory);
 
   GLFWwindow *window = init_window(state);
   if (!window) {
