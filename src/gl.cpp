@@ -235,6 +235,7 @@ GLFWwindow* init_window(State *state) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   GLFWwindow *window = glfwCreateWindow(
     state->window_width, state->window_height, state->window_title, nullptr, nullptr
   );
