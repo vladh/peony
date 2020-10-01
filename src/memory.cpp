@@ -1,41 +1,54 @@
-MemoryPool memory_make_memory_pool(const char *name, uint32 size) {
+MemoryPool::MemoryPool(const char *new_name, uint32 new_size) {
   log_info(
     "Allocating memory pool \"%s\": %.2fMB (%dB)",
-    name, (real64)size / 1024 / 1024, size
+    new_name, (real64)new_size / 1024 / 1024, new_size
   );
 
-  MemoryPool pool;
-  pool.name = name;
-  pool.size = size;
-  pool.used = 0;
-  pool.memory = (uint8*)malloc(pool.size);
-  memset(pool.memory, 0, pool.size);
-  return pool;
+  this->name = new_name;
+  this->size = new_size;
+  this->used = 0;
+  this->memory = (uint8*)malloc(this->size);
+  memset(this->memory, 0, this->size);
 }
 
-void memory_reset_pool(MemoryPool *pool) {
-  pool->used = 0;
+
+void MemoryPool::reset() {
+  this->used = 0;
 }
 
-void memory_zero_out_pool(MemoryPool *pool) {
-  memset(pool->memory, 0, pool->size);
-  memory_reset_pool(pool);
+
+void MemoryPool::zero_out() {
+  memset(this->memory, 0, this->size);
+  reset();
 }
 
-void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size) {
-  assert(pool->used + size <= pool->size);
-  void *new_memory = pool->memory + pool->used;
-  pool->used += size;
+
+void* MemoryPool::push(uint32 pushee_size) {
+  assert(this->used + pushee_size <= this->size);
+  void *new_memory = this->memory + this->used;
+  this->used += pushee_size;
   return new_memory;
 }
 
-void* memory_push_memory_to_pool(MemoryPool *pool, uint32 size, const char *name) {
+
+void* MemoryPool::push(uint32 pushee_size, const char *debug_name) {
 #if 0
   log_info(
     "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
-    pool->name, (real64)size / 1024 / 1024, size, name,
+    this->name, (real64)size / 1024 / 1024, size, debug_name,
     (real64)pool->used / 1024 / 1024, pool->used
   );
 #endif
-  return memory_push_memory_to_pool(pool, size);
+  return push(pushee_size);
+}
+
+
+Memory::Memory(
+) : state_memory_size(sizeof(State)),
+  asset_memory_pool("assets", MEGABYTES(256)),
+  entity_memory_pool("entities", MEGABYTES(64)),
+  temp_memory_pool("temp", MEGABYTES(256))
+{
+  this->state_memory = (State*)malloc(this->state_memory_size);
+  memset(this->state_memory, 0, this->state_memory_size);
 }

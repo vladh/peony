@@ -7,7 +7,7 @@ public:
   Array(MemoryPool *pool, uint32 new_max_size) {
     this->size = 0;
     this->max_size = new_max_size;
-    this->items = (T*)memory_push_memory_to_pool(pool, sizeof(T) * this->max_size);
+    this->items = (T*)pool->push(sizeof(T) * this->max_size);
   }
 
   Array(MemoryPool *pool, uint32 new_size, uint32 new_max_size, T *new_items) {

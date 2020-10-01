@@ -190,7 +190,7 @@ ModelAsset::ModelAsset(
   this->filename = new_filename;
 
   load_model(memory);
-  memory_reset_pool(&memory->temp_memory_pool);
+  memory->temp_memory_pool.reset();
 }
 
 
@@ -249,7 +249,7 @@ ModelAsset::ModelAsset(
 
   setup_mesh_vertex_buffers(mesh, &vertices, &indices);
 
-  memory_reset_pool(&memory->temp_memory_pool);
+  memory->temp_memory_pool.reset();
 }
 
 

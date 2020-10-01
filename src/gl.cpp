@@ -200,33 +200,6 @@ void APIENTRY debug_message_callback(
 }
 
 
-Memory init_memory() {
-  Memory memory;
-
-  memory.state_memory_size = sizeof(State);
-  log_info(
-    "Allocating state memory: %.2fMB (%dB)",
-    (real64)memory.state_memory_size / 1024 / 1024, memory.state_memory_size
-  );
-  memory.state_memory = (State *)malloc(memory.state_memory_size);
-  memset(memory.state_memory, 0, memory.state_memory_size);
-
-  memory.asset_memory_pool = memory_make_memory_pool(
-    "assets", MEGABYTES(256)
-  );
-
-  memory.entity_memory_pool = memory_make_memory_pool(
-    "entities", MEGABYTES(64)
-  );
-
-  memory.temp_memory_pool = memory_make_memory_pool(
-    "temp", MEGABYTES(256)
-  );
-
-  return memory;
-}
-
-
 void init_state(Memory *memory, State *state) {
   new(&state->entities) Array<Entity>(&memory->entity_memory_pool, 512);
   new(&state->drawable_components) Array<DrawableComponent>(&memory->entity_memory_pool, 512);
@@ -750,7 +723,7 @@ void destroy_window() {
 
 int main() {
   srand((uint32)time(NULL));
-  Memory memory = init_memory();
+  Memory memory;
   State *state = (State*)memory.state_memory;
 
   init_state(&memory, state);
