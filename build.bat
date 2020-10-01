@@ -21,13 +21,14 @@ echo ###########################################################################
 :: -nologo - Remove banner message
 :: -sdl - Enable additional security checks
 
+:: -GL
+:: -O2
+:: -Oi
+
 set CommonCompilerFlags=/I "C:/opt/include/" ^
 -FC ^
--GL ^
 -GS ^
 -MTd ^
--O2 ^
--Oi ^
 -W4 ^
 -WL ^
 -Z7 ^
@@ -43,11 +44,13 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 :: Linker flags
 :: ---------------------
 :: -STACK:reserve[,commit] - Stack size
-:: -incremental - Link incrementally
+:: -INCREMENTAL - Link incrementally
+:: -DEBUG - Put debug information in the .pdb file
 :: -opt:ref - Remove functions and data that are never referenced
 
 set CommonLinkerFlags=/LIBPATH:"C:/opt/lib/" ^
--incremental:no ^
+-INCREMENTAL:NO ^
+-DEBUG:FULL ^
 -opt:ref ^
 /NODEFAULTLIB:msvcrt.lib ^
 freetype.lib opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib shell32.lib
@@ -56,7 +59,5 @@ freetype.lib opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib sh
 pushd build
 
 cl %CommonCompilerFlags% ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
-
-:: cl %CommonCompilerFlags% ..\src\glad.cpp ..\src\log.cpp ..\src\shader.cpp ..\src\util.cpp ..\src\camera.cpp ..\src\models.cpp ..\src\asset.cpp ..\src\memory.cpp ..\src\control.cpp ..\src\entity.cpp ..\src\array.cpp ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
 
 popd
