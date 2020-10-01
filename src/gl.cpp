@@ -229,14 +229,14 @@ Memory init_memory() {
 
 
 void init_state(Memory *memory, State *state) {
-  array_init<Entity>(&memory->entity_memory_pool, &state->entities, 512);
-  array_init<DrawableComponent>(&memory->entity_memory_pool, &state->drawable_components, 512);
-  array_init<LightComponent>(&memory->entity_memory_pool, &state->light_components, 512);
-  array_init<SpatialComponent>(&memory->entity_memory_pool, &state->spatial_components, 512);
+  new(&state->entities) Array<Entity>(&memory->entity_memory_pool, 512);
+  new(&state->drawable_components) Array<DrawableComponent>(&memory->entity_memory_pool, 512);
+  new(&state->light_components) Array<LightComponent>(&memory->entity_memory_pool, 512);
+  new(&state->spatial_components) Array<SpatialComponent>(&memory->entity_memory_pool, 512);
 
-  array_init<EntityHandle>(&memory->entity_memory_pool, &state->lights, MAX_N_LIGHTS);
-  array_init<EntityHandle>(&memory->entity_memory_pool, &state->geese, 512);
-  array_init<EntityHandle>(&memory->entity_memory_pool, &state->spheres, 512);
+  new(&state->lights) Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS);
+  new(&state->geese) Array<EntityHandle>(&memory->entity_memory_pool, 512);
+  new(&state->spheres) Array<EntityHandle>(&memory->entity_memory_pool, 512);
 
   new(&state->entity_manager) EntityManager(
     &state->entities
@@ -251,9 +251,9 @@ void init_state(Memory *memory, State *state) {
     &state->spatial_components
   );
 
-  array_init<ShaderAsset>(&memory->asset_memory_pool, &state->shader_assets, 512);
-  array_init<FontAsset>(&memory->asset_memory_pool, &state->font_assets, 512);
-  array_init<ModelAsset>(&memory->asset_memory_pool, &state->model_assets, 512);
+  new(&state->shader_assets) Array<ShaderAsset>(&memory->asset_memory_pool, 512);
+  new(&state->font_assets) Array<FontAsset>(&memory->asset_memory_pool, 512);
+  new(&state->model_assets) Array<ModelAsset>(&memory->asset_memory_pool, 512);
 
   state->t = 0;
   state->dt = 0;
@@ -380,7 +380,7 @@ void draw_text(
 
   for (uint32 idx = 0; idx < strlen(str); idx++) {
     char c = str[idx];
-    Character *character = &font_asset->characters.items[c];
+    Character *character = font_asset->characters.get(c);
 
     real32 char_x = x + character->bearing.x * scale;
     real32 char_y = y - (character->size.y - character->bearing.y) * scale;
@@ -437,12 +437,12 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
 
-  shader_common->n_lights = state->lights.size;
-  for (uint32 idx = 0; idx < state->lights.size; idx++) {
+  shader_common->n_lights = state->lights.get_size();
+  for (uint32 idx = 0; idx < state->lights.get_size(); idx++) {
     SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(state->lights.items[idx]);
+      state->spatial_component_manager.get(*state->lights.get(idx));
     LightComponent *light_component =
-      state->light_component_manager.get(state->lights.items[idx]);
+      state->light_component_manager.get(*state->lights.get(idx));
     shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
     shader_common->light_color[idx] = light_component->color;
     shader_common->light_attenuation[idx] = light_component->attenuation;
@@ -526,7 +526,7 @@ void update_and_render(Memory *memory, State *state) {
   // Render shadow map
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(state->lights.items[idx]);
+      state->spatial_component_manager.get(*state->lights.get(idx));
     camera_create_shadow_transforms(
       state->shadow_transforms, spatial_component->position,
       state->shadow_map_width, state->shadow_map_height,
@@ -594,7 +594,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
   state->shadow_map_height = 2048;
   state->shadow_near_clip_dist = 0.05f;
   state->shadow_far_clip_dist = 200.0f;
-  state->n_shadow_framebuffers = state->lights.size;
+  state->n_shadow_framebuffers = state->lights.get_size();
 
   for (
     uint32 idx_framebuffer = 0;

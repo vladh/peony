@@ -6,7 +6,7 @@ void FontAsset::load_glyphs(FT_Face face) {
 
   // TODO: Can we avoid loading all characters twice here?
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = array_push(&characters);
+    Character *character = characters.push();
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -38,7 +38,7 @@ void FontAsset::load_glyphs(FT_Face face) {
   uint32 texture_x = 0;
 
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = &characters.items[c];
+    Character *character = characters.get(c);
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -62,12 +62,9 @@ void FontAsset::load_glyphs(FT_Face face) {
 FontAsset::FontAsset(
   Memory *memory, FT_Library *ft_library,
   const char *name, const char *path
-) {
+) : characters(&memory->asset_memory_pool, N_CHARS_TO_LOAD)
+{
   this->name = name;
-
-  array_init<Character>(
-    &memory->asset_memory_pool, &characters, N_CHARS_TO_LOAD
-  );
 
   FT_Face face;
 
@@ -87,8 +84,8 @@ FontAsset::FontAsset(
 FontAsset* FontAsset::get_by_name(
   Array<FontAsset> *assets, const char *name
 ) {
-  for (uint32 idx = 0; idx < assets->size; idx++) {
-    FontAsset *asset = assets->items + idx;
+  for (uint32 idx = 0; idx < assets->get_size(); idx++) {
+    FontAsset *asset = assets->get(idx);
     if (strcmp(asset->name, name) == 0) {
       return asset;
     }
