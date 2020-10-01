@@ -22,10 +22,6 @@ public:
     const char *name, const char *path
   );
   void load_glyphs(FT_Face face);
-  FontAsset* make_asset(
-    FT_Library *ft_library,
-    const char *name, const char *path
-  );
   static FontAsset* get_by_name(
     Array<FontAsset> *assets, const char *name
   );

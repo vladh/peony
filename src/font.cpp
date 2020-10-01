@@ -1,12 +1,12 @@
 void FontAsset::load_glyphs(FT_Face face) {
   FT_GlyphSlot glyph = face->glyph;
 
-  atlas_width = 0;
-  atlas_height = 0;
+  this->atlas_width = 0;
+  this->atlas_height = 0;
 
   // TODO: Can we avoid loading all characters twice here?
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = characters.push();
+    Character *character = this->characters.push();
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -17,16 +17,16 @@ void FontAsset::load_glyphs(FT_Face face) {
     character->bearing = glm::ivec2(glyph->bitmap_left, glyph->bitmap_top);
     character->advance = glm::ivec2(glyph->advance.x, glyph->advance.y);
 
-    atlas_width += glyph->bitmap.width;
-    atlas_height = MAX(atlas_height, glyph->bitmap.rows);
+    this->atlas_width += glyph->bitmap.width;
+    this->atlas_height = MAX(this->atlas_height, glyph->bitmap.rows);
   }
 
   glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, &texture);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  glGenTextures(1, &this->texture);
+  glBindTexture(GL_TEXTURE_2D, this->texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RED,
-    atlas_width, atlas_height,
+    this->atlas_width, this->atlas_height,
     0, GL_RED, GL_UNSIGNED_BYTE, 0
   );
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -38,7 +38,7 @@ void FontAsset::load_glyphs(FT_Face face) {
   uint32 texture_x = 0;
 
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = characters.get(c);
+    Character *character = this->characters.get(c);
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -51,7 +51,7 @@ void FontAsset::load_glyphs(FT_Face face) {
       GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer
     );
 
-    character->texture_x = (real32)texture_x / atlas_width;
+    character->texture_x = (real32)texture_x / this->atlas_width;
     texture_x += glyph->bitmap.width;
   }
 
