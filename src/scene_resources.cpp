@@ -1,6 +1,5 @@
 void scene_resources_init_shaders(Memory *memory, State *state) {
-  state->entity_depth_shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
+  state->entity_depth_shader_asset = new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
     memory,
     "entity_depth",
     SHADER_ENTITY_DEPTH,
@@ -8,8 +7,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     SHADER_DIR"entity_depth.geom"
   );
 
-  ShaderAsset *text_shader_asset = shader_make_asset(
-    array_push<ShaderAsset>(&state->shader_assets),
+  ShaderAsset *text_shader_asset = new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
     memory,
     "text",
     SHADER_UI,
@@ -18,8 +16,8 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
   glm::mat4 text_projection = glm::ortho(
     0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
   );
-  glUseProgram(text_shader_asset->shader.program);
-  shader_set_mat4(&text_shader_asset->shader, "text_projection", &text_projection);
+  glUseProgram(text_shader_asset->program);
+  text_shader_asset->set_mat4("text_projection", &text_projection);
   state->text_shader_asset = text_shader_asset;
 }
 
@@ -28,14 +26,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
   TextureSet *texture_set;
 
   // Light
-  model_asset = models_make_asset_from_file(
-    memory, array_push<ModelAsset>(&state->model_assets),
-    "light", "resources/models/", "cube.obj"
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory, "light", "resources/models/", "cube.obj"
   );
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
+  model_asset->set_shader_asset(
+    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
       memory,
       "light",
       SHADER_OTHER_OBJECT,
@@ -45,17 +40,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
-  model_asset = models_make_asset_from_data(
-    memory, array_push<ModelAsset>(&state->model_assets),
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory,
     axes_vertices, 6,
     nullptr, 0,
     "axes",
     GL_LINES
   );
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
+  model_asset->set_shader_asset(
+    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
       memory,
       "axes",
       SHADER_OTHER_OBJECT,
@@ -64,20 +57,17 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Goose
-  model_asset = models_make_asset_from_file(
-    memory, array_push<ModelAsset>(&state->model_assets),
-    "goose", "resources/models/", "miniGoose.fbx"
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory, "goose", "resources/models/", "miniGoose.fbx"
   );
-  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set = model_asset->create_texture_set();
   texture_set->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
   texture_set->metallic_static = 0.0f;
   texture_set->roughness_static = 1.0f;
   texture_set->ao_static = 1.0f;
-  models_set_texture_set(&model_asset->model, texture_set);
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
       memory,
       "entity",
       SHADER_ENTITY,
@@ -107,15 +97,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
     vertex_data, index_data
   );
 
-  model_asset = models_make_asset_from_data(
-    memory, array_push<ModelAsset>(&state->model_assets),
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory,
     vertex_data, n_vertices,
     index_data, n_indices,
     "sphere",
     GL_TRIANGLE_STRIP
   );
 
-  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set = model_asset->create_texture_set();
   texture_set->albedo_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/albedo.png"
   );
@@ -131,11 +121,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
   texture_set->normal_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/normal.png"
   );
-  models_set_texture_set(&model_asset->model, texture_set);
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
       memory,
       "entity",
       SHADER_ENTITY,
@@ -144,20 +132,17 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Floor
-  model_asset = models_make_asset_from_file(
-    memory, array_push<ModelAsset>(&state->model_assets),
-    "floor", "resources/models/", "cube.obj"
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory, "floor", "resources/models/", "cube.obj"
   );
-  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set = model_asset->create_texture_set();
   texture_set->albedo_static = glm::vec4(0.9f, 0.8f, 0.7f, 1.0f);
   texture_set->metallic_static = 0.0f;
   texture_set->roughness_static = 1.0f;
   texture_set->ao_static = 1.0f;
-  models_set_texture_set(&model_asset->model, texture_set);
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
       memory,
       "entity",
       SHADER_ENTITY,
@@ -166,15 +151,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Temple
-  model_asset = models_make_asset_from_file(
-    memory, array_push<ModelAsset>(&state->model_assets),
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory,
     /* "temple", "resources/models/", "pantheon.obj" */
     /* "temple", "resources/models/", "Stones_AssetKit.fbx" */
     "temple", "resources/models/", "shop.fbx"
   );
 
   {
-    texture_set = models_add_texture_set(&model_asset->model);
+    texture_set = model_asset->create_texture_set();
     texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/03_-_Default_BaseColor.tga.png"
     );
@@ -190,11 +175,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-3.tga.png"
     );
-    models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 0);
-    models_set_shader_asset_for_node_idx(
-      &model_asset->model,
-      shader_make_asset(
-        array_push<ShaderAsset>(&state->shader_assets),
+    model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 0);
+    model_asset->set_shader_asset_for_node_idx(
+      new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
         memory,
         "entity",
         SHADER_ENTITY,
@@ -205,7 +188,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   }
 
   {
-    texture_set = models_add_texture_set(&model_asset->model);
+    texture_set = model_asset->create_texture_set();
     texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/01_-_Default_BaseColor.tga.png"
     );
@@ -221,11 +204,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-1.tga.png"
     );
-    models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 1);
-    models_set_shader_asset_for_node_idx(
-      &model_asset->model,
-      shader_make_asset(
-        array_push<ShaderAsset>(&state->shader_assets),
+    model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 1);
+    model_asset->set_shader_asset_for_node_idx(
+      new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
         memory,
         "entity",
         SHADER_ENTITY,
@@ -236,7 +217,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   }
 
   {
-    texture_set = models_add_texture_set(&model_asset->model);
+    texture_set = model_asset->create_texture_set();
     texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/02_-_Default_BaseColor.tga.png"
     );
@@ -252,11 +233,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-2.tga.png"
     );
-    models_set_texture_set_for_node_idx(&model_asset->model, texture_set, 0, 2);
-    models_set_shader_asset_for_node_idx(
-      &model_asset->model,
-      shader_make_asset(
-        array_push<ShaderAsset>(&state->shader_assets),
+    model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 2);
+    model_asset->set_shader_asset_for_node_idx(
+      new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
         memory,
         "entity",
         SHADER_ENTITY,
@@ -275,9 +254,8 @@ void scene_resources_init_fonts(Memory *memory, State *state) {
     return;
   }
 
-  font_make_asset(
+  new(array_push<FontAsset>(&state->font_assets)) FontAsset(
     memory,
-    array_push<FontAsset>(&state->font_assets),
     &ft_library,
     "main-font",
     /* "resources/fonts/AlrightSans-Regular.otf" */

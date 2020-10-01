@@ -1,15 +1,12 @@
-void font_load_glyphs(
-  FontAsset *asset, FT_Face face
-) {
-  Font *font = &asset->font;
+void FontAsset::load_glyphs(FT_Face face) {
   FT_GlyphSlot glyph = face->glyph;
 
-  font->atlas_width = 0;
-  font->atlas_height = 0;
+  atlas_width = 0;
+  atlas_height = 0;
 
   // TODO: Can we avoid loading all characters twice here?
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = array_push(&font->characters);
+    Character *character = array_push(&characters);
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -20,16 +17,16 @@ void font_load_glyphs(
     character->bearing = glm::ivec2(glyph->bitmap_left, glyph->bitmap_top);
     character->advance = glm::ivec2(glyph->advance.x, glyph->advance.y);
 
-    font->atlas_width += glyph->bitmap.width;
-    font->atlas_height = MAX(font->atlas_height, glyph->bitmap.rows);
+    atlas_width += glyph->bitmap.width;
+    atlas_height = MAX(atlas_height, glyph->bitmap.rows);
   }
 
   glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, &font->texture);
-  glBindTexture(GL_TEXTURE_2D, font->texture);
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RED,
-    font->atlas_width, font->atlas_height,
+    atlas_width, atlas_height,
     0, GL_RED, GL_UNSIGNED_BYTE, 0
   );
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -41,7 +38,7 @@ void font_load_glyphs(
   uint32 texture_x = 0;
 
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = &font->characters.items[c];
+    Character *character = &characters.items[c];
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -54,36 +51,48 @@ void font_load_glyphs(
       GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer
     );
 
-    character->texture_x = (real32)texture_x / font->atlas_width;
+    character->texture_x = (real32)texture_x / atlas_width;
     texture_x += glyph->bitmap.width;
   }
 
   glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-FontAsset* font_make_asset(
-  Memory *memory, FontAsset *asset, FT_Library *ft_library,
+
+FontAsset::FontAsset(
+  Memory *memory, FT_Library *ft_library,
   const char *name, const char *path
 ) {
-  asset->info.name = name;
+  this->name = name;
 
   array_init<Character>(
-    &memory->asset_memory_pool, &asset->font.characters, N_CHARS_TO_LOAD
+    &memory->asset_memory_pool, &characters, N_CHARS_TO_LOAD
   );
 
   FT_Face face;
 
   if (FT_New_Face(*ft_library, path, 0, &face)) {
     log_error("Could not load font at %s", path);
-    return nullptr;
   }
 
   // TODO: Support multiple sizes somehow.
   FT_Set_Pixel_Sizes(face, 0, 18);
 
-  font_load_glyphs(asset, face);
+  load_glyphs(face);
 
   FT_Done_Face(face);
+}
 
-  return asset;
+
+FontAsset* FontAsset::get_by_name(
+  Array<FontAsset> *assets, const char *name
+) {
+  for (uint32 idx = 0; idx < assets->size; idx++) {
+    FontAsset *asset = assets->items + idx;
+    if (strcmp(asset->name, name) == 0) {
+      return asset;
+    }
+  }
+  log_warning("Could not find FontAsset with name %s", name);
+  return nullptr;
 }

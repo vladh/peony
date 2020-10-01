@@ -55,15 +55,9 @@ void DrawableComponentManager::draw_all(
     }
 
     if (render_mode == RENDERMODE_DEPTH) {
-      models_draw_model_in_depth_mode(
-        drawable->model_asset,
-        &model_matrix, entity_depth_shader_asset
-      );
+      drawable->model_asset->draw_in_depth_mode(&model_matrix, entity_depth_shader_asset);
     } else {
-      models_draw_model(
-        drawable->model_asset,
-        spatial ? &model_matrix : nullptr
-      );
+      drawable->model_asset->draw(spatial ? &model_matrix : nullptr);
     }
   }
 }
