@@ -9,14 +9,14 @@ void ModelAsset::setup_mesh_vertex_buffers(
 
   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   glBufferData(
-    GL_ARRAY_BUFFER, sizeof(Vertex) * vertices->size,
-    vertices->items, GL_STATIC_DRAW
+    GL_ARRAY_BUFFER, sizeof(Vertex) * vertices->get_size(),
+    vertices->get_items_ptr(), GL_STATIC_DRAW
   );
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices->size,
-    indices->items, GL_STATIC_DRAW
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices->get_size(),
+    indices->get_items_ptr(), GL_STATIC_DRAW
   );
 
   uint32 location;
@@ -41,15 +41,24 @@ void ModelAsset::setup_mesh_vertex_buffers(
 }
 
 
-void ModelAsset::load_mesh_vertices(
+void ModelAsset::load_mesh(
   Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-  Array<Vertex> *vertices
+  glm::mat4 transform, Pack indices_pack
 ) {
+  mesh->transform = transform;
+  mesh->texture_set = nullptr;
+  mesh->mode = GL_TRIANGLES;
+
+  mesh->indices_pack = indices_pack;
+
+  // Vertices
   // NOTE: This is probably #slow. We're copying data around from one format
   // to another for no real reason. There would probably be a smart way to
   // use the original data, but it's not a big bottleneck according to the
   // profiler.
-  array_init<Vertex>(&memory->temp_memory_pool, vertices, mesh_data->mNumVertices);
+  Array<Vertex> vertices(
+    &memory->temp_memory_pool, mesh_data->mNumVertices
+  );
 
   if (!mesh_data->mNormals) {
     log_warning("Model does not have normals.");
@@ -58,7 +67,7 @@ void ModelAsset::load_mesh_vertices(
   mesh->n_vertices = mesh_data->mNumVertices;
 
   for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
-    Vertex *vertex = (Vertex*)array_push<Vertex>(vertices);
+    Vertex *vertex = vertices.push();
 
     glm::vec3 position;
     position.x = mesh_data->mVertices[idx].x;
@@ -81,13 +90,8 @@ void ModelAsset::load_mesh_vertices(
       vertex->tex_coords = glm::vec2(0.0f, 0.0f);
     }
   }
-}
 
-
-void ModelAsset::load_mesh_indices(
-  Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-  Array<uint32> *indices
-) {
+  // Indices
   uint32 n_indices = 0;
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
@@ -95,35 +99,17 @@ void ModelAsset::load_mesh_indices(
   }
 
   mesh->n_indices = n_indices;
-  array_init<uint32>(&memory->temp_memory_pool, indices, n_indices);
+  Array<uint32> indices(
+    &memory->temp_memory_pool, n_indices
+  );
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
     for (uint32 idx_index = 0; idx_index < face.mNumIndices; idx_index++) {
-      array_push(indices, face.mIndices[idx_index]);
+      indices.push(face.mIndices[idx_index]);
     }
   }
-}
 
-
-void ModelAsset::load_mesh(
-  Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-  glm::mat4 transform, Pack indices_pack
-) {
-  Array<Vertex> vertices;
-  Array<uint32> indices;
-
-  mesh->transform = transform;
-  mesh->texture_set = nullptr;
-  mesh->mode = GL_TRIANGLES;
-
-  mesh->indices_pack = indices_pack;
-  load_mesh_vertices(
-    memory, mesh, mesh_data, scene, &vertices
-  );
-  load_mesh_indices(
-    memory, mesh, mesh_data, scene, &indices
-  );
   setup_mesh_vertex_buffers(mesh, &vertices, &indices);
 }
 
@@ -139,7 +125,7 @@ void ModelAsset::load_node(
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     load_mesh(
       memory,
-      array_push(&meshes),
+      meshes.push(),
       mesh_data, scene,
       transform,
       indices_pack
@@ -196,16 +182,12 @@ void ModelAsset::load_model(Memory *memory) {
 ModelAsset::ModelAsset(
   Memory *memory, const char *new_name, const char *new_directory,
   const char *new_filename
-) {
+) : meshes(&memory->asset_memory_pool, MAX_N_MESHES),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS)
+{
   name = new_name;
   directory = new_directory;
   filename = new_filename;
-  array_init<Mesh>(
-    &memory->asset_memory_pool, &meshes, MAX_N_MESHES
-  );
-  array_init<TextureSet>(
-    &memory->asset_memory_pool, &texture_sets, MAX_N_TEXTURE_SETS
-  );
 
   load_model(memory);
   memory_reset_pool(&memory->temp_memory_pool);
@@ -218,33 +200,28 @@ ModelAsset::ModelAsset(
   uint32 *index_data, uint32 n_indices,
   const char *new_name,
   GLenum mode
-) {
+) : meshes(&memory->asset_memory_pool, MAX_N_MESHES),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS)
+{
   name = new_name;
   directory = "";
   filename = "";
-  array_init<Mesh>(
-    &memory->asset_memory_pool, &meshes, MAX_N_MESHES
-  );
-  array_init<TextureSet>(
-    &memory->asset_memory_pool, &texture_sets, MAX_N_TEXTURE_SETS
-  );
 
-  Mesh *mesh = array_push<Mesh>(&meshes);
-  meshes.items[0].transform = glm::mat4(1.0f);
-  meshes.items[0].texture_set = nullptr;
-  meshes.items[0].mode = mode;
+  Mesh *mesh = meshes.push();
+  meshes.get(0)->transform = glm::mat4(1.0f);
+  meshes.get(0)->texture_set = nullptr;
+  meshes.get(0)->mode = mode;
 
   // NOTE: We are copying this data around for no real reason.
   // It probably doesn't matter as this is pretty much debug code,
   // but it might be good to improve it.
 
   // Vertices
-  Array<Vertex> vertices;
-  array_init<Vertex>(&memory->temp_memory_pool, &vertices, n_vertices);
+  Array<Vertex> vertices = Array<Vertex>(&memory->temp_memory_pool, n_vertices);
   mesh->n_vertices = n_vertices;
 
   for (uint32 idx = 0; idx < n_vertices; idx++) {
-    Vertex *vertex = (Vertex*)array_push<Vertex>(&vertices);
+    Vertex *vertex = vertices.push();
 
     glm::vec3 position;
     position.x = vertex_data[(idx * 8) + 0];
@@ -265,10 +242,9 @@ ModelAsset::ModelAsset(
   }
 
   // Indices
-  Array<uint32> indices;
-  array_init<uint32>(&memory->temp_memory_pool, &indices, n_indices);
-  indices.size = n_indices;
-  indices.items = index_data;
+  Array<uint32> indices = Array<uint32>(
+    &memory->temp_memory_pool, n_indices, n_indices, index_data
+  );
   mesh->n_indices = n_indices;
 
   setup_mesh_vertex_buffers(mesh, &vertices, &indices);
@@ -312,7 +288,7 @@ TextureSet* ModelAsset::create_texture_set() {
   // TODO: Change this to something actually less likely to collide.
   uint32 texture_set_id = (uint32)Util::random(0, UINT32_MAX);
 
-  TextureSet *texture_set = array_push(&texture_sets);
+  TextureSet *texture_set = texture_sets.push();
 
   init_texture_set(texture_set, texture_set_id);
   return texture_set;
@@ -407,14 +383,14 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 void ModelAsset::set_shader_asset_for_mesh(
   uint32 idx_mesh, ShaderAsset *shader_asset
 ) {
-  Mesh *mesh = &meshes.items[idx_mesh];
+  Mesh *mesh = meshes.get(idx_mesh);
   mesh->shader_asset = shader_asset;
   bind_texture_uniforms_for_mesh(mesh);
 }
 
 
 void ModelAsset::set_shader_asset(ShaderAsset *shader_asset) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.size; idx_mesh++) {
+  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
     set_shader_asset_for_mesh(idx_mesh, shader_asset);
   }
 }
@@ -423,8 +399,8 @@ void ModelAsset::set_shader_asset(ShaderAsset *shader_asset) {
 void ModelAsset::set_shader_asset_for_node_idx(
   ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.size; idx_mesh++) {
-    Mesh *mesh = &meshes.items[idx_mesh];
+  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       set_shader_asset_for_mesh(idx_mesh, shader_asset);
     }
@@ -433,8 +409,8 @@ void ModelAsset::set_shader_asset_for_node_idx(
 
 
 void ModelAsset::bind_texture_set_to_mesh(TextureSet *texture_set) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.size; idx_mesh++) {
-    Mesh *mesh = &meshes.items[idx_mesh];
+  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = meshes.get(idx_mesh);
     mesh->texture_set = texture_set;
   }
 }
@@ -443,8 +419,8 @@ void ModelAsset::bind_texture_set_to_mesh(TextureSet *texture_set) {
 void ModelAsset::bind_texture_set_to_mesh_for_node_idx(
   TextureSet *texture_set, uint8 node_depth, uint8 node_idx
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.size; idx_mesh++) {
-    Mesh *mesh = &meshes.items[idx_mesh];
+  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       mesh->texture_set = texture_set;
     }
@@ -456,8 +432,8 @@ void ModelAsset::draw(glm::mat4 *model_matrix) {
   uint32 last_used_texture_set_id = 0;
   uint32 last_used_shader_program = 0;
 
-  for (uint32 idx = 0; idx < meshes.size; idx++) {
-    Mesh *mesh = &meshes.items[idx];
+  for (uint32 idx = 0; idx < meshes.get_size(); idx++) {
+    Mesh *mesh = meshes.get(idx);
     ShaderAsset *shader_asset = mesh->shader_asset;
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
@@ -509,8 +485,8 @@ void ModelAsset::draw_in_depth_mode(
   glUseProgram(shader_asset->program);
   shader_asset->set_mat4("model", model_matrix);
 
-  for (uint32 idx = 0; idx < meshes.size; idx++) {
-    Mesh *mesh = &meshes.items[idx];
+  for (uint32 idx = 0; idx < meshes.get_size(); idx++) {
+    Mesh *mesh = meshes.get(idx);
     shader_asset->set_mat4("mesh_transform", &mesh->transform);
 
     glBindVertexArray(mesh->vao);
@@ -527,8 +503,8 @@ void ModelAsset::draw_in_depth_mode(
 ModelAsset* ModelAsset::get_by_name(
   Array<ModelAsset> *assets, const char *name
 ) {
-  for (uint32 idx = 0; idx < assets->size; idx++) {
-    ModelAsset *asset = assets->items + idx;
+  for (uint32 idx = 0; idx < assets->get_size(); idx++) {
+    ModelAsset *asset = assets->get(idx);
     if (strcmp(asset->name, name) == 0) {
       return asset;
     }

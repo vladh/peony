@@ -1,5 +1,5 @@
 void scene_resources_init_shaders(Memory *memory, State *state) {
-  state->entity_depth_shader_asset = new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+  state->entity_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "entity_depth",
     SHADER_ENTITY_DEPTH,
@@ -7,7 +7,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
     SHADER_DIR"entity_depth.geom"
   );
 
-  ShaderAsset *text_shader_asset = new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+  ShaderAsset *text_shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "text",
     SHADER_UI,
@@ -26,11 +26,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
   TextureSet *texture_set;
 
   // Light
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory, "light", "resources/models/", "cube.obj"
   );
   model_asset->set_shader_asset(
-    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+    new(state->shader_assets.push()) ShaderAsset(
       memory,
       "light",
       SHADER_OTHER_OBJECT,
@@ -40,7 +40,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     axes_vertices, 6,
     nullptr, 0,
@@ -48,7 +48,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     GL_LINES
   );
   model_asset->set_shader_asset(
-    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+    new(state->shader_assets.push()) ShaderAsset(
       memory,
       "axes",
       SHADER_OTHER_OBJECT,
@@ -57,7 +57,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Goose
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory, "goose", "resources/models/", "miniGoose.fbx"
   );
   texture_set = model_asset->create_texture_set();
@@ -67,7 +67,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   texture_set->ao_static = 1.0f;
   model_asset->bind_texture_set_to_mesh(texture_set);
   model_asset->set_shader_asset(
-    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+    new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
       SHADER_ENTITY,
@@ -97,7 +97,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     vertex_data, index_data
   );
 
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     vertex_data, n_vertices,
     index_data, n_indices,
@@ -123,7 +123,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
   model_asset->bind_texture_set_to_mesh(texture_set);
   model_asset->set_shader_asset(
-    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+    new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
       SHADER_ENTITY,
@@ -132,7 +132,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Floor
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory, "floor", "resources/models/", "cube.obj"
   );
   texture_set = model_asset->create_texture_set();
@@ -142,7 +142,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   texture_set->ao_static = 1.0f;
   model_asset->bind_texture_set_to_mesh(texture_set);
   model_asset->set_shader_asset(
-    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+    new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
       SHADER_ENTITY,
@@ -151,7 +151,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   // Temple
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     /* "temple", "resources/models/", "pantheon.obj" */
     /* "temple", "resources/models/", "Stones_AssetKit.fbx" */
@@ -177,7 +177,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     );
     model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 0);
     model_asset->set_shader_asset_for_node_idx(
-      new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+      new(state->shader_assets.push()) ShaderAsset(
         memory,
         "entity",
         SHADER_ENTITY,
@@ -206,7 +206,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     );
     model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 1);
     model_asset->set_shader_asset_for_node_idx(
-      new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+      new(state->shader_assets.push()) ShaderAsset(
         memory,
         "entity",
         SHADER_ENTITY,
@@ -235,7 +235,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     );
     model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 2);
     model_asset->set_shader_asset_for_node_idx(
-      new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+      new(state->shader_assets.push()) ShaderAsset(
         memory,
         "entity",
         SHADER_ENTITY,
@@ -254,7 +254,7 @@ void scene_resources_init_fonts(Memory *memory, State *state) {
     return;
   }
 
-  new(array_push<FontAsset>(&state->font_assets)) FontAsset(
+  new(state->font_assets.push()) FontAsset(
     memory,
     &ft_library,
     "main-font",

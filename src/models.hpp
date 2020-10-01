@@ -93,14 +93,6 @@ private:
   void setup_mesh_vertex_buffers(
     Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
   );
-  void load_mesh_vertices(
-    Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-    Array<Vertex> *vertices
-  );
-  void load_mesh_indices(
-    Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-    Array<uint32> *indices
-  );
   void load_mesh(
     Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
     glm::mat4 transform, Pack indices_pack

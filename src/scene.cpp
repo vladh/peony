@@ -4,7 +4,7 @@ void scene_init_screenquad(Memory *memory, State *state) {
   Entity *entity;
 
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+  model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     screenquad_vertices, 6,
     nullptr, 0,
@@ -23,7 +23,7 @@ void scene_init_screenquad(Memory *memory, State *state) {
   }
   model_asset->bind_texture_set_to_mesh(texture_set);
   model_asset->set_shader_asset(
-    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
+    new(state->shader_assets.push()) ShaderAsset(
       memory,
       "lighting",
       SHADER_LIGHTING,
@@ -104,7 +104,7 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::vec4(9.0f, 9.0f, 9.0f, 1.0f),
     glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
   );
-  array_push<EntityHandle>(&state->lights, entity->handle);
+  state->lights.push(entity->handle);
 
   entity = state->entity_manager.add("light2");
   state->spatial_component_manager.add(
@@ -123,7 +123,7 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::vec4(0.2f, 0.2f, 0.2f, 1.0f),
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
-  array_push<EntityHandle>(&state->lights, entity->handle);
+  state->lights.push(entity->handle);
 
   // Geese
   uint32 n_geese = 10;
@@ -140,7 +140,7 @@ void scene_init_objects(Memory *memory, State *state) {
       ModelAsset::get_by_name(&state->model_assets, "goose"),
       RENDERPASS_DEFERRED
     );
-    array_push<EntityHandle>(&state->geese, entity->handle);
+    state->geese.push(entity->handle);
   }
 
   // Spheres
@@ -159,7 +159,7 @@ void scene_init_objects(Memory *memory, State *state) {
       ModelAsset::get_by_name(&state->model_assets, "sphere"),
       RENDERPASS_DEFERRED
     );
-    array_push<EntityHandle>(&state->spheres, entity->handle);
+    state->spheres.push(entity->handle);
   }
 }
 
@@ -171,9 +171,7 @@ void scene_update(Memory *memory, State *state) {
 
   // Lights
   {
-    SpatialComponent *spatial = state->spatial_component_manager.get(
-      state->lights.items[0]
-    );
+    SpatialComponent *spatial = state->spatial_component_manager.get(*state->lights.get(0));
 
     real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
     real64 x_term = 0.0f + cos(time_term) * 8.0f;
@@ -186,10 +184,8 @@ void scene_update(Memory *memory, State *state) {
   // Geese
   {
     real32 spin_deg_per_t = 90.0f;
-    for (uint32 idx = 0; idx < state->geese.size; idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(
-        state->geese.items[idx]
-      );
+    for (uint32 idx = 0; idx < state->geese.get_size(); idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
       spatial->rotation *= glm::angleAxis(
         glm::radians(spin_deg_per_t * (real32)state->dt),
         glm::vec3(0.0f, 1.0f, 0.0f)
@@ -200,10 +196,8 @@ void scene_update(Memory *memory, State *state) {
   // Spheres
   {
     real32 spin_deg_per_t = 45.0f;
-    for (uint32 idx = 0; idx < state->spheres.size; idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(
-        state->spheres.items[idx]
-      );
+    for (uint32 idx = 0; idx < state->spheres.get_size(); idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->spheres.get(idx));
       spatial->rotation *= glm::angleAxis(
         glm::radians(spin_deg_per_t * (real32)state->dt),
         glm::vec3(0.0f, 1.0f, 0.0f)
