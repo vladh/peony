@@ -1,7 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
-struct State {
+class State {
+public:
   Camera camera_main;
   Camera *camera_active;
   Control control;
@@ -63,6 +64,8 @@ struct State {
   uint32 g_normal_texture;
   uint32 g_albedo_texture;
   uint32 g_pbr_texture;
+
+  State(Memory *memory);
 };
 
 #endif

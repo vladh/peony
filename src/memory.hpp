@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-struct State;
+class State;
 
 class MemoryPool {
 public:
