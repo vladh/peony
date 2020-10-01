@@ -37,43 +37,43 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 
 
 void process_input_continuous(GLFWwindow *window, State *state) {
-  if (control_is_key_down(&state->control, GLFW_KEY_W)) {
+  if (state->control.is_key_down(GLFW_KEY_W)) {
     state->camera_active->move_front_back(1);
   }
 
-  if (control_is_key_down(&state->control, GLFW_KEY_S)) {
+  if (state->control.is_key_down(GLFW_KEY_S)) {
     state->camera_active->move_front_back(-1);
   }
 
-  if (control_is_key_down(&state->control, GLFW_KEY_A)) {
+  if (state->control.is_key_down(GLFW_KEY_A)) {
     state->camera_active->move_left_right(-1);
   }
 
-  if (control_is_key_down(&state->control, GLFW_KEY_D)) {
+  if (state->control.is_key_down(GLFW_KEY_D)) {
     state->camera_active->move_left_right(1);
   }
 
-  if (control_is_key_down(&state->control, GLFW_KEY_SPACE)) {
+  if (state->control.is_key_down(GLFW_KEY_SPACE)) {
     state->camera_active->move_up_down(1);
   }
 
-  if (control_is_key_down(&state->control, GLFW_KEY_LEFT_CONTROL)) {
+  if (state->control.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
     state->camera_active->move_up_down(-1);
   }
 }
 
 
 void process_input_transient(GLFWwindow *window, State *state) {
-  if (control_is_key_now_down(&state->control, GLFW_KEY_ESCAPE)) {
+  if (state->control.is_key_now_down(GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (control_is_key_now_down(&state->control, GLFW_KEY_F)) {
+  if (state->control.is_key_now_down(GLFW_KEY_F)) {
     state->should_limit_fps = !state->should_limit_fps;
     update_drawing_options(state, window);
   }
 
-  if (control_is_key_now_down(&state->control, GLFW_KEY_C)) {
+  if (state->control.is_key_now_down(GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
     update_drawing_options(state, window);
   }
@@ -91,14 +91,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-  glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
+  glm::vec2 mouse_offset = state->control.update_mouse(x, y);
   state->camera_active->update_mouse(mouse_offset);
 }
 
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-  control_update_keys(&state->control, key, scancode, action, mods);
+  state->control.update_keys(key, scancode, action, mods);
   process_input_transient(window, state);
 }
 
@@ -254,17 +254,17 @@ void init_state(Memory *memory, State *state) {
   new(&state->font_assets) Array<FontAsset>(&memory->asset_memory_pool, 512);
   new(&state->model_assets) Array<ModelAsset>(&memory->asset_memory_pool, 512);
 
+  new(&state->camera_main) Camera(CAMERA_PERSPECTIVE);
+  state->camera_active = &state->camera_main;
+
+  new(&state->control) Control();
+
   state->t = 0;
   state->dt = 0;
 
   state->is_cursor_disabled = true;
   state->should_limit_fps = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
-
-  new(&state->camera_main) Camera(CAMERA_PERSPECTIVE);
-  state->camera_active = &state->camera_main;
-
-  control_init(&state->control);
 }
 
 

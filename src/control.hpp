@@ -8,16 +8,14 @@ struct Control {
   real64 mouse_sensitivity;
   bool32 key_states[1024];
   bool32 prev_key_states[1024];
-};
 
-void control_init(Control *control);
-glm::vec2 control_update_mouse(Control *control, real64 mouse_x, real64 mouse_y);
-void control_update_keys(
-  Control *control, int key, int scancode, int action, int mods
-);
-bool32 control_is_key_down(Control *control, int key);
-bool32 control_is_key_up(Control *control, int key);
-bool32 control_is_key_now_down(Control *control, int key);
-bool32 control_is_key_now_up(Control *control, int key);
+  Control();
+  glm::vec2 update_mouse(real64 mouse_x, real64 mouse_y);
+  void update_keys(int key, int scancode, int action, int mods);
+  bool32 is_key_down(int key);
+  bool32 is_key_up(int key);
+  bool32 is_key_now_down(int key);
+  bool32 is_key_now_up(int key);
+};
 
 #endif
