@@ -1,57 +1,55 @@
-void control_init(Control *control) {
-  control->mouse_has_moved = false;
-  control->mouse_last_x = 0.0f;
-  control->mouse_last_y = 0.0f;
-  control->mouse_sensitivity = 0.1f;
+Control::Control() {
+  this->mouse_has_moved = false;
+  this->mouse_last_x = 0.0f;
+  this->mouse_last_y = 0.0f;
+  this->mouse_sensitivity = 0.1f;
 
-  for (uint32 idx = 0; idx < LEN(control->key_states); idx++) {
-    control->key_states[idx] = false;
-    control->prev_key_states[idx] = true;
+  for (uint32 idx = 0; idx < LEN(this->key_states); idx++) {
+    this->key_states[idx] = false;
+    this->prev_key_states[idx] = true;
   }
 }
 
-glm::vec2 control_update_mouse(Control *control, real64 mouse_x, real64 mouse_y) {
-  if (!control->mouse_has_moved) {
-    control->mouse_last_x = mouse_x;
-    control->mouse_last_y = mouse_y;
-    control->mouse_has_moved = true;
+glm::vec2 Control::update_mouse(real64 mouse_x, real64 mouse_y) {
+  if (!this->mouse_has_moved) {
+    this->mouse_last_x = mouse_x;
+    this->mouse_last_y = mouse_y;
+    this->mouse_has_moved = true;
   }
 
   glm::vec2 mouse_offset;
-  mouse_offset.x = (real32)(mouse_x - control->mouse_last_x);
-  mouse_offset.y = (real32)(mouse_y - control->mouse_last_y);
-  control->mouse_last_x = mouse_x;
-  control->mouse_last_y = mouse_y;
+  mouse_offset.x = (real32)(mouse_x - this->mouse_last_x);
+  mouse_offset.y = (real32)(mouse_y - this->mouse_last_y);
+  this->mouse_last_x = mouse_x;
+  this->mouse_last_y = mouse_y;
 
-  mouse_offset.x *= (real32)control->mouse_sensitivity;
-  mouse_offset.y *= (real32)control->mouse_sensitivity;
+  mouse_offset.x *= (real32)this->mouse_sensitivity;
+  mouse_offset.y *= (real32)this->mouse_sensitivity;
 
   return mouse_offset;
 }
 
-void control_update_keys(
-  Control *control, int key, int scancode, int action, int mods
-) {
-  control->prev_key_states[key] = control->key_states[key];
+void Control::update_keys(int key, int scancode, int action, int mods) {
+  this->prev_key_states[key] = this->key_states[key];
   if (action == GLFW_PRESS) {
-    control->key_states[key] = true;
+    this->key_states[key] = true;
   } else if (action == GLFW_RELEASE) {
-    control->key_states[key] = false;
+    this->key_states[key] = false;
   }
 }
 
-bool32 control_is_key_down(Control *control, int key) {
-  return control->key_states[key];
+bool32 Control::is_key_down(int key) {
+  return this->key_states[key];
 }
 
-bool32 control_is_key_up(Control *control, int key) {
-  return !control->key_states[key];
+bool32 Control::is_key_up(int key) {
+  return !this->key_states[key];
 }
 
-bool32 control_is_key_now_down(Control *control, int key) {
-  return control->key_states[key] && !control->prev_key_states[key];
+bool32 Control::is_key_now_down(int key) {
+  return this->key_states[key] && !this->prev_key_states[key];
 }
 
-bool32 control_is_key_now_up(Control *control, int key) {
-  return !control->key_states[key] && control->prev_key_states[key];
+bool32 Control::is_key_now_up(int key) {
+  return !this->key_states[key] && this->prev_key_states[key];
 }
