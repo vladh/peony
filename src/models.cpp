@@ -125,7 +125,7 @@ void ModelAsset::load_node(
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     load_mesh(
       memory,
-      meshes.push(),
+      this->meshes.push(),
       mesh_data, scene,
       transform,
       indices_pack
@@ -147,9 +147,9 @@ void ModelAsset::load_node(
 
 void ModelAsset::load_model(Memory *memory) {
   char path[256];
-  strcpy(path, directory);
+  strcpy(path, this->directory);
   strcat(path, "/");
-  strcat(path, filename);
+  strcat(path, this->filename);
 
   const aiScene *scene = aiImportFile(
     path,
@@ -185,9 +185,9 @@ ModelAsset::ModelAsset(
 ) : meshes(&memory->asset_memory_pool, MAX_N_MESHES),
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS)
 {
-  name = new_name;
-  directory = new_directory;
-  filename = new_filename;
+  this->name = new_name;
+  this->directory = new_directory;
+  this->filename = new_filename;
 
   load_model(memory);
   memory_reset_pool(&memory->temp_memory_pool);
@@ -203,11 +203,11 @@ ModelAsset::ModelAsset(
 ) : meshes(&memory->asset_memory_pool, MAX_N_MESHES),
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS)
 {
-  name = new_name;
-  directory = "";
-  filename = "";
+  this->name = new_name;
+  this->directory = "";
+  this->filename = "";
 
-  Mesh *mesh = meshes.push();
+  Mesh *mesh = this->meshes.push();
   meshes.get(0)->transform = glm::mat4(1.0f);
   meshes.get(0)->texture_set = nullptr;
   meshes.get(0)->mode = mode;
@@ -288,7 +288,7 @@ TextureSet* ModelAsset::create_texture_set() {
   // TODO: Change this to something actually less likely to collide.
   uint32 texture_set_id = (uint32)Util::random(0, UINT32_MAX);
 
-  TextureSet *texture_set = texture_sets.push();
+  TextureSet *texture_set = this->texture_sets.push();
 
   init_texture_set(texture_set, texture_set_id);
   return texture_set;
@@ -383,14 +383,14 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 void ModelAsset::set_shader_asset_for_mesh(
   uint32 idx_mesh, ShaderAsset *shader_asset
 ) {
-  Mesh *mesh = meshes.get(idx_mesh);
+  Mesh *mesh = this->meshes.get(idx_mesh);
   mesh->shader_asset = shader_asset;
   bind_texture_uniforms_for_mesh(mesh);
 }
 
 
 void ModelAsset::set_shader_asset(ShaderAsset *shader_asset) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
     set_shader_asset_for_mesh(idx_mesh, shader_asset);
   }
 }
@@ -399,8 +399,8 @@ void ModelAsset::set_shader_asset(ShaderAsset *shader_asset) {
 void ModelAsset::set_shader_asset_for_node_idx(
   ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
-    Mesh *mesh = meshes.get(idx_mesh);
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       set_shader_asset_for_mesh(idx_mesh, shader_asset);
     }
@@ -409,8 +409,8 @@ void ModelAsset::set_shader_asset_for_node_idx(
 
 
 void ModelAsset::bind_texture_set_to_mesh(TextureSet *texture_set) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
-    Mesh *mesh = meshes.get(idx_mesh);
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = this->meshes.get(idx_mesh);
     mesh->texture_set = texture_set;
   }
 }
@@ -419,8 +419,8 @@ void ModelAsset::bind_texture_set_to_mesh(TextureSet *texture_set) {
 void ModelAsset::bind_texture_set_to_mesh_for_node_idx(
   TextureSet *texture_set, uint8 node_depth, uint8 node_idx
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < meshes.get_size(); idx_mesh++) {
-    Mesh *mesh = meshes.get(idx_mesh);
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       mesh->texture_set = texture_set;
     }
@@ -432,8 +432,8 @@ void ModelAsset::draw(glm::mat4 *model_matrix) {
   uint32 last_used_texture_set_id = 0;
   uint32 last_used_shader_program = 0;
 
-  for (uint32 idx = 0; idx < meshes.get_size(); idx++) {
-    Mesh *mesh = meshes.get(idx);
+  for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
+    Mesh *mesh = this->meshes.get(idx);
     ShaderAsset *shader_asset = mesh->shader_asset;
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
@@ -485,8 +485,8 @@ void ModelAsset::draw_in_depth_mode(
   glUseProgram(shader_asset->program);
   shader_asset->set_mat4("model", model_matrix);
 
-  for (uint32 idx = 0; idx < meshes.get_size(); idx++) {
-    Mesh *mesh = meshes.get(idx);
+  for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
+    Mesh *mesh = this->meshes.get(idx);
     shader_asset->set_mat4("mesh_transform", &mesh->transform);
 
     glBindVertexArray(mesh->vao);

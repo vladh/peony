@@ -68,17 +68,17 @@ const char* ShaderAsset::load_file(Memory *memory, const char *path) {
 
 
 uint32 ShaderAsset::add_texture_unit(
-  uint32 texture_unit, GLenum texture_unit_type
+  uint32 new_texture_unit, GLenum new_texture_unit_type
 ) {
-  uint32 idx = ++n_texture_units;
-  texture_units[idx] = texture_unit;
-  texture_unit_types[idx] = texture_unit_type;
+  uint32 idx = ++this->n_texture_units;
+  this->texture_units[idx] = new_texture_unit;
+  this->texture_unit_types[idx] = new_texture_unit_type;
   return idx;
 }
 
 
 void ShaderAsset::load_uniforms() {
-  did_set_texture_uniforms = false;
+  this->did_set_texture_uniforms = false;
 
   // TODO: Is there a better way to do this?
   for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
@@ -86,8 +86,8 @@ void ShaderAsset::load_uniforms() {
   }
 
   // Bind uniform block
-  uint32 uniform_block_index = glGetUniformBlockIndex(program, "shader_common");
-  glUniformBlockBinding(program, uniform_block_index, 0);
+  uint32 uniform_block_index = glGetUniformBlockIndex(this->program, "shader_common");
+  glUniformBlockBinding(this->program, uniform_block_index, 0);
 
   // Load uniforms
   // NOTE: We may want to skip all this stuff, because fallback on loading the locations
@@ -100,14 +100,14 @@ void ShaderAsset::load_uniforms() {
   GLint uniform_size;
   GLenum uniform_type;
 
-  glGetProgramiv(program, GL_ACTIVE_UNIFORMS, &n_active_uniforms);
+  glGetProgramiv(this->program, GL_ACTIVE_UNIFORMS, &n_active_uniforms);
 
   for (GLint idx = 0; idx < n_active_uniforms; idx++) {
     glGetActiveUniform(
-      program, (GLuint)idx, MAX_UNIFORM_NAME_LENGTH,
+      this->program, (GLuint)idx, MAX_UNIFORM_NAME_LENGTH,
       &uniform_name_length, &uniform_size, &uniform_type, uniform_name
     );
-    GLint location = glGetUniformLocation(program, uniform_name);
+    GLint location = glGetUniformLocation(this->program, uniform_name);
     if (location != -1) {
       intrinsic_uniform_locations[new_n_intrinsic_uniforms] = location;
       strcpy(intrinsic_uniform_names[new_n_intrinsic_uniforms], uniform_name);
@@ -123,12 +123,12 @@ ShaderAsset::ShaderAsset(
   Memory *memory, const char *new_name, ShaderType new_type,
   const char *vert_path, const char* frag_path
 ) {
-  name = new_name;
-  type = new_type;
-  n_texture_units = 0;
-  memset(texture_units, 0, sizeof(texture_units));
-  memset(texture_unit_types, 0, sizeof(texture_unit_types));
-  program = make_program(
+  this->name = new_name;
+  this->type = new_type;
+  this->n_texture_units = 0;
+  memset(this->texture_units, 0, sizeof(this->texture_units));
+  memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
+  this->program = make_program(
     make_shader(vert_path, load_file(memory, vert_path), GL_VERTEX_SHADER),
     make_shader(frag_path, load_file(memory, frag_path), GL_FRAGMENT_SHADER)
   );
@@ -141,12 +141,12 @@ ShaderAsset::ShaderAsset(
   Memory *memory, const char *new_name, ShaderType new_type,
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {
-  name = new_name;
-  type = new_type;
-  n_texture_units = 0;
-  memset(texture_units, 0, sizeof(texture_units));
-  memset(texture_unit_types, 0, sizeof(texture_unit_types));
-  program = make_program(
+  this->name = new_name;
+  this->type = new_type;
+  this->n_texture_units = 0;
+  memset(this->texture_units, 0, sizeof(this->texture_units));
+  memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
+  this->program = make_program(
     make_shader(vert_path, load_file(memory, vert_path), GL_VERTEX_SHADER),
     make_shader(frag_path, load_file(memory, frag_path), GL_FRAGMENT_SHADER),
     make_shader(geom_path, load_file(memory, geom_path), GL_GEOMETRY_SHADER)
@@ -166,7 +166,7 @@ int32 ShaderAsset::get_uniform_location(const char *uniform_name) {
   }
   if (uniform_idx == -1) {
     log_error("Had to look up location for uniform: %s", uniform_name);
-    GLint location = glGetUniformLocation(program, uniform_name);
+    GLint location = glGetUniformLocation(this->program, uniform_name);
     if (location != -1) {
       uniform_idx = n_intrinsic_uniforms;
       intrinsic_uniform_locations[uniform_idx] = location;
@@ -185,7 +185,7 @@ int32 ShaderAsset::get_uniform_location(const char *uniform_name) {
 
 
 void ShaderAsset::set_int(const char *uniform_name, uint32 value) {
-  glUniform1i(get_uniform_location(uniform_name), value);
+  glUniform1i(this->get_uniform_location(uniform_name), value);
 }
 
 
