@@ -3,8 +3,6 @@
 
 #define N_CHARS_TO_LOAD 128
 
-struct FontAsset;
-
 struct Character {
   glm::ivec2 size;
   glm::ivec2 bearing;
@@ -12,20 +10,25 @@ struct Character {
   real32 texture_x;
 };
 
-struct Font {
+struct FontAsset : Asset {
+public:
   Array<Character> characters;
   uint32 atlas_width;
   uint32 atlas_height;
   uint32 texture;
+
+  FontAsset(
+    Memory *memory, FT_Library *ft_library,
+    const char *name, const char *path
+  );
+  void load_glyphs(FT_Face face);
+  FontAsset* make_asset(
+    FT_Library *ft_library,
+    const char *name, const char *path
+  );
+  static FontAsset* get_by_name(
+    Array<FontAsset> *assets, const char *name
+  );
 };
-
-void font_load_glyphs(
-  FontAsset *asset, FT_Face *face
-);
-
-FontAsset* font_make_asset(
-  FontAsset *asset, FT_Library *ft_library,
-  const char *name, const char *path
-);
 
 #endif

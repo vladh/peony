@@ -4,14 +4,14 @@ void scene_init_screenquad(Memory *memory, State *state) {
   Entity *entity;
 
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  model_asset = models_make_asset_from_data(
-    memory, array_push<ModelAsset>(&state->model_assets),
+  model_asset = new(array_push<ModelAsset>(&state->model_assets)) ModelAsset(
+    memory,
     screenquad_vertices, 6,
     nullptr, 0,
     "screenquad",
     GL_TRIANGLES
   );
-  texture_set = models_add_texture_set(&model_asset->model);
+  texture_set = model_asset->create_texture_set();
   texture_set->g_position_texture = state->g_position_texture;
   texture_set->g_normal_texture = state->g_normal_texture;
   texture_set->g_albedo_texture = state->g_albedo_texture;
@@ -21,11 +21,9 @@ void scene_init_screenquad(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
   }
-  models_set_texture_set(&model_asset->model, texture_set);
-  models_set_shader_asset(
-    &model_asset->model,
-    shader_make_asset(
-      array_push<ShaderAsset>(&state->shader_assets),
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(array_push<ShaderAsset>(&state->shader_assets)) ShaderAsset(
       memory,
       "lighting",
       SHADER_LIGHTING,
@@ -36,7 +34,7 @@ void scene_init_screenquad(Memory *memory, State *state) {
   entity = state->entity_manager.add("screenquad");
   state->drawable_component_manager.add(
     entity->handle,
-    asset_get_model_asset_by_name(&state->model_assets, "screenquad"),
+    ModelAsset::get_by_name(&state->model_assets, "screenquad"),
     RENDERPASS_LIGHTING
   );
 }
@@ -54,7 +52,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->drawable_component_manager.add(
     entity->handle,
-    asset_get_model_asset_by_name(&state->model_assets, "axes"),
+    ModelAsset::get_by_name(&state->model_assets, "axes"),
     RENDERPASS_FORWARD
   );
 
@@ -68,7 +66,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->drawable_component_manager.add(
     entity->handle,
-    asset_get_model_asset_by_name(&state->model_assets, "floor"),
+    ModelAsset::get_by_name(&state->model_assets, "floor"),
     RENDERPASS_DEFERRED
   );
 
@@ -83,7 +81,7 @@ void scene_init_objects(Memory *memory, State *state) {
     );
     state->drawable_component_manager.add(
       entity->handle,
-      asset_get_model_asset_by_name(&state->model_assets, "temple"),
+      ModelAsset::get_by_name(&state->model_assets, "temple"),
       RENDERPASS_DEFERRED
     );
   }
@@ -98,7 +96,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->drawable_component_manager.add(
     entity->handle,
-    asset_get_model_asset_by_name(&state->model_assets, "light"),
+    ModelAsset::get_by_name(&state->model_assets, "light"),
     RENDERPASS_FORWARD
   );
   state->light_component_manager.add(
@@ -117,7 +115,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->drawable_component_manager.add(
     entity->handle,
-    asset_get_model_asset_by_name(&state->model_assets, "light"),
+    ModelAsset::get_by_name(&state->model_assets, "light"),
     RENDERPASS_FORWARD
   );
   state->light_component_manager.add(
@@ -139,7 +137,7 @@ void scene_init_objects(Memory *memory, State *state) {
     );
     state->drawable_component_manager.add(
       entity->handle,
-      asset_get_model_asset_by_name(&state->model_assets, "goose"),
+      ModelAsset::get_by_name(&state->model_assets, "goose"),
       RENDERPASS_DEFERRED
     );
     array_push<EntityHandle>(&state->geese, entity->handle);
@@ -158,7 +156,7 @@ void scene_init_objects(Memory *memory, State *state) {
     );
     state->drawable_component_manager.add(
       entity->handle,
-      asset_get_model_asset_by_name(&state->model_assets, "sphere"),
+      ModelAsset::get_by_name(&state->model_assets, "sphere"),
       RENDERPASS_DEFERRED
     );
     array_push<EntityHandle>(&state->spheres, entity->handle);

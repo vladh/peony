@@ -4,9 +4,6 @@
 #define MAX_N_MESHES 2048
 #define MAX_N_TEXTURE_SETS 8
 
-struct ModelAsset;
-struct Memory;
-
 enum TextureType {
   TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH,
   TEXTURE_ALBEDO, TEXTURE_METALLIC, TEXTURE_ROUGHNESS, TEXTURE_AO,
@@ -62,51 +59,59 @@ struct Mesh {
   GLenum mode;
 };
 
-struct Model {
+struct ModelAsset : Asset {
+public:
   Array<Mesh> meshes;
   Array<TextureSet> texture_sets;
-
-  bool32 should_load_textures_from_file;
   const char *directory;
+  const char *filename;
+
+  ModelAsset(
+    Memory *memory,
+    const char *name, const char *directory, const char *filename
+  );
+  ModelAsset(
+    Memory *memory,
+    real32 *vertex_data, uint32 n_vertices,
+    uint32 *index_data, uint32 n_indices,
+    const char *name,
+    GLenum mode
+  );
+  TextureSet* create_texture_set();
+  void bind_texture_set_to_mesh(TextureSet *texture_set);
+  void bind_texture_set_to_mesh_for_node_idx(TextureSet *texture_set, uint8 node_depth, uint8 node_idx);
+  void set_shader_asset_for_mesh(uint32 idx_mesh, ShaderAsset *shader_asset);
+  void set_shader_asset(ShaderAsset *shader_asset);
+  void set_shader_asset_for_node_idx(ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx);
+  void draw(glm::mat4 *model_matrix);
+  void draw_in_depth_mode(glm::mat4 *model_matrix, ShaderAsset *entity_depth_shader_asset);
+  static ModelAsset* get_by_name(
+    Array<ModelAsset> *assets, const char *name
+  );
+
+private:
+  void setup_mesh_vertex_buffers(
+    Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
+  );
+  void load_mesh_vertices(
+    Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+    Array<Vertex> *vertices
+  );
+  void load_mesh_indices(
+    Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+    Array<uint32> *indices
+  );
+  void load_mesh(
+    Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+    glm::mat4 transform, Pack indices_pack
+  );
+  void load_node(
+    Memory *memory, aiNode *node, const aiScene *scene,
+    glm::mat4 accumulated_transform, Pack indices_pack
+  );
+  void load_model(Memory *memory);
+  void init_texture_set(TextureSet *texture_set, uint32 id);
+  void bind_texture_uniforms_for_mesh(Mesh *mesh);
 };
-
-
-ModelAsset* models_make_asset_from_file(
-  Memory *memory, ModelAsset *model_asset,
-  const char *name, const char *directory, const char *filename
-);
-
-ModelAsset* models_make_asset_from_data(
-  Memory *memory, ModelAsset *model_asset,
-  real32 *vertex_data, uint32 n_vertices,
-  uint32 *index_data, uint32 n_indices,
-  const char *name,
-  GLenum mode
-);
-
-TextureSet* models_add_texture_set(Model *model);
-
-void models_set_texture_set(Model *model, TextureSet *texture_set);
-
-void models_set_texture_set_for_node_idx(
-  Model *model, TextureSet *texture_set, uint8 node_depth, uint8 node_idx
-);
-
-void models_set_shader_asset_for_mesh(Model *model, uint32 idx_mesh, ShaderAsset *shader_asset);
-
-void models_set_shader_asset(Model *model, ShaderAsset *shader_asset);
-
-void models_set_shader_asset_for_node_idx(
-  Model *model, ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
-);
-
-void models_draw_model(
-  ModelAsset *model_asset, glm::mat4 *model_matrix
-);
-
-void models_draw_model_in_depth_mode(
-  ModelAsset *model_asset, glm::mat4 *model_matrix,
-  ShaderAsset *entity_depth_shader_asset
-);
 
 #endif

@@ -12,10 +12,10 @@ global_variable uint32 global_oopses = 0;
 #include "pack.cpp"
 #include "util.cpp"
 #include "resource_manager.cpp"
+#include "asset.cpp"
 #include "font.cpp"
 #include "shader.cpp"
 #include "camera.cpp"
-#include "asset.cpp"
 #include "memory.cpp"
 #include "control.cpp"
 #include "entity.cpp"
@@ -367,29 +367,26 @@ void draw_text(
   real32 x, real32 y, real32 scale, glm::vec4 color
 ) {
   ShaderAsset *shader_asset = state->text_shader_asset;
-  Shader *shader = &shader_asset->shader;
+  FontAsset *font_asset = FontAsset::get_by_name(&state->font_assets, font_name);
 
-  FontAsset *font_asset = asset_get_font_asset_by_name(&state->font_assets, font_name);
-  Font *font = &font_asset->font;
-
-  glUseProgram(shader->program);
-  shader_set_vec4(shader, "text_color", &color);
+  glUseProgram(shader_asset->program);
+  shader_asset->set_vec4("text_color", &color);
 
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, font->texture);
+  glBindTexture(GL_TEXTURE_2D, font_asset->texture);
 
   glBindVertexArray(state->text_vao);
   glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
 
   for (uint32 idx = 0; idx < strlen(str); idx++) {
     char c = str[idx];
-    Character *character = &font->characters.items[c];
+    Character *character = &font_asset->characters.items[c];
 
     real32 char_x = x + character->bearing.x * scale;
     real32 char_y = y - (character->size.y - character->bearing.y) * scale;
 
-    real32 char_texture_w = (real32)character->size.x / font->atlas_width;
-    real32 char_texture_h = (real32)character->size.y / font->atlas_height;
+    real32 char_texture_w = (real32)character->size.x / font_asset->atlas_width;
+    real32 char_texture_h = (real32)character->size.y / font_asset->atlas_height;
 
     real32 w = character->size.x * scale;
     real32 h = character->size.y * scale;
