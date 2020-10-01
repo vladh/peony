@@ -59,7 +59,7 @@ struct Mesh {
   GLenum mode;
 };
 
-struct ModelAsset : Asset {
+class ModelAsset : public Asset {
 public:
   Array<Mesh> meshes;
   Array<TextureSet> texture_sets;

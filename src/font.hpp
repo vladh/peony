@@ -10,7 +10,7 @@ struct Character {
   real32 texture_x;
 };
 
-struct FontAsset : Asset {
+class FontAsset : public Asset {
 public:
   Array<Character> characters;
   uint32 atlas_width;
