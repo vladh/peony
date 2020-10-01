@@ -706,6 +706,7 @@ int main() {
   memory.asset_memory_pool.print();
   memory.entity_memory_pool.print();
   memory.temp_memory_pool.print();
+  log_info("Cache line size: %dB", cacheline_get_size());
 
   main_loop(window, &memory, state);
   destroy_window();
