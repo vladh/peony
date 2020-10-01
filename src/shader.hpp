@@ -14,7 +14,7 @@ enum ShaderType {
   SHADER_UI
 };
 
-struct ShaderAsset : Asset {
+class ShaderAsset : public Asset {
 public:
   bool did_set_texture_uniforms;
   uint32 program;

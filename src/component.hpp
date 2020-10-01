@@ -5,17 +5,17 @@ struct Component {
   EntityHandle entity_handle;
 };
 
-struct DrawableComponent : Component {
+struct DrawableComponent : public Component {
   ModelAsset *model_asset;
   RenderPass target_render_pass;
 };
 
-struct LightComponent : Component {
+struct LightComponent : public Component {
   glm::vec4 color;
   glm::vec4 attenuation;
 };
 
-struct SpatialComponent : Component {
+struct SpatialComponent : public Component {
   glm::vec3 position;
   glm::quat rotation;
   glm::vec3 scale;
