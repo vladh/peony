@@ -17,15 +17,6 @@ namespace Util {
     return min + ((r_normalized) * (max - min));
   }
 
-  void sleep(real64 s) {
-#if defined(__unix__)
-    usleep(s * 1000 * 1000); // us
-#endif
-#if defined(_WIN32) || defined(_WIN64)
-    Sleep((uint32)(s * 1000)); // ms
-#endif
-  }
-
   void make_sphere(
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
