@@ -32,13 +32,15 @@
 #include <stb/stb_image.h>
 
 #if USE_OPENGL_4
-#include "glad/glad_430.cpp"
+#include "../include/glad_430.cpp"
 #else
-#include "glad/glad_330.cpp"
+#include "../include/glad_330.cpp"
 #endif
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
+#include "../include/cacheline.hpp"
 
 #include "types.hpp"
 #include "log.hpp"
