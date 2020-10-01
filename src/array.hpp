@@ -5,43 +5,43 @@ template <typename T>
 class Array {
 public:
   Array(MemoryPool *pool, uint32 new_max_size) {
-    size = 0;
-    max_size = new_max_size;
-    items = (T*)memory_push_memory_to_pool(pool, sizeof(T) * max_size);
+    this->size = 0;
+    this->max_size = new_max_size;
+    this->items = (T*)memory_push_memory_to_pool(pool, sizeof(T) * this->max_size);
   }
 
   Array(MemoryPool *pool, uint32 new_size, uint32 new_max_size, T *new_items) {
-    size = new_size;
-    max_size = new_max_size;
-    items = new_items;
+    this->size = new_size;
+    this->max_size = new_max_size;
+    this->items = new_items;
   }
 
   T* push() {
-    assert(size < max_size);
-    T* new_item = items + size++;
+    assert(this->size < this->max_size);
+    T* new_item = this->items + this->size++;
     return new_item;
   }
 
   T push(T new_item) {
-    assert(size < max_size);
-    items[size++] = new_item;
+    assert(this->size < this->max_size);
+    this->items[this->size++] = new_item;
     return new_item;
   }
 
   T* get(uint32 idx) {
-    return &items[idx];
+    return &this->items[idx];
   }
 
   T* get_items_ptr() {
-    return items;
+    return this->items;
   }
 
   uint32 get_size() {
-    return size;
+    return this->size;
   }
 
   uint32 get_max_size() {
-    return max_size;
+    return this->max_size;
   }
 
 private:
