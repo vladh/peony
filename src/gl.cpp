@@ -12,7 +12,6 @@ global_variable uint32 global_oopses = 0;
 #include "pack.cpp"
 #include "util.cpp"
 #include "resource_manager.cpp"
-#include "asset.cpp"
 #include "font.cpp"
 #include "shader.cpp"
 #include "camera.cpp"
@@ -39,27 +38,27 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (control_is_key_down(&state->control, GLFW_KEY_W)) {
-    camera_move_front_back(state->camera_active, 1);
+    state->camera_active->move_front_back(1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_S)) {
-    camera_move_front_back(state->camera_active, -1);
+    state->camera_active->move_front_back(-1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_A)) {
-    camera_move_left_right(state->camera_active, -1);
+    state->camera_active->move_left_right(-1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_D)) {
-    camera_move_left_right(state->camera_active, 1);
+    state->camera_active->move_left_right(1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_SPACE)) {
-    camera_move_up_down(state->camera_active, 1);
+    state->camera_active->move_up_down(1);
   }
 
   if (control_is_key_down(&state->control, GLFW_KEY_LEFT_CONTROL)) {
-    camera_move_up_down(state->camera_active, -1);
+    state->camera_active->move_up_down(-1);
   }
 }
 
@@ -93,7 +92,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = (State*)glfwGetWindowUserPointer(window);
   glm::vec2 mouse_offset = control_update_mouse(&state->control, x, y);
-  camera_update_mouse(state->camera_active, mouse_offset);
+  state->camera_active->update_mouse(mouse_offset);
 }
 
 
@@ -262,7 +261,7 @@ void init_state(Memory *memory, State *state) {
   state->should_limit_fps = false;
   state->background_color = glm::vec4(0.9f, 0.9f, 0.9f, 1.0f);
 
-  camera_init(&state->camera_main, CAMERA_PERSPECTIVE);
+  new(&state->camera_main) Camera(CAMERA_PERSPECTIVE);
   state->camera_active = &state->camera_main;
 
   control_init(&state->control);
@@ -513,9 +512,7 @@ void render_scene(
 
 void update_and_render(Memory *memory, State *state) {
   scene_update(memory, state);
-  camera_update_matrices(
-    state->camera_active, state->window_width, state->window_height
-  );
+  state->camera_active->update_matrices(state->window_width, state->window_height);
   copy_scene_data_to_ubo(memory, state);
 
   // Clear main framebuffer
@@ -527,7 +524,7 @@ void update_and_render(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
     SpatialComponent *spatial_component =
       state->spatial_component_manager.get(*state->lights.get(idx));
-    camera_create_shadow_transforms(
+    Camera::create_shadow_transforms(
       state->shadow_transforms, spatial_component->position,
       state->shadow_map_width, state->shadow_map_height,
       state->shadow_near_clip_dist, state->shadow_far_clip_dist
