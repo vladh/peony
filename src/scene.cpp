@@ -70,6 +70,20 @@ void scene_init_objects(Memory *memory, State *state) {
     RENDERPASS_DEFERRED
   );
 
+  // Cart
+  entity = state->entity_manager.add("cart");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(-5.1f, 1.45f, 2.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(0.003f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "cart"),
+    RENDERPASS_DEFERRED
+  );
+
   // Temple
   for (uint32 idx = 0; idx < 1; idx++) {
     entity = state->entity_manager.add("temple");
@@ -90,7 +104,7 @@ void scene_init_objects(Memory *memory, State *state) {
   entity = state->entity_manager.add("light1");
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec4(-7.0f, 2.0f, 0.0f, 1.0f),
+    glm::vec4(-7.0f, 3.0f, 0.0f, 1.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
@@ -120,7 +134,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->light_component_manager.add(
     entity->handle,
-    glm::vec4(0.2f, 0.2f, 0.2f, 1.0f),
+    glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
   state->lights.push(entity->handle);
