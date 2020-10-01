@@ -38,6 +38,25 @@ void scene_resources_init_models(Memory *memory, State *state) {
     )
   );
 
+  // Cart
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory, "cart", "resources/models/", "cart.obj"
+  );
+  texture_set = model_asset->create_texture_set();
+  texture_set->albedo_static = glm::vec4(0.2f, 0.2f, 1.0f, 1.0f);
+  texture_set->metallic_static = 0.0f;
+  texture_set->roughness_static = 0.8f;
+  texture_set->ao_static = 1.0f;
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "cart",
+      SHADER_ENTITY,
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    )
+  );
+
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
   model_asset = new(state->model_assets.push()) ModelAsset(
