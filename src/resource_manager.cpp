@@ -87,7 +87,7 @@ const char* ResourceManager::load_two_files(
   uint32 file2_size = ftell(f2);
   fseek(f2, 0, SEEK_SET);
 
-  char *string = (char*)pool->push(file1_size + file2_size + 1);
+  char *string = (char*)pool->push(file1_size + file2_size + 1, path2);
   size_t result;
 
   result = fread(string, file1_size, 1, f1);
@@ -119,7 +119,7 @@ const char* ResourceManager::load_file(MemoryPool *pool, const char *path) {
   uint32 file_size = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  char *string = (char*)pool->push(file_size + 1);
+  char *string = (char*)pool->push(file_size + 1, path);
   size_t result = fread(string, file_size, 1, f);
   fclose(f);
   if (result != 1) {

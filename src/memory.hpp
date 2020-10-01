@@ -9,12 +9,18 @@ public:
   uint8 *memory;
   uint32 size;
   uint32 used;
+  uint32 n_items;
+  const char **item_debug_names;
+  uint32 *item_debug_sizes;
 
   MemoryPool(const char *name, uint32 size);
   void reset();
   void zero_out();
+#if 0
   void* push(uint32 size);
-  void* push(uint32 size, const char *name);
+#endif
+  void* push(uint32 size, const char *item_debug_name);
+  void print();
 };
 
 class Memory {
