@@ -703,6 +703,10 @@ int main() {
   init_shadow_buffers(&memory, state);
   scene_init_screenquad(&memory, state);
 
+  memory.asset_memory_pool.print();
+  memory.entity_memory_pool.print();
+  memory.temp_memory_pool.print();
+
   main_loop(window, &memory, state);
   destroy_window();
   return 0;

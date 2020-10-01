@@ -104,10 +104,10 @@ void scene_resources_init_models(Memory *memory, State *state) {
   uint32 n_indices;
 
   real32 *vertex_data = (real32*)memory->temp_memory_pool.push(
-    sizeof(real32) * (vertex_data_length * 2)
+    sizeof(real32) * (vertex_data_length * 2), "sphere_vertex_data"
   );
   uint32 *index_data = (uint32*)memory->temp_memory_pool.push(
-    sizeof(uint32) * (index_data_length * 2)
+    sizeof(uint32) * (index_data_length * 2), "sphere_index_data"
   );
 
   Util::make_sphere(

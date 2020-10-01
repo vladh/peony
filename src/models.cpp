@@ -57,7 +57,7 @@ void ModelAsset::load_mesh(
   // use the original data, but it's not a big bottleneck according to the
   // profiler.
   Array<Vertex> vertices(
-    &memory->temp_memory_pool, mesh_data->mNumVertices
+    &memory->temp_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
   );
 
   if (!mesh_data->mNormals) {
@@ -100,7 +100,7 @@ void ModelAsset::load_mesh(
 
   mesh->n_indices = n_indices;
   Array<uint32> indices(
-    &memory->temp_memory_pool, n_indices
+    &memory->temp_memory_pool, n_indices, "mesh_indices"
   );
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
@@ -182,8 +182,8 @@ void ModelAsset::load_model(Memory *memory) {
 ModelAsset::ModelAsset(
   Memory *memory, const char *new_name, const char *new_directory,
   const char *new_filename
-) : meshes(&memory->asset_memory_pool, MAX_N_MESHES),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS)
+) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
 {
   this->name = new_name;
   this->directory = new_directory;
@@ -200,8 +200,8 @@ ModelAsset::ModelAsset(
   uint32 *index_data, uint32 n_indices,
   const char *new_name,
   GLenum mode
-) : meshes(&memory->asset_memory_pool, MAX_N_MESHES),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS)
+) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
 {
   this->name = new_name;
   this->directory = "";
@@ -217,7 +217,9 @@ ModelAsset::ModelAsset(
   // but it might be good to improve it.
 
   // Vertices
-  Array<Vertex> vertices = Array<Vertex>(&memory->temp_memory_pool, n_vertices);
+  Array<Vertex> vertices = Array<Vertex>(
+    &memory->temp_memory_pool, n_vertices, "mesh_vertices"
+  );
   mesh->n_vertices = n_vertices;
 
   for (uint32 idx = 0; idx < n_vertices; idx++) {
