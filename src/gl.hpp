@@ -14,14 +14,6 @@
 #include <stdio.h>
 #include <signal.h>
 
-#if defined(__unix__)
-#include <unistd.h>
-#endif
-
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#endif
-
 // For FPS control.
 #include <chrono>
 #include <thread>
