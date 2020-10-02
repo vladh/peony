@@ -336,50 +336,27 @@ void render_scene(
     render_pass, render_mode, state->standard_depth_shader_asset
   );
 
-  // TODO: Move this into the entity system.
   if (render_pass == RENDERPASS_FORWARD) {
     glEnable(GL_BLEND);
-
-    // TODO: Get rid of sprintf, it is #slow.
-    const real32 row_height = 30.0f;
-    char fps_text[128];
-    sprintf(fps_text, "(fps %.2f)", state->last_fps);
+    char debug_text[256];
+    sprintf(
+      debug_text,
+      "(fps %.2f)\n"
+      "(t %f)\n"
+      "(dt %f)\n"
+      "(should_limit_fps %d)\n"
+      "(oopses %d)",
+      state->last_fps,
+      state->t,
+      state->dt,
+      state->should_limit_fps,
+      global_oopses
+    );
     state->text_manager.draw(
-      "main-font", fps_text,
-      15.0f, state->window_info.height - 35.0f - row_height * 0,
+      "main-font", debug_text,
+      15.0f, state->window_info.height - 35.0f,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
-    sprintf(fps_text, "(t %f)", state->t);
-    state->text_manager.draw(
-      "main-font", fps_text,
-      15.0f, state->window_info.height - 35.0f - row_height * 1,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-    sprintf(fps_text, "(dt %f)", state->dt);
-    state->text_manager.draw(
-      "main-font", fps_text,
-      15.0f, state->window_info.height - 35.0f - row_height * 2,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-    sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
-    state->text_manager.draw(
-      "main-font", fps_text,
-      15.0f, state->window_info.height - 35.0f - row_height * 3,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-    sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
-    state->text_manager.draw(
-      "main-font", fps_text,
-      15.0f, state->window_info.height - 35.0f - row_height * 4,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-    sprintf(fps_text, "(oopses %d)", global_oopses);
-    state->text_manager.draw(
-      "main-font", fps_text,
-      15.0f, state->window_info.height - 35.0f - row_height * 5,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-
     glDisable(GL_BLEND);
   }
 }

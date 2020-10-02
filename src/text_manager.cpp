@@ -1,24 +1,38 @@
+constexpr real32 LINE_HEIGHT_FACTOR = 1.66;
+
+
 void TextManager::draw(
   const char* font_name, const char *str,
-  real32 x, real32 y, real32 scale, glm::vec4 color
+  real32 start_x, real32 start_y,
+  real32 scale, glm::vec4 color
 ) {
   FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
 
+  uint16 line_height = (uint16)((real32)font_asset->font_size * LINE_HEIGHT_FACTOR);
+
   glUseProgram(this->shader_asset->program);
   this->shader_asset->set_vec4("text_color", &color);
-
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, font_asset->texture);
-
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
 
+  real32 curr_x = start_x;
+  real32 curr_y = start_y;
+
   for (uint32 idx = 0; idx < strlen(str); idx++) {
     char c = str[idx];
+
+    if (c == '\n') {
+      curr_x = start_x;
+      curr_y -= line_height;
+      continue;
+    }
+
     Character *character = font_asset->characters.get(c);
 
-    real32 char_x = x + character->bearing.x * scale;
-    real32 char_y = y - (character->size.y - character->bearing.y) * scale;
+    real32 char_x = curr_x + character->bearing.x * scale;
+    real32 char_y = curr_y - (character->size.y - character->bearing.y) * scale;
 
     real32 char_texture_w = (real32)character->size.x / font_asset->atlas_width;
     real32 char_texture_h = (real32)character->size.y / font_asset->atlas_height;
@@ -26,11 +40,11 @@ void TextManager::draw(
     real32 w = character->size.x * scale;
     real32 h = character->size.y * scale;
 
-    x += (character->advance.x >> 6) * scale;
-    y += (character->advance.y >> 6) * scale;
+    curr_x += (character->advance.x >> 6) * scale;
+    curr_y += (character->advance.y >> 6) * scale;
 
+    // Skip glyphs with no pixels, like spaces.
     if (w == 0 || h == 0) {
-      // Skip glyphs with no pixels, like spaces.
       continue;
     }
 
@@ -99,7 +113,8 @@ TextManager::TextManager(
     memory,
     &ft_library,
     "main-font",
-    "resources/fonts/iosevka-regular.ttf"
+    "resources/fonts/iosevka-regular.ttf",
+    18
   );
 
   FT_Done_FreeType(ft_library);
