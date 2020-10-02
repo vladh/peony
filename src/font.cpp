@@ -62,7 +62,8 @@ void FontAsset::load_glyphs(FT_Face face) {
 FontAsset::FontAsset(
   Memory *memory, FT_Library *ft_library,
   const char *name, const char *path
-) : characters(&memory->asset_memory_pool, N_CHARS_TO_LOAD, "characters")
+) :
+  characters(&memory->asset_memory_pool, N_CHARS_TO_LOAD, "characters")
 {
   this->name = name;
 

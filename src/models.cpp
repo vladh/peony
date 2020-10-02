@@ -264,7 +264,8 @@ ModelAsset::ModelAsset(
   Memory *memory, ModelSource new_model_source,
   const char *new_name, const char *new_directory,
   const char *new_filename
-) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+) :
+  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
   mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {

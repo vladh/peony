@@ -1,5 +1,5 @@
 # TODO
 
-## Refactoring
+## Improvements
 
-* Replace macros with `constexpr`.
+* Add support for resizing.
