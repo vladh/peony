@@ -25,42 +25,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
   ModelAsset *model_asset;
   TextureSet *texture_set;
 
-  // Light
-  model_asset = new(state->model_assets.push()) ModelAsset(
-    memory, "light", "resources/models/", "cube.obj"
-  );
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "light",
-      SHADER_OTHER_OBJECT,
-      SHADER_DIR"light.vert", SHADER_DIR"light.frag"
-    )
-  );
-
-  // Cart
-  model_asset = new(state->model_assets.push()) ModelAsset(
-    memory, "cart", "resources/models/", "cart.obj"
-  );
-  texture_set = model_asset->create_texture_set();
-  texture_set->albedo_static = glm::vec4(0.2f, 0.2f, 1.0f, 1.0f);
-  texture_set->metallic_static = 0.0f;
-  texture_set->roughness_static = 0.8f;
-  texture_set->ao_static = 1.0f;
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "cart",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-    )
-  );
+  // ===============================
+  // Models loaded from data
+  // ===============================
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
+    MODELSOURCE_DATA,
     axes_vertices, 6,
     nullptr, 0,
     "axes",
@@ -72,25 +45,6 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "axes",
       SHADER_OTHER_OBJECT,
       SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
-    )
-  );
-
-  // Goose
-  model_asset = new(state->model_assets.push()) ModelAsset(
-    memory, "goose", "resources/models/", "miniGoose.fbx"
-  );
-  texture_set = model_asset->create_texture_set();
-  texture_set->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-  texture_set->metallic_static = 0.0f;
-  texture_set->roughness_static = 1.0f;
-  texture_set->ao_static = 1.0f;
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     )
   );
 
@@ -118,6 +72,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
+    MODELSOURCE_DATA,
     vertex_data, n_vertices,
     index_data, n_indices,
     "sphere",
@@ -150,9 +105,65 @@ void scene_resources_init_models(Memory *memory, State *state) {
     )
   );
 
+  // ===============================
+  // Models loaded from files
+  // ===============================
+
+  // Light
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory, MODELSOURCE_FILE, "light", "resources/models/", "cube.obj"
+  );
+  model_asset->set_shader_asset(
+    new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "light",
+      SHADER_OTHER_OBJECT,
+      SHADER_DIR"light.vert", SHADER_DIR"light.frag"
+    )
+  );
+
+  // Cart
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory, MODELSOURCE_FILE, "cart", "resources/models/", "cart.obj"
+  );
+  texture_set = model_asset->create_texture_set();
+  texture_set->albedo_static = glm::vec4(0.2f, 0.2f, 1.0f, 1.0f);
+  texture_set->metallic_static = 0.0f;
+  texture_set->roughness_static = 0.8f;
+  texture_set->ao_static = 1.0f;
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "cart",
+      SHADER_ENTITY,
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    )
+  );
+
+
+  // Goose
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory, MODELSOURCE_FILE, "goose", "resources/models/", "miniGoose.fbx"
+  );
+  texture_set = model_asset->create_texture_set();
+  texture_set->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
+  texture_set->metallic_static = 0.0f;
+  texture_set->roughness_static = 1.0f;
+  texture_set->ao_static = 1.0f;
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "entity",
+      SHADER_ENTITY,
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    )
+  );
+
   // Floor
   model_asset = new(state->model_assets.push()) ModelAsset(
-    memory, "floor", "resources/models/", "cube.obj"
+    memory, MODELSOURCE_FILE, "floor", "resources/models/", "cube.obj"
   );
   texture_set = model_asset->create_texture_set();
   texture_set->albedo_static = glm::vec4(0.9f, 0.8f, 0.7f, 1.0f);
@@ -171,10 +182,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   // Temple
   model_asset = new(state->model_assets.push()) ModelAsset(
-    memory,
-    /* "temple", "resources/models/", "pantheon.obj" */
-    /* "temple", "resources/models/", "Stones_AssetKit.fbx" */
-    "temple", "resources/models/", "shop.fbx"
+    memory, MODELSOURCE_FILE, "temple", "resources/models/", "shop.fbx"
   );
 
   {

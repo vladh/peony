@@ -4,6 +4,10 @@
 #define MAX_N_MESHES 2048
 #define MAX_N_TEXTURE_SETS 8
 
+enum ModelSource {
+  MODELSOURCE_FILE, MODELSOURCE_DATA
+};
+
 enum TextureType {
   TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH,
   TEXTURE_ALBEDO, TEXTURE_METALLIC, TEXTURE_ROUGHNESS, TEXTURE_AO,
@@ -61,17 +65,21 @@ struct Mesh {
 
 class ModelAsset : public Asset {
 public:
-  Array<Mesh> meshes;
-  Array<TextureSet> texture_sets;
+  // NOTE:
+  // * MODELSOURCE_DATA: Loaded on initialisation, from given vertex data.
+  // * MODELSOURCE_FILE: Loaded on demand, from file.
+  ModelSource model_source;
   const char *directory;
   const char *filename;
+  Array<Mesh> meshes;
+  Array<TextureSet> texture_sets;
 
   ModelAsset(
-    Memory *memory,
+    Memory *memory, ModelSource model_source,
     const char *name, const char *directory, const char *filename
   );
   ModelAsset(
-    Memory *memory,
+    Memory *memory, ModelSource model_source,
     real32 *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices,
     const char *name,
@@ -85,13 +93,19 @@ public:
   void set_shader_asset_for_node_idx(ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx);
   void draw(glm::mat4 *model_matrix);
   void draw_in_depth_mode(glm::mat4 *model_matrix, ShaderAsset *entity_depth_shader_asset);
+  void load(Memory *memory);
   static ModelAsset* get_by_name(
     Array<ModelAsset> *assets, const char *name
   );
 
 private:
-  void setup_mesh_vertex_buffers(
+  void setup_mesh_vertex_buffers_for_file_source(
     Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
+  );
+  void setup_mesh_vertex_buffers_for_data_source(
+    Mesh *mesh,
+    real32 *vertex_data, uint32 n_vertices,
+    uint32 *index_data, uint32 n_indices
   );
   void load_mesh(
     Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
@@ -101,7 +115,6 @@ private:
     Memory *memory, aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
-  void load_model(Memory *memory);
   void init_texture_set(TextureSet *texture_set, uint32 id);
   void bind_texture_uniforms_for_mesh(Mesh *mesh);
 };
