@@ -61,23 +61,19 @@ void FontAsset::load_glyphs(FT_Face face) {
 
 FontAsset::FontAsset(
   Memory *memory, FT_Library *ft_library,
-  const char *name, const char *path
+  const char *name, const char *path,
+  uint16 font_size
 ) :
   characters(&memory->asset_memory_pool, N_CHARS_TO_LOAD, "characters")
 {
   this->name = name;
-
+  this->font_size = font_size;
   FT_Face face;
-
   if (FT_New_Face(*ft_library, path, 0, &face)) {
     log_error("Could not load font at %s", path);
   }
-
-  // TODO: Support multiple sizes somehow.
-  FT_Set_Pixel_Sizes(face, 0, 18);
-
+  FT_Set_Pixel_Sizes(face, 0, this->font_size);
   load_glyphs(face);
-
   FT_Done_Face(face);
 }
 
