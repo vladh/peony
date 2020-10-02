@@ -109,10 +109,11 @@ void ModelAsset::load_mesh(
   mesh->indices_pack = indices_pack;
 
   // Vertices
-  // NOTE: This is probably #slow. We're copying data around from one format
-  // to another for no real reason. There would probably be a smart way to
-  // use the original data, but it's not a big bottleneck according to the
-  // profiler.
+  // NOTE: We're duplicating the vertex and index data because the format
+  // assimp gives us the data in is not something we can directly use.
+  // This is probably quite wasteful, but I haven't figure out a way to
+  // elegantly use the data from assimp directly, and I don't think it's
+  // possible.
   Array<Vertex> vertices(
     &memory->temp_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
   );
