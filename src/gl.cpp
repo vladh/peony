@@ -26,6 +26,7 @@ global_variable uint32 global_oopses = 0;
 #include "models.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
+#include "text.cpp"
 #include "state.cpp"
 
 
@@ -296,62 +297,6 @@ GLFWwindow* init_window(State *state) {
 }
 
 
-void draw_text(
-  State *state, const char* font_name, const char *str,
-  real32 x, real32 y, real32 scale, glm::vec4 color
-) {
-  ShaderAsset *shader_asset = state->text_shader_asset;
-  FontAsset *font_asset = FontAsset::get_by_name(&state->font_assets, font_name);
-
-  glUseProgram(shader_asset->program);
-  shader_asset->set_vec4("text_color", &color);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, font_asset->texture);
-
-  glBindVertexArray(state->text_vao);
-  glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
-
-  for (uint32 idx = 0; idx < strlen(str); idx++) {
-    char c = str[idx];
-    Character *character = font_asset->characters.get(c);
-
-    real32 char_x = x + character->bearing.x * scale;
-    real32 char_y = y - (character->size.y - character->bearing.y) * scale;
-
-    real32 char_texture_w = (real32)character->size.x / font_asset->atlas_width;
-    real32 char_texture_h = (real32)character->size.y / font_asset->atlas_height;
-
-    real32 w = character->size.x * scale;
-    real32 h = character->size.y * scale;
-
-    x += (character->advance.x >> 6) * scale;
-    y += (character->advance.y >> 6) * scale;
-
-    if (w == 0 || h == 0) {
-      // Skip glyphs with no pixels, like spaces.
-      continue;
-    }
-
-    // TODO: Buffer vertices only once, use a matrix to transform the position.
-    // NOTE: The correspondence between the y and texture y is the other way
-    // around because the characters are upside down for some reason.
-    real32 vertices[6][4] = {
-      {char_x,     char_y + h,  character->texture_x,                  0},
-      {char_x,     char_y,      character->texture_x,                  char_texture_h},
-      {char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h},
-      {char_x,     char_y + h,  character->texture_x,                  0},
-      {char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h},
-      {char_x + w, char_y + h,  character->texture_x + char_texture_w, 0}
-    };
-
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-  }
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
-}
 
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
@@ -394,7 +339,7 @@ void render_scene(
   state->drawable_component_manager.draw_all(
     memory,
     state->spatial_component_manager,
-    render_pass, render_mode, state->entity_depth_shader_asset
+    render_pass, render_mode, state->standard_depth_shader_asset
   );
 
   // TODO: Move this into the entity system.
@@ -405,37 +350,37 @@ void render_scene(
     const real32 row_height = 30.0f;
     char fps_text[128];
     sprintf(fps_text, "(fps %.2f)", state->last_fps);
-    draw_text(
+    text_draw(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 0,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(t %f)", state->t);
-    draw_text(
+    text_draw(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 1,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(dt %f)", state->dt);
-    draw_text(
+    text_draw(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 2,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
-    draw_text(
+    text_draw(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 3,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
-    draw_text(
+    text_draw(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 4,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(oopses %d)", global_oopses);
-    draw_text(
+    text_draw(
       state, "main-font", fps_text,
       15.0f, state->window_height - 35.0f - row_height * 5,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
@@ -776,10 +721,8 @@ int main() {
   init_deferred_lighting_buffers(&memory, state);
   init_shader_buffers(&memory, state);
 
-  scene_resources_init_models(&memory, state);
-  scene_resources_init_shaders(&memory, state);
-  scene_resources_init_fonts(&memory, state);
-
+  text_init(&memory, state);
+  scene_resources_init(&memory, state);
   scene_init_objects(&memory, state);
 
   init_shadow_buffers(&memory, state);

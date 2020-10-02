@@ -1,18 +1,20 @@
 #ifndef MODELS_H
 #define MODELS_H
 
-#define MAX_N_MESHES 2048
-#define MAX_N_TEXTURE_SETS 8
+constexpr uint32 MAX_N_MESHES = 2048;
+constexpr uint8 MAX_N_TEXTURE_SETS = 8;
+constexpr uint8 MAX_N_MESH_TEMPLATES = 128;
 
 enum ModelSource {
   MODELSOURCE_FILE, MODELSOURCE_DATA
 };
 
-enum TextureType {
-  TEXTURE_DIFFUSE, TEXTURE_SPECULAR, TEXTURE_DEPTH,
-  TEXTURE_ALBEDO, TEXTURE_METALLIC, TEXTURE_ROUGHNESS, TEXTURE_AO,
-  TEXTURE_NORMAL,
-  TEXTURE_G_POSITION, TEXTURE_G_NORMAL, TEXTURE_G_ALBEDO, TEXTURE_G_PBR
+struct MeshShaderTextureTemplate {
+  ShaderAsset *shader_asset;
+  TextureSetAsset *texture_set_asset;
+  bool32 apply_to_all_meshes;
+  uint8 node_depth;
+  uint8 node_idx;
 };
 
 struct Vertex {
@@ -23,7 +25,7 @@ struct Vertex {
 
 struct Mesh {
   glm::mat4 transform;
-  TextureSetAsset *texture_set;
+  TextureSetAsset *texture_set_asset;
   ShaderAsset *shader_asset;
   uint64 indices_pack;
   uint32 n_vertices;
@@ -44,6 +46,7 @@ public:
   const char *filename;
   Array<Mesh> meshes;
   Array<TextureSetAsset> texture_sets;
+  Array<MeshShaderTextureTemplate> mesh_templates;
 
   ModelAsset(
     Memory *memory, ModelSource model_source,
@@ -71,11 +74,12 @@ public:
   );
   void draw_in_depth_mode(
     Memory *memory, glm::mat4 *model_matrix,
-    ShaderAsset *entity_depth_shader_asset
+    ShaderAsset *standard_depth_shader_asset
   );
   void load(
     Memory *memory
   );
+  void load_templates();
   static ModelAsset* get_by_name(
     Array<ModelAsset> *assets, const char *name
   );

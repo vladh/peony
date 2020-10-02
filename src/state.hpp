@@ -41,7 +41,7 @@ public:
   Array<FontAsset> font_assets;
 
   ShaderAsset *text_shader_asset;
-  ShaderAsset *entity_depth_shader_asset;
+  ShaderAsset *standard_depth_shader_asset;
 
   uint32 text_vao;
   uint32 text_vbo;

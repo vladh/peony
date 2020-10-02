@@ -103,7 +103,7 @@ void ModelAsset::load_mesh(
   glm::mat4 transform, Pack indices_pack
 ) {
   mesh->transform = transform;
-  mesh->texture_set = nullptr;
+  mesh->texture_set_asset = nullptr;
   mesh->mode = GL_TRIANGLES;
 
   mesh->indices_pack = indices_pack;
@@ -204,37 +204,57 @@ void ModelAsset::load_node(
 
 
 void ModelAsset::load(Memory *memory) {
-  char path[256];
-  strcpy(path, this->directory);
-  strcat(path, "/");
-  strcat(path, this->filename);
+  // If we're not loading from a file, all the data has already
+  // been loaded previously, so we just need to handle the
+  // shaders and textures and so on, so skip this.
+  if (this->model_source == MODELSOURCE_FILE) {
+    char path[256];
+    strcpy(path, this->directory);
+    strcat(path, "/");
+    strcat(path, this->filename);
 
-  const aiScene *scene = aiImportFile(
-    path,
-    aiProcess_Triangulate
-    | aiProcess_JoinIdenticalVertices
-    | aiProcess_SortByPType
-    | aiProcess_GenNormals
-    | aiProcess_FlipUVs
-    // NOTE: This might break something in the future, let's look out for it.
-    | aiProcess_OptimizeMeshes
-    // NOTE: Use with caution, goes full YOLO.
-    /* aiProcess_OptimizeGraph */
-    // NOTE: Uncomment this when changing to proper normal mapping.
-    /* | aiProcess_CalcTangentSpace */
-  );
+    const aiScene *scene = aiImportFile(
+      path,
+      aiProcess_Triangulate
+      | aiProcess_JoinIdenticalVertices
+      | aiProcess_SortByPType
+      | aiProcess_GenNormals
+      | aiProcess_FlipUVs
+      // NOTE: This might break something in the future, let's look out for it.
+      | aiProcess_OptimizeMeshes
+      // NOTE: Use with caution, goes full YOLO.
+      /* aiProcess_OptimizeGraph */
+      // NOTE: Uncomment this when changing to proper normal mapping.
+      /* | aiProcess_CalcTangentSpace */
+    );
 
-  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    log_error("assimp error: %s", aiGetErrorString());
-    return;
+    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+      log_error("assimp error: %s", aiGetErrorString());
+      return;
+    }
+
+    load_node(
+      memory, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+    );
+
+    aiReleaseImport(scene);
+    memory->temp_memory_pool.reset();
   }
 
-  load_node(
-    memory, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
-  );
+  for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+    MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-  aiReleaseImport(scene);
-  memory->temp_memory_pool.reset();
+    if (mesh_template->apply_to_all_meshes) {
+      bind_shader_and_texture(
+        mesh_template->shader_asset, mesh_template->texture_set_asset
+      );
+    } else {
+      bind_shader_and_texture_for_node_idx(
+        mesh_template->shader_asset, mesh_template->texture_set_asset,
+        mesh_template->node_depth, mesh_template->node_idx
+      );
+    }
+  }
 
   this->is_loaded = true;
 }
@@ -245,7 +265,8 @@ ModelAsset::ModelAsset(
   const char *new_name, const char *new_directory,
   const char *new_filename
 ) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
+  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
   this->name = new_name;
   this->is_loaded = false;
@@ -255,7 +276,6 @@ ModelAsset::ModelAsset(
 
   // NOTE: We do not load MODELSOURCE_FILE models here.
   // They are loaded on-demand in `::draw()`.
-  load(memory);
 }
 
 
@@ -266,17 +286,18 @@ ModelAsset::ModelAsset(
   const char *new_name,
   GLenum mode
 ) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
+  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
   this->name = new_name;
-  this->is_loaded = true;
+  this->is_loaded = false;
   this->model_source = new_model_source;
   this->directory = "";
   this->filename = "";
 
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);
-  mesh->texture_set = nullptr;
+  mesh->texture_set_asset = nullptr;
   mesh->mode = mode;
   mesh->n_vertices = n_vertices;
   mesh->n_indices = n_indices;
@@ -290,47 +311,47 @@ ModelAsset::ModelAsset(
 
 
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
-  TextureSetAsset *texture_set = mesh->texture_set;
+  TextureSetAsset *texture_set_asset = mesh->texture_set_asset;
   ShaderAsset *shader_asset = mesh->shader_asset;
 
-  if (shader_asset->did_set_texture_uniforms || !texture_set) {
+  if (shader_asset->did_set_texture_uniforms || !texture_set_asset) {
     return;
   }
 
-  if (shader_asset->type == SHADER_ENTITY) {
+  if (shader_asset->type == SHADER_STANDARD) {
     glUseProgram(shader_asset->program);
 
-    bool should_use_normal_map = texture_set->normal_texture != 0;
+    bool should_use_normal_map = texture_set_asset->normal_texture != 0;
     shader_asset->set_bool("should_use_normal_map", should_use_normal_map);
 
-    shader_asset->set_vec4("albedo_static", &texture_set->albedo_static);
-    shader_asset->set_float("metallic_static", texture_set->metallic_static);
-    shader_asset->set_float("roughness_static", texture_set->roughness_static);
-    shader_asset->set_float("ao_static", texture_set->ao_static);
+    shader_asset->set_vec4("albedo_static", &texture_set_asset->albedo_static);
+    shader_asset->set_float("metallic_static", texture_set_asset->metallic_static);
+    shader_asset->set_float("roughness_static", texture_set_asset->roughness_static);
+    shader_asset->set_float("ao_static", texture_set_asset->ao_static);
 
     shader_asset->set_int(
       "albedo_texture",
-      shader_asset->add_texture_unit(texture_set->albedo_texture, GL_TEXTURE_2D)
+      shader_asset->add_texture_unit(texture_set_asset->albedo_texture, GL_TEXTURE_2D)
     );
 
     shader_asset->set_int(
       "metallic_texture",
-      shader_asset->add_texture_unit(texture_set->metallic_texture, GL_TEXTURE_2D)
+      shader_asset->add_texture_unit(texture_set_asset->metallic_texture, GL_TEXTURE_2D)
     );
 
     shader_asset->set_int(
       "roughness_texture",
-      shader_asset->add_texture_unit(texture_set->roughness_texture, GL_TEXTURE_2D)
+      shader_asset->add_texture_unit(texture_set_asset->roughness_texture, GL_TEXTURE_2D)
     );
 
     shader_asset->set_int(
       "ao_texture",
-      shader_asset->add_texture_unit(texture_set->ao_texture, GL_TEXTURE_2D)
+      shader_asset->add_texture_unit(texture_set_asset->ao_texture, GL_TEXTURE_2D)
     );
 
     shader_asset->set_int(
       "normal_texture",
-      shader_asset->add_texture_unit(texture_set->normal_texture, GL_TEXTURE_2D)
+      shader_asset->add_texture_unit(texture_set_asset->normal_texture, GL_TEXTURE_2D)
     );
   } else {
     log_info(
@@ -389,35 +410,36 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
 
 
 void ModelAsset::bind_shader_and_texture_to_mesh(
-  uint32 idx_mesh, ShaderAsset *shader_asset, TextureSetAsset *texture_set
+  uint32 idx_mesh, ShaderAsset *shader_asset, TextureSetAsset *texture_set_asset
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
-  if (texture_set && !texture_set->is_loaded) {
-    texture_set->load();
-  }
-  mesh->texture_set = texture_set;
+  mesh->texture_set_asset = texture_set_asset;
   mesh->shader_asset = shader_asset;
+
+  if (texture_set_asset && !texture_set_asset->is_loaded) {
+    texture_set_asset->load();
+  }
   bind_texture_uniforms_for_mesh(mesh);
 }
 
 
 void ModelAsset::bind_shader_and_texture(
-  ShaderAsset *shader_asset, TextureSetAsset *texture_set
+  ShaderAsset *shader_asset, TextureSetAsset *texture_set_asset
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set);
+    bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set_asset);
   }
 }
 
 
 void ModelAsset::bind_shader_and_texture_for_node_idx(
-  ShaderAsset *shader_asset, TextureSetAsset *texture_set,
+  ShaderAsset *shader_asset, TextureSetAsset *texture_set_asset,
   uint8 node_depth, uint8 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
     Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set);
+      bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set_asset);
     }
   }
 }
@@ -440,7 +462,7 @@ void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
       glUseProgram(shader_asset->program);
       last_used_shader_program = shader_asset->program;
 
-      if (shader_asset->type == SHADER_ENTITY || shader_asset->type == SHADER_OTHER_OBJECT) {
+      if (shader_asset->type == SHADER_STANDARD || shader_asset->type == SHADER_OTHER_OBJECT) {
         shader_asset->set_mat4("model", model_matrix);
       }
 
@@ -457,7 +479,7 @@ void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
       }
     }
 
-    if (shader_asset->type == SHADER_ENTITY) {
+    if (shader_asset->type == SHADER_STANDARD) {
       shader_asset->set_mat4("mesh_transform", &mesh->transform);
     }
 
@@ -474,14 +496,14 @@ void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
 
 void ModelAsset::draw_in_depth_mode(
   Memory *memory,
-  glm::mat4 *model_matrix, ShaderAsset *entity_depth_shader_asset
+  glm::mat4 *model_matrix, ShaderAsset *standard_depth_shader_asset
 ) {
   if (!this->is_loaded) {
     log_info("Lazily loading model: %s", this->name);
     load(memory);
   }
 
-  ShaderAsset *shader_asset = entity_depth_shader_asset;
+  ShaderAsset *shader_asset = standard_depth_shader_asset;
 
   glUseProgram(shader_asset->program);
   shader_asset->set_mat4("model", model_matrix);
