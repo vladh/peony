@@ -391,6 +391,7 @@ void render_scene(
   Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
 ) {
   state->drawable_component_manager.draw_all(
+    memory,
     state->spatial_component_manager,
     render_pass, render_mode, state->entity_depth_shader_asset
   );
@@ -726,12 +727,15 @@ void destroy_window() {
 
 
 void scene_init_screenquad(Memory *memory, State *state) {
-  ModelAsset *model_asset;
-  TextureSet *texture_set;
-  Entity *entity;
-
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  model_asset = new(state->model_assets.push()) ModelAsset(
+  ShaderAsset *shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "lighting",
+    SHADER_LIGHTING,
+    SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
+  );
+
+  ModelAsset *model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     MODELSOURCE_DATA,
     screenquad_vertices, 6,
@@ -739,27 +743,17 @@ void scene_init_screenquad(Memory *memory, State *state) {
     "screenquad",
     GL_TRIANGLES
   );
-  texture_set = model_asset->create_texture_set();
-  texture_set->g_position_texture = state->g_position_texture;
-  texture_set->g_normal_texture = state->g_normal_texture;
-  texture_set->g_albedo_texture = state->g_albedo_texture;
-  texture_set->g_pbr_texture = state->g_pbr_texture;
-  texture_set->n_depth_textures = state->n_shadow_framebuffers;
-  log_info("Initialising %d depth textures", texture_set->n_depth_textures);
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
-  }
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "lighting",
-      SHADER_LIGHTING,
-      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
-    )
+  model_asset->bind_as_screenquad(
+    state->g_position_texture,
+    state->g_normal_texture,
+    state->g_albedo_texture,
+    state->g_pbr_texture,
+    state->n_shadow_framebuffers,
+    state->shadow_cubemaps,
+    shader_asset
   );
 
-  entity = state->entity_manager.add("screenquad");
+  Entity *entity = state->entity_manager.add("screenquad");
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad"),

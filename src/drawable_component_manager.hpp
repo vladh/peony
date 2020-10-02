@@ -18,6 +18,7 @@ public:
   DrawableComponent* get(EntityHandle handle);
 
   void draw_all(
+    Memory *memory,
     SpatialComponentManager spatial_component_manager,
     RenderPass render_pass, RenderMode render_mode,
     ShaderAsset *entity_depth_shader_asset

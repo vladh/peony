@@ -32,6 +32,7 @@ DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
 
 
 void DrawableComponentManager::draw_all(
+  Memory *memory,
   SpatialComponentManager spatial_component_manager,
   RenderPass render_pass, RenderMode render_mode,
   ShaderAsset *entity_depth_shader_asset
@@ -55,9 +56,13 @@ void DrawableComponentManager::draw_all(
     }
 
     if (render_mode == RENDERMODE_DEPTH) {
-      drawable->model_asset->draw_in_depth_mode(&model_matrix, entity_depth_shader_asset);
+      drawable->model_asset->draw_in_depth_mode(
+        memory, &model_matrix, entity_depth_shader_asset
+      );
     } else {
-      drawable->model_asset->draw(spatial ? &model_matrix : nullptr);
+      drawable->model_asset->draw(
+        memory, spatial ? &model_matrix : nullptr
+      );
     }
   }
 }
