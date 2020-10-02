@@ -21,29 +21,9 @@ struct Vertex {
   glm::vec2 tex_coords;
 };
 
-struct TextureSet {
-  // Valid `id` cannot be 0, as that is used for "unbound".
-  // The `id` should be enough to distinguish between texture sets of
-  // different models, so it should be more or less globally unique.
-  uint32 id;
-
-  // Loaded texture maps.
-  uint32 albedo_texture;
-  uint32 metallic_texture;
-  uint32 roughness_texture;
-  uint32 ao_texture;
-  uint32 normal_texture;
-
-  // Hardcoded values for when we can't load a texture.
-  glm::vec4 albedo_static;
-  real32 metallic_static;
-  real32 roughness_static;
-  real32 ao_static;
-};
-
 struct Mesh {
   glm::mat4 transform;
-  TextureSet *texture_set;
+  TextureSetAsset *texture_set;
   ShaderAsset *shader_asset;
   uint64 indices_pack;
   uint32 n_vertices;
@@ -63,7 +43,7 @@ public:
   const char *directory;
   const char *filename;
   Array<Mesh> meshes;
-  Array<TextureSet> texture_sets;
+  Array<TextureSetAsset> texture_sets;
 
   ModelAsset(
     Memory *memory, ModelSource model_source,
@@ -76,15 +56,14 @@ public:
     const char *name,
     GLenum mode
   );
-  TextureSet* create_texture_set();
   void bind_shader_and_texture_to_mesh(
-    uint32 idx_mesh, ShaderAsset *shader_asset, TextureSet *texture_set
+    uint32 idx_mesh, ShaderAsset *shader_asset, TextureSetAsset *texture_set
   );
   void bind_shader_and_texture(
-    ShaderAsset *shader_asset, TextureSet *texture_set
+    ShaderAsset *shader_asset, TextureSetAsset *texture_set
   );
   void bind_shader_and_texture_for_node_idx(
-    ShaderAsset *shader_asset, TextureSet *texture_set,
+    ShaderAsset *shader_asset, TextureSetAsset *texture_set,
     uint8 node_depth, uint8 node_idx
   );
   void draw(
@@ -130,7 +109,6 @@ private:
     Memory *memory, aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
-  void init_texture_set(TextureSet *texture_set, uint32 id);
   void bind_texture_uniforms_for_mesh(Mesh *mesh);
 };
 

@@ -23,7 +23,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
 
 void scene_resources_init_models(Memory *memory, State *state) {
   ModelAsset *model_asset;
-  TextureSet *texture_set;
+  TextureSetAsset *texture_set;
   ShaderAsset *shader_asset;
 
   // ===============================
@@ -84,20 +84,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
     SHADER_ENTITY,
     SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
-  texture_set = model_asset->create_texture_set();
-  texture_set->albedo_texture = ResourceManager::load_texture_from_file(
-    "resources/textures/rusted_iron/albedo.png"
-  );
-  texture_set->metallic_texture = ResourceManager::load_texture_from_file(
-    "resources/textures/rusted_iron/metallic.png"
-  );
-  texture_set->roughness_texture = ResourceManager::load_texture_from_file(
-    "resources/textures/rusted_iron/roughness.png"
-  );
-  texture_set->ao_texture = ResourceManager::load_texture_from_file(
-    "resources/textures/rusted_iron/ao.png"
-  );
-  texture_set->normal_texture = ResourceManager::load_texture_from_file(
+  texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+    "resources/textures/rusted_iron/albedo.png",
+    "resources/textures/rusted_iron/metallic.png",
+    "resources/textures/rusted_iron/roughness.png",
+    "resources/textures/rusted_iron/ao.png",
     "resources/textures/rusted_iron/normal.png"
   );
   model_asset->bind_shader_and_texture(shader_asset, texture_set);
@@ -128,11 +119,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     SHADER_ENTITY,
     SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
-  texture_set = model_asset->create_texture_set();
-  texture_set->albedo_static = glm::vec4(0.2f, 0.2f, 1.0f, 1.0f);
-  texture_set->metallic_static = 0.0f;
-  texture_set->roughness_static = 0.8f;
-  texture_set->ao_static = 1.0f;
+  texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+    glm::vec4(0.2f, 0.2f, 1.0f, 1.0f), 0.0f, 0.8f, 1.0f
+  );
   model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
 
@@ -146,11 +135,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     SHADER_ENTITY,
     SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
-  texture_set = model_asset->create_texture_set();
-  texture_set->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
-  texture_set->metallic_static = 0.0f;
-  texture_set->roughness_static = 1.0f;
-  texture_set->ao_static = 1.0f;
+  texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
+  );
   model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
   // Floor
@@ -163,11 +150,9 @@ void scene_resources_init_models(Memory *memory, State *state) {
     SHADER_ENTITY,
     SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
-  texture_set = model_asset->create_texture_set();
-  texture_set->albedo_static = glm::vec4(0.9f, 0.8f, 0.7f, 1.0f);
-  texture_set->metallic_static = 0.0f;
-  texture_set->roughness_static = 1.0f;
-  texture_set->ao_static = 1.0f;
+  texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+    glm::vec4(0.9f, 0.8f, 0.7f, 1.0f), 0.0f, 1.0f, 1.0f
+  );
   model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
   // Temple
@@ -182,20 +167,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
       SHADER_ENTITY,
       SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     );
-    texture_set = model_asset->create_texture_set();
-    texture_set->albedo_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/03_-_Default_BaseColor.tga.png"
-    );
-    texture_set->metallic_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/03_-_Default_Metallic.tga.png"
-    );
-    texture_set->normal_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/03_-_Default_Normal.tga.png"
-    );
-    texture_set->roughness_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/03_-_Default_Roughness.tga.png"
-    );
-    texture_set->ao_texture = ResourceManager::load_texture_from_file(
+    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+      "resources/textures/shop/03_-_Default_BaseColor.tga.png",
+      "resources/textures/shop/03_-_Default_Metallic.tga.png",
+      "resources/textures/shop/03_-_Default_Normal.tga.png",
+      "resources/textures/shop/03_-_Default_Roughness.tga.png",
       "resources/textures/shop/AO-3.tga.png"
     );
     model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 0);
@@ -208,20 +184,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
       SHADER_ENTITY,
       SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     );
-    texture_set = model_asset->create_texture_set();
-    texture_set->albedo_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/01_-_Default_BaseColor.tga.png"
-    );
-    texture_set->metallic_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/01_-_Default_Metallic.tga.png"
-    );
-    texture_set->normal_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/01_-_Default_Normal.tga.png"
-    );
-    texture_set->roughness_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/01_-_Default_Roughness.tga.png"
-    );
-    texture_set->ao_texture = ResourceManager::load_texture_from_file(
+    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+      "resources/textures/shop/01_-_Default_BaseColor.tga.png",
+      "resources/textures/shop/01_-_Default_Metallic.tga.png",
+      "resources/textures/shop/01_-_Default_Normal.tga.png",
+      "resources/textures/shop/01_-_Default_Roughness.tga.png",
       "resources/textures/shop/AO-1.tga.png"
     );
     model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 1);
@@ -234,20 +201,11 @@ void scene_resources_init_models(Memory *memory, State *state) {
       SHADER_ENTITY,
       SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
     );
-    texture_set = model_asset->create_texture_set();
-    texture_set->albedo_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/02_-_Default_BaseColor.tga.png"
-    );
-    texture_set->metallic_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/02_-_Default_Metallic.tga.png"
-    );
-    texture_set->normal_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/02_-_Default_Normal.tga.png"
-    );
-    texture_set->roughness_texture = ResourceManager::load_texture_from_file(
-      "resources/textures/shop/02_-_Default_Roughness.tga.png"
-    );
-    texture_set->ao_texture = ResourceManager::load_texture_from_file(
+    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+      "resources/textures/shop/02_-_Default_BaseColor.tga.png",
+      "resources/textures/shop/02_-_Default_Metallic.tga.png",
+      "resources/textures/shop/02_-_Default_Normal.tga.png",
+      "resources/textures/shop/02_-_Default_Roughness.tga.png",
       "resources/textures/shop/AO-2.tga.png"
     );
     model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 2);

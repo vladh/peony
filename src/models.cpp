@@ -289,43 +289,8 @@ ModelAsset::ModelAsset(
 }
 
 
-void ModelAsset::init_texture_set(TextureSet *texture_set, uint32 id) {
-  texture_set->id = id;
-
-  texture_set->albedo_texture = 0;
-  texture_set->metallic_texture = 0;
-  texture_set->roughness_texture = 0;
-  texture_set->ao_texture = 0;
-  texture_set->normal_texture = 0;
-
-  texture_set->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
-  texture_set->metallic_static = -1.0f;
-  texture_set->roughness_static = -1.0f;
-  texture_set->ao_static = -1.0f;
-}
-
-
-TextureSet* ModelAsset::create_texture_set() {
-  // NOTE: As an ID for the texture set, we take its index in the
-  // texture set array, plus one. This means that valid indices start from
-  // 1 on. This is so we can use 0 as an "unset" value. We might want to do
-  // something else in the future, but this should do.
-  /* uint32 texture_set_id = texture_sets.size + 1; */
-
-  // We initialise texture_set ids to something random and hopefully
-  // more or less globally unique.
-  // TODO: Change this to something actually less likely to collide.
-  uint32 texture_set_id = (uint32)Util::random(0, UINT32_MAX);
-
-  TextureSet *texture_set = this->texture_sets.push();
-
-  init_texture_set(texture_set, texture_set_id);
-  return texture_set;
-}
-
-
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
-  TextureSet *texture_set = mesh->texture_set;
+  TextureSetAsset *texture_set = mesh->texture_set;
   ShaderAsset *shader_asset = mesh->shader_asset;
 
   if (shader_asset->did_set_texture_uniforms || !texture_set) {
@@ -424,9 +389,12 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
 
 
 void ModelAsset::bind_shader_and_texture_to_mesh(
-  uint32 idx_mesh, ShaderAsset *shader_asset, TextureSet *texture_set
+  uint32 idx_mesh, ShaderAsset *shader_asset, TextureSetAsset *texture_set
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
+  if (texture_set && !texture_set->is_loaded) {
+    texture_set->load();
+  }
   mesh->texture_set = texture_set;
   mesh->shader_asset = shader_asset;
   bind_texture_uniforms_for_mesh(mesh);
@@ -434,7 +402,7 @@ void ModelAsset::bind_shader_and_texture_to_mesh(
 
 
 void ModelAsset::bind_shader_and_texture(
-  ShaderAsset *shader_asset, TextureSet *texture_set
+  ShaderAsset *shader_asset, TextureSetAsset *texture_set
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
     bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set);
@@ -443,7 +411,7 @@ void ModelAsset::bind_shader_and_texture(
 
 
 void ModelAsset::bind_shader_and_texture_for_node_idx(
-  ShaderAsset *shader_asset, TextureSet *texture_set,
+  ShaderAsset *shader_asset, TextureSetAsset *texture_set,
   uint8 node_depth, uint8 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
