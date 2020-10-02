@@ -14,6 +14,7 @@ global_variable uint32 global_oopses = 0;
 #include "resource_manager.cpp"
 #include "font.cpp"
 #include "shader.cpp"
+#include "texture_set_asset.cpp"
 #include "camera.cpp"
 #include "memory.cpp"
 #include "control.cpp"
