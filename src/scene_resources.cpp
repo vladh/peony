@@ -1,30 +1,15 @@
-void scene_resources_init_shaders(Memory *memory, State *state) {
-  state->entity_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "entity_depth",
-    SHADER_ENTITY_DEPTH,
-    SHADER_DIR"entity_depth.vert", SHADER_DIR"entity_depth.frag",
-    SHADER_DIR"entity_depth.geom"
-  );
-
-  ShaderAsset *text_shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "text",
-    SHADER_UI,
-    SHADER_DIR"text.vert", SHADER_DIR"text.frag"
-  );
-  glm::mat4 text_projection = glm::ortho(
-    0.0f, (real32)state->window_width, 0.0f, (real32)state->window_height
-  );
-  glUseProgram(text_shader_asset->program);
-  text_shader_asset->set_mat4("text_projection", &text_projection);
-  state->text_shader_asset = text_shader_asset;
-}
-
-void scene_resources_init_models(Memory *memory, State *state) {
+void scene_resources_init(Memory *memory, State *state) {
   ModelAsset *model_asset;
   TextureSetAsset *texture_set;
   ShaderAsset *shader_asset;
+
+  state->standard_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "standard_depth",
+    SHADER_STANDARD_DEPTH,
+    SHADER_DIR"standard_depth.vert", SHADER_DIR"standard_depth.frag",
+    SHADER_DIR"standard_depth.geom"
+  );
 
   // ===============================
   // Models loaded from data
@@ -46,7 +31,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "axes",
     GL_LINES
   );
-  model_asset->bind_shader_and_texture(shader_asset, nullptr);
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
 
   // Sphere
   uint32 n_x_segments = 64;
@@ -81,8 +66,8 @@ void scene_resources_init_models(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "entity",
-    SHADER_ENTITY,
-    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    SHADER_STANDARD,
+    SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
     "resources/textures/rusted_iron/albedo.png",
@@ -91,7 +76,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "resources/textures/rusted_iron/ao.png",
     "resources/textures/rusted_iron/normal.png"
   );
-  model_asset->bind_shader_and_texture(shader_asset, texture_set);
+  *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
 
   // ===============================
   // Models loaded from files
@@ -107,7 +92,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     SHADER_OTHER_OBJECT,
     SHADER_DIR"light.vert", SHADER_DIR"light.frag"
   );
-  model_asset->bind_shader_and_texture(shader_asset, nullptr);
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
 
   // Cart
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -116,14 +101,13 @@ void scene_resources_init_models(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "cart",
-    SHADER_ENTITY,
-    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    SHADER_STANDARD,
+    SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
     glm::vec4(0.2f, 0.2f, 1.0f, 1.0f), 0.0f, 0.8f, 1.0f
   );
-  model_asset->bind_shader_and_texture(shader_asset, texture_set);
-
+  *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
 
   // Goose
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -132,13 +116,13 @@ void scene_resources_init_models(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "entity",
-    SHADER_ENTITY,
-    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    SHADER_STANDARD,
+    SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
     glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
   );
-  model_asset->bind_shader_and_texture(shader_asset, texture_set);
+  *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
 
   // Floor
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -147,13 +131,13 @@ void scene_resources_init_models(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "entity",
-    SHADER_ENTITY,
-    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    SHADER_STANDARD,
+    SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
     glm::vec4(0.9f, 0.8f, 0.7f, 1.0f), 0.0f, 1.0f, 1.0f
   );
-  model_asset->bind_shader_and_texture(shader_asset, texture_set);
+  *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
 
   // Temple
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -164,8 +148,8 @@ void scene_resources_init_models(Memory *memory, State *state) {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+      SHADER_STANDARD,
+      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       "resources/textures/shop/03_-_Default_BaseColor.tga.png",
@@ -174,15 +158,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "resources/textures/shop/03_-_Default_Roughness.tga.png",
       "resources/textures/shop/AO-3.tga.png"
     );
-    model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 0);
+    *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 0};
   }
 
   {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+      SHADER_STANDARD,
+      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       "resources/textures/shop/01_-_Default_BaseColor.tga.png",
@@ -191,15 +175,15 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "resources/textures/shop/01_-_Default_Roughness.tga.png",
       "resources/textures/shop/AO-1.tga.png"
     );
-    model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 1);
+    *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 1};
   }
 
   {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+      SHADER_STANDARD,
+      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       "resources/textures/shop/02_-_Default_BaseColor.tga.png",
@@ -208,35 +192,6 @@ void scene_resources_init_models(Memory *memory, State *state) {
       "resources/textures/shop/02_-_Default_Roughness.tga.png",
       "resources/textures/shop/AO-2.tga.png"
     );
-    model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 2);
+    *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 2};
   }
-}
-
-void scene_resources_init_fonts(Memory *memory, State *state) {
-  FT_Library ft_library;
-
-  if (FT_Init_FreeType(&ft_library)) {
-    log_error("Could not init FreeType");
-    return;
-  }
-
-  new(state->font_assets.push()) FontAsset(
-    memory,
-    &ft_library,
-    "main-font",
-    /* "resources/fonts/AlrightSans-Regular.otf" */
-    "resources/fonts/iosevka-regular.ttf"
-  );
-
-  FT_Done_FreeType(ft_library);
-
-  glGenVertexArrays(1, &state->text_vao);
-  glGenBuffers(1, &state->text_vbo);
-  glBindVertexArray(state->text_vao);
-  glBindBuffer(GL_ARRAY_BUFFER, state->text_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
 }

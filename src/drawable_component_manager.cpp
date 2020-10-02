@@ -35,7 +35,7 @@ void DrawableComponentManager::draw_all(
   Memory *memory,
   SpatialComponentManager spatial_component_manager,
   RenderPass render_pass, RenderMode render_mode,
-  ShaderAsset *entity_depth_shader_asset
+  ShaderAsset *standard_depth_shader_asset
 ) {
   for (uint32 idx = 0; idx < this->components->get_size(); idx++) {
     DrawableComponent *drawable = this->components->get(idx);
@@ -57,7 +57,7 @@ void DrawableComponentManager::draw_all(
 
     if (render_mode == RENDERMODE_DEPTH) {
       drawable->model_asset->draw_in_depth_mode(
-        memory, &model_matrix, entity_depth_shader_asset
+        memory, &model_matrix, standard_depth_shader_asset
       );
     } else {
       drawable->model_asset->draw(
