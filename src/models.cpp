@@ -1,4 +1,61 @@
-void ModelAsset::setup_mesh_vertex_buffers(
+void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
+  Mesh *mesh,
+  real32 *vertex_data, uint32 n_vertices,
+  uint32 *index_data, uint32 n_indices
+) {
+  /*
+  NOTE: The structure of the vertices is as follows.
+  [
+    (3): pos_x, pos_y, pos_z,
+    (3): normal_x, normal_y, normal_z,
+    (2): tex_coords_x, tex_coords_y
+    = (8)
+  ]
+  */
+  uint32 vertex_size = sizeof(real32) * 8;
+  uint32 index_size = sizeof(uint32);
+
+  glGenVertexArrays(1, &mesh->vao);
+  glGenBuffers(1, &mesh->vbo);
+  glGenBuffers(1, &mesh->ebo);
+
+  glBindVertexArray(mesh->vao);
+
+  glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
+  glBufferData(
+    GL_ARRAY_BUFFER, vertex_size * n_vertices,
+    vertex_data, GL_STATIC_DRAW
+  );
+
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
+  glBufferData(
+    GL_ELEMENT_ARRAY_BUFFER, index_size * n_indices,
+    index_data, GL_STATIC_DRAW
+  );
+
+  uint32 location;
+
+  location = 0;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)(0)
+  );
+
+  location = 1;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)(3 * sizeof(real32))
+  );
+
+  location = 2;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, 2, GL_FLOAT, GL_FALSE, vertex_size, (void*)(6 * sizeof(real32))
+  );
+}
+
+
+void ModelAsset::setup_mesh_vertex_buffers_for_file_source(
   Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
 ) {
   glGenVertexArrays(1, &mesh->vao);
@@ -110,7 +167,7 @@ void ModelAsset::load_mesh(
     }
   }
 
-  setup_mesh_vertex_buffers(mesh, &vertices, &indices);
+  setup_mesh_vertex_buffers_for_file_source(mesh, &vertices, &indices);
 }
 
 
@@ -145,7 +202,7 @@ void ModelAsset::load_node(
 }
 
 
-void ModelAsset::load_model(Memory *memory) {
+void ModelAsset::load(Memory *memory) {
   char path[256];
   strcpy(path, this->directory);
   strcat(path, "/");
@@ -176,26 +233,33 @@ void ModelAsset::load_model(Memory *memory) {
   );
 
   aiReleaseImport(scene);
-}
-
-
-ModelAsset::ModelAsset(
-  Memory *memory, const char *new_name, const char *new_directory,
-  const char *new_filename
-) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
-{
-  this->name = new_name;
-  this->directory = new_directory;
-  this->filename = new_filename;
-
-  load_model(memory);
   memory->temp_memory_pool.reset();
 }
 
 
 ModelAsset::ModelAsset(
-  Memory *memory,
+  Memory *memory, ModelSource new_model_source,
+  const char *new_name, const char *new_directory,
+  const char *new_filename
+) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
+{
+  this->name = new_name;
+  this->is_loaded = false;
+  this->model_source = new_model_source;
+  this->directory = new_directory;
+  this->filename = new_filename;
+
+  // NOTE: We do not load MODELSOURCE_FILE models here.
+  // They are loaded on-demand in `::draw()`.
+#if 1
+  load(memory);
+#endif
+}
+
+
+ModelAsset::ModelAsset(
+  Memory *memory, ModelSource new_model_source,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *new_name,
@@ -204,52 +268,21 @@ ModelAsset::ModelAsset(
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets")
 {
   this->name = new_name;
+  this->is_loaded = true;
+  this->model_source = new_model_source;
   this->directory = "";
   this->filename = "";
 
   Mesh *mesh = this->meshes.push();
-  meshes.get(0)->transform = glm::mat4(1.0f);
-  meshes.get(0)->texture_set = nullptr;
-  meshes.get(0)->mode = mode;
-
-  // NOTE: We are copying this data around for no real reason.
-  // It probably doesn't matter as this is pretty much debug code,
-  // but it might be good to improve it.
-
-  // Vertices
-  Array<Vertex> vertices = Array<Vertex>(
-    &memory->temp_memory_pool, n_vertices, "mesh_vertices"
-  );
+  mesh->transform = glm::mat4(1.0f);
+  mesh->texture_set = nullptr;
+  mesh->mode = mode;
   mesh->n_vertices = n_vertices;
-
-  for (uint32 idx = 0; idx < n_vertices; idx++) {
-    Vertex *vertex = vertices.push();
-
-    glm::vec3 position;
-    position.x = vertex_data[(idx * 8) + 0];
-    position.y = vertex_data[(idx * 8) + 1];
-    position.z = vertex_data[(idx * 8) + 2];
-    vertex->position = position;
-
-    glm::vec3 normal;
-    normal.x = vertex_data[(idx * 8) + 3];
-    normal.y = vertex_data[(idx * 8) + 4];
-    normal.z = vertex_data[(idx * 8) + 5];
-    vertex->normal = normal;
-
-    glm::vec2 tex_coords;
-    tex_coords.x = vertex_data[(idx * 8) + 6];
-    tex_coords.y = vertex_data[(idx * 8) + 7];
-    vertex->tex_coords = tex_coords;
-  }
-
-  // Indices
-  Array<uint32> indices = Array<uint32>(
-    &memory->temp_memory_pool, n_indices, n_indices, index_data
-  );
   mesh->n_indices = n_indices;
 
-  setup_mesh_vertex_buffers(mesh, &vertices, &indices);
+  setup_mesh_vertex_buffers_for_data_source(
+    mesh, vertex_data, n_vertices, index_data, n_indices
+  );
 
   memory->temp_memory_pool.reset();
 }
@@ -431,6 +464,12 @@ void ModelAsset::bind_texture_set_to_mesh_for_node_idx(
 
 
 void ModelAsset::draw(glm::mat4 *model_matrix) {
+#if 0
+  if (!this->is_loaded) {
+    load(memory);
+  }
+#endif
+
   uint32 last_used_texture_set_id = 0;
   uint32 last_used_shader_program = 0;
 

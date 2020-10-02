@@ -444,6 +444,49 @@ void render_scene(
 }
 
 
+void scene_update(Memory *memory, State *state) {
+  // TODO: Eventually move this to some kind of ActorComponent system.
+  // We should rather be iterating through all SpatialComponents rather
+  // than looking everything up.
+
+  // Lights
+  {
+    SpatialComponent *spatial = state->spatial_component_manager.get(*state->lights.get(0));
+
+    real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+    real64 x_term = 0.0f + cos(time_term) * 8.0f;
+    real64 z_term = 0.0f + sin(time_term) * 8.0f;
+
+    spatial->position.x = (real32)x_term;
+    spatial->position.z = (real32)z_term;
+  }
+
+  // Geese
+  {
+    real32 spin_deg_per_t = 90.0f;
+    for (uint32 idx = 0; idx < state->geese.get_size(); idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
+      spatial->rotation *= glm::angleAxis(
+        glm::radians(spin_deg_per_t * (real32)state->dt),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
+  }
+
+  // Spheres
+  {
+    real32 spin_deg_per_t = 45.0f;
+    for (uint32 idx = 0; idx < state->spheres.get_size(); idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->spheres.get(idx));
+      spatial->rotation *= glm::angleAxis(
+        glm::radians(spin_deg_per_t * (real32)state->dt),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
+  }
+}
+
+
 void update_and_render(Memory *memory, State *state) {
   scene_update(memory, state);
   state->camera_active->update_matrices(state->window_width, state->window_height);
@@ -679,6 +722,49 @@ void main_loop(GLFWwindow *window, Memory *memory, State *state) {
 
 void destroy_window() {
   glfwTerminate();
+}
+
+
+void scene_init_screenquad(Memory *memory, State *state) {
+  ModelAsset *model_asset;
+  TextureSet *texture_set;
+  Entity *entity;
+
+  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory,
+    MODELSOURCE_DATA,
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad",
+    GL_TRIANGLES
+  );
+  texture_set = model_asset->create_texture_set();
+  texture_set->g_position_texture = state->g_position_texture;
+  texture_set->g_normal_texture = state->g_normal_texture;
+  texture_set->g_albedo_texture = state->g_albedo_texture;
+  texture_set->g_pbr_texture = state->g_pbr_texture;
+  texture_set->n_depth_textures = state->n_shadow_framebuffers;
+  log_info("Initialising %d depth textures", texture_set->n_depth_textures);
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    texture_set->depth_textures[idx] = state->shadow_cubemaps[idx];
+  }
+  model_asset->bind_texture_set_to_mesh(texture_set);
+  model_asset->set_shader_asset(
+    new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "lighting",
+      SHADER_LIGHTING,
+      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
+    )
+  );
+
+  entity = state->entity_manager.add("screenquad");
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "screenquad"),
+    RENDERPASS_LIGHTING
+  );
 }
 
 
