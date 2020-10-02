@@ -1,50 +1,49 @@
 #ifndef STATE_H
 #define STATE_H
 
+struct WindowInfo {
+  GLFWwindow *window;
+  uint32 width;
+  uint32 height;
+  char title[128];
+};
+
 class State {
 public:
+  WindowInfo window_info;
+
   Camera camera_main;
   Camera *camera_active;
   Control control;
 
-  real64 target_fps;
-  real64 target_frame_duration_s;
   real64 t;
   real64 dt;
   real64 last_fps;
-  real64 last_effective_fps;
 
   bool32 is_cursor_disabled;
   bool32 should_limit_fps;
   glm::vec4 background_color;
 
-  uint32 window_width;
-  uint32 window_height;
-  char window_title[128];
-
-  EntityManager entity_manager;
-  DrawableComponentManager drawable_component_manager;
-  LightComponentManager light_component_manager;
-  SpatialComponentManager spatial_component_manager;
+  Array<ShaderAsset> shader_assets;
+  Array<ModelAsset> model_assets;
 
   Array<Entity> entities;
   Array<DrawableComponent> drawable_components;
   Array<LightComponent> light_components;
   Array<SpatialComponent> spatial_components;
 
+  EntityManager entity_manager;
+  DrawableComponentManager drawable_component_manager;
+  LightComponentManager light_component_manager;
+  SpatialComponentManager spatial_component_manager;
+  TextManager text_manager;
+
   Array<EntityHandle> lights;
   Array<EntityHandle> geese;
   Array<EntityHandle> spheres;
 
-  Array<ShaderAsset> shader_assets;
-  Array<ModelAsset> model_assets;
-  Array<FontAsset> font_assets;
-
-  ShaderAsset *text_shader_asset;
   ShaderAsset *standard_depth_shader_asset;
 
-  uint32 text_vao;
-  uint32 text_vbo;
 
   uint32 shadow_map_width;
   uint32 shadow_map_height;
@@ -65,7 +64,7 @@ public:
   uint32 g_albedo_texture;
   uint32 g_pbr_texture;
 
-  State(Memory *memory);
+  State(Memory *memory, WindowInfo window_info);
 };
 
 #endif

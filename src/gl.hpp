@@ -61,6 +61,7 @@
 #include "drawable_component_manager.hpp"
 #include "light_component_manager.hpp"
 #include "spatial_component_manager.hpp"
+#include "text_manager.hpp"
 #include "data.hpp"
 #include "control.hpp"
 #include "camera.hpp"

@@ -23,10 +23,10 @@ global_variable uint32 global_oopses = 0;
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
+#include "text_manager.cpp"
 #include "models.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
-#include "text.cpp"
 #include "state.cpp"
 
 
@@ -85,9 +85,11 @@ void process_input_transient(GLFWwindow *window, State *state) {
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   State *state = (State*)glfwGetWindowUserPointer(window);
-  state->window_width = width;
-  state->window_height = height;
-  log_info("Window is now: %d x %d", state->window_width, state->window_height);
+  state->window_info.width = width;
+  state->window_info.height = height;
+  log_info(
+    "Window is now: %d x %d", state->window_info.width, state->window_info.height
+  );
   glViewport(0, 0, width, height);
 }
 
@@ -203,15 +205,15 @@ void APIENTRY debug_message_callback(
 }
 
 
-GLFWwindow* init_window(State *state) {
+void init_window(WindowInfo *window_info) {
 #ifdef USE_1440P
-  state->window_width = 2560;
-  state->window_height = 1440;
+  window_info->width = 2560;
+  window_info->height = 1440;
 #else
-  state->window_width = 1920;
-  state->window_height = 1080;
+  window_info->width = 1920;
+  window_info->height = 1080;
 #endif
-  strcpy(state->window_title, "hi lol");
+  strcpy(window_info->title, "hi lol");
 
   glfwInit();
 
@@ -239,12 +241,12 @@ GLFWwindow* init_window(State *state) {
 
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   GLFWwindow *window = glfwCreateWindow(
-    state->window_width, state->window_height, state->window_title, nullptr, nullptr
+    window_info->width, window_info->height, window_info->title, nullptr, nullptr
   );
+  window_info->window = window;
   if (!window) {
-    log_error("Failed to create GLFW window");
-    glfwTerminate();
-    return nullptr;
+    log_fatal("Failed to create GLFW window");
+    return;
   }
   glfwMakeContextCurrent(window);
 
@@ -257,8 +259,8 @@ GLFWwindow* init_window(State *state) {
 #endif
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    log_error("Failed to initialize GLAD");
-    return nullptr;
+    log_fatal("Failed to initialize GLAD");
+    return;
   }
 
   glEnable(GL_DEPTH_TEST);
@@ -284,19 +286,11 @@ GLFWwindow* init_window(State *state) {
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  glViewport(0, 0, state->window_width, state->window_height);
+  glViewport(0, 0, window_info->width, window_info->height);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetKeyCallback(window, key_callback);
-
-  update_drawing_options(state, window);
-
-  glfwSetWindowUserPointer(window, state);
-
-  return window;
 }
-
-
 
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
@@ -350,39 +344,39 @@ void render_scene(
     const real32 row_height = 30.0f;
     char fps_text[128];
     sprintf(fps_text, "(fps %.2f)", state->last_fps);
-    text_draw(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 0,
+    state->text_manager.draw(
+      "main-font", fps_text,
+      15.0f, state->window_info.height - 35.0f - row_height * 0,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(t %f)", state->t);
-    text_draw(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 1,
+    state->text_manager.draw(
+      "main-font", fps_text,
+      15.0f, state->window_info.height - 35.0f - row_height * 1,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(dt %f)", state->dt);
-    text_draw(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 2,
+    state->text_manager.draw(
+      "main-font", fps_text,
+      15.0f, state->window_info.height - 35.0f - row_height * 2,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(should_limit_fps %d)", state->should_limit_fps);
-    text_draw(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 3,
+    state->text_manager.draw(
+      "main-font", fps_text,
+      15.0f, state->window_info.height - 35.0f - row_height * 3,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(exposure %.2f)", state->camera_active->exposure);
-    text_draw(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 4,
+    state->text_manager.draw(
+      "main-font", fps_text,
+      15.0f, state->window_info.height - 35.0f - row_height * 4,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
     sprintf(fps_text, "(oopses %d)", global_oopses);
-    text_draw(
-      state, "main-font", fps_text,
-      15.0f, state->window_height - 35.0f - row_height * 5,
+    state->text_manager.draw(
+      "main-font", fps_text,
+      15.0f, state->window_info.height - 35.0f - row_height * 5,
       1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
     );
 
@@ -436,7 +430,9 @@ void scene_update(Memory *memory, State *state) {
 
 void update_and_render(Memory *memory, State *state) {
   scene_update(memory, state);
-  state->camera_active->update_matrices(state->window_width, state->window_height);
+  state->camera_active->update_matrices(
+    state->window_info.width, state->window_info.height
+  );
   copy_scene_data_to_ubo(memory, state);
 
   // Clear main framebuffer
@@ -465,7 +461,9 @@ void update_and_render(Memory *memory, State *state) {
       memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
     );
 
-    glViewport(0, 0, state->window_width, state->window_height);
+    glViewport(
+      0, 0, state->window_info.width, state->window_info.height
+    );
   }
 
   // Geometry pass
@@ -478,8 +476,8 @@ void update_and_render(Memory *memory, State *state) {
   glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glBlitFramebuffer(
-    0, 0, state->window_width, state->window_height,
-    0, 0, state->window_width, state->window_height,
+    0, 0, state->window_info.width, state->window_info.height,
+    0, 0, state->window_info.width, state->window_info.height,
     GL_DEPTH_BUFFER_BIT, GL_NEAREST
   );
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -558,7 +556,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glBindTexture(GL_TEXTURE_2D, state->g_position_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->window_width, state->window_height,
+    state->window_info.width, state->window_info.height,
     0, GL_RGBA, GL_FLOAT, NULL
   );
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -571,7 +569,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glBindTexture(GL_TEXTURE_2D, state->g_normal_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->window_width, state->window_height,
+    state->window_info.width, state->window_info.height,
     0, GL_RGBA, GL_FLOAT, NULL
   );
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -584,7 +582,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glBindTexture(GL_TEXTURE_2D, state->g_albedo_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA,
-    state->window_width, state->window_height,
+    state->window_info.width, state->window_info.height,
     0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
   );
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -597,7 +595,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glBindTexture(GL_TEXTURE_2D, state->g_pbr_texture);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA,
-    state->window_width, state->window_height,
+    state->window_info.width, state->window_info.height,
     0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
   );
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -616,7 +614,8 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glGenRenderbuffers(1, &rbo_depth);
   glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
   glRenderbufferStorage(
-    GL_RENDERBUFFER, GL_DEPTH_COMPONENT, state->window_width, state->window_height
+    GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+    state->window_info.width, state->window_info.height
   );
   glFramebufferRenderbuffer(
     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
@@ -628,7 +627,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
 }
 
 
-void main_loop(GLFWwindow *window, Memory *memory, State *state) {
+void main_loop(Memory *memory, State *state) {
   std::chrono::steady_clock::time_point game_start = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point second_start = game_start;
   std::chrono::steady_clock::time_point frame_start = game_start;
@@ -636,7 +635,7 @@ void main_loop(GLFWwindow *window, Memory *memory, State *state) {
   std::chrono::nanoseconds frame_duration = std::chrono::nanoseconds(6060606);
   uint32 n_frames_this_second = 0;
 
-  while (!glfwWindowShouldClose(window)) {
+  while (!glfwWindowShouldClose(state->window_info.window)) {
     n_frames_this_second++;
     last_frame_start = frame_start;
     frame_start = std::chrono::steady_clock::now();
@@ -655,14 +654,14 @@ void main_loop(GLFWwindow *window, Memory *memory, State *state) {
     }
 
     glfwPollEvents();
-    process_input_continuous(window, state);
+    process_input_continuous(state->window_info.window, state);
     update_and_render(memory, state);
 
     if (state->should_limit_fps) {
       std::this_thread::sleep_until(frame_end_target_time);
     }
 
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(state->window_info.window);
   }
 }
 
@@ -711,17 +710,21 @@ void scene_init_screenquad(Memory *memory, State *state) {
 int main() {
   srand((uint32)time(NULL));
   Memory memory;
-  State *state = new((State*)memory.state_memory) State(&memory);
+  WindowInfo window_info;
 
-  GLFWwindow *window = init_window(state);
-  if (!window) {
+  init_window(&window_info);
+  if (!window_info.window) {
     return -1;
   }
+
+  State *state = new((State*)memory.state_memory) State(&memory, window_info);
+
+  update_drawing_options(state, window_info.window);
+  glfwSetWindowUserPointer(window_info.window, state);
 
   init_deferred_lighting_buffers(&memory, state);
   init_shader_buffers(&memory, state);
 
-  text_init(&memory, state);
   scene_resources_init(&memory, state);
   scene_init_objects(&memory, state);
 
@@ -733,7 +736,7 @@ int main() {
   memory.temp_memory_pool.print();
   log_info("Cache line size: %dB", cacheline_get_size());
 
-  main_loop(window, &memory, state);
+  main_loop(&memory, state);
   destroy_window();
   return 0;
 }

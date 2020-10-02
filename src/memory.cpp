@@ -80,7 +80,8 @@ void MemoryPool::print() {
 
 
 Memory::Memory(
-) : state_memory_size(sizeof(State)),
+) :
+  state_memory_size(sizeof(State)),
   asset_memory_pool("assets", MB_TO_B(256)),
   entity_memory_pool("entities", MB_TO_B(64)),
   temp_memory_pool("temp", MB_TO_B(256))
