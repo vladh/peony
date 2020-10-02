@@ -27,9 +27,6 @@ struct TextureSet {
   // different models, so it should be more or less globally unique.
   uint32 id;
 
-  uint32 n_depth_textures;
-  uint32 depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
-
   // Loaded texture maps.
   uint32 albedo_texture;
   uint32 metallic_texture;
@@ -42,12 +39,6 @@ struct TextureSet {
   real32 metallic_static;
   real32 roughness_static;
   real32 ao_static;
-
-  // G-buffer used for lighting shader.
-  uint32 g_position_texture;
-  uint32 g_normal_texture;
-  uint32 g_albedo_texture;
-  uint32 g_pbr_texture;
 };
 
 struct Mesh {
@@ -86,16 +77,45 @@ public:
     GLenum mode
   );
   TextureSet* create_texture_set();
-  void bind_texture_set_to_mesh(TextureSet *texture_set);
-  void bind_texture_set_to_mesh_for_node_idx(TextureSet *texture_set, uint8 node_depth, uint8 node_idx);
-  void set_shader_asset_for_mesh(uint32 idx_mesh, ShaderAsset *shader_asset);
-  void set_shader_asset(ShaderAsset *shader_asset);
-  void set_shader_asset_for_node_idx(ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx);
-  void draw(glm::mat4 *model_matrix);
-  void draw_in_depth_mode(glm::mat4 *model_matrix, ShaderAsset *entity_depth_shader_asset);
-  void load(Memory *memory);
+  void bind_texture_set_to_mesh(
+    TextureSet *texture_set
+  );
+  void bind_texture_set_to_mesh_for_node_idx(
+    TextureSet *texture_set, uint8 node_depth, uint8 node_idx
+  );
+  void set_shader_asset_for_mesh(
+    uint32 idx_mesh, ShaderAsset *shader_asset
+  );
+  void set_shader_asset(
+    ShaderAsset *shader_asset
+  );
+  void set_shader_asset_for_node_idx(
+    ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+  );
+  void draw(
+    Memory *memory, glm::mat4 *model_matrix
+  );
+  void draw_in_depth_mode(
+    Memory *memory, glm::mat4 *model_matrix,
+    ShaderAsset *entity_depth_shader_asset
+  );
+  void load(
+    Memory *memory
+  );
   static ModelAsset* get_by_name(
     Array<ModelAsset> *assets, const char *name
+  );
+  // Normal models use `::set_shader_asset()` and
+  // `::bind_texture_set_to_mesh()` and so on, but the screenquad
+  // is initialised separately through this method, so as not to
+  // polluate the normal pipeline with all the g_buffer/shadowmap
+  // stuff.
+  void bind_as_screenquad(
+    uint32 g_position_texture, uint32 g_normal_texture,
+    uint32 g_albedo_texture, uint32 g_pbr_texture,
+    uint32 n_depth_textures,
+    uint32 *depth_textures,
+    ShaderAsset *shader_asset
   );
 
 private:

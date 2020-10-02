@@ -235,6 +235,8 @@ void ModelAsset::load(Memory *memory) {
 
   aiReleaseImport(scene);
   memory->temp_memory_pool.reset();
+
+  this->is_loaded = true;
 }
 
 
@@ -253,9 +255,7 @@ ModelAsset::ModelAsset(
 
   // NOTE: We do not load MODELSOURCE_FILE models here.
   // They are loaded on-demand in `::draw()`.
-#if 1
   load(memory);
-#endif
 }
 
 
@@ -292,8 +292,6 @@ ModelAsset::ModelAsset(
 void ModelAsset::init_texture_set(TextureSet *texture_set, uint32 id) {
   texture_set->id = id;
 
-  texture_set->n_depth_textures = 0;
-
   texture_set->albedo_texture = 0;
   texture_set->metallic_texture = 0;
   texture_set->roughness_texture = 0;
@@ -304,11 +302,6 @@ void ModelAsset::init_texture_set(TextureSet *texture_set, uint32 id) {
   texture_set->metallic_static = -1.0f;
   texture_set->roughness_static = -1.0f;
   texture_set->ao_static = -1.0f;
-
-  texture_set->g_position_texture = 0;
-  texture_set->g_normal_texture = 0;
-  texture_set->g_albedo_texture = 0;
-  texture_set->g_pbr_texture = 0;
 }
 
 
@@ -374,43 +367,57 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
       "normal_texture",
       shader_asset->add_texture_unit(texture_set->normal_texture, GL_TEXTURE_2D)
     );
-  } else if (shader_asset->type == SHADER_LIGHTING) {
-    glUseProgram(shader_asset->program);
-
-    shader_asset->set_int("n_depth_textures", texture_set->n_depth_textures);
-
-    for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
-      shader_asset->set_int(
-        DEPTH_TEXTURE_UNIFORM_NAMES[idx],
-        shader_asset->add_texture_unit(texture_set->depth_textures[idx], GL_TEXTURE_CUBE_MAP)
-      );
-    }
-
-    shader_asset->set_int(
-      "g_position_texture",
-      shader_asset->add_texture_unit(texture_set->g_position_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "g_normal_texture",
-      shader_asset->add_texture_unit(texture_set->g_normal_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "g_albedo_texture",
-      shader_asset->add_texture_unit(texture_set->g_albedo_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "g_pbr_texture",
-      shader_asset->add_texture_unit(texture_set->g_pbr_texture, GL_TEXTURE_2D)
-    );
   } else {
     log_info(
       "Tried to set texture uniforms, but there is nothing to do for this shader: \"%s\"",
       shader_asset->name
     );
   }
+
+  shader_asset->did_set_texture_uniforms = true;
+}
+
+
+void ModelAsset::bind_as_screenquad(
+  uint32 g_position_texture, uint32 g_normal_texture,
+  uint32 g_albedo_texture, uint32 g_pbr_texture,
+  uint32 n_depth_textures,
+  uint32 *depth_textures,
+  ShaderAsset *shader_asset
+) {
+  Mesh *mesh = this->meshes.get(0);
+  mesh->shader_asset = shader_asset;
+
+  glUseProgram(shader_asset->program);
+
+  shader_asset->set_int("n_depth_textures", n_depth_textures);
+
+  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
+    shader_asset->set_int(
+      DEPTH_TEXTURE_UNIFORM_NAMES[idx],
+      shader_asset->add_texture_unit(depth_textures[idx], GL_TEXTURE_CUBE_MAP)
+    );
+  }
+
+  shader_asset->set_int(
+    "g_position_texture",
+    shader_asset->add_texture_unit(g_position_texture, GL_TEXTURE_2D)
+  );
+
+  shader_asset->set_int(
+    "g_normal_texture",
+    shader_asset->add_texture_unit(g_normal_texture, GL_TEXTURE_2D)
+  );
+
+  shader_asset->set_int(
+    "g_albedo_texture",
+    shader_asset->add_texture_unit(g_albedo_texture, GL_TEXTURE_2D)
+  );
+
+  shader_asset->set_int(
+    "g_pbr_texture",
+    shader_asset->add_texture_unit(g_pbr_texture, GL_TEXTURE_2D)
+  );
 
   shader_asset->did_set_texture_uniforms = true;
 }
@@ -464,14 +471,12 @@ void ModelAsset::bind_texture_set_to_mesh_for_node_idx(
 }
 
 
-void ModelAsset::draw(glm::mat4 *model_matrix) {
-#if 0
+void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
   if (!this->is_loaded) {
+    log_info("Lazily loading model: %s", this->name);
     load(memory);
   }
-#endif
 
-  uint32 last_used_texture_set_id = 0;
   uint32 last_used_shader_program = 0;
 
   for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
@@ -486,10 +491,7 @@ void ModelAsset::draw(glm::mat4 *model_matrix) {
       if (shader_asset->type == SHADER_ENTITY || shader_asset->type == SHADER_OTHER_OBJECT) {
         shader_asset->set_mat4("model", model_matrix);
       }
-    }
 
-    // If our texture set has changed since our last mesh, tell OpenGL about it.
-    if (mesh->texture_set && (mesh->texture_set->id != last_used_texture_set_id)) {
       for (
         uint32 texture_idx = 1; texture_idx < shader_asset->n_texture_units + 1; texture_idx++
       ) {
@@ -501,7 +503,6 @@ void ModelAsset::draw(glm::mat4 *model_matrix) {
           );
         }
       }
-      last_used_texture_set_id = mesh->texture_set->id;
     }
 
     if (shader_asset->type == SHADER_ENTITY) {
@@ -520,8 +521,14 @@ void ModelAsset::draw(glm::mat4 *model_matrix) {
 
 
 void ModelAsset::draw_in_depth_mode(
+  Memory *memory,
   glm::mat4 *model_matrix, ShaderAsset *entity_depth_shader_asset
 ) {
+  if (!this->is_loaded) {
+    log_info("Lazily loading model: %s", this->name);
+    load(memory);
+  }
+
   ShaderAsset *shader_asset = entity_depth_shader_asset;
 
   glUseProgram(shader_asset->program);
