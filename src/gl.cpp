@@ -743,7 +743,7 @@ void scene_init_screenquad(Memory *memory, State *state) {
     "screenquad",
     GL_TRIANGLES
   );
-  model_asset->bind_as_screenquad(
+  model_asset->bind_shader_and_texture_as_screenquad(
     state->g_position_texture,
     state->g_normal_texture,
     state->g_albedo_texture,

@@ -77,20 +77,15 @@ public:
     GLenum mode
   );
   TextureSet* create_texture_set();
-  void bind_texture_set_to_mesh(
-    TextureSet *texture_set
+  void bind_shader_and_texture_to_mesh(
+    uint32 idx_mesh, ShaderAsset *shader_asset, TextureSet *texture_set
   );
-  void bind_texture_set_to_mesh_for_node_idx(
-    TextureSet *texture_set, uint8 node_depth, uint8 node_idx
+  void bind_shader_and_texture(
+    ShaderAsset *shader_asset, TextureSet *texture_set
   );
-  void set_shader_asset_for_mesh(
-    uint32 idx_mesh, ShaderAsset *shader_asset
-  );
-  void set_shader_asset(
-    ShaderAsset *shader_asset
-  );
-  void set_shader_asset_for_node_idx(
-    ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+  void bind_shader_and_texture_for_node_idx(
+    ShaderAsset *shader_asset, TextureSet *texture_set,
+    uint8 node_depth, uint8 node_idx
   );
   void draw(
     Memory *memory, glm::mat4 *model_matrix
@@ -106,11 +101,11 @@ public:
     Array<ModelAsset> *assets, const char *name
   );
   // Normal models use `::set_shader_asset()` and
-  // `::bind_texture_set_to_mesh()` and so on, but the screenquad
+  // `::bind_shader_and_texture()` and so on, but the screenquad
   // is initialised separately through this method, so as not to
   // polluate the normal pipeline with all the g_buffer/shadowmap
   // stuff.
-  void bind_as_screenquad(
+  void bind_shader_and_texture_as_screenquad(
     uint32 g_position_texture, uint32 g_normal_texture,
     uint32 g_albedo_texture, uint32 g_pbr_texture,
     uint32 n_depth_textures,
