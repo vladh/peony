@@ -24,6 +24,7 @@ void scene_resources_init_shaders(Memory *memory, State *state) {
 void scene_resources_init_models(Memory *memory, State *state) {
   ModelAsset *model_asset;
   TextureSet *texture_set;
+  ShaderAsset *shader_asset;
 
   // ===============================
   // Models loaded from data
@@ -31,6 +32,12 @@ void scene_resources_init_models(Memory *memory, State *state) {
 
   // Axes
   real32 axes_vertices[] = AXES_VERTICES;
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "axes",
+    SHADER_OTHER_OBJECT,
+    SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
+  );
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     MODELSOURCE_DATA,
@@ -39,14 +46,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "axes",
     GL_LINES
   );
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "axes",
-      SHADER_OTHER_OBJECT,
-      SHADER_DIR"axes.vert", SHADER_DIR"axes.frag"
-    )
-  );
+  model_asset->bind_shader_and_texture(shader_asset, nullptr);
 
   // Sphere
   uint32 n_x_segments = 64;
@@ -78,7 +78,12 @@ void scene_resources_init_models(Memory *memory, State *state) {
     "sphere",
     GL_TRIANGLE_STRIP
   );
-
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "entity",
+    SHADER_ENTITY,
+    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+  );
   texture_set = model_asset->create_texture_set();
   texture_set->albedo_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/albedo.png"
@@ -95,15 +100,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
   texture_set->normal_texture = ResourceManager::load_texture_from_file(
     "resources/textures/rusted_iron/normal.png"
   );
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-    )
-  );
+  model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
   // ===============================
   // Models loaded from files
@@ -113,72 +110,65 @@ void scene_resources_init_models(Memory *memory, State *state) {
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory, MODELSOURCE_FILE, "light", "resources/models/", "cube.obj"
   );
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "light",
-      SHADER_OTHER_OBJECT,
-      SHADER_DIR"light.vert", SHADER_DIR"light.frag"
-    )
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "light",
+    SHADER_OTHER_OBJECT,
+    SHADER_DIR"light.vert", SHADER_DIR"light.frag"
   );
+  model_asset->bind_shader_and_texture(shader_asset, nullptr);
 
   // Cart
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory, MODELSOURCE_FILE, "cart", "resources/models/", "cart.obj"
+  );
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "cart",
+    SHADER_ENTITY,
+    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
   texture_set = model_asset->create_texture_set();
   texture_set->albedo_static = glm::vec4(0.2f, 0.2f, 1.0f, 1.0f);
   texture_set->metallic_static = 0.0f;
   texture_set->roughness_static = 0.8f;
   texture_set->ao_static = 1.0f;
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "cart",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-    )
-  );
+  model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
 
   // Goose
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory, MODELSOURCE_FILE, "goose", "resources/models/", "miniGoose.fbx"
   );
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "entity",
+    SHADER_ENTITY,
+    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+  );
   texture_set = model_asset->create_texture_set();
   texture_set->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
   texture_set->metallic_static = 0.0f;
   texture_set->roughness_static = 1.0f;
   texture_set->ao_static = 1.0f;
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-    )
-  );
+  model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
   // Floor
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory, MODELSOURCE_FILE, "floor", "resources/models/", "cube.obj"
+  );
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "entity",
+    SHADER_ENTITY,
+    SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
   );
   texture_set = model_asset->create_texture_set();
   texture_set->albedo_static = glm::vec4(0.9f, 0.8f, 0.7f, 1.0f);
   texture_set->metallic_static = 0.0f;
   texture_set->roughness_static = 1.0f;
   texture_set->ao_static = 1.0f;
-  model_asset->bind_texture_set_to_mesh(texture_set);
-  model_asset->set_shader_asset(
-    new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "entity",
-      SHADER_ENTITY,
-      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-    )
-  );
+  model_asset->bind_shader_and_texture(shader_asset, texture_set);
 
   // Temple
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -186,6 +176,12 @@ void scene_resources_init_models(Memory *memory, State *state) {
   );
 
   {
+    shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "entity",
+      SHADER_ENTITY,
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    );
     texture_set = model_asset->create_texture_set();
     texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/03_-_Default_BaseColor.tga.png"
@@ -202,19 +198,16 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-3.tga.png"
     );
-    model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 0);
-    model_asset->set_shader_asset_for_node_idx(
-      new(state->shader_assets.push()) ShaderAsset(
-        memory,
-        "entity",
-        SHADER_ENTITY,
-        SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-      ),
-      0, 0
-    );
+    model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 0);
   }
 
   {
+    shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "entity",
+      SHADER_ENTITY,
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    );
     texture_set = model_asset->create_texture_set();
     texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/01_-_Default_BaseColor.tga.png"
@@ -231,19 +224,16 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-1.tga.png"
     );
-    model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 1);
-    model_asset->set_shader_asset_for_node_idx(
-      new(state->shader_assets.push()) ShaderAsset(
-        memory,
-        "entity",
-        SHADER_ENTITY,
-        SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-      ),
-      0, 1
-    );
+    model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 1);
   }
 
   {
+    shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "entity",
+      SHADER_ENTITY,
+      SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
+    );
     texture_set = model_asset->create_texture_set();
     texture_set->albedo_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/02_-_Default_BaseColor.tga.png"
@@ -260,16 +250,7 @@ void scene_resources_init_models(Memory *memory, State *state) {
     texture_set->ao_texture = ResourceManager::load_texture_from_file(
       "resources/textures/shop/AO-2.tga.png"
     );
-    model_asset->bind_texture_set_to_mesh_for_node_idx(texture_set, 0, 2);
-    model_asset->set_shader_asset_for_node_idx(
-      new(state->shader_assets.push()) ShaderAsset(
-        memory,
-        "entity",
-        SHADER_ENTITY,
-        SHADER_DIR"entity.vert", SHADER_DIR"entity.frag"
-      ),
-      0, 2
-    );
+    model_asset->bind_shader_and_texture_for_node_idx(shader_asset, texture_set, 0, 2);
   }
 }
 

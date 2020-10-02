@@ -378,7 +378,7 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 }
 
 
-void ModelAsset::bind_as_screenquad(
+void ModelAsset::bind_shader_and_texture_as_screenquad(
   uint32 g_position_texture, uint32 g_normal_texture,
   uint32 g_albedo_texture, uint32 g_pbr_texture,
   uint32 n_depth_textures,
@@ -423,49 +423,33 @@ void ModelAsset::bind_as_screenquad(
 }
 
 
-void ModelAsset::set_shader_asset_for_mesh(
-  uint32 idx_mesh, ShaderAsset *shader_asset
+void ModelAsset::bind_shader_and_texture_to_mesh(
+  uint32 idx_mesh, ShaderAsset *shader_asset, TextureSet *texture_set
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
+  mesh->texture_set = texture_set;
   mesh->shader_asset = shader_asset;
   bind_texture_uniforms_for_mesh(mesh);
 }
 
 
-void ModelAsset::set_shader_asset(ShaderAsset *shader_asset) {
+void ModelAsset::bind_shader_and_texture(
+  ShaderAsset *shader_asset, TextureSet *texture_set
+) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    set_shader_asset_for_mesh(idx_mesh, shader_asset);
+    bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set);
   }
 }
 
 
-void ModelAsset::set_shader_asset_for_node_idx(
-  ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+void ModelAsset::bind_shader_and_texture_for_node_idx(
+  ShaderAsset *shader_asset, TextureSet *texture_set,
+  uint8 node_depth, uint8 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
     Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      set_shader_asset_for_mesh(idx_mesh, shader_asset);
-    }
-  }
-}
-
-
-void ModelAsset::bind_texture_set_to_mesh(TextureSet *texture_set) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    Mesh *mesh = this->meshes.get(idx_mesh);
-    mesh->texture_set = texture_set;
-  }
-}
-
-
-void ModelAsset::bind_texture_set_to_mesh_for_node_idx(
-  TextureSet *texture_set, uint8 node_depth, uint8 node_idx
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    Mesh *mesh = this->meshes.get(idx_mesh);
-    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      mesh->texture_set = texture_set;
+      bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set);
     }
   }
 }
