@@ -3,8 +3,9 @@
 
 class ResourceManager {
 public:
-  static uint32 load_texture_from_file(const char *path, bool should_flip);
-  static uint32 load_texture_from_file(const char *path);
+  static uint32 load_texture_from_image_data_and_free(
+    unsigned char *data, int32 *width, int32 *height, int32 *n_components
+  );
   static unsigned char *load_image(
     const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
   );

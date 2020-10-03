@@ -49,13 +49,13 @@ public:
   Array<Mesh> meshes;
   Array<TextureSetAsset> texture_sets;
   Array<MeshShaderTextureTemplate> mesh_templates;
-  bool32 is_mesh_data_being_loaded = false;
-  bool32 are_texture_sets_being_loaded = false;
-  bool32 is_all_mesh_data_loaded = false;
-  bool32 are_all_shaders_set = false;
-  bool32 are_all_texture_sets_loaded = false;
-  bool32 are_all_texture_sets_bound = false;
-  bool32 are_all_mesh_vertex_buffers_set_up = false;
+  bool32 is_mesh_data_loading_in_progress = false;
+  bool32 is_texture_preload_in_progress = false;
+  bool32 is_mesh_data_loading_done = false;
+  bool32 is_shader_setting_done = false;
+  bool32 is_texture_preload_done = false;
+  bool32 is_texture_set_binding_done = false;
+  bool32 is_vertex_buffer_setup_done = false;
   std::mutex mutex;
 
   ModelAsset(
@@ -137,7 +137,7 @@ private:
   void prepare_for_draw(
     Memory *memory
   );
-  void load_texture_sets();
+  void preload_texture_set_image_data();
 };
 
 #endif
