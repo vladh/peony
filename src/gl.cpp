@@ -6,7 +6,11 @@
 
 #include "gl.hpp"
 
+MemoryPool debug_pool("debug", MB_TO_B(4));
 global_variable uint32 global_oopses = 0;
+global_variable Array<std::thread> global_threads(
+  &debug_pool, 64, "threads"
+);
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -239,7 +243,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
+#if 0
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+#endif
+
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title, nullptr, nullptr
   );

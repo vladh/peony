@@ -154,9 +154,9 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       "resources/textures/shop/03_-_Default_BaseColor.tga.png",
       "resources/textures/shop/03_-_Default_Metallic.tga.png",
-      "resources/textures/shop/03_-_Default_Normal.tga.png",
       "resources/textures/shop/03_-_Default_Roughness.tga.png",
-      "resources/textures/shop/AO-3.tga.png"
+      "resources/textures/shop/AO-3.tga.png",
+      "resources/textures/shop/03_-_Default_Normal.tga.png"
     );
     *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 0};
   }
@@ -171,9 +171,9 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       "resources/textures/shop/01_-_Default_BaseColor.tga.png",
       "resources/textures/shop/01_-_Default_Metallic.tga.png",
-      "resources/textures/shop/01_-_Default_Normal.tga.png",
       "resources/textures/shop/01_-_Default_Roughness.tga.png",
-      "resources/textures/shop/AO-1.tga.png"
+      "resources/textures/shop/AO-1.tga.png",
+      "resources/textures/shop/01_-_Default_Normal.tga.png"
     );
     *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 1};
   }
@@ -188,9 +188,9 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       "resources/textures/shop/02_-_Default_BaseColor.tga.png",
       "resources/textures/shop/02_-_Default_Metallic.tga.png",
-      "resources/textures/shop/02_-_Default_Normal.tga.png",
       "resources/textures/shop/02_-_Default_Roughness.tga.png",
-      "resources/textures/shop/AO-2.tga.png"
+      "resources/textures/shop/AO-2.tga.png",
+      "resources/textures/shop/02_-_Default_Normal.tga.png"
     );
     *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 2};
   }

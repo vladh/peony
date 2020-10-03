@@ -16,11 +16,11 @@ public:
   MemoryPool(const char *name, uint32 size);
   void reset();
   void zero_out();
-#if 0
-  void* push(uint32 size);
-#endif
   void* push(uint32 size, const char *item_debug_name);
   void print();
+
+private:
+  std::mutex mutex;
 };
 
 class Memory {

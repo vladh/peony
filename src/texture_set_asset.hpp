@@ -24,6 +24,8 @@ public:
   real32 roughness_static;
   real32 ao_static;
 
+  std::mutex mutex;
+
   TextureSetAsset(
     const char *albedo_texture_path,
     const char *metallic_texture_path,

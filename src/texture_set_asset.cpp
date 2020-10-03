@@ -62,6 +62,7 @@ void TextureSetAsset::load() {
     return;
   }
 
+  this->mutex.lock();
   if (strcmp(this->albedo_texture_path, "") != 0) {
     this->albedo_texture = ResourceManager::load_texture_from_file(
       this->albedo_texture_path
@@ -87,6 +88,7 @@ void TextureSetAsset::load() {
       this->normal_texture_path
     );
   }
+  this->mutex.unlock();
 
   this->is_loaded = true;
 }
