@@ -2,6 +2,7 @@ void scene_init_objects(Memory *memory, State *state) {
   Entity *entity;
 
   // Axes
+#if 1
   entity = state->entity_manager.add("axes");
   state->spatial_component_manager.add(
     entity->handle,
@@ -14,6 +15,7 @@ void scene_init_objects(Memory *memory, State *state) {
     ModelAsset::get_by_name(&state->model_assets, "axes"),
     RENDERPASS_FORWARD
   );
+#endif
 
   // Floor
   entity = state->entity_manager.add("floor");
@@ -30,6 +32,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 
   // Cart
+#if 1
   entity = state->entity_manager.add("cart");
   state->spatial_component_manager.add(
     entity->handle,
@@ -42,8 +45,10 @@ void scene_init_objects(Memory *memory, State *state) {
     ModelAsset::get_by_name(&state->model_assets, "cart"),
     RENDERPASS_DEFERRED
   );
+#endif
 
   // Temple
+#if 1
   uint32 n_temples = 1;
   for (uint32 idx = 0; idx < n_temples; idx++) {
     entity = state->entity_manager.add("temple");
@@ -59,6 +64,7 @@ void scene_init_objects(Memory *memory, State *state) {
       RENDERPASS_DEFERRED
     );
   }
+#endif
 
   // Lights
   entity = state->entity_manager.add("light1");
@@ -100,6 +106,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->lights.push(entity->handle);
 
   // Geese
+#if 1
   uint32 n_geese = 1;
   for (uint16 idx = 0; idx < n_geese; idx++) {
     entity = state->entity_manager.add("goose");
@@ -116,9 +123,11 @@ void scene_init_objects(Memory *memory, State *state) {
     );
     state->geese.push(entity->handle);
   }
+#endif
 
   // Spheres
   uint32 n_spheres = 1;
+#if 1
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
     state->spatial_component_manager.add(
@@ -135,4 +144,5 @@ void scene_init_objects(Memory *memory, State *state) {
     );
     state->spheres.push(entity->handle);
   }
+#endif
 }

@@ -4,8 +4,6 @@
 struct Asset {
 public:
   const char *name;
-  bool32 is_loaded = false;
-  bool32 is_being_loaded = false;
 };
 
 #endif

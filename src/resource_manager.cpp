@@ -1,25 +1,22 @@
-uint32 ResourceManager::load_texture_from_file(const char *path, bool should_flip) {
+uint32 ResourceManager::load_texture_from_image_data_and_free(
+  unsigned char *data, int32 *width, int32 *height, int32 *n_components
+) {
   uint32 texture_id;
   glGenTextures(1, &texture_id);
 
-  int32 width, height, n_components;
-  unsigned char *data = load_image(
-    path, &width, &height, &n_components, should_flip
-  );
-
   if (data) {
     GLenum format = GL_RGB;
-    if (n_components == 1) {
+    if (*n_components == 1) {
       format = GL_RED;
-    } else if (n_components == 3) {
+    } else if (*n_components == 3) {
       format = GL_RGB;
-    } else if (n_components == 4) {
+    } else if (*n_components == 4) {
       format = GL_RGBA;
     }
 
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glTexImage2D(
-      GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data
+      GL_TEXTURE_2D, 0, format, *width, *height, 0, format, GL_UNSIGNED_BYTE, data
     );
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -30,16 +27,11 @@ uint32 ResourceManager::load_texture_from_file(const char *path, bool should_fli
 
     free_image(data);
   } else {
-    log_error("Texture failed to load at path: %s", path);
+    log_error("Texture failed to load.");
     free_image(data);
   }
 
   return texture_id;
-}
-
-
-uint32 ResourceManager::load_texture_from_file(const char *path) {
-  return load_texture_from_file(path, true);
 }
 
 
