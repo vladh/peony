@@ -34,6 +34,8 @@ struct Mesh {
   uint32 vbo;
   uint32 ebo;
   GLenum mode;
+  Array<Vertex> vertices;
+  Array<uint32> indices;
 };
 
 class ModelAsset : public Asset {
@@ -47,6 +49,14 @@ public:
   Array<Mesh> meshes;
   Array<TextureSetAsset> texture_sets;
   Array<MeshShaderTextureTemplate> mesh_templates;
+  bool32 is_mesh_data_being_loaded = false;
+  bool32 are_texture_sets_being_loaded = false;
+  bool32 is_all_mesh_data_loaded = false;
+  bool32 are_all_shaders_set = false;
+  bool32 are_all_texture_sets_loaded = false;
+  bool32 are_all_texture_sets_bound = false;
+  bool32 are_all_mesh_vertex_buffers_set_up = false;
+  std::mutex mutex;
 
   ModelAsset(
     Memory *memory, ModelSource model_source,
@@ -59,15 +69,23 @@ public:
     const char *name,
     GLenum mode
   );
-  void bind_shader_and_texture_to_mesh(
-    uint32 idx_mesh, ShaderAsset *shader_asset, TextureSetAsset *texture_set
+  void set_shader_to_mesh(
+    uint32 idx_mesh, ShaderAsset *shader_asset
   );
-  void bind_shader_and_texture(
-    ShaderAsset *shader_asset, TextureSetAsset *texture_set
+  void set_shader(
+    ShaderAsset *shader_asset
   );
-  void bind_shader_and_texture_for_node_idx(
-    ShaderAsset *shader_asset, TextureSetAsset *texture_set,
-    uint8 node_depth, uint8 node_idx
+  void set_shader_for_node_idx(
+    ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+  );
+  void bind_texture_to_mesh(
+    uint32 idx_mesh, TextureSetAsset *texture_set_asset
+  );
+  void bind_texture(
+    TextureSetAsset *texture_set_asset
+  );
+  void bind_texture_for_node_idx(
+    TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
   );
   void draw(
     Memory *memory, glm::mat4 *model_matrix
@@ -113,7 +131,13 @@ private:
     Memory *memory, aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
-  void bind_texture_uniforms_for_mesh(Mesh *mesh);
+  void bind_texture_uniforms_for_mesh(
+    Mesh *mesh
+  );
+  void prepare_for_draw(
+    Memory *memory
+  );
+  void load_texture_sets();
 };
 
 #endif

@@ -58,6 +58,7 @@ void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
 void ModelAsset::setup_mesh_vertex_buffers_for_file_source(
   Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
 ) {
+  /* log_info("%s: ModelAsset::setup_mesh_vertex_buffers_for_file_source()", this->name); */
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
   glGenBuffers(1, &mesh->ebo);
@@ -111,10 +112,10 @@ void ModelAsset::load_mesh(
   // Vertices
   // NOTE: We're duplicating the vertex and index data because the format
   // assimp gives us the data in is not something we can directly use.
-  // This is probably quite wasteful, but I haven't figure out a way to
+  // This is probably quite wasteful, but I haven't figured out a way to
   // elegantly use the data from assimp directly, and I don't think it's
   // possible.
-  Array<Vertex> vertices(
+  mesh->vertices = Array<Vertex>(
     &memory->temp_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
   );
 
@@ -125,7 +126,7 @@ void ModelAsset::load_mesh(
   mesh->n_vertices = mesh_data->mNumVertices;
 
   for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
-    Vertex *vertex = vertices.push();
+    Vertex *vertex = mesh->vertices.push();
 
     glm::vec3 position;
     position.x = mesh_data->mVertices[idx].x;
@@ -157,18 +158,16 @@ void ModelAsset::load_mesh(
   }
 
   mesh->n_indices = n_indices;
-  Array<uint32> indices(
+  mesh->indices = Array<uint32>(
     &memory->temp_memory_pool, n_indices, "mesh_indices"
   );
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
     for (uint32 idx_index = 0; idx_index < face.mNumIndices; idx_index++) {
-      indices.push(face.mIndices[idx_index]);
+      mesh->indices.push(face.mIndices[idx_index]);
     }
   }
-
-  setup_mesh_vertex_buffers_for_file_source(mesh, &vertices, &indices);
 }
 
 
@@ -204,6 +203,9 @@ void ModelAsset::load_node(
 
 
 void ModelAsset::load(Memory *memory) {
+  log_info("%s: ModelAsset::load()", this->name);
+
+  /* log_info("Loading model: %s", this->name); */
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
@@ -213,6 +215,7 @@ void ModelAsset::load(Memory *memory) {
     strcat(path, "/");
     strcat(path, this->filename);
 
+    this->mutex.lock();
     const aiScene *scene = aiImportFile(
       path,
       aiProcess_Triangulate
@@ -227,9 +230,10 @@ void ModelAsset::load(Memory *memory) {
       // NOTE: Uncomment this when changing to proper normal mapping.
       /* | aiProcess_CalcTangentSpace */
     );
+    this->mutex.unlock();
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-      log_error("assimp error: %s", aiGetErrorString());
+      log_fatal("assimp error: %s", aiGetErrorString());
       return;
     }
 
@@ -238,25 +242,29 @@ void ModelAsset::load(Memory *memory) {
     );
 
     aiReleaseImport(scene);
-    memory->temp_memory_pool.reset();
   }
+
+  this->is_mesh_data_being_loaded = false;
+  this->is_all_mesh_data_loaded = true;
+}
+
+
+void ModelAsset::load_texture_sets() {
+  log_info("%s: ModelAsset::load_texture_sets()", this->name);
 
   for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
     MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-    if (mesh_template->apply_to_all_meshes) {
-      bind_shader_and_texture(
-        mesh_template->shader_asset, mesh_template->texture_set_asset
-      );
-    } else {
-      bind_shader_and_texture_for_node_idx(
-        mesh_template->shader_asset, mesh_template->texture_set_asset,
-        mesh_template->node_depth, mesh_template->node_idx
-      );
+    if (
+      mesh_template->texture_set_asset &&
+      !mesh_template->texture_set_asset->is_loaded
+    ) {
+      mesh_template->texture_set_asset->load();
     }
   }
 
-  this->is_loaded = true;
+  this->are_all_texture_sets_loaded = true;
+  this->are_texture_sets_being_loaded = false;
 }
 
 
@@ -270,7 +278,6 @@ ModelAsset::ModelAsset(
   mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
   this->name = new_name;
-  this->is_loaded = false;
   this->model_source = new_model_source;
   this->directory = new_directory;
   this->filename = new_filename;
@@ -291,7 +298,7 @@ ModelAsset::ModelAsset(
   mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
   this->name = new_name;
-  this->is_loaded = false;
+  this->is_all_mesh_data_loaded = true;
   this->model_source = new_model_source;
   this->directory = "";
   this->filename = "";
@@ -306,15 +313,18 @@ ModelAsset::ModelAsset(
   setup_mesh_vertex_buffers_for_data_source(
     mesh, vertex_data, n_vertices, index_data, n_indices
   );
-
-  memory->temp_memory_pool.reset();
+  this->are_all_mesh_vertex_buffers_set_up = true;
 }
 
 
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
+  log_info("%s: ModelAsset::bind_texture_uniforms_for_mesh()", this->name);
   TextureSetAsset *texture_set_asset = mesh->texture_set_asset;
   ShaderAsset *shader_asset = mesh->shader_asset;
 
+  // NOTE: We set this for every mesh, but we only need to run this for every
+  // shaders, and most meshes share a shader, so we're kind of being wasteful.
+  // It's not a big deal, but could we improve this?
   if (shader_asset->did_set_texture_uniforms || !texture_set_asset) {
     return;
   }
@@ -329,6 +339,8 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     shader_asset->set_float("metallic_static", texture_set_asset->metallic_static);
     shader_asset->set_float("roughness_static", texture_set_asset->roughness_static);
     shader_asset->set_float("ao_static", texture_set_asset->ao_static);
+
+    log_info("%s: Binding texture uniforms", this->name);
 
     shader_asset->set_int(
       "albedo_texture",
@@ -410,46 +422,152 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
 }
 
 
-void ModelAsset::bind_shader_and_texture_to_mesh(
-  uint32 idx_mesh, ShaderAsset *shader_asset, TextureSetAsset *texture_set_asset
+void ModelAsset::set_shader_to_mesh(
+  uint32 idx_mesh, ShaderAsset *shader_asset
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
-  mesh->texture_set_asset = texture_set_asset;
   mesh->shader_asset = shader_asset;
-
-  if (texture_set_asset && !texture_set_asset->is_loaded) {
-    texture_set_asset->load();
-  }
-  bind_texture_uniforms_for_mesh(mesh);
 }
 
 
-void ModelAsset::bind_shader_and_texture(
-  ShaderAsset *shader_asset, TextureSetAsset *texture_set_asset
+void ModelAsset::set_shader(
+  ShaderAsset *shader_asset
 ) {
+  log_info("%s: ModelAsset::set_shader()", this->name);
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set_asset);
+    set_shader_to_mesh(idx_mesh, shader_asset);
   }
 }
 
 
-void ModelAsset::bind_shader_and_texture_for_node_idx(
-  ShaderAsset *shader_asset, TextureSetAsset *texture_set_asset,
-  uint8 node_depth, uint8 node_idx
+void ModelAsset::set_shader_for_node_idx(
+  ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
 ) {
+  log_info("%s: ModelAsset::set_shader_for_node_idx()", this->name);
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
     Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      bind_shader_and_texture_to_mesh(idx_mesh, shader_asset, texture_set_asset);
+      set_shader_to_mesh(idx_mesh, shader_asset);
     }
   }
 }
 
 
+void ModelAsset::bind_texture_to_mesh(
+  uint32 idx_mesh, TextureSetAsset *texture_set_asset
+) {
+  Mesh *mesh = this->meshes.get(idx_mesh);
+  mesh->texture_set_asset = texture_set_asset;
+  bind_texture_uniforms_for_mesh(mesh);
+}
+
+
+void ModelAsset::bind_texture(
+  TextureSetAsset *texture_set_asset
+) {
+  log_info("%s: ModelAsset::bind_texture()", this->name);
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+    bind_texture_to_mesh(idx_mesh, texture_set_asset);
+  }
+}
+
+
+void ModelAsset::bind_texture_for_node_idx(
+  TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
+) {
+  log_info("%s: ModelAsset::bind_texture_for_node_idx()", this->name);
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+    Mesh *mesh = this->meshes.get(idx_mesh);
+    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
+      bind_texture_to_mesh(idx_mesh, texture_set_asset);
+    }
+  }
+}
+
+
+void ModelAsset::prepare_for_draw(Memory *memory) {
+  // TODO: Update comment.
+  // NOTE: Before we draw, we have to do 4 things.
+  //
+  // 1. Load the model. This is done on a separate thread. If the model is
+  //   already being loaded, don't try to load it again. Loading the model
+  //   will store its vertices and indices in memory.
+  // 2. Load the mesh template data, so textures. This is done on a separate
+  //   thread.
+  //
+  // After the model data and textures are loaded, we have the meshes, and we
+  // can do the following, which must be done on the main (OpenGL) thread:
+  //
+  // 3. Bind mesh templates, so shaders and textures, for each mesh.
+  // 4. Set up vertex buffers for each mesh.
+
+  if (!this->is_mesh_data_being_loaded && !this->is_all_mesh_data_loaded) {
+    this->is_mesh_data_being_loaded = true;
+    *global_threads.push() = std::thread(&ModelAsset::load, this, memory);
+    /* load(memory); */
+  }
+
+  if (this->is_all_mesh_data_loaded && !this->are_all_mesh_vertex_buffers_set_up) {
+    for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
+      Mesh *mesh = this->meshes.get(idx);
+      setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
+    }
+    this->are_all_mesh_vertex_buffers_set_up = true;
+  }
+
+  if (this->is_all_mesh_data_loaded && !this->are_all_shaders_set) {
+    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+      log_info("%s: binding shaders for %d templates", this->name, this->mesh_templates.get_size());
+      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+
+      if (mesh_template->apply_to_all_meshes) {
+        set_shader(mesh_template->shader_asset);
+      } else {
+        set_shader_for_node_idx(
+          mesh_template->shader_asset,
+          mesh_template->node_depth, mesh_template->node_idx
+        );
+      }
+    }
+    this->are_all_shaders_set = true;
+  }
+
+  if (!this->are_texture_sets_being_loaded && !this->are_all_texture_sets_loaded) {
+    this->are_texture_sets_being_loaded = true;
+    *global_threads.push() = std::thread(&ModelAsset::load_texture_sets, this);
+    /* load_texture_sets(); */
+  }
+
+  if (
+    this->is_all_mesh_data_loaded &&
+    this->are_all_mesh_vertex_buffers_set_up &&
+    this->are_all_shaders_set &&
+    this->are_all_texture_sets_loaded &&
+    !this->are_all_texture_sets_bound
+  ) {
+    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+
+      if (mesh_template->apply_to_all_meshes) {
+        bind_texture(
+          mesh_template->texture_set_asset
+        );
+      } else {
+        bind_texture_for_node_idx(
+          mesh_template->texture_set_asset,
+          mesh_template->node_depth, mesh_template->node_idx
+        );
+      }
+    }
+    this->are_all_texture_sets_bound = true;
+  }
+}
+
+
 void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
-  if (!this->is_loaded) {
-    log_info("Lazily loading model: %s", this->name);
-    load(memory);
+  prepare_for_draw(memory);
+  if (!this->is_all_mesh_data_loaded || !this->are_all_shaders_set) {
+    return;
   }
 
   uint32 last_used_shader_program = 0;
@@ -499,9 +617,9 @@ void ModelAsset::draw_in_depth_mode(
   Memory *memory,
   glm::mat4 *model_matrix, ShaderAsset *standard_depth_shader_asset
 ) {
-  if (!this->is_loaded) {
-    log_info("Lazily loading model: %s", this->name);
-    load(memory);
+  prepare_for_draw(memory);
+  if (!this->is_all_mesh_data_loaded || !this->are_all_shaders_set) {
+    return;
   }
 
   ShaderAsset *shader_asset = standard_depth_shader_asset;

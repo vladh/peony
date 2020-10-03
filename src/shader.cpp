@@ -133,7 +133,9 @@ ShaderAsset::ShaderAsset(
     make_shader(frag_path, load_file(memory, frag_path), GL_FRAGMENT_SHADER)
   );
   load_uniforms();
-  memory->temp_memory_pool.reset();
+
+  // TODO: Free this up some other way.
+  /* memory->temp_memory_pool.reset(); */
 }
 
 
@@ -152,7 +154,9 @@ ShaderAsset::ShaderAsset(
     make_shader(geom_path, load_file(memory, geom_path), GL_GEOMETRY_SHADER)
   );
   load_uniforms();
-  memory->temp_memory_pool.reset();
+
+  // TODO: Free this up some other way.
+  /* memory->temp_memory_pool.reset(); */
 }
 
 

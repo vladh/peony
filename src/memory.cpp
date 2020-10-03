@@ -20,25 +20,20 @@ MemoryPool::MemoryPool(const char *new_name, uint32 new_size) {
 
 
 void MemoryPool::reset() {
+  this->mutex.lock();
   this->used = 0;
   this->n_items = 0;
+  this->mutex.unlock();
 }
 
 
 void MemoryPool::zero_out() {
+  this->mutex.lock();
   memset(this->memory, 0, this->size);
-  reset();
+  this->used = 0;
+  this->n_items = 0;
+  this->mutex.unlock();
 }
-
-
-#if 0
-void* MemoryPool::push(uint32 pushee_size) {
-  assert(this->used + pushee_size <= this->size);
-  void *new_memory = this->memory + this->used;
-  this->used += pushee_size;
-  return new_memory;
-}
-#endif
 
 
 void* MemoryPool::push(uint32 item_size, const char *item_debug_name) {
@@ -49,17 +44,20 @@ void* MemoryPool::push(uint32 item_size, const char *item_debug_name) {
     B_TO_MB((real64)pool->used), pool->used
   );
 #endif
+  this->mutex.lock();
   assert(this->used + item_size <= this->size);
   void *new_memory = this->memory + this->used;
   this->used += item_size;
   this->item_debug_names[this->n_items] = item_debug_name;
   this->item_debug_sizes[this->n_items] = item_size;
   this->n_items++;
+  this->mutex.unlock();
   return new_memory;
 }
 
 
 void MemoryPool::print() {
+  this->mutex.lock();
   log_info("MemoryPool: %s", this->name);
   log_info("  Used: %.2fMB (%dB)", B_TO_MB((real64)this->used), this->used);
   log_info("  Size: %.2fMB (%dB)", B_TO_MB((real64)this->size), this->size);
@@ -76,6 +74,7 @@ void MemoryPool::print() {
       this->item_debug_sizes[idx]
     );
   }
+  this->mutex.unlock();
 }
 
 

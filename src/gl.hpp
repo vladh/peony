@@ -14,9 +14,9 @@
 #include <stdio.h>
 #include <signal.h>
 
-// For FPS control.
 #include <chrono>
 #include <thread>
+#include <mutex>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>

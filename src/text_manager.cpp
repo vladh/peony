@@ -1,4 +1,4 @@
-constexpr real32 LINE_HEIGHT_FACTOR = 1.66;
+constexpr real32 LINE_HEIGHT_FACTOR = 1.66f;
 
 
 void TextManager::draw(
