@@ -32,14 +32,6 @@ TextureSetAsset::TextureSetAsset(
 void* TextureSetAsset::create_pbo_and_get_pointer(
   uint32 *pbo, int32 width, int32 height, int32 n_components
 ) {
-  GLenum format = GL_RGB;
-  if (n_components == 1) {
-    format = GL_RED;
-  } else if (n_components == 3) {
-    format = GL_RGB;
-  } else if (n_components == 4) {
-    format = GL_RGBA;
-  }
   uint32 image_size = width * height * n_components;
   glGenBuffers(1, pbo);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, *pbo);
@@ -82,6 +74,7 @@ void TextureSetAsset::copy_texture_to_gpu(
   int32 width, int32 height, int32 n_components
 ) {
   memcpy(pbo_memory, data, width * height * n_components);
+  log_info("memcpy is done");
   // NOTE: This is the image data that comes from stb_image.h.
   // After copying it to the GPU, we don't need it anymore, so we can
   // delete it here.
@@ -135,18 +128,15 @@ void TextureSetAsset::copy_textures_to_gpu() {
 uint32 TextureSetAsset::generate_texture_from_pbo(
   uint32 *pbo, int32 width, int32 height, int32 n_components
 ) {
+  START_TIMER(generate_texture_from_pbo);
   uint32 texture_id;
+  START_TIMER(gl_gen_textures);
   glGenTextures(1, &texture_id);
+  END_TIMER(gl_gen_textures);
   glBindTexture(GL_TEXTURE_2D, texture_id);
+  GLenum format = Util::get_texture_format_from_n_components(n_components);
 
-  GLenum format = GL_RGB;
-  if (n_components == 1) {
-    format = GL_RED;
-  } else if (n_components == 3) {
-    format = GL_RGB;
-  } else if (n_components == 4) {
-    format = GL_RGBA;
-  }
+#if 1
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, *pbo);
   glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
   glTexImage2D(
@@ -155,6 +145,8 @@ uint32 TextureSetAsset::generate_texture_from_pbo(
   glGenerateMipmap(GL_TEXTURE_2D);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glDeleteBuffers(1, pbo);
+#endif
+  END_TIMER(generate_texture_from_pbo);
 
   return texture_id;
 }
