@@ -235,6 +235,7 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_SAMPLES, 4);
 
 #if defined(__APPLE__)
+  log_info("Using GLFW_OPENGL_FORWARD_COMPAT");
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 

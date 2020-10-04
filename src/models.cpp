@@ -533,7 +533,6 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
       }
     }
     this->is_shader_setting_done = true;
-    log_info("...done");
   }
 
   if (!this->is_texture_preload_in_progress && !this->is_texture_preload_done) {
@@ -600,7 +599,6 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
       }
     }
     this->is_texture_set_binding_done = true;
-    log_info("...done");
   }
 }
 

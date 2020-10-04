@@ -1,3 +1,16 @@
+GLenum Util::get_texture_format_from_n_components(int32 n_components) {
+  GLenum format = GL_RGB;
+  if (n_components == 1) {
+    format = GL_RED;
+  } else if (n_components == 3) {
+    format = GL_RGB;
+  } else if (n_components == 4) {
+    format = GL_RGBA;
+  }
+  return format;
+}
+
+
 const char* Util::join(char* buf, const char* s1, const char* s2, const char* s3) {
   strcpy(buf, s1);
   strcat(buf, s2);
@@ -5,16 +18,19 @@ const char* Util::join(char* buf, const char* s1, const char* s2, const char* s3
   return buf;
 }
 
+
 const char* Util::join(char* buf, const char* prefix, uint32 n, const char* suffix) {
   assert(n < LEN(NUM_TO_STR));
   return join(buf, prefix, NUM_TO_STR[n], suffix);
 }
+
 
 real64 Util::random(real64 min, real64 max) {
   uint32 r = rand();
   real64 r_normalized = (real64)r / (real64)RAND_MAX;
   return min + ((r_normalized) * (max - min));
 }
+
 
 void Util::make_sphere(
   uint32 n_x_segments, uint32 n_y_segments,
@@ -68,6 +84,7 @@ void Util::make_sphere(
     }
   }
 }
+
 
 glm::mat4 Util::aimatrix4x4_to_glm(aiMatrix4x4* from) {
   glm::mat4 to;
