@@ -3,6 +3,7 @@ uint32 ResourceManager::load_texture_from_image_data_and_free(
 ) {
   uint32 texture_id;
   glGenTextures(1, &texture_id);
+  glBindTexture(GL_TEXTURE_2D, texture_id);
 
   if (data) {
     GLenum format = GL_RGB;
@@ -13,19 +14,38 @@ uint32 ResourceManager::load_texture_from_image_data_and_free(
     } else if (*n_components == 4) {
       format = GL_RGBA;
     }
-
-    glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, format, *width, *height, 0, format, GL_UNSIGNED_BYTE, data
-    );
-    glGenerateMipmap(GL_TEXTURE_2D);
+    uint32 image_size = *width * *height * *n_components;
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+#if 0
+    glTexImage2D(
+      GL_TEXTURE_2D, 0, format, *width, *height, 0, format, GL_UNSIGNED_BYTE, data
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
+#endif
+
+    uint32 pbo;
+    glGenBuffers(1, &pbo);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pbo);
+
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, image_size, 0, GL_STREAM_DRAW);
+    void *pbo_memory = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
+    memcpy(pbo_memory, data, image_size);
     free_image(data);
+    glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+    glTexImage2D(
+      GL_TEXTURE_2D, 0, format, *width, *height, 0, format, GL_UNSIGNED_BYTE, 0
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    glDeleteBuffers(1, &pbo);
+
   } else {
     log_error("Texture failed to load.");
     free_image(data);
