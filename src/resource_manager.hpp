@@ -3,9 +3,11 @@
 
 class ResourceManager {
 public:
+#if 0
   static uint32 load_texture_from_image_data_and_free(
     unsigned char *data, int32 *width, int32 *height, int32 *n_components
   );
+#endif
   static unsigned char *load_image(
     const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
   );

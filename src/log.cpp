@@ -29,6 +29,7 @@ void log_warning(const char *format, ...) {
 
 void log_info(const char *format, ...) {
   va_list vargs;
+
   fprintf(stdout, "info  | ");
   va_start(vargs, format);
   vfprintf(stdout, format, vargs);

@@ -2,7 +2,7 @@ void scene_init_objects(Memory *memory, State *state) {
   Entity *entity;
 
   // Axes
-#if 1
+#if 0
   entity = state->entity_manager.add("axes");
   state->spatial_component_manager.add(
     entity->handle,
@@ -18,6 +18,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Floor
+#if 0
   entity = state->entity_manager.add("floor");
   state->spatial_component_manager.add(
     entity->handle,
@@ -30,9 +31,10 @@ void scene_init_objects(Memory *memory, State *state) {
     ModelAsset::get_by_name(&state->model_assets, "floor"),
     RENDERPASS_DEFERRED
   );
+#endif
 
   // Cart
-#if 1
+#if 0
   entity = state->entity_manager.add("cart");
   state->spatial_component_manager.add(
     entity->handle,
@@ -106,7 +108,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->lights.push(entity->handle);
 
   // Geese
-#if 1
+#if 0
   uint32 n_geese = 1;
   for (uint16 idx = 0; idx < n_geese; idx++) {
     entity = state->entity_manager.add("goose");
@@ -127,7 +129,7 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Spheres
   uint32 n_spheres = 1;
-#if 1
+#if 0
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
     state->spatial_component_manager.add(

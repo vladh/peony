@@ -473,6 +473,17 @@ void ModelAsset::bind_texture_for_node_idx(
 }
 
 
+void ModelAsset::copy_texture_set_data_to_gpu() {
+  for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+    MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+    if (mesh_template->texture_set_asset) {
+      mesh_template->texture_set_asset->copy_textures_to_gpu();
+    }
+  }
+  this->is_texture_copying_to_gpu_done = true;
+}
+
+
 void ModelAsset::prepare_for_draw(Memory *memory) {
   // TODO: Update comment.
   // NOTE: Before we draw, we have to do 4 things.
@@ -532,20 +543,49 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
     /* preload_texture_set_image_data(); */
   }
 
+  if (this->is_texture_preload_done && !this->is_texture_pbo_creation_done) {
+    log_info("%s: STEP 5 - Creating PBOs", this->name);
+    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+      if (mesh_template->texture_set_asset) {
+        mesh_template->texture_set_asset->create_pbos();
+      }
+    }
+    this->is_texture_pbo_creation_done = true;
+  }
+
+  if (
+    this->is_texture_pbo_creation_done && !this->is_texture_copying_to_gpu_done &&
+    !this->is_texture_copying_to_gpu_in_progress
+  ) {
+    this->is_texture_copying_to_gpu_in_progress = true;
+    log_info("%s: STEP 6 - Copying textures to GPU", this->name);
+    *global_threads.push() = std::thread(&ModelAsset::copy_texture_set_data_to_gpu, this);
+    /* copy_texture_set_data_to_gpu(); */
+  }
+
   if (
     this->is_mesh_data_loading_done &&
     this->is_vertex_buffer_setup_done &&
     this->is_shader_setting_done &&
     this->is_texture_preload_done &&
+    this->is_texture_pbo_creation_done &&
+    this->is_texture_copying_to_gpu_done &&
     !this->is_texture_set_binding_done
   ) {
-    log_info("%s: STEP 5 - Loading textures", this->name);
+    log_info("%s: STEP 7 - Binding textures", this->name);
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
       if (mesh_template->texture_set_asset) {
-        mesh_template->texture_set_asset->load_textures_from_preloaded_data();
+        mesh_template->texture_set_asset->generate_textures_from_pbo();
+        log_info("%s: generated", this->name);
+      }
+    }
+    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
+      if (mesh_template->texture_set_asset) {
         if (mesh_template->apply_to_all_meshes) {
           bind_texture(
             mesh_template->texture_set_asset
@@ -556,6 +596,7 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
             mesh_template->node_depth, mesh_template->node_idx
           );
         }
+        log_info("%s: bound", this->name);
       }
     }
     this->is_texture_set_binding_done = true;

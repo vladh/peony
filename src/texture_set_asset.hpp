@@ -40,6 +40,16 @@ public:
   int32 roughness_data_n_components;
   int32 ao_data_n_components;
   int32 normal_data_n_components;
+  uint32 albedo_pbo;
+  uint32 metallic_pbo;
+  uint32 roughness_pbo;
+  uint32 ao_pbo;
+  uint32 normal_pbo;
+  void *albedo_pbo_memory;
+  void *metallic_pbo_memory;
+  void *roughness_pbo_memory;
+  void *ao_pbo_memory;
+  void *normal_pbo_memory;
 
   // Hardcoded values for when we can't load a texture.
   glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
@@ -63,7 +73,24 @@ public:
     real32 ao_static
   );
   void preload_image_data();
+  void create_pbos();
+  void copy_textures_to_gpu();
+  void generate_textures_from_pbo();
+#if 0
   void load_textures_from_preloaded_data();
+#endif
+
+private:
+  void* create_pbo_and_get_pointer(
+    uint32 *pbo, int32 width, int32 height, int32 n_components
+  );
+  void copy_texture_to_gpu(
+    unsigned char *data, void *pbo_memory,
+    int32 width, int32 height, int32 n_components
+  );
+  uint32 generate_texture_from_pbo(
+    uint32 *pbo, int32 width, int32 height, int32 n_components
+  );
 };
 
 #endif
