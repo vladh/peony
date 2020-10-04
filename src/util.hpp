@@ -3,6 +3,7 @@
 
 class Util {
 public:
+  static const char* Util::stringify_glenum(GLenum thing);
   static GLenum get_texture_format_from_n_components(int32 n_components);
   static const char* join(char* buf, const char* s1, const char* s2, const char* s3);
   static const char* join(char* buf, const char* prefix, uint32 n, const char* suffix);
