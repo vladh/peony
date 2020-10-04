@@ -128,8 +128,8 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Spheres
-  uint32 n_spheres = 1;
 #if 0
+  uint32 n_spheres = 1;
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
     state->spatial_component_manager.add(
