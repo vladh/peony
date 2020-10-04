@@ -1,3 +1,4 @@
+#if 0
 uint32 ResourceManager::load_texture_from_image_data_and_free(
   unsigned char *data, int32 *width, int32 *height, int32 *n_components
 ) {
@@ -53,6 +54,7 @@ uint32 ResourceManager::load_texture_from_image_data_and_free(
 
   return texture_id;
 }
+#endif
 
 
 unsigned char* ResourceManager::load_image(
