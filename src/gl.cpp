@@ -692,6 +692,29 @@ void scene_init_screenquad(Memory *memory, State *state) {
 }
 
 
+void print_texture_internalformat_info(GLenum internal_format) {
+  GLint preferred_format;
+  GLint optimal_image_format;
+  GLint optimal_image_type;
+
+  glGetInternalformativ(
+    GL_TEXTURE_2D, internal_format, GL_INTERNALFORMAT_PREFERRED, 1, &preferred_format
+  );
+  glGetInternalformativ(
+    GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_FORMAT, 1, &optimal_image_format
+  );
+  glGetInternalformativ(
+    GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_TYPE, 1, &optimal_image_type
+  );
+
+  log_info("internal format: %s", Util::stringify_glenum(internal_format));
+  log_info("preferred format: %s", Util::stringify_glenum(preferred_format));
+  log_info("optimal image format: %s", Util::stringify_glenum(optimal_image_format));
+  log_info("optimal image type: %s", Util::stringify_glenum(optimal_image_type));
+  log_newline();
+}
+
+
 int main() {
   srand((uint32)time(NULL));
   Memory memory;
@@ -703,6 +726,10 @@ int main() {
   }
 
   State *state = new((State*)memory.state_memory) State(&memory, window_info);
+
+  print_texture_internalformat_info(GL_RGB8);
+  print_texture_internalformat_info(GL_RGBA8);
+  print_texture_internalformat_info(GL_SRGB8);
 
   update_drawing_options(state, window_info.window);
   glfwSetWindowUserPointer(window_info.window, state);
@@ -716,9 +743,11 @@ int main() {
   init_shadow_buffers(&memory, state);
   scene_init_screenquad(&memory, state);
 
+#if 0
   memory.asset_memory_pool.print();
   memory.entity_memory_pool.print();
   memory.temp_memory_pool.print();
+#endif
   log_info("Cache line size: %dB", cacheline_get_size());
 
   main_loop(&memory, state);
