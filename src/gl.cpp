@@ -343,12 +343,14 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 void render_scene(
   Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
 ) {
+  START_TIMER(draw_all);
   state->drawable_component_manager.draw_all(
     memory,
     &state->persistent_pbo,
     &state->spatial_component_manager,
     render_pass, render_mode, state->standard_depth_shader_asset
   );
+  END_TIMER_MIN(draw_all, 1);
 
   if (render_pass == RENDERPASS_FORWARD) {
     glEnable(GL_BLEND);
@@ -652,7 +654,9 @@ void main_loop(Memory *memory, State *state) {
       std::this_thread::sleep_until(frame_end_target_time);
     }
 
+    START_TIMER(swap_buffers);
     glfwSwapBuffers(state->window_info.window);
+    END_TIMER_MIN(swap_buffers, 5);
   }
 }
 
