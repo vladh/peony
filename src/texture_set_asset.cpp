@@ -136,7 +136,11 @@ uint32 TextureSetAsset::generate_texture_from_pbo(
   glBindTexture(GL_TEXTURE_2D, texture_id);
   GLenum format = Util::get_texture_format_from_n_components(n_components);
 
-#if 1
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, *pbo);
   glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
   glTexImage2D(
@@ -145,7 +149,6 @@ uint32 TextureSetAsset::generate_texture_from_pbo(
   glGenerateMipmap(GL_TEXTURE_2D);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glDeleteBuffers(1, pbo);
-#endif
   END_TIMER(generate_texture_from_pbo);
 
   return texture_id;
