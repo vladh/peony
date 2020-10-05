@@ -340,32 +340,6 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
       )
     );
 
-#if 0
-    shader_asset->set_int(
-      "albedo_texture",
-      shader_asset->add_texture_unit(texture_set_asset->albedo_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "metallic_texture",
-      shader_asset->add_texture_unit(texture_set_asset->metallic_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "roughness_texture",
-      shader_asset->add_texture_unit(texture_set_asset->roughness_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "ao_texture",
-      shader_asset->add_texture_unit(texture_set_asset->ao_texture, GL_TEXTURE_2D)
-    );
-
-    shader_asset->set_int(
-      "normal_texture",
-      shader_asset->add_texture_unit(texture_set_asset->normal_texture, GL_TEXTURE_2D)
-    );
-#endif
   } else {
     log_info(
       "Tried to set texture uniforms, but there is nothing to do for this shader: \"%s\"",
@@ -551,21 +525,6 @@ void ModelAsset::prepare_for_draw(
     *global_threads.push() = std::thread(&ModelAsset::preload_texture_set_image_data, this);
     /* preload_texture_set_image_data(); */
   }
-
-#if 0
-  if (this->is_texture_preload_done && !this->is_texture_pbo_creation_done) {
-    log_info("%s: STEP 5 - Creating PBOs", this->name);
-#if 0
-    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
-      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
-      if (mesh_template->texture_set_asset) {
-        mesh_template->texture_set_asset->create_pbos(persistent_pbo);
-      }
-    }
-#endif
-    this->is_texture_pbo_creation_done = true;
-  }
-#endif
 
   if (
     this->is_texture_preload_done &&
