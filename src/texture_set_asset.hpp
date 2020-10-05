@@ -22,11 +22,6 @@ public:
   const char *ao_texture_path = "";
   const char *normal_texture_path = "";
 
-  unsigned char *albedo_data = nullptr;
-  unsigned char *metallic_data = nullptr;
-  unsigned char *roughness_data = nullptr;
-  unsigned char *ao_data = nullptr;
-  unsigned char *normal_data = nullptr;
   int32 albedo_data_width;
   int32 metallic_data_width;
   int32 roughness_data_width;
@@ -69,7 +64,6 @@ public:
     real32 roughness_static,
     real32 ao_static
   );
-  void preload_image_data();
   void copy_textures_to_pbo(PersistentPbo *persistent_pbo);
   void generate_textures_from_pbo(PersistentPbo *persistent_pbo);
 };

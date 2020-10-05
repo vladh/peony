@@ -29,59 +29,6 @@ TextureSetAsset::TextureSetAsset(
 }
 
 
-void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
-  if (this->is_static) {
-    return;
-  }
-
-  if (this->albedo_data) {
-    this->albedo_pbo_idx = persistent_pbo->get_new_idx();
-    memcpy(
-      persistent_pbo->get_memory_for_idx(this->albedo_pbo_idx),
-      this->albedo_data,
-      persistent_pbo->texture_size
-    );
-    ResourceManager::free_image(this->albedo_data);
-  }
-  if (this->metallic_data) {
-    this->metallic_pbo_idx = persistent_pbo->get_new_idx();
-    memcpy(
-      persistent_pbo->get_memory_for_idx(this->metallic_pbo_idx),
-      this->metallic_data,
-      persistent_pbo->texture_size
-    );
-    ResourceManager::free_image(this->metallic_data);
-  }
-  if (this->roughness_data) {
-    this->roughness_pbo_idx = persistent_pbo->get_new_idx();
-    memcpy(
-      persistent_pbo->get_memory_for_idx(this->roughness_pbo_idx),
-      this->roughness_data,
-      persistent_pbo->texture_size
-    );
-    ResourceManager::free_image(this->roughness_data);
-  }
-  if (this->ao_data) {
-    this->ao_pbo_idx = persistent_pbo->get_new_idx();
-    memcpy(
-      persistent_pbo->get_memory_for_idx(this->ao_pbo_idx),
-      this->ao_data,
-      persistent_pbo->texture_size
-    );
-    ResourceManager::free_image(this->ao_data);
-  }
-  if (this->normal_data) {
-    this->normal_pbo_idx = persistent_pbo->get_new_idx();
-    memcpy(
-      persistent_pbo->get_memory_for_idx(this->normal_pbo_idx),
-      this->normal_data,
-      persistent_pbo->texture_size
-    );
-    ResourceManager::free_image(this->normal_data);
-  }
-}
-
-
 void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) {
   if (this->is_static) {
     return;
@@ -147,7 +94,7 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
 }
 
 
-void TextureSetAsset::preload_image_data() {
+void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   if (this->is_static) {
     return;
   }
@@ -157,36 +104,77 @@ void TextureSetAsset::preload_image_data() {
   }
 
   this->mutex.lock();
+
   if (strcmp(this->albedo_texture_path, "") != 0) {
-    this->albedo_data = ResourceManager::load_image(
+    unsigned char *image_data = ResourceManager::load_image(
       this->albedo_texture_path, &this->albedo_data_width,
       &this->albedo_data_height, &this->albedo_data_n_components, true
     );
+    this->albedo_pbo_idx = persistent_pbo->get_new_idx();
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->albedo_pbo_idx),
+      image_data,
+      persistent_pbo->texture_size
+    );
+    ResourceManager::free_image(image_data);
   }
+
   if (strcmp(this->metallic_texture_path, "") != 0) {
-    this->metallic_data = ResourceManager::load_image(
+    unsigned char *image_data = ResourceManager::load_image(
       this->metallic_texture_path, &this->metallic_data_width,
       &this->metallic_data_height, &this->metallic_data_n_components, true
     );
+    this->metallic_pbo_idx = persistent_pbo->get_new_idx();
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->metallic_pbo_idx),
+      image_data,
+      persistent_pbo->texture_size
+    );
+    ResourceManager::free_image(image_data);
   }
+
   if (strcmp(this->roughness_texture_path, "") != 0) {
-    this->roughness_data = ResourceManager::load_image(
+    unsigned char *image_data = ResourceManager::load_image(
       this->roughness_texture_path, &this->roughness_data_width,
       &this->roughness_data_height, &this->roughness_data_n_components, true
     );
+    this->roughness_pbo_idx = persistent_pbo->get_new_idx();
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->roughness_pbo_idx),
+      image_data,
+      persistent_pbo->texture_size
+    );
+    ResourceManager::free_image(image_data);
   }
+
   if (strcmp(this->ao_texture_path, "") != 0) {
-    this->ao_data = ResourceManager::load_image(
+    unsigned char *image_data = ResourceManager::load_image(
       this->ao_texture_path, &this->ao_data_width,
       &this->ao_data_height, &this->ao_data_n_components, true
     );
+    this->ao_pbo_idx = persistent_pbo->get_new_idx();
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->ao_pbo_idx),
+      image_data,
+      persistent_pbo->texture_size
+    );
+    ResourceManager::free_image(image_data);
   }
+
   if (strcmp(this->normal_texture_path, "") != 0) {
-    this->normal_data = ResourceManager::load_image(
+    unsigned char* image_data = ResourceManager::load_image(
       this->normal_texture_path, &this->normal_data_width,
       &this->normal_data_height, &this->normal_data_n_components, true
     );
+    this->normal_pbo_idx = persistent_pbo->get_new_idx();
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->normal_pbo_idx),
+      image_data,
+      persistent_pbo->texture_size
+    );
+    ResourceManager::free_image(image_data);
   }
+
   this->mutex.unlock();
 
   this->is_image_data_preloaded = true;
