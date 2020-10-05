@@ -42,6 +42,7 @@ void* TextureSetAsset::create_pbo_and_get_pointer(
 #endif
 
 
+#if 0
 void TextureSetAsset::create_pbos(PersistentPbo *persistent_pbo) {
   this->albedo_pbo_idx = persistent_pbo->get_new_idx();
   this->metallic_pbo_idx = persistent_pbo->get_new_idx();
@@ -76,6 +77,7 @@ void TextureSetAsset::create_pbos(PersistentPbo *persistent_pbo) {
   );
 #endif
 }
+#endif
 
 
 #if 0
@@ -104,6 +106,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   }
 
   if (this->albedo_data) {
+    this->albedo_pbo_idx = persistent_pbo->get_new_idx();
     memcpy(
       persistent_pbo->get_memory_for_idx(this->albedo_pbo_idx),
       this->albedo_data,
@@ -112,6 +115,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
     ResourceManager::free_image(this->albedo_data);
   }
   if (this->metallic_data) {
+    this->metallic_pbo_idx = persistent_pbo->get_new_idx();
     memcpy(
       persistent_pbo->get_memory_for_idx(this->metallic_pbo_idx),
       this->metallic_data,
@@ -120,6 +124,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
     ResourceManager::free_image(this->metallic_data);
   }
   if (this->roughness_data) {
+    this->roughness_pbo_idx = persistent_pbo->get_new_idx();
     memcpy(
       persistent_pbo->get_memory_for_idx(this->roughness_pbo_idx),
       this->roughness_data,
@@ -128,6 +133,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
     ResourceManager::free_image(this->roughness_data);
   }
   if (this->ao_data) {
+    this->ao_pbo_idx = persistent_pbo->get_new_idx();
     memcpy(
       persistent_pbo->get_memory_for_idx(this->ao_pbo_idx),
       this->ao_data,
@@ -136,6 +142,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
     ResourceManager::free_image(this->ao_data);
   }
   if (this->normal_data) {
+    this->normal_pbo_idx = persistent_pbo->get_new_idx();
     memcpy(
       persistent_pbo->get_memory_for_idx(this->normal_pbo_idx),
       this->normal_data,
@@ -186,7 +193,8 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
     log_warning("Tried to generate textures but they've already been generated.");
   }
 
-  glGenTextures(1, &this->material_texture); glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
+  glGenTextures(1, &this->material_texture);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
 
   glTexImage3D(
     GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,

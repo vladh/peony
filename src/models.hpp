@@ -51,7 +51,6 @@ public:
   Array<MeshShaderTextureTemplate> mesh_templates;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_preload_in_progress = false;
-  bool32 is_texture_pbo_creation_done = false;
   bool32 is_texture_copying_to_pbo_done = false;
   bool32 is_texture_copying_to_pbo_in_progress = false;
   bool32 is_mesh_data_loading_done = false;
