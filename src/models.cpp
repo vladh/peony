@@ -509,8 +509,27 @@ void ModelAsset::prepare_for_draw(
     !this->is_texture_copying_to_pbo_in_progress
   ) {
     log_info("%s: STEP 4 - Copying textures to PBO", this->name);
-    this->is_texture_copying_to_pbo_in_progress = true;
-    *global_threads.push() = std::thread(&ModelAsset::copy_textures_to_pbo, this, persistent_pbo);
+
+    // NOTE: Make sure we don't spawn threads that do nothing, or queue up
+    // useless work for threads!
+    bool32 should_try_to_copy_textures = false;
+    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+      if (mesh_template->texture_set_asset) {
+        should_try_to_copy_textures = true;
+        break;
+      }
+    }
+
+    if (should_try_to_copy_textures) {
+      this->is_texture_copying_to_pbo_in_progress = true;
+      *global_threads.push() = std::thread(&ModelAsset::copy_textures_to_pbo, this, persistent_pbo);
+      log_info("");
+      log_info("-> NEW THREAD! <-");
+      log_info("");
+    } else {
+      this->is_texture_copying_to_pbo_done = true;
+    }
     /* copy_textures_to_pbo(); */
   }
 
