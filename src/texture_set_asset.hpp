@@ -80,7 +80,9 @@ public:
     real32 ao_static
   );
   void preload_image_data();
+#if 0
   void create_pbos(PersistentPbo *persistent_pbo);
+#endif
   void copy_textures_to_pbo(PersistentPbo *persistent_pbo);
   void generate_textures_from_pbo(PersistentPbo *persistent_pbo);
 #if 0
