@@ -37,20 +37,18 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
     log_warning("Tried to generate textures but they've already been generated.");
   }
 
-  START_TIMER(gl_gen_textures);
 #if 0
   glGenTextures(1, &this->material_texture);
 #endif
 #if 1
   this->material_texture = global_texture_pool[global_texture_pool_next_idx++];
 #endif
-  END_TIMER(gl_gen_textures);
   glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
 
   glTexImage3D(
     GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,
     persistent_pbo->width, persistent_pbo->height,
-    5, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0
+    5, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0
   );
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -63,31 +61,31 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0,
     this->albedo_data_width, this->albedo_data_height,
-    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    1, GL_BGRA, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->albedo_pbo_idx)
   );
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1,
     this->metallic_data_width, this->metallic_data_height,
-    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    1, GL_BGRA, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->metallic_pbo_idx)
   );
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2,
     this->roughness_data_width, this->roughness_data_height,
-    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    1, GL_BGRA, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->roughness_pbo_idx)
   );
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3,
     this->ao_data_width, this->ao_data_height,
-    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    1, GL_BGRA, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->ao_pbo_idx)
   );
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 4,
     this->normal_data_width, this->normal_data_height,
-    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    1, GL_BGRA, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->normal_pbo_idx)
   );
 

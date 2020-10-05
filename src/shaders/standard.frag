@@ -39,7 +39,9 @@ vec3 grid_sampling_offsets[20] = vec3[] (
 // in the future, but since we're using both PBR and deferred lighting,
 // it would be a bit troublesome to integrate into the code.
 vec3 get_normal_from_map() {
-  vec3 tangent_normal = texture(material_texture, vec3(fs_in.tex_coords, 4)).xyz * 2.0 - 1.0;
+  // TODO: Swizzle this differently.
+  vec3 tangent_normal_rgb = texture(material_texture, vec3(fs_in.tex_coords, 4)).xyz * 2.0 - 1.0;
+  vec3 tangent_normal = vec3(tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r);
 
   vec3 Q1 = dFdx(fs_in.frag_position);
   vec3 Q2 = dFdy(fs_in.frag_position);
@@ -61,12 +63,15 @@ void main() {
   if (should_use_normal_map) {
     g_normal = get_normal_from_map();
   } else {
-    g_normal = unit_normal;
+    // TODO: Swizzle this differently.
+    g_normal = vec3(unit_normal.b, unit_normal.g, unit_normal.r);
   }
 
   vec3 albedo;
   if (albedo_static.x < 0) {
-    g_albedo = texture(material_texture, vec3(fs_in.tex_coords, 0));
+    // TODO: Swizzle this differently.
+    vec4 g_albedo_rgb = texture(material_texture, vec3(fs_in.tex_coords, 0));
+    g_albedo = vec4(g_albedo_rgb.z, g_albedo_rgb.y, g_albedo_rgb.x, g_albedo_rgb.a);
   } else {
     g_albedo = albedo_static;
   }

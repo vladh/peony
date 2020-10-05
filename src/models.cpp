@@ -525,7 +525,6 @@ void ModelAsset::prepare_for_draw(
 
     bool32 did_have_to_generate_or_bind_texture = false;
 
-    START_TIMER(generate_textures_from_pbo);
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
@@ -541,9 +540,7 @@ void ModelAsset::prepare_for_draw(
         break;
       }
     }
-    END_TIMER(generate_textures_from_pbo);
 
-    START_TIMER(bind_texture)
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
@@ -568,7 +565,6 @@ void ModelAsset::prepare_for_draw(
         break;
       }
     }
-    END_TIMER(bind_texture);
 
     if (!did_have_to_generate_or_bind_texture) {
       this->is_texture_set_binding_done = true;
@@ -597,12 +593,16 @@ void ModelAsset::draw(
       glUseProgram(shader_asset->program);
       last_used_shader_program = shader_asset->program;
 
-      if (shader_asset->type == SHADER_STANDARD || shader_asset->type == SHADER_OTHER_OBJECT) {
+      if (
+        shader_asset->type == SHADER_STANDARD ||
+        shader_asset->type == SHADER_OTHER_OBJECT
+      ) {
         shader_asset->set_mat4("model", model_matrix);
       }
 
       for (
-        uint32 texture_idx = 1; texture_idx < shader_asset->n_texture_units + 1; texture_idx++
+        uint32 texture_idx = 1;
+        texture_idx < shader_asset->n_texture_units + 1; texture_idx++
       ) {
         if (shader_asset->texture_units[texture_idx] != 0) {
           glActiveTexture(GL_TEXTURE0 + texture_idx);
@@ -618,14 +618,12 @@ void ModelAsset::draw(
       shader_asset->set_mat4("mesh_transform", &mesh->transform);
     }
 
-    START_ALERT_TIMER(gl_draw);
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
       glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
     } else {
       glDrawArrays(mesh->mode, 0, mesh->n_vertices);
     }
-    END_ALERT_TIMER(gl_draw, 1);
     glBindVertexArray(0);
   }
 }
