@@ -33,13 +33,14 @@ DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
 
 void DrawableComponentManager::draw_all(
   Memory *memory,
-  SpatialComponentManager spatial_component_manager,
+  PersistentPbo *persistent_pbo,
+  SpatialComponentManager *spatial_component_manager,
   RenderPass render_pass, RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset
 ) {
   for (uint32 idx = 0; idx < this->components->get_size(); idx++) {
     DrawableComponent *drawable = this->components->get(idx);
-    SpatialComponent *spatial = spatial_component_manager.get(drawable->entity_handle);
+    SpatialComponent *spatial = spatial_component_manager->get(drawable->entity_handle);
 
     if (render_pass != drawable->target_render_pass) {
       continue;
@@ -57,11 +58,13 @@ void DrawableComponentManager::draw_all(
 
     if (render_mode == RENDERMODE_DEPTH) {
       drawable->model_asset->draw_in_depth_mode(
-        memory, &model_matrix, standard_depth_shader_asset
+        memory, persistent_pbo,
+        &model_matrix, standard_depth_shader_asset
       );
     } else {
       drawable->model_asset->draw(
-        memory, spatial ? &model_matrix : nullptr
+        memory, persistent_pbo,
+        spatial ? &model_matrix : nullptr
       );
     }
   }

@@ -42,8 +42,9 @@ public:
   Array<EntityHandle> geese;
   Array<EntityHandle> spheres;
 
-  ShaderAsset *standard_depth_shader_asset;
+  PersistentPbo persistent_pbo;
 
+  ShaderAsset *standard_depth_shader_asset;
 
   uint32 shadow_map_width;
   uint32 shadow_map_height;

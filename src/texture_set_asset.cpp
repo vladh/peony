@@ -29,6 +29,7 @@ TextureSetAsset::TextureSetAsset(
 }
 
 
+#if 0
 void* TextureSetAsset::create_pbo_and_get_pointer(
   uint32 *pbo, int32 width, int32 height, int32 n_components
 ) {
@@ -38,9 +39,16 @@ void* TextureSetAsset::create_pbo_and_get_pointer(
   glBufferData(GL_PIXEL_UNPACK_BUFFER, image_size, 0, GL_STREAM_DRAW);
   return glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
 }
+#endif
 
 
-void TextureSetAsset::create_pbos() {
+void TextureSetAsset::create_pbos(PersistentPbo *persistent_pbo) {
+  this->albedo_pbo_idx = persistent_pbo->get_new_idx();
+  this->metallic_pbo_idx = persistent_pbo->get_new_idx();
+  this->roughness_pbo_idx = persistent_pbo->get_new_idx();
+  this->ao_pbo_idx = persistent_pbo->get_new_idx();
+  this->normal_pbo_idx = persistent_pbo->get_new_idx();
+#if 0
   this->albedo_pbo_memory = create_pbo_and_get_pointer(
     &this->albedo_pbo,
     this->albedo_data_width, this->albedo_data_height,
@@ -66,65 +74,79 @@ void TextureSetAsset::create_pbos() {
     this->normal_data_width, this->normal_data_height,
     this->normal_data_n_components
   );
+#endif
 }
 
 
-void TextureSetAsset::copy_texture_to_gpu(
-  unsigned char *data, void *pbo_memory,
+#if 0
+void TextureSetAsset::copy_texture_to_pbo(
+  uint16 pbo_idx, unsigned char *data,
   int32 width, int32 height, int32 n_components
 ) {
-  memcpy(pbo_memory, data, width * height * n_components);
+  log_info("Copying for pbo_idx %d", pbo_idx);
+  memcpy(
+    (char*)global_pbo_memory + ((uint64)pbo_idx * TEXTURE_SIZE),
+    data,
+    width * height * n_components
+  );
   log_info("memcpy is done");
   // NOTE: This is the image data that comes from stb_image.h.
   // After copying it to the GPU, we don't need it anymore, so we can
   // delete it here.
   ResourceManager::free_image(data);
 }
+#endif
 
 
-void TextureSetAsset::copy_textures_to_gpu() {
+void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   if (this->is_static) {
     return;
   }
 
   if (this->albedo_data) {
-    copy_texture_to_gpu(
-      this->albedo_data, this->albedo_pbo_memory,
-      this->albedo_data_width, this->albedo_data_height,
-      this->albedo_data_n_components
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->albedo_pbo_idx),
+      this->albedo_data,
+      persistent_pbo->texture_size
     );
+    ResourceManager::free_image(this->albedo_data);
   }
   if (this->metallic_data) {
-    copy_texture_to_gpu(
-      this->metallic_data, this->metallic_pbo_memory,
-      this->metallic_data_width, this->metallic_data_height,
-      this->metallic_data_n_components
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->metallic_pbo_idx),
+      this->metallic_data,
+      persistent_pbo->texture_size
     );
+    ResourceManager::free_image(this->metallic_data);
   }
   if (this->roughness_data) {
-    copy_texture_to_gpu(
-      this->roughness_data, this->roughness_pbo_memory,
-      this->roughness_data_width, this->roughness_data_height,
-      this->roughness_data_n_components
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->roughness_pbo_idx),
+      this->roughness_data,
+      persistent_pbo->texture_size
     );
+    ResourceManager::free_image(this->roughness_data);
   }
   if (this->ao_data) {
-    copy_texture_to_gpu(
-      this->ao_data, this->ao_pbo_memory,
-      this->ao_data_width, this->ao_data_height,
-      this->ao_data_n_components
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->ao_pbo_idx),
+      this->ao_data,
+      persistent_pbo->texture_size
     );
+    ResourceManager::free_image(this->ao_data);
   }
   if (this->normal_data) {
-    copy_texture_to_gpu(
-      this->normal_data, this->normal_pbo_memory,
-      this->normal_data_width, this->normal_data_height,
-      this->normal_data_n_components
+    memcpy(
+      persistent_pbo->get_memory_for_idx(this->normal_pbo_idx),
+      this->normal_data,
+      persistent_pbo->texture_size
     );
+    ResourceManager::free_image(this->normal_data);
   }
 }
 
 
+#if 0
 uint32 TextureSetAsset::generate_texture_from_pbo(
   uint32 *pbo, int32 width, int32 height, int32 n_components
 ) {
@@ -153,9 +175,10 @@ uint32 TextureSetAsset::generate_texture_from_pbo(
 
   return texture_id;
 }
+#endif
 
 
-void TextureSetAsset::generate_textures_from_pbo() {
+void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) {
   if (this->is_static) {
     return;
   }
@@ -163,6 +186,59 @@ void TextureSetAsset::generate_textures_from_pbo() {
     log_warning("Tried to generate textures but they've already been generated.");
   }
 
+  glGenTextures(1, &this->material_texture); glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
+
+  glTexImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,
+    persistent_pbo->width, persistent_pbo->height,
+    5, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0
+  );
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
+
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0,
+    this->albedo_data_width, this->albedo_data_height,
+    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    persistent_pbo->get_offset_for_idx(this->albedo_pbo_idx)
+  );
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1,
+    this->metallic_data_width, this->metallic_data_height,
+    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    persistent_pbo->get_offset_for_idx(this->metallic_pbo_idx)
+  );
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2,
+    this->roughness_data_width, this->roughness_data_height,
+    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    persistent_pbo->get_offset_for_idx(this->roughness_pbo_idx)
+  );
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3,
+    this->ao_data_width, this->ao_data_height,
+    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    persistent_pbo->get_offset_for_idx(this->ao_pbo_idx)
+  );
+  glTexSubImage3D(
+    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 4,
+    this->normal_data_width, this->normal_data_height,
+    1, GL_RGBA, GL_UNSIGNED_BYTE,
+    persistent_pbo->get_offset_for_idx(this->normal_pbo_idx)
+  );
+
+  this->should_use_normal_map = true;
+
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+  glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+
+#if 0
   if (this->albedo_data) {
     this->albedo_texture = generate_texture_from_pbo(
       &this->albedo_pbo,
@@ -198,6 +274,7 @@ void TextureSetAsset::generate_textures_from_pbo() {
       this->normal_data_n_components
     );
   }
+#endif
   this->is_loading_done = true;
 }
 

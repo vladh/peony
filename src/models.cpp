@@ -316,9 +316,6 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
   TextureSetAsset *texture_set_asset = mesh->texture_set_asset;
   ShaderAsset *shader_asset = mesh->shader_asset;
 
-  // NOTE: We set this for every mesh, but we only need to run this for every
-  // shaders, and most meshes share a shader, so we're kind of being wasteful.
-  // It's not a big deal, but could we improve this?
   if (shader_asset->did_set_texture_uniforms || !texture_set_asset) {
     return;
   }
@@ -326,14 +323,24 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
   if (shader_asset->type == SHADER_STANDARD) {
     glUseProgram(shader_asset->program);
 
-    bool should_use_normal_map = texture_set_asset->normal_texture != 0;
-    shader_asset->set_bool("should_use_normal_map", should_use_normal_map);
+    shader_asset->set_bool(
+      "should_use_normal_map", texture_set_asset->should_use_normal_map
+    );
 
     shader_asset->set_vec4("albedo_static", &texture_set_asset->albedo_static);
     shader_asset->set_float("metallic_static", texture_set_asset->metallic_static);
     shader_asset->set_float("roughness_static", texture_set_asset->roughness_static);
     shader_asset->set_float("ao_static", texture_set_asset->ao_static);
 
+    shader_asset->set_int(
+      "material_texture",
+      shader_asset->add_texture_unit(
+        texture_set_asset->material_texture,
+        GL_TEXTURE_2D_ARRAY
+      )
+    );
+
+#if 0
     shader_asset->set_int(
       "albedo_texture",
       shader_asset->add_texture_unit(texture_set_asset->albedo_texture, GL_TEXTURE_2D)
@@ -358,6 +365,7 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
       "normal_texture",
       shader_asset->add_texture_unit(texture_set_asset->normal_texture, GL_TEXTURE_2D)
     );
+#endif
   } else {
     log_info(
       "Tried to set texture uniforms, but there is nothing to do for this shader: \"%s\"",
@@ -473,18 +481,20 @@ void ModelAsset::bind_texture_for_node_idx(
 }
 
 
-void ModelAsset::copy_texture_set_data_to_gpu() {
+void ModelAsset::copy_texture_set_data_to_pbo(PersistentPbo *persistent_pbo) {
   for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
     MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
     if (mesh_template->texture_set_asset) {
-      mesh_template->texture_set_asset->copy_textures_to_gpu();
+      mesh_template->texture_set_asset->copy_textures_to_pbo(persistent_pbo);
     }
   }
-  this->is_texture_copying_to_gpu_done = true;
+  this->is_texture_copying_to_pbo_done = true;
 }
 
 
-void ModelAsset::prepare_for_draw(Memory *memory) {
+void ModelAsset::prepare_for_draw(
+  Memory *memory, PersistentPbo *persistent_pbo
+) {
   // TODO: Update comment.
   // NOTE: Before we draw, we have to do 4 things.
   //
@@ -547,20 +557,20 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
       if (mesh_template->texture_set_asset) {
-        mesh_template->texture_set_asset->create_pbos();
+        mesh_template->texture_set_asset->create_pbos(persistent_pbo);
       }
     }
     this->is_texture_pbo_creation_done = true;
   }
 
   if (
-    this->is_texture_pbo_creation_done && !this->is_texture_copying_to_gpu_done &&
-    !this->is_texture_copying_to_gpu_in_progress
+    this->is_texture_pbo_creation_done && !this->is_texture_copying_to_pbo_done &&
+    !this->is_texture_copying_to_pbo_in_progress
   ) {
-    this->is_texture_copying_to_gpu_in_progress = true;
+    this->is_texture_copying_to_pbo_in_progress = true;
     log_info("%s: STEP 6 - Copying textures to GPU", this->name);
-    *global_threads.push() = std::thread(&ModelAsset::copy_texture_set_data_to_gpu, this);
-    /* copy_texture_set_data_to_gpu(); */
+    *global_threads.push() = std::thread(&ModelAsset::copy_texture_set_data_to_pbo, this, persistent_pbo);
+    /* copy_texture_set_data_to_pbo(persistent_pbo); */
   }
 
   if (
@@ -569,7 +579,7 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
     this->is_shader_setting_done &&
     this->is_texture_preload_done &&
     this->is_texture_pbo_creation_done &&
-    this->is_texture_copying_to_gpu_done &&
+    this->is_texture_copying_to_pbo_done &&
     !this->is_texture_set_binding_done
   ) {
     log_info("%s: STEP 7 - Binding textures", this->name);
@@ -577,7 +587,9 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
       if (mesh_template->texture_set_asset) {
-        mesh_template->texture_set_asset->generate_textures_from_pbo();
+        mesh_template->texture_set_asset->generate_textures_from_pbo(
+          persistent_pbo
+        );
         log_info("%s: generated", this->name);
       }
     }
@@ -603,8 +615,11 @@ void ModelAsset::prepare_for_draw(Memory *memory) {
 }
 
 
-void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
-  prepare_for_draw(memory);
+void ModelAsset::draw(
+  Memory *memory, PersistentPbo *persistent_pbo,
+  glm::mat4 *model_matrix
+) {
+  prepare_for_draw(memory, persistent_pbo);
   if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
     return;
   }
@@ -653,10 +668,10 @@ void ModelAsset::draw(Memory *memory, glm::mat4 *model_matrix) {
 
 
 void ModelAsset::draw_in_depth_mode(
-  Memory *memory,
+  Memory *memory, PersistentPbo *persistent_pbo,
   glm::mat4 *model_matrix, ShaderAsset *standard_depth_shader_asset
 ) {
-  prepare_for_draw(memory);
+  prepare_for_draw(memory, persistent_pbo);
   if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
     return;
   }

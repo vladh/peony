@@ -73,6 +73,7 @@ State::State(
     Array<EntityHandle>(
       &memory->entity_memory_pool, 512, "spheres"
     )
-  )
+  ),
+  persistent_pbo(15, 2048, 2048, 4)
 {
 }

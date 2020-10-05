@@ -6,6 +6,11 @@
 
 #include "gl.hpp"
 
+#define TEXTURE_WIDTH 2048
+#define TEXTURE_HEIGHT 2048
+#define TEXTURE_N_COMPONENTS 4
+#define TEXTURE_SIZE (TEXTURE_WIDTH * TEXTURE_HEIGHT * TEXTURE_N_COMPONENTS)
+
 MemoryPool debug_pool("debug", MB_TO_B(4));
 global_variable uint32 global_oopses = 0;
 global_variable Array<std::thread> global_threads(
@@ -18,6 +23,7 @@ global_variable Array<std::thread> global_threads(
 #include "resource_manager.cpp"
 #include "font.cpp"
 #include "shader.cpp"
+#include "persistent_pbo.cpp"
 #include "texture_set_asset.cpp"
 #include "camera.cpp"
 #include "memory.cpp"
@@ -340,7 +346,8 @@ void render_scene(
 ) {
   state->drawable_component_manager.draw_all(
     memory,
-    state->spatial_component_manager,
+    &state->persistent_pbo,
+    &state->spatial_component_manager,
     render_pass, render_mode, state->standard_depth_shader_asset
   );
 
@@ -742,6 +749,10 @@ int main() {
 
   init_shadow_buffers(&memory, state);
   scene_init_screenquad(&memory, state);
+
+  // NOTE: For some reason, this has to happen after `init_shadow_buffers()`
+  // or we get a lot of lag at the beginning...?
+  state->persistent_pbo.allocate_pbo();
 
 #if 0
   memory.asset_memory_pool.print();

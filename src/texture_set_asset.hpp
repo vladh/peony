@@ -6,8 +6,10 @@ public:
   bool32 is_static = false;
   bool32 is_image_data_preloaded = false;
   bool32 is_loading_done = false;
+  bool32 should_use_normal_map = false;
 
   // Loaded texture maps.
+  uint32 material_texture = 0;
   uint32 albedo_texture = 0;
   uint32 metallic_texture = 0;
   uint32 roughness_texture = 0;
@@ -45,6 +47,11 @@ public:
   uint32 roughness_pbo;
   uint32 ao_pbo;
   uint32 normal_pbo;
+  uint16 albedo_pbo_idx;
+  uint16 metallic_pbo_idx;
+  uint16 roughness_pbo_idx;
+  uint16 ao_pbo_idx;
+  uint16 normal_pbo_idx;
   void *albedo_pbo_memory;
   void *metallic_pbo_memory;
   void *roughness_pbo_memory;
@@ -73,24 +80,30 @@ public:
     real32 ao_static
   );
   void preload_image_data();
-  void create_pbos();
-  void copy_textures_to_gpu();
-  void generate_textures_from_pbo();
+  void create_pbos(PersistentPbo *persistent_pbo);
+  void copy_textures_to_pbo(PersistentPbo *persistent_pbo);
+  void generate_textures_from_pbo(PersistentPbo *persistent_pbo);
 #if 0
   void load_textures_from_preloaded_data();
 #endif
 
 private:
+#if 0
   void* create_pbo_and_get_pointer(
     uint32 *pbo, int32 width, int32 height, int32 n_components
   );
-  void copy_texture_to_gpu(
-    unsigned char *data, void *pbo_memory,
+#endif
+#if 0
+  void copy_texture_to_pbo(
+    uint16 pbo_idx, unsigned char *data,
     int32 width, int32 height, int32 n_components
   );
+#endif
+#if 0
   uint32 generate_texture_from_pbo(
     uint32 *pbo, int32 width, int32 height, int32 n_components
   );
+#endif
 };
 
 #endif

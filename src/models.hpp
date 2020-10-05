@@ -52,8 +52,8 @@ public:
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_preload_in_progress = false;
   bool32 is_texture_pbo_creation_done = false;
-  bool32 is_texture_copying_to_gpu_done = false;
-  bool32 is_texture_copying_to_gpu_in_progress = false;
+  bool32 is_texture_copying_to_pbo_done = false;
+  bool32 is_texture_copying_to_pbo_in_progress = false;
   bool32 is_mesh_data_loading_done = false;
   bool32 is_shader_setting_done = false;
   bool32 is_texture_preload_done = false;
@@ -91,11 +91,12 @@ public:
     TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
   );
   void draw(
-    Memory *memory, glm::mat4 *model_matrix
+    Memory *memory, PersistentPbo *persistent_pbo,
+    glm::mat4 *model_matrix
   );
   void draw_in_depth_mode(
-    Memory *memory, glm::mat4 *model_matrix,
-    ShaderAsset *standard_depth_shader_asset
+    Memory *memory, PersistentPbo *persistent_pbo,
+    glm::mat4 *model_matrix, ShaderAsset *standard_depth_shader_asset
   );
   void load(
     Memory *memory
@@ -138,10 +139,12 @@ private:
     Mesh *mesh
   );
   void prepare_for_draw(
-    Memory *memory
+    Memory *memory, PersistentPbo *persistent_pbo
   );
   void preload_texture_set_image_data();
-  void copy_texture_set_data_to_gpu();
+  void copy_texture_set_data_to_pbo(
+    PersistentPbo *persistent_pbo
+  );
 };
 
 #endif
