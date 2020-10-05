@@ -15,7 +15,7 @@ public:
   uint16 get_new_idx();
   void* get_offset_for_idx(uint16 idx);
   void* get_memory_for_idx(uint16 idx);
-  void PersistentPbo::allocate_pbo();
+  void allocate_pbo();
 
 private:
   uint16 next_idx;
