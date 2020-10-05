@@ -53,6 +53,7 @@
 #include "asset.hpp"
 #include "font.hpp"
 #include "shader.hpp"
+#include "persistent_pbo.hpp"
 #include "texture_set_asset.hpp"
 #include "models.hpp"
 #include "entity.hpp"

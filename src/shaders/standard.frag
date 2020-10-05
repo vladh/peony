@@ -1,8 +1,11 @@
+uniform sampler2DArray material_texture;
+#if 0
 uniform sampler2D albedo_texture;
 uniform sampler2D metallic_texture;
 uniform sampler2D roughness_texture;
 uniform sampler2D ao_texture;
 uniform sampler2D normal_texture;
+#endif
 
 uniform vec4 albedo_static;
 uniform float metallic_static;
@@ -36,7 +39,7 @@ vec3 grid_sampling_offsets[20] = vec3[] (
 // in the future, but since we're using both PBR and deferred lighting,
 // it would be a bit troublesome to integrate into the code.
 vec3 get_normal_from_map() {
-  vec3 tangent_normal = texture(normal_texture, fs_in.tex_coords).xyz * 2.0 - 1.0;
+  vec3 tangent_normal = texture(material_texture, vec3(fs_in.tex_coords, 4)).xyz * 2.0 - 1.0;
 
   vec3 Q1 = dFdx(fs_in.frag_position);
   vec3 Q2 = dFdy(fs_in.frag_position);
@@ -63,28 +66,28 @@ void main() {
 
   vec3 albedo;
   if (albedo_static.x < 0) {
-    g_albedo = texture(albedo_texture, fs_in.tex_coords);
+    g_albedo = texture(material_texture, vec3(fs_in.tex_coords, 0));
   } else {
     g_albedo = albedo_static;
   }
 
   float metallic;
   if (metallic_static < 0) {
-    metallic = texture(metallic_texture, fs_in.tex_coords).r;
+    metallic = texture(material_texture, vec3(fs_in.tex_coords, 1)).r;
   } else {
     metallic = metallic_static;
   }
 
   float roughness;
   if (roughness_static < 0) {
-    roughness = texture(roughness_texture, fs_in.tex_coords).r;
+    roughness = texture(material_texture, vec3(fs_in.tex_coords, 2)).r;
   } else {
     roughness = roughness_static;
   }
 
   float ao;
   if (ao_static < 0) {
-    ao = texture(ao_texture, fs_in.tex_coords).r;
+    ao = texture(material_texture, vec3(fs_in.tex_coords, 3)).r;
   } else {
     ao = ao_static;
   }
