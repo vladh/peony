@@ -522,20 +522,36 @@ void ModelAsset::prepare_for_draw(
     !this->is_texture_set_binding_done
   ) {
     log_info("%s: STEP 5 - Binding textures", this->name);
+
+    bool32 did_have_to_generate_or_bind_texture = false;
+
+    START_TIMER(generate_textures_from_pbo);
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-      if (mesh_template->texture_set_asset) {
+      if (
+        mesh_template->texture_set_asset &&
+        !mesh_template->texture_set_asset->have_textures_been_generated
+      ) {
         mesh_template->texture_set_asset->generate_textures_from_pbo(
           persistent_pbo
         );
         log_info("%s: generated", this->name);
+        did_have_to_generate_or_bind_texture = true;
+        break;
       }
     }
+    END_TIMER(generate_textures_from_pbo);
+
+    START_TIMER(bind_texture)
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-      if (mesh_template->texture_set_asset) {
+      if (
+        mesh_template->texture_set_asset &&
+        mesh_template->texture_set_asset->have_textures_been_generated &&
+        !mesh_template->texture_set_asset->have_textures_been_bound
+      ) {
         if (mesh_template->apply_to_all_meshes) {
           bind_texture(
             mesh_template->texture_set_asset
@@ -547,9 +563,16 @@ void ModelAsset::prepare_for_draw(
           );
         }
         log_info("%s: bound", this->name);
+        mesh_template->texture_set_asset->have_textures_been_bound = true;
+        did_have_to_generate_or_bind_texture = true;
+        break;
       }
     }
-    this->is_texture_set_binding_done = true;
+    END_TIMER(bind_texture);
+
+    if (!did_have_to_generate_or_bind_texture) {
+      this->is_texture_set_binding_done = true;
+    }
   }
 }
 

@@ -4,8 +4,9 @@
 class TextureSetAsset : public Asset {
 public:
   bool32 is_static = false;
-  bool32 is_image_data_preloaded = false;
-  bool32 is_loading_done = false;
+  bool32 have_textures_been_copied_to_pbo = false;
+  bool32 have_textures_been_generated = false;
+  bool32 have_textures_been_bound = false;
   bool32 should_use_normal_map = false;
 
   // Loaded texture maps.

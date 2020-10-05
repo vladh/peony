@@ -21,7 +21,7 @@ TextureSetAsset::TextureSetAsset(
   real32 ao_static
 ) {
   this->is_static = true;
-  this->is_loading_done = true;
+  this->have_textures_been_generated = true;
   this->albedo_static = albedo_static;
   this->metallic_static = metallic_static;
   this->roughness_static = roughness_static;
@@ -33,7 +33,7 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
   if (this->is_static) {
     return;
   }
-  if (this->is_loading_done) {
+  if (this->have_textures_been_generated) {
     log_warning("Tried to generate textures but they've already been generated.");
   }
 
@@ -90,7 +90,7 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
 
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
-  this->is_loading_done = true;
+  this->have_textures_been_generated = true;
 }
 
 
@@ -98,7 +98,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   if (this->is_static) {
     return;
   }
-  if (this->is_image_data_preloaded) {
+  if (this->have_textures_been_copied_to_pbo) {
     log_warning("Trying to load already loaded TextureSetAsset.");
     return;
   }
@@ -177,5 +177,5 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 
   this->mutex.unlock();
 
-  this->is_image_data_preloaded = true;
+  this->have_textures_been_copied_to_pbo = true;
 }
