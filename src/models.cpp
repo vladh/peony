@@ -618,7 +618,7 @@ void ModelAsset::draw(
       shader_asset->set_mat4("mesh_transform", &mesh->transform);
     }
 
-    START_ALERT_TIMER(gl_draw, 1);
+    START_ALERT_TIMER(gl_draw);
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
       glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
