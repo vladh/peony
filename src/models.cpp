@@ -618,12 +618,14 @@ void ModelAsset::draw(
       shader_asset->set_mat4("mesh_transform", &mesh->transform);
     }
 
+    START_ALERT_TIMER(gl_draw, 1);
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
       glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
     } else {
       glDrawArrays(mesh->mode, 0, mesh->n_vertices);
     }
+    END_ALERT_TIMER(gl_draw, 1);
     glBindVertexArray(0);
   }
 }

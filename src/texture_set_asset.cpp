@@ -37,7 +37,14 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
     log_warning("Tried to generate textures but they've already been generated.");
   }
 
+  START_TIMER(gl_gen_textures);
+#if 0
   glGenTextures(1, &this->material_texture);
+#endif
+#if 1
+  this->material_texture = global_texture_pool[global_texture_pool_next_idx++];
+#endif
+  END_TIMER(gl_gen_textures);
   glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
 
   glTexImage3D(

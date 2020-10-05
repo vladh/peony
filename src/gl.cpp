@@ -6,16 +6,15 @@
 
 #include "gl.hpp"
 
-#define TEXTURE_WIDTH 2048
-#define TEXTURE_HEIGHT 2048
-#define TEXTURE_N_COMPONENTS 4
-#define TEXTURE_SIZE (TEXTURE_WIDTH * TEXTURE_HEIGHT * TEXTURE_N_COMPONENTS)
-
 MemoryPool debug_pool("debug", MB_TO_B(4));
 global_variable uint32 global_oopses = 0;
 global_variable Array<std::thread> global_threads(
   &debug_pool, 64, "threads"
 );
+
+global_variable uint32 global_texture_pool[64];
+global_variable uint32 global_texture_pool_size = 64;
+global_variable uint32 global_texture_pool_next_idx = 0;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -749,6 +748,8 @@ int main() {
 
   init_shadow_buffers(&memory, state);
   scene_init_screenquad(&memory, state);
+
+  glGenTextures(global_texture_pool_size, global_texture_pool);
 
   // NOTE: For some reason, this has to happen after `init_shadow_buffers()`
   // or we get a lot of lag at the beginning...?

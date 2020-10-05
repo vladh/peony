@@ -15,8 +15,6 @@ void PersistentPbo::allocate_pbo() {
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, this->pbo);
   GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
   glBufferStorage(GL_PIXEL_UNPACK_BUFFER, this->total_size, 0, flags);
-  /* glBufferData(GL_PIXEL_UNPACK_BUFFER, TEXTURE_SIZE * 32, 0, GL_STREAM_DRAW); */
-  /* global_pbo_memory = glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY); */
   this->memory = glMapBufferRange(
     GL_PIXEL_UNPACK_BUFFER, 0, this->total_size, flags
   );
