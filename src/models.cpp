@@ -245,21 +245,17 @@ void ModelAsset::load(Memory *memory) {
 }
 
 
-void ModelAsset::preload_texture_set_image_data() {
+void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
     MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-    if (
-      mesh_template->texture_set_asset &&
-      !mesh_template->texture_set_asset->is_loading_done &&
-      !mesh_template->texture_set_asset->is_image_data_preloaded
-    ) {
-      mesh_template->texture_set_asset->preload_image_data();
+    if (mesh_template->texture_set_asset) {
+      mesh_template->texture_set_asset->copy_textures_to_pbo(persistent_pbo);
     }
   }
 
-  this->is_texture_preload_done = true;
-  this->is_texture_preload_in_progress = false;
+  this->is_texture_copying_to_pbo_done = true;
+  this->is_texture_copying_to_pbo_in_progress = false;
 }
 
 
@@ -455,17 +451,6 @@ void ModelAsset::bind_texture_for_node_idx(
 }
 
 
-void ModelAsset::copy_texture_set_data_to_pbo(PersistentPbo *persistent_pbo) {
-  for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
-    MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
-    if (mesh_template->texture_set_asset) {
-      mesh_template->texture_set_asset->copy_textures_to_pbo(persistent_pbo);
-    }
-  }
-  this->is_texture_copying_to_pbo_done = true;
-}
-
-
 void ModelAsset::prepare_for_draw(
   Memory *memory, PersistentPbo *persistent_pbo
 ) {
@@ -519,33 +504,24 @@ void ModelAsset::prepare_for_draw(
     this->is_shader_setting_done = true;
   }
 
-  if (!this->is_texture_preload_in_progress && !this->is_texture_preload_done) {
-    log_info("%s: STEP 4 - Preloading textures", this->name);
-    this->is_texture_preload_in_progress = true;
-    *global_threads.push() = std::thread(&ModelAsset::preload_texture_set_image_data, this);
-    /* preload_texture_set_image_data(); */
-  }
-
   if (
-    this->is_texture_preload_done &&
     !this->is_texture_copying_to_pbo_done &&
     !this->is_texture_copying_to_pbo_in_progress
   ) {
+    log_info("%s: STEP 4 - Copying textures to PBO", this->name);
     this->is_texture_copying_to_pbo_in_progress = true;
-    log_info("%s: STEP 5 - Copying textures to GPU", this->name);
-    *global_threads.push() = std::thread(&ModelAsset::copy_texture_set_data_to_pbo, this, persistent_pbo);
-    /* copy_texture_set_data_to_pbo(persistent_pbo); */
+    *global_threads.push() = std::thread(&ModelAsset::copy_textures_to_pbo, this, persistent_pbo);
+    /* copy_textures_to_pbo(); */
   }
 
   if (
     this->is_mesh_data_loading_done &&
     this->is_vertex_buffer_setup_done &&
     this->is_shader_setting_done &&
-    this->is_texture_preload_done &&
     this->is_texture_copying_to_pbo_done &&
     !this->is_texture_set_binding_done
   ) {
-    log_info("%s: STEP 6 - Binding textures", this->name);
+    log_info("%s: STEP 5 - Binding textures", this->name);
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 

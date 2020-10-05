@@ -50,12 +50,10 @@ public:
   Array<TextureSetAsset> texture_sets;
   Array<MeshShaderTextureTemplate> mesh_templates;
   bool32 is_mesh_data_loading_in_progress = false;
-  bool32 is_texture_preload_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
   bool32 is_texture_copying_to_pbo_in_progress = false;
   bool32 is_mesh_data_loading_done = false;
   bool32 is_shader_setting_done = false;
-  bool32 is_texture_preload_done = false;
   bool32 is_texture_set_binding_done = false;
   bool32 is_vertex_buffer_setup_done = false;
   std::mutex mutex;
@@ -140,8 +138,7 @@ private:
   void prepare_for_draw(
     Memory *memory, PersistentPbo *persistent_pbo
   );
-  void preload_texture_set_image_data();
-  void copy_texture_set_data_to_pbo(
+  void copy_textures_to_pbo(
     PersistentPbo *persistent_pbo
   );
 };
