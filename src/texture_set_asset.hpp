@@ -42,21 +42,11 @@ public:
   int32 roughness_data_n_components;
   int32 ao_data_n_components;
   int32 normal_data_n_components;
-  uint32 albedo_pbo;
-  uint32 metallic_pbo;
-  uint32 roughness_pbo;
-  uint32 ao_pbo;
-  uint32 normal_pbo;
   uint16 albedo_pbo_idx;
   uint16 metallic_pbo_idx;
   uint16 roughness_pbo_idx;
   uint16 ao_pbo_idx;
   uint16 normal_pbo_idx;
-  void *albedo_pbo_memory;
-  void *metallic_pbo_memory;
-  void *roughness_pbo_memory;
-  void *ao_pbo_memory;
-  void *normal_pbo_memory;
 
   // Hardcoded values for when we can't load a texture.
   glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
