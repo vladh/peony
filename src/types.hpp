@@ -61,7 +61,7 @@ typedef real64 f64;
   std::chrono::duration<real64> debug_timerduration_##name = std::chrono::steady_clock::now() - debug_timerstart_##name; \
   log_info("Timer %s took %f", #name, debug_timerduration_##name);
 
-#define START_ALERT_TIMER(name, max_duration_ms) \
+#define START_ALERT_TIMER(name) \
   std::chrono::steady_clock::time_point debug_timerstart_##name = std::chrono::steady_clock::now();
 
 #define END_ALERT_TIMER(name, max_duration_ms) \
