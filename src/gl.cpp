@@ -1,7 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define USE_OPENGL_4 false
-#define USE_OPENGL_DEBUG false
+#define USE_OPENGL_DEBUG true
 #define USE_1440P true
 
 #include "gl.hpp"
@@ -762,15 +762,26 @@ int main() {
   glGenTextures(global_texture_pool_size, global_texture_pool);
   for (uint32 idx = 0; idx < global_texture_pool_size; idx++) {
     glBindTexture(GL_TEXTURE_2D_ARRAY, global_texture_pool[idx]);
-    glTexImage3D(
-      GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,
-      state->persistent_pbo.width, state->persistent_pbo.height,
-      5, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0
-    );
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 1);
+#if 1
+    for (uint32 level = 0; level <= 1; level++) {
+      glTexImage3D(
+        GL_TEXTURE_2D_ARRAY, level, GL_RGBA,
+        (uint32)(state->persistent_pbo.width / pow(2, level)),
+        (uint32)(state->persistent_pbo.height / pow(2, level)),
+        5, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0
+      );
+    }
+#else
+    glTexStorage3D(
+      GL_TEXTURE_2D_ARRAY, 1, GL_RGBA,
+      state->persistent_pbo.width, state->persistent_pbo.height, 5
+    );
+#endif
   }
   END_TIMER(allocate_textures);
   log_info("Done allocating textures");
