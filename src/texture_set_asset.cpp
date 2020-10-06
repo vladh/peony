@@ -45,19 +45,9 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
 #endif
   glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
 
-  glTexImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,
-    persistent_pbo->width, persistent_pbo->height,
-    5, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0
-  );
-
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
 
+  // NOTE: These are pre-allocated on startup.
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0,
     this->albedo_data_width, this->albedo_data_height,
