@@ -2,10 +2,10 @@ Camera::Camera(CameraType new_type) {
   this->type = new_type;
   this->yaw = -45.0f;
   this->pitch = 0.0f;
-  this->position = glm::vec3(-10.0f, 3.0f, 10.0f);
+  this->position = glm::vec3(-7.0f, 3.0f, 7.0f);
   this->front = glm::vec3(0.0f, 0.0f, 0.0f);
   this->up = glm::vec3(0.0f, 1.0f, 0.0f);
-  this->speed = 0.05f;
+  this->speed = 0.005f;
   this->fov = 90.0f;
   this->near_clip_dist = 0.1f;
   this->far_clip_dist = 100.0f;
