@@ -12,8 +12,8 @@ global_variable Array<std::thread> global_threads(
   &debug_pool, 64, "threads"
 );
 
-global_variable uint32 global_texture_pool[64];
-global_variable uint32 global_texture_pool_size = 64;
+global_variable uint32 global_texture_pool[20];
+global_variable uint32 global_texture_pool_size = 20;
 global_variable uint32 global_texture_pool_next_idx = 0;
 
 #include "log.cpp"
@@ -753,11 +753,27 @@ int main() {
   init_shadow_buffers(&memory, state);
   scene_init_screenquad(&memory, state);
 
-  glGenTextures(global_texture_pool_size, global_texture_pool);
-
   // NOTE: For some reason, this has to happen after `init_shadow_buffers()`
   // or we get a lot of lag at the beginning...?
   state->persistent_pbo.allocate_pbo();
+
+  log_info("Allocating textures");
+  START_TIMER(allocate_textures);
+  glGenTextures(global_texture_pool_size, global_texture_pool);
+  for (uint32 idx = 0; idx < global_texture_pool_size; idx++) {
+    glBindTexture(GL_TEXTURE_2D_ARRAY, global_texture_pool[idx]);
+    glTexImage3D(
+      GL_TEXTURE_2D_ARRAY, 0, GL_RGBA,
+      state->persistent_pbo.width, state->persistent_pbo.height,
+      5, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0
+    );
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  }
+  END_TIMER(allocate_textures);
+  log_info("Done allocating textures");
 
 #if 0
   memory.asset_memory_pool.print();

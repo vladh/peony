@@ -524,13 +524,13 @@ void ModelAsset::prepare_for_draw(
     if (should_try_to_copy_textures) {
       this->is_texture_copying_to_pbo_in_progress = true;
       *global_threads.push() = std::thread(&ModelAsset::copy_textures_to_pbo, this, persistent_pbo);
+      /* copy_textures_to_pbo(persistent_pbo); */
       log_info("");
       log_info("-> NEW THREAD! <-");
       log_info("");
     } else {
       this->is_texture_copying_to_pbo_done = true;
     }
-    /* copy_textures_to_pbo(); */
   }
 
   if (
