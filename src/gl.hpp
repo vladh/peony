@@ -48,6 +48,7 @@
 #include "util.hpp"
 #include "pack.hpp"
 #include "render.hpp"
+#include "queue.hpp"
 #include "array.hpp"
 #include "resource_manager.hpp"
 #include "asset.hpp"

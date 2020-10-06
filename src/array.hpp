@@ -5,7 +5,6 @@ template <typename T>
 class Array {
 public:
   Array(MemoryPool *pool, uint32 new_max_size, const char *debug_name) {
-    this->size = 0;
     this->max_size = new_max_size;
     this->items = (T*)pool->push(sizeof(T) * this->max_size, debug_name);
   }
@@ -18,13 +17,15 @@ public:
 
   T* push() {
     assert(this->size < this->max_size);
-    T* new_item = this->items + this->size++;
-    return new_item;
+    uint32 new_idx = this->size;
+    T* new_slot = this->items + new_idx;
+    this->size++;
+    return new_slot;
   }
 
   T push(T new_item) {
-    assert(this->size < this->max_size);
-    this->items[this->size++] = new_item;
+    T* new_slot = push();
+    *new_slot = new_item;
     return new_item;
   }
 
@@ -45,9 +46,9 @@ public:
   }
 
 private:
-  T *items;
-  uint32 size;
-  uint32 max_size;
+  T *items = nullptr;
+  uint32 size = 0;
+  uint32 max_size = 0;
 };
 
 #endif
