@@ -49,6 +49,7 @@ typedef real64 f64;
 #define B_TO_GB(value) (B_TO_MB(value) / 1024ULL)
 #define B_TO_TB(value) (B_TO_GB(value) / 1024ULL)
 #define LEN(x) (sizeof(x) / sizeof((x)[0]))
+// NOTE: This is vulnerable to double evaluation. Be aware or fix.
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
