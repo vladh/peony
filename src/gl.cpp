@@ -15,6 +15,7 @@ global_variable Array<std::thread> global_threads(
 global_variable uint32 global_texture_pool[20];
 global_variable uint32 global_texture_pool_size = 20;
 global_variable uint32 global_texture_pool_next_idx = 0;
+global_variable uint32 global_texture_mipmap_max = 4;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -761,27 +762,17 @@ int main() {
   START_TIMER(allocate_textures);
   glGenTextures(global_texture_pool_size, global_texture_pool);
   for (uint32 idx = 0; idx < global_texture_pool_size; idx++) {
+    log_info("Allocating texture %d with max level %d", idx, global_texture_mipmap_max);
     glBindTexture(GL_TEXTURE_2D_ARRAY, global_texture_pool[idx]);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, 1);
-#if 1
-    for (uint32 level = 0; level <= 1; level++) {
-      glTexImage3D(
-        GL_TEXTURE_2D_ARRAY, level, GL_RGBA,
-        (uint32)(state->persistent_pbo.width / pow(2, level)),
-        (uint32)(state->persistent_pbo.height / pow(2, level)),
-        5, 0, GL_BGRA, GL_UNSIGNED_BYTE, 0
-      );
-    }
-#else
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, global_texture_mipmap_max);
     glTexStorage3D(
-      GL_TEXTURE_2D_ARRAY, 1, GL_RGBA,
+      GL_TEXTURE_2D_ARRAY, global_texture_mipmap_max + 1, GL_RGBA8,
       state->persistent_pbo.width, state->persistent_pbo.height, 5
     );
-#endif
   }
   END_TIMER(allocate_textures);
   log_info("Done allocating textures");

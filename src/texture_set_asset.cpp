@@ -83,9 +83,7 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
-#if 1
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-#endif
 
   this->have_textures_been_generated = true;
 }
