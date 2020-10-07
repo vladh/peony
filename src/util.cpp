@@ -165,3 +165,26 @@ glm::mat4 Util::aimatrix4x4_to_glm(aiMatrix4x4* from) {
 
   return to;
 }
+
+
+void Util::print_texture_internalformat_info(GLenum internal_format) {
+  GLint preferred_format;
+  GLint optimal_image_format;
+  GLint optimal_image_type;
+
+  glGetInternalformativ(
+    GL_TEXTURE_2D, internal_format, GL_INTERNALFORMAT_PREFERRED, 1, &preferred_format
+  );
+  glGetInternalformativ(
+    GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_FORMAT, 1, &optimal_image_format
+  );
+  glGetInternalformativ(
+    GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_TYPE, 1, &optimal_image_type
+  );
+
+  log_info("internal format: %s", Util::stringify_glenum(internal_format));
+  log_info("preferred format: %s", Util::stringify_glenum(preferred_format));
+  log_info("optimal image format: %s", Util::stringify_glenum(optimal_image_format));
+  log_info("optimal image type: %s", Util::stringify_glenum(optimal_image_type));
+  log_newline();
+}

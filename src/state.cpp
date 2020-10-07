@@ -2,6 +2,7 @@ State::State(
   Memory *memory,
   WindowInfo window_info
 ) :
+  should_stop(false),
   window_info(window_info),
 
   camera_main(CAMERA_PERSPECTIVE),
@@ -75,6 +76,11 @@ State::State(
     )
   ),
   persistent_pbo(15, 2048, 2048, 4),
-  texture_name_pool(memory, 64, 2048, 2048, 5, 4)
+  texture_name_pool(memory, 64, 2048, 2048, 5, 4),
+  task_queue(
+    Queue<Task>(
+      &memory->entity_memory_pool, 128, "task_queue"
+    )
+  )
 {
 }

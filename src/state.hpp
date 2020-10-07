@@ -10,6 +10,7 @@ struct WindowInfo {
 
 class State {
 public:
+  bool32 should_stop = false;
   WindowInfo window_info;
 
   Camera camera_main;
@@ -44,6 +45,7 @@ public:
 
   PersistentPbo persistent_pbo;
   TextureNamePool texture_name_pool;
+  Queue<Task> task_queue;
 
   ShaderAsset *standard_depth_shader_asset;
 

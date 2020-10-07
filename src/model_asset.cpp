@@ -454,13 +454,13 @@ void ModelAsset::bind_texture_for_node_idx(
 void ModelAsset::prepare_for_draw(
   Memory *memory,
   PersistentPbo *persistent_pbo,
-  TextureNamePool *texture_name_pool
+  TextureNamePool *texture_name_pool,
+  Queue<Task> *task_queue
 ) {
   // Step 1: Load mesh data. This is done on a separate thread.
   if (!this->is_mesh_data_loading_in_progress && !this->is_mesh_data_loading_done) {
     this->is_mesh_data_loading_in_progress = true;
-    *global_threads.push() = std::thread(&ModelAsset::load, this, memory);
-    /* load(memory); */
+    task_queue->push({TASKTYPE_LOAD_MODEL, this, nullptr, memory});
   }
 
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
@@ -470,7 +470,6 @@ void ModelAsset::prepare_for_draw(
       setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
     }
     this->is_vertex_buffer_setup_done = true;
-    log_info("...done");
   }
 
   // Step 3: Once the mesh data is loaded, bind shaders for their respective meshes.
@@ -509,8 +508,7 @@ void ModelAsset::prepare_for_draw(
 
     if (should_try_to_copy_textures) {
       this->is_texture_copying_to_pbo_in_progress = true;
-      *global_threads.push() = std::thread(&ModelAsset::copy_textures_to_pbo, this, persistent_pbo);
-      /* copy_textures_to_pbo(persistent_pbo); */
+      task_queue->push({TASKTYPE_COPY_TEXTURES_TO_PBO, this, persistent_pbo, nullptr});
     } else {
       this->is_texture_copying_to_pbo_done = true;
     }
@@ -525,6 +523,8 @@ void ModelAsset::prepare_for_draw(
     this->is_texture_copying_to_pbo_done &&
     !this->is_texture_set_binding_done
   ) {
+    START_TIMER(copy_pbo_to_texture_and_bind);
+
     bool32 did_have_to_generate_or_bind_texture = false;
 
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
@@ -569,6 +569,8 @@ void ModelAsset::prepare_for_draw(
     if (!did_have_to_generate_or_bind_texture) {
       this->is_texture_set_binding_done = true;
     }
+
+    END_TIMER(copy_pbo_to_texture_and_bind);
   }
 }
 
@@ -577,10 +579,11 @@ void ModelAsset::draw(
   Memory *memory,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
+  Queue<Task> *task_queue,
   glm::mat4 *model_matrix
 ) {
   prepare_for_draw(
-    memory, persistent_pbo, texture_name_pool
+    memory, persistent_pbo, texture_name_pool, task_queue
   );
 
   if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
@@ -638,11 +641,12 @@ void ModelAsset::draw_in_depth_mode(
   Memory *memory,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
+  Queue<Task> *task_queue,
   glm::mat4 *model_matrix,
   ShaderAsset *standard_depth_shader_asset
 ) {
   prepare_for_draw(
-    memory, persistent_pbo, texture_name_pool
+    memory, persistent_pbo, texture_name_pool, task_queue
   );
 
   if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {

@@ -46,6 +46,7 @@
 #include "log.hpp"
 #include "memory.hpp"
 #include "util.hpp"
+#include "task.hpp"
 #include "pack.hpp"
 #include "render.hpp"
 #include "queue.hpp"
