@@ -36,6 +36,7 @@ void DrawableComponentManager::draw_all(
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
   SpatialComponentManager *spatial_component_manager,
+  Queue<Task> *task_queue,
   RenderPass render_pass, RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset
 ) {
@@ -62,6 +63,7 @@ void DrawableComponentManager::draw_all(
         memory,
         persistent_pbo,
         texture_name_pool,
+        task_queue,
         &model_matrix,
         standard_depth_shader_asset
       );
@@ -70,6 +72,7 @@ void DrawableComponentManager::draw_all(
         memory,
         persistent_pbo,
         texture_name_pool,
+        task_queue,
         spatial ? &model_matrix : nullptr
       );
     }

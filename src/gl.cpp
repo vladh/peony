@@ -1,20 +1,18 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #define USE_OPENGL_4 false
-#define USE_OPENGL_DEBUG true
+#define USE_OPENGL_DEBUG false
 #define USE_1440P true
+#define USE_TIMERS true
 
 #include "gl.hpp"
 
-MemoryPool debug_pool("debug", MB_TO_B(4));
 global_variable uint32 global_oopses = 0;
-global_variable Array<std::thread> global_threads(
-  &debug_pool, 64, "threads"
-);
 
 #include "log.cpp"
 #include "pack.cpp"
 #include "util.cpp"
+#include "task.cpp"
 #include "resource_manager.cpp"
 #include "texture_name_pool.cpp"
 #include "font_asset.cpp"
@@ -340,15 +338,16 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 void render_scene(
   Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
 ) {
-  START_TIMER(draw_all);
+  /* START_TIMER(draw_all); */
   state->drawable_component_manager.draw_all(
     memory,
     &state->persistent_pbo,
     &state->texture_name_pool,
     &state->spatial_component_manager,
+    &state->task_queue,
     render_pass, render_mode, state->standard_depth_shader_asset
   );
-  END_TIMER_MIN(draw_all, 1);
+  /* END_TIMER_MIN(draw_all, 1); */
 
   if (render_pass == RENDERPASS_FORWARD) {
     glEnable(GL_BLEND);
@@ -373,120 +372,6 @@ void render_scene(
     );
     glDisable(GL_BLEND);
   }
-}
-
-
-void scene_update(Memory *memory, State *state) {
-  // TODO: Eventually move this to some kind of ActorComponent system.
-  // We should rather be iterating through all SpatialComponents rather
-  // than looking everything up.
-
-  // Lights
-  {
-    SpatialComponent *spatial = state->spatial_component_manager.get(*state->lights.get(0));
-
-    real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-    real64 x_term = 0.0f + cos(time_term) * 8.0f;
-    real64 z_term = 0.0f + sin(time_term) * 8.0f;
-
-    spatial->position.x = (real32)x_term;
-    spatial->position.z = (real32)z_term;
-  }
-
-  // Geese
-  {
-    real32 spin_deg_per_t = 90.0f;
-    for (uint32 idx = 0; idx < state->geese.get_size(); idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
-      spatial->rotation *= glm::angleAxis(
-        glm::radians(spin_deg_per_t * (real32)state->dt),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-      );
-    }
-  }
-
-  // Spheres
-  {
-    real32 spin_deg_per_t = 45.0f;
-    for (uint32 idx = 0; idx < state->spheres.get_size(); idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(*state->spheres.get(idx));
-      spatial->rotation *= glm::angleAxis(
-        glm::radians(spin_deg_per_t * (real32)state->dt),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-      );
-    }
-  }
-}
-
-
-void update_and_render(Memory *memory, State *state) {
-  scene_update(memory, state);
-  state->camera_active->update_matrices(
-    state->window_info.width, state->window_info.height
-  );
-  copy_scene_data_to_ubo(memory, state);
-
-  // Clear main framebuffer
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // Render shadow map
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(*state->lights.get(idx));
-    Camera::create_shadow_transforms(
-      state->shadow_transforms, spatial_component->position,
-      state->shadow_map_width, state->shadow_map_height,
-      state->shadow_near_clip_dist, state->shadow_far_clip_dist
-    );
-
-    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
-    glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
-
-    glClear(GL_DEPTH_BUFFER_BIT);
-
-    state->shadow_light_idx = idx;
-    copy_scene_data_to_ubo(memory, state);
-    render_scene(
-      memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
-    );
-
-    glViewport(
-      0, 0, state->window_info.width, state->window_info.height
-    );
-  }
-
-  // Geometry pass
-  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
-
-  // Copy depth from geometry pass to lighting pass
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glBlitFramebuffer(
-    0, 0, state->window_info.width, state->window_info.height,
-    0, 0, state->window_info.width, state->window_info.height,
-    GL_DEPTH_BUFFER_BIT, GL_NEAREST
-  );
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  // Lighting pass
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDisable(GL_DEPTH_TEST);
-  glClearColor(
-    state->background_color.r, state->background_color.g,
-    state->background_color.b, state->background_color.a
-  );
-  glClear(GL_COLOR_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
-  glEnable(GL_DEPTH_TEST);
-
-  // Forward pass
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
 }
 
 
@@ -618,52 +503,6 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
 }
 
 
-void main_loop(Memory *memory, State *state) {
-  std::chrono::steady_clock::time_point game_start = std::chrono::steady_clock::now();
-  std::chrono::steady_clock::time_point second_start = game_start;
-  std::chrono::steady_clock::time_point frame_start = game_start;
-  std::chrono::steady_clock::time_point last_frame_start = game_start;
-  std::chrono::nanoseconds frame_duration = std::chrono::nanoseconds(6060606);
-  uint32 n_frames_this_second = 0;
-
-  while (!glfwWindowShouldClose(state->window_info.window)) {
-    n_frames_this_second++;
-    last_frame_start = frame_start;
-    frame_start = std::chrono::steady_clock::now();
-    std::chrono::duration<real64> time_since_second_start = frame_start - second_start;
-    std::chrono::steady_clock::time_point frame_end_target_time = frame_start + frame_duration;
-
-    std::chrono::duration<real64> time_since_last_frame = frame_start - last_frame_start;
-    std::chrono::duration<real64> time_since_game_start = frame_start - game_start;
-    state->t = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_game_start).count();
-    state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_last_frame).count();
-
-    if (time_since_second_start >= std::chrono::seconds(1)) {
-      second_start = frame_start;
-      state->last_fps = n_frames_this_second;
-      n_frames_this_second = 0;
-    }
-
-    glfwPollEvents();
-    process_input_continuous(state->window_info.window, state);
-    update_and_render(memory, state);
-
-    if (state->should_limit_fps) {
-      std::this_thread::sleep_until(frame_end_target_time);
-    }
-
-    START_TIMER(swap_buffers);
-    glfwSwapBuffers(state->window_info.window);
-    END_TIMER_MIN(swap_buffers, 5);
-  }
-}
-
-
-void destroy_window() {
-  glfwTerminate();
-}
-
-
 void scene_init_screenquad(Memory *memory, State *state) {
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
   ShaderAsset *shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -700,30 +539,191 @@ void scene_init_screenquad(Memory *memory, State *state) {
 }
 
 
-void print_texture_internalformat_info(GLenum internal_format) {
-  GLint preferred_format;
-  GLint optimal_image_format;
-  GLint optimal_image_type;
+void scene_update(Memory *memory, State *state) {
+  // TODO: Eventually move this to some kind of ActorComponent system.
+  // We should rather be iterating through all SpatialComponents rather
+  // than looking everything up.
 
-  glGetInternalformativ(
-    GL_TEXTURE_2D, internal_format, GL_INTERNALFORMAT_PREFERRED, 1, &preferred_format
-  );
-  glGetInternalformativ(
-    GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_FORMAT, 1, &optimal_image_format
-  );
-  glGetInternalformativ(
-    GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_TYPE, 1, &optimal_image_type
-  );
+  // Lights
+  {
+    SpatialComponent *spatial = state->spatial_component_manager.get(*state->lights.get(0));
 
-  log_info("internal format: %s", Util::stringify_glenum(internal_format));
-  log_info("preferred format: %s", Util::stringify_glenum(preferred_format));
-  log_info("optimal image format: %s", Util::stringify_glenum(optimal_image_format));
-  log_info("optimal image type: %s", Util::stringify_glenum(optimal_image_type));
-  log_newline();
+    real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+    real64 x_term = 0.0f + cos(time_term) * 8.0f;
+    real64 z_term = 0.0f + sin(time_term) * 8.0f;
+
+    spatial->position.x = (real32)x_term;
+    spatial->position.z = (real32)z_term;
+  }
+
+  // Geese
+  {
+    real32 spin_deg_per_t = 90.0f;
+    for (uint32 idx = 0; idx < state->geese.get_size(); idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
+      spatial->rotation *= glm::angleAxis(
+        glm::radians(spin_deg_per_t * (real32)state->dt),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
+  }
+
+  // Spheres
+  {
+    real32 spin_deg_per_t = 45.0f;
+    for (uint32 idx = 0; idx < state->spheres.get_size(); idx++) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->spheres.get(idx));
+      spatial->rotation *= glm::angleAxis(
+        glm::radians(spin_deg_per_t * (real32)state->dt),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
+  }
+}
+
+
+void update_and_render(Memory *memory, State *state) {
+  scene_update(memory, state);
+  state->camera_active->update_matrices(
+    state->window_info.width, state->window_info.height
+  );
+  copy_scene_data_to_ubo(memory, state);
+
+  // Clear main framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // Render shadow map
+  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+    SpatialComponent *spatial_component =
+      state->spatial_component_manager.get(*state->lights.get(idx));
+    Camera::create_shadow_transforms(
+      state->shadow_transforms, spatial_component->position,
+      state->shadow_map_width, state->shadow_map_height,
+      state->shadow_near_clip_dist, state->shadow_far_clip_dist
+    );
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
+    glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    state->shadow_light_idx = idx;
+    copy_scene_data_to_ubo(memory, state);
+    render_scene(
+      memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
+    );
+
+    glViewport(
+      0, 0, state->window_info.width, state->window_info.height
+    );
+  }
+
+  // Geometry pass
+  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
+
+  // Copy depth from geometry pass to lighting pass
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(
+    0, 0, state->window_info.width, state->window_info.height,
+    0, 0, state->window_info.width, state->window_info.height,
+    GL_DEPTH_BUFFER_BIT, GL_NEAREST
+  );
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  // Lighting pass
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDisable(GL_DEPTH_TEST);
+  glClearColor(
+    state->background_color.r, state->background_color.g,
+    state->background_color.b, state->background_color.a
+  );
+  glClear(GL_COLOR_BUFFER_BIT);
+  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
+  glEnable(GL_DEPTH_TEST);
+
+  // Forward pass
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
+}
+
+
+void run_main_loop(Memory *memory, State *state) {
+  std::chrono::steady_clock::time_point game_start = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point second_start = game_start;
+  std::chrono::steady_clock::time_point frame_start = game_start;
+  std::chrono::steady_clock::time_point last_frame_start = game_start;
+  std::chrono::nanoseconds frame_duration = std::chrono::nanoseconds(6060606);
+  uint32 n_frames_this_second = 0;
+
+  while (!state->should_stop) {
+    n_frames_this_second++;
+    last_frame_start = frame_start;
+    frame_start = std::chrono::steady_clock::now();
+    std::chrono::duration<real64> time_since_second_start = frame_start - second_start;
+    std::chrono::steady_clock::time_point frame_end_target_time = frame_start + frame_duration;
+
+    std::chrono::duration<real64> time_since_last_frame = frame_start - last_frame_start;
+    std::chrono::duration<real64> time_since_game_start = frame_start - game_start;
+    state->t = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_game_start).count();
+    state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_last_frame).count();
+
+    if (time_since_second_start >= std::chrono::seconds(1)) {
+      second_start = frame_start;
+      state->last_fps = n_frames_this_second;
+      n_frames_this_second = 0;
+    }
+
+    glfwPollEvents();
+    process_input_continuous(state->window_info.window, state);
+    update_and_render(memory, state);
+
+    if (state->should_limit_fps) {
+      std::this_thread::sleep_until(frame_end_target_time);
+    }
+
+    START_TIMER(swap_buffers);
+    glfwSwapBuffers(state->window_info.window);
+    END_TIMER_MIN(swap_buffers, 5);
+
+    if (glfwWindowShouldClose(state->window_info.window)) {
+      state->should_stop = true;
+    }
+  }
+}
+
+
+void destroy_window() {
+  glfwTerminate();
+}
+
+
+void run_loading_loop(std::mutex *mutex, Memory *memory, State *state) {
+  while (!state->should_stop) {
+    Task *task = nullptr;
+
+    mutex->lock();
+    if (state->task_queue.get_size() > 0) {
+      task = state->task_queue.pop();
+    }
+    mutex->unlock();
+
+    if (task) {
+      task->run();
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
 }
 
 
 int main() {
+  START_TIMER(init);
+
   srand((uint32)time(NULL));
   Memory memory;
   WindowInfo window_info;
@@ -735,9 +735,16 @@ int main() {
 
   State *state = new((State*)memory.state_memory) State(&memory, window_info);
 
-  print_texture_internalformat_info(GL_RGB8);
-  print_texture_internalformat_info(GL_RGBA8);
-  print_texture_internalformat_info(GL_SRGB8);
+  std::mutex loading_thread_mutex;
+  std::thread loading_thread_1 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
+  std::thread loading_thread_2 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
+  std::thread loading_thread_3 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
+
+#if 0
+  Util::print_texture_internalformat_info(GL_RGB8);
+  Util::print_texture_internalformat_info(GL_RGBA8);
+  Util::print_texture_internalformat_info(GL_SRGB8);
+#endif
 
   update_drawing_options(state, window_info.window);
   glfwSetWindowUserPointer(window_info.window, state);
@@ -765,7 +772,14 @@ int main() {
 #endif
   log_info("Cache line size: %dB", cacheline_get_size());
 
-  main_loop(&memory, state);
+  END_TIMER(init);
+
+  run_main_loop(&memory, state);
+
+  loading_thread_1.join();
+  loading_thread_2.join();
+  loading_thread_3.join();
+
   destroy_window();
   return 0;
 }

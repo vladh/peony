@@ -15,6 +15,7 @@ public:
     real32 *vertex_data, uint32 *index_data
   );
   static glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from);
+  static void Util::print_texture_internalformat_info(GLenum internal_format);
 };
 
 #endif

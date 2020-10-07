@@ -169,7 +169,6 @@ int32 ShaderAsset::get_uniform_location(const char *uniform_name) {
     }
   }
   if (uniform_idx == -1) {
-    log_error("Had to look up location for uniform: %s", uniform_name);
     GLint location = glGetUniformLocation(this->program, uniform_name);
     if (location != -1) {
       uniform_idx = n_intrinsic_uniforms;
