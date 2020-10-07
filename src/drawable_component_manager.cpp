@@ -34,6 +34,7 @@ DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
 void DrawableComponentManager::draw_all(
   Memory *memory,
   PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool,
   SpatialComponentManager *spatial_component_manager,
   RenderPass render_pass, RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset
@@ -58,12 +59,17 @@ void DrawableComponentManager::draw_all(
 
     if (render_mode == RENDERMODE_DEPTH) {
       drawable->model_asset->draw_in_depth_mode(
-        memory, persistent_pbo,
-        &model_matrix, standard_depth_shader_asset
+        memory,
+        persistent_pbo,
+        texture_name_pool,
+        &model_matrix,
+        standard_depth_shader_asset
       );
     } else {
       drawable->model_asset->draw(
-        memory, persistent_pbo,
+        memory,
+        persistent_pbo,
+        texture_name_pool,
         spatial ? &model_matrix : nullptr
       );
     }

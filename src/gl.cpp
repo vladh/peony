@@ -12,15 +12,11 @@ global_variable Array<std::thread> global_threads(
   &debug_pool, 64, "threads"
 );
 
-global_variable uint32 global_texture_pool[20];
-global_variable uint32 global_texture_pool_size = 20;
-global_variable uint32 global_texture_pool_next_idx = 0;
-global_variable uint32 global_texture_mipmap_max = 4;
-
 #include "log.cpp"
 #include "pack.cpp"
 #include "util.cpp"
 #include "resource_manager.cpp"
+#include "texture_name_pool.cpp"
 #include "font_asset.cpp"
 #include "shader_asset.cpp"
 #include "persistent_pbo.cpp"
@@ -348,6 +344,7 @@ void render_scene(
   state->drawable_component_manager.draw_all(
     memory,
     &state->persistent_pbo,
+    &state->texture_name_pool,
     &state->spatial_component_manager,
     render_pass, render_mode, state->standard_depth_shader_asset
   );
@@ -755,27 +752,11 @@ int main() {
   scene_init_screenquad(&memory, state);
 
   // NOTE: For some reason, this has to happen after `init_shadow_buffers()`
-  // or we get a lot of lag at the beginning...?
+  // and before `allocate_texture_names()` or we get a lot of lag at the
+  // beginning...?
   state->persistent_pbo.allocate_pbo();
 
-  log_info("Allocating textures");
-  START_TIMER(allocate_textures);
-  glGenTextures(global_texture_pool_size, global_texture_pool);
-  for (uint32 idx = 0; idx < global_texture_pool_size; idx++) {
-    log_info("Allocating texture %d with max level %d", idx, global_texture_mipmap_max);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, global_texture_pool[idx]);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, global_texture_mipmap_max);
-    glTexStorage3D(
-      GL_TEXTURE_2D_ARRAY, global_texture_mipmap_max + 1, GL_RGBA8,
-      state->persistent_pbo.width, state->persistent_pbo.height, 5
-    );
-  }
-  END_TIMER(allocate_textures);
-  log_info("Done allocating textures");
+  state->texture_name_pool.allocate_texture_names();
 
 #if 0
   memory.asset_memory_pool.print();

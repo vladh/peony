@@ -74,6 +74,7 @@ State::State(
       &memory->entity_memory_pool, 512, "spheres"
     )
   ),
-  persistent_pbo(15, 2048, 2048, 4)
+  persistent_pbo(15, 2048, 2048, 4),
+  texture_name_pool(memory, 64, 2048, 2048, 5, 4)
 {
 }

@@ -29,7 +29,10 @@ TextureSetAsset::TextureSetAsset(
 }
 
 
-void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) {
+void TextureSetAsset::generate_textures_from_pbo(
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool
+) {
   if (this->is_static) {
     return;
   }
@@ -41,7 +44,7 @@ void TextureSetAsset::generate_textures_from_pbo(PersistentPbo *persistent_pbo) 
   glGenTextures(1, &this->material_texture);
 #endif
 #if 1
-  this->material_texture = global_texture_pool[global_texture_pool_next_idx++];
+  this->material_texture = texture_name_pool->get_next();
 #endif
   glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
 

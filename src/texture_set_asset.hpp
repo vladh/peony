@@ -65,8 +65,13 @@ public:
     real32 roughness_static,
     real32 ao_static
   );
-  void copy_textures_to_pbo(PersistentPbo *persistent_pbo);
-  void generate_textures_from_pbo(PersistentPbo *persistent_pbo);
+  void copy_textures_to_pbo(
+    PersistentPbo *persistent_pbo
+  );
+  void generate_textures_from_pbo(
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool
+  );
 };
 
 #endif
