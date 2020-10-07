@@ -452,7 +452,9 @@ void ModelAsset::bind_texture_for_node_idx(
 
 
 void ModelAsset::prepare_for_draw(
-  Memory *memory, PersistentPbo *persistent_pbo
+  Memory *memory,
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool
 ) {
   // TODO: Update comment.
   // NOTE: Before we draw, we have to do 4 things.
@@ -552,7 +554,7 @@ void ModelAsset::prepare_for_draw(
         !mesh_template->texture_set_asset->have_textures_been_generated
       ) {
         mesh_template->texture_set_asset->generate_textures_from_pbo(
-          persistent_pbo
+          persistent_pbo, texture_name_pool
         );
         log_info("%s: generated", this->name);
         did_have_to_generate_or_bind_texture = true;
@@ -593,10 +595,15 @@ void ModelAsset::prepare_for_draw(
 
 
 void ModelAsset::draw(
-  Memory *memory, PersistentPbo *persistent_pbo,
+  Memory *memory,
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool,
   glm::mat4 *model_matrix
 ) {
-  prepare_for_draw(memory, persistent_pbo);
+  prepare_for_draw(
+    memory, persistent_pbo, texture_name_pool
+  );
+
   if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
     return;
   }
@@ -649,10 +656,16 @@ void ModelAsset::draw(
 
 
 void ModelAsset::draw_in_depth_mode(
-  Memory *memory, PersistentPbo *persistent_pbo,
-  glm::mat4 *model_matrix, ShaderAsset *standard_depth_shader_asset
+  Memory *memory,
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool,
+  glm::mat4 *model_matrix,
+  ShaderAsset *standard_depth_shader_asset
 ) {
-  prepare_for_draw(memory, persistent_pbo);
+  prepare_for_draw(
+    memory, persistent_pbo, texture_name_pool
+  );
+
   if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
     return;
   }

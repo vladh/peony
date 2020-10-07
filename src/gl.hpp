@@ -51,6 +51,7 @@
 #include "queue.hpp"
 #include "array.hpp"
 #include "resource_manager.hpp"
+#include "texture_name_pool.hpp"
 #include "asset.hpp"
 #include "font_asset.hpp"
 #include "shader_asset.hpp"

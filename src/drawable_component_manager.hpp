@@ -20,6 +20,7 @@ public:
   void draw_all(
     Memory *memory,
     PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool,
     SpatialComponentManager *spatial_component_manager,
     RenderPass render_pass, RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset

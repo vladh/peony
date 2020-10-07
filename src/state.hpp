@@ -43,6 +43,7 @@ public:
   Array<EntityHandle> spheres;
 
   PersistentPbo persistent_pbo;
+  TextureNamePool texture_name_pool;
 
   ShaderAsset *standard_depth_shader_asset;
 

@@ -87,13 +87,18 @@ public:
   void bind_texture_for_node_idx(
     TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
   );
-  void draw(
-    Memory *memory, PersistentPbo *persistent_pbo,
+  void ModelAsset::draw(
+    Memory *memory,
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool,
     glm::mat4 *model_matrix
   );
-  void draw_in_depth_mode(
-    Memory *memory, PersistentPbo *persistent_pbo,
-    glm::mat4 *model_matrix, ShaderAsset *standard_depth_shader_asset
+  void ModelAsset::draw_in_depth_mode(
+    Memory *memory,
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool,
+    glm::mat4 *model_matrix,
+    ShaderAsset *standard_depth_shader_asset
   );
   void load(
     Memory *memory
@@ -135,8 +140,10 @@ private:
   void bind_texture_uniforms_for_mesh(
     Mesh *mesh
   );
-  void prepare_for_draw(
-    Memory *memory, PersistentPbo *persistent_pbo
+  void ModelAsset::prepare_for_draw(
+    Memory *memory,
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool
   );
   void copy_textures_to_pbo(
     PersistentPbo *persistent_pbo
