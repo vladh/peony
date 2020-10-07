@@ -456,31 +456,15 @@ void ModelAsset::prepare_for_draw(
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool
 ) {
-  // TODO: Update comment.
-  // NOTE: Before we draw, we have to do 4 things.
-  //
-  // 1. Load the model. This is done on a separate thread. If the model is
-  //   already being loaded, don't try to load it again. Loading the model
-  //   will store its vertices and indices in memory.
-  // 2. Load the images for the textures. This is done on a separate
-  //   thread.
-  //
-  // After the model data and textures are loaded, we have the meshes, and we
-  // can do the following, which must be done on the main (OpenGL) thread:
-  //
-  // 3. Set up vertex buffers for each mesh.
-  // 4. Set the shaders for each mesh.
-  // 5. Create textures from the images and bind their uniforms for each mesh.
-
+  // Step 1: Load mesh data. This is done on a separate thread.
   if (!this->is_mesh_data_loading_in_progress && !this->is_mesh_data_loading_done) {
-    log_info("%s: STEP 1 - Loading mesh data", this->name);
     this->is_mesh_data_loading_in_progress = true;
     *global_threads.push() = std::thread(&ModelAsset::load, this, memory);
     /* load(memory); */
   }
 
+  // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
   if (this->is_mesh_data_loading_done && !this->is_vertex_buffer_setup_done) {
-    log_info("%s: STEP 2 - Setting up vertex buffers", this->name);
     for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
       Mesh *mesh = this->meshes.get(idx);
       setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
@@ -489,8 +473,8 @@ void ModelAsset::prepare_for_draw(
     log_info("...done");
   }
 
+  // Step 3: Once the mesh data is loaded, bind shaders for their respective meshes.
   if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
-    log_info("%s: STEP 3 - Binding shaders", this->name);
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
@@ -506,12 +490,12 @@ void ModelAsset::prepare_for_draw(
     this->is_shader_setting_done = true;
   }
 
+  // Step 4: In parallel with the above, on a second thread, load all textures
+  // for this model from their files and copy them over to the PBO.
   if (
     !this->is_texture_copying_to_pbo_done &&
     !this->is_texture_copying_to_pbo_in_progress
   ) {
-    log_info("%s: STEP 4 - Copying textures to PBO", this->name);
-
     // NOTE: Make sure we don't spawn threads that do nothing, or queue up
     // useless work for threads!
     bool32 should_try_to_copy_textures = false;
@@ -527,14 +511,13 @@ void ModelAsset::prepare_for_draw(
       this->is_texture_copying_to_pbo_in_progress = true;
       *global_threads.push() = std::thread(&ModelAsset::copy_textures_to_pbo, this, persistent_pbo);
       /* copy_textures_to_pbo(persistent_pbo); */
-      log_info("");
-      log_info("-> NEW THREAD! <-");
-      log_info("");
     } else {
       this->is_texture_copying_to_pbo_done = true;
     }
   }
 
+  // Step 5: Once all of the above is complete, copy the texture data from the
+  // PBO to the actual textures, and bind the uniforms.
   if (
     this->is_mesh_data_loading_done &&
     this->is_vertex_buffer_setup_done &&
@@ -542,8 +525,6 @@ void ModelAsset::prepare_for_draw(
     this->is_texture_copying_to_pbo_done &&
     !this->is_texture_set_binding_done
   ) {
-    log_info("%s: STEP 5 - Binding textures", this->name);
-
     bool32 did_have_to_generate_or_bind_texture = false;
 
     for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
@@ -556,7 +537,6 @@ void ModelAsset::prepare_for_draw(
         mesh_template->texture_set_asset->generate_textures_from_pbo(
           persistent_pbo, texture_name_pool
         );
-        log_info("%s: generated", this->name);
         did_have_to_generate_or_bind_texture = true;
         break;
       }
@@ -580,7 +560,6 @@ void ModelAsset::prepare_for_draw(
             mesh_template->node_depth, mesh_template->node_idx
           );
         }
-        log_info("%s: bound", this->name);
         mesh_template->texture_set_asset->have_textures_been_bound = true;
         did_have_to_generate_or_bind_texture = true;
         break;
