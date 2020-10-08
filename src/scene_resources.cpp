@@ -35,29 +35,50 @@ void scene_resources_init(Memory *memory, State *state) {
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
   }
 
-  // Sphere
+  // Plane
   {
-    uint32 n_x_segments = 64;
-    uint32 n_y_segments = 64;
-    uint32 vertex_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 8 * 2;
-    uint32 index_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 2 * 2;
-
     uint32 n_vertices;
     uint32 n_indices;
-
-    real32 *vertex_data = (real32*)memory->temp_memory_pool.push(
-      sizeof(real32) * (vertex_data_length * 2), "sphere_vertex_data"
-    );
-    uint32 *index_data = (uint32*)memory->temp_memory_pool.push(
-      sizeof(uint32) * (index_data_length * 2), "sphere_index_data"
-    );
-
-    Util::make_sphere(
-      n_x_segments, n_y_segments,
+    real32 *vertex_data;
+    uint32 *index_data;
+    Util::make_plane(
+      &memory->temp_memory_pool,
+      64, 64,
       &n_vertices, &n_indices,
-      vertex_data, index_data
+      &vertex_data, &index_data
     );
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      MODELSOURCE_DATA,
+      vertex_data, n_vertices,
+      index_data, n_indices,
+      "plane",
+      GL_TRIANGLES
+    );
+    shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "entity",
+      SHADER_STANDARD,
+      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
+    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+      glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
+    );
+    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+  }
 
+  // Sphere
+  {
+    uint32 n_vertices;
+    uint32 n_indices;
+    real32 *vertex_data;
+    uint32 *index_data;
+    Util::make_sphere(
+      &memory->temp_memory_pool,
+      64, 64,
+      &n_vertices, &n_indices,
+      &vertex_data, &index_data
+    );
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       MODELSOURCE_DATA,
@@ -76,7 +97,7 @@ void scene_resources_init(Memory *memory, State *state) {
       "resources/textures/rusted_iron/albedo.png",
       "resources/textures/rusted_iron/metallic.png",
       "resources/textures/rusted_iron/roughness.png",
-      "resources/textures/rusted_iron/ao.png",
+      "", /* "resources/textures/rusted_iron/ao.png", */
       "resources/textures/rusted_iron/normal.png"
     );
     *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};

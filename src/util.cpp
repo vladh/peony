@@ -81,15 +81,27 @@ real64 Util::random(real64 min, real64 max) {
 }
 
 
-void Util::make_sphere(
+#if 0
+void Util::make_plane(
+  MemoryPool *memory_pool,
   uint32 n_x_segments, uint32 n_y_segments,
   uint32 *n_vertices, uint32 *n_indices,
-  real32 *vertex_data, uint32 *index_data
+  real32 **vertex_data, uint32 **index_data
 ) {
   uint32 idx_vertices = 0;
   uint32 idx_indices = 0;
   *n_vertices = 0;
   *n_indices = 0;
+
+  uint32 vertex_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 8;
+  uint32 index_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 2;
+
+  *vertex_data = (real32*)memory_pool->push(
+    sizeof(real32) * vertex_data_length, "sphere_vertex_data"
+  );
+  *index_data = (uint32*)memory_pool->push(
+    sizeof(uint32) * index_data_length, "sphere_index_data"
+  );
 
   for (uint32 y = 0; y <= n_y_segments; y++) {
     for (uint32 x = 0; x <= n_x_segments; x++) {
@@ -100,16 +112,16 @@ void Util::make_sphere(
       real32 z_pos = sin(x_segment * 2.0f * PI32) * sin(y_segment * PI32);
 
       // Position
-      vertex_data[idx_vertices++] = x_pos;
-      vertex_data[idx_vertices++] = y_pos;
-      vertex_data[idx_vertices++] = z_pos;
+      **vertex_data[idx_vertices++] = x_pos;
+      **vertex_data[idx_vertices++] = y_pos;
+      **vertex_data[idx_vertices++] = z_pos;
       // Normal
-      vertex_data[idx_vertices++] = x_pos;
-      vertex_data[idx_vertices++] = y_pos;
-      vertex_data[idx_vertices++] = z_pos;
+      **vertex_data[idx_vertices++] = x_pos;
+      **vertex_data[idx_vertices++] = y_pos;
+      **vertex_data[idx_vertices++] = z_pos;
       // Tex coords
-      vertex_data[idx_vertices++] = x_segment;
-      vertex_data[idx_vertices++] = y_segment;
+      **vertex_data[idx_vertices++] = x_segment;
+      **vertex_data[idx_vertices++] = y_segment;
 
       (*n_vertices)++;
     }
@@ -119,15 +131,81 @@ void Util::make_sphere(
     if (y % 2 == 0) {
       /* for (int32 x = n_x_segments; x >= 0; x--) { */
       for (uint32 x = 0; x <= n_x_segments; x++) {
-        index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
-        index_data[idx_indices++] = y * (n_x_segments + 1) + x;
+        **index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
+        **index_data[idx_indices++] = y * (n_x_segments + 1) + x;
         (*n_indices) += 2;
       }
     } else {
       /* for (uint32 x = 0; x <= n_x_segments; x++) { */
       for (int32 x = n_x_segments; x >= 0; x--) {
-        index_data[idx_indices++] = y * (n_x_segments + 1) + x;
-        index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
+        **index_data[idx_indices++] = y * (n_x_segments + 1) + x;
+        **index_data[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
+        (*n_indices) += 2;
+      }
+    }
+  }
+}
+#endif
+
+
+void Util::make_sphere(
+  MemoryPool *memory_pool,
+  uint32 n_x_segments, uint32 n_y_segments,
+  uint32 *n_vertices, uint32 *n_indices,
+  real32 **vertex_data, uint32 **index_data
+) {
+  uint32 idx_vertices = 0;
+  uint32 idx_indices = 0;
+  *n_vertices = 0;
+  *n_indices = 0;
+
+  uint32 vertex_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 8;
+  uint32 index_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 2;
+
+  *vertex_data = (real32*)memory_pool->push(
+    sizeof(real32) * vertex_data_length, "sphere_vertex_data"
+  );
+  *index_data = (uint32*)memory_pool->push(
+    sizeof(uint32) * index_data_length, "sphere_index_data"
+  );
+
+  for (uint32 y = 0; y <= n_y_segments; y++) {
+    for (uint32 x = 0; x <= n_x_segments; x++) {
+      real32 x_segment = (real32)x / (real32)n_x_segments;
+      real32 y_segment = (real32)y / (real32)n_y_segments;
+      real32 x_pos = cos(x_segment * 2.0f * PI32) * sin(y_segment * PI32);
+      real32 y_pos = cos(y_segment * PI32);
+      real32 z_pos = sin(x_segment * 2.0f * PI32) * sin(y_segment * PI32);
+
+      // Position
+      (*vertex_data)[idx_vertices++] = x_pos;
+      (*vertex_data)[idx_vertices++] = y_pos;
+      (*vertex_data)[idx_vertices++] = z_pos;
+      // Normal
+      (*vertex_data)[idx_vertices++] = x_pos;
+      (*vertex_data)[idx_vertices++] = y_pos;
+      (*vertex_data)[idx_vertices++] = z_pos;
+      // Tex coords
+      (*vertex_data)[idx_vertices++] = x_segment;
+      (*vertex_data)[idx_vertices++] = y_segment;
+
+      (*n_vertices)++;
+    }
+  }
+
+  for (uint32 y = 0; y < n_y_segments; y++) {
+    if (y % 2 == 0) {
+      /* for (int32 x = n_x_segments; x >= 0; x--) { */
+      for (uint32 x = 0; x <= n_x_segments; x++) {
+        (*index_data)[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
+        (*index_data)[idx_indices++] = y * (n_x_segments + 1) + x;
+        (*n_indices) += 2;
+      }
+    } else {
+      /* for (uint32 x = 0; x <= n_x_segments; x++) { */
+      for (int32 x = n_x_segments; x >= 0; x--) {
+        (*index_data)[idx_indices++] = y * (n_x_segments + 1) + x;
+        (*index_data)[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
         (*n_indices) += 2;
       }
     }

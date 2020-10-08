@@ -9,10 +9,17 @@ public:
   static const char* join(char* buf, const char* prefix, uint32 n, const char* suffix);
   static real64 random(real64 min, real64 max);
   static void sleep(real64 s);
-  static void make_sphere(
+  static void make_plane(
+    MemoryPool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    real32 *vertex_data, uint32 *index_data
+    real32 **vertex_data, uint32 **index_data
+  );
+  static void make_sphere(
+    MemoryPool *memory_pool,
+    uint32 n_x_segments, uint32 n_y_segments,
+    uint32 *n_vertices, uint32 *n_indices,
+    real32 **vertex_data, uint32 **index_data
   );
   static glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from);
   static void print_texture_internalformat_info(GLenum internal_format);
