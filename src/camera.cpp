@@ -15,6 +15,10 @@ Camera::Camera(CameraType new_type) {
 void Camera::update_matrices_ortho(
   real64 window_width, real64 window_height
 ) {
+  if (window_width == 0 || window_height == 0) {
+    return;
+  }
+
   this->view = glm::lookAt(
     this->position,
     glm::vec3(0.0f, 0.0f, 0.0f),
@@ -30,6 +34,10 @@ void Camera::update_matrices_ortho(
 void Camera::update_matrices_perspective(
   real64 window_width, real64 window_height
 ) {
+  if (window_width == 0 || window_height == 0) {
+    return;
+  }
+
   this->front = glm::normalize(glm::vec3(
     cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch)),
     -sin(glm::radians(this->pitch)),
@@ -50,6 +58,10 @@ void Camera::update_matrices_perspective(
 void Camera::update_matrices(
   real64 window_width, real64 window_height
 ) {
+  if (window_width == 0 || window_height == 0) {
+    return;
+  }
+
   if (this->type == CAMERA_PERSPECTIVE) {
     this->update_matrices_perspective(window_width, window_height);
   } else if (this->type == CAMERA_ORTHO) {
