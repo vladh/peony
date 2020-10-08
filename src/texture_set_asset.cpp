@@ -40,54 +40,54 @@ void TextureSetAsset::generate_textures_from_pbo(
     log_warning("Tried to generate textures but they've already been generated.");
   }
 
-#if 0
-  glGenTextures(1, &this->material_texture);
-#endif
-#if 1
   this->material_texture = texture_name_pool->get_next();
-#endif
   glBindTexture(GL_TEXTURE_2D_ARRAY, this->material_texture);
-
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
 
-  // NOTE: These are pre-allocated on startup.
+  GLenum format;
+
+  format = Util::get_texture_format_from_n_components(this->albedo_data_n_components);
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0,
     this->albedo_data_width, this->albedo_data_height,
-    1, GL_BGRA, GL_UNSIGNED_BYTE,
+    1, format, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->albedo_pbo_idx)
   );
+
+  format = Util::get_texture_format_from_n_components(this->metallic_data_n_components);
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1,
     this->metallic_data_width, this->metallic_data_height,
-    1, GL_BGRA, GL_UNSIGNED_BYTE,
+    1, format, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->metallic_pbo_idx)
   );
+
+  format = Util::get_texture_format_from_n_components(this->roughness_data_n_components);
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2,
     this->roughness_data_width, this->roughness_data_height,
-    1, GL_BGRA, GL_UNSIGNED_BYTE,
+    1, format, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->roughness_pbo_idx)
   );
+
+  format = Util::get_texture_format_from_n_components(this->ao_data_n_components);
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3,
     this->ao_data_width, this->ao_data_height,
-    1, GL_BGRA, GL_UNSIGNED_BYTE,
+    1, format, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->ao_pbo_idx)
   );
+
+  format = Util::get_texture_format_from_n_components(this->normal_data_n_components);
   glTexSubImage3D(
     GL_TEXTURE_2D_ARRAY, 0, 0, 0, 4,
     this->normal_data_width, this->normal_data_height,
-    1, GL_BGRA, GL_UNSIGNED_BYTE,
+    1, format, GL_UNSIGNED_BYTE,
     persistent_pbo->get_offset_for_idx(this->normal_pbo_idx)
   );
 
-  this->should_use_normal_map = true;
-
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
-
   this->have_textures_been_generated = true;
 }
 
@@ -103,16 +103,21 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 
   this->mutex.lock();
 
+  uint32 image_size;
+
   if (strcmp(this->albedo_texture_path, "") != 0) {
     unsigned char *image_data = ResourceManager::load_image(
       this->albedo_texture_path, &this->albedo_data_width,
       &this->albedo_data_height, &this->albedo_data_n_components, true
     );
     this->albedo_pbo_idx = persistent_pbo->get_new_idx();
+    image_size = this->albedo_data_width *
+      this->albedo_data_height *
+      this->albedo_data_n_components;
     memcpy(
       persistent_pbo->get_memory_for_idx(this->albedo_pbo_idx),
       image_data,
-      persistent_pbo->texture_size
+      image_size
     );
     ResourceManager::free_image(image_data);
   }
@@ -123,10 +128,13 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
       &this->metallic_data_height, &this->metallic_data_n_components, true
     );
     this->metallic_pbo_idx = persistent_pbo->get_new_idx();
+    image_size = this->metallic_data_width *
+      this->metallic_data_height *
+      this->metallic_data_n_components;
     memcpy(
       persistent_pbo->get_memory_for_idx(this->metallic_pbo_idx),
       image_data,
-      persistent_pbo->texture_size
+      image_size
     );
     ResourceManager::free_image(image_data);
   }
@@ -137,10 +145,13 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
       &this->roughness_data_height, &this->roughness_data_n_components, true
     );
     this->roughness_pbo_idx = persistent_pbo->get_new_idx();
+    image_size = this->roughness_data_width *
+      this->roughness_data_height *
+      this->roughness_data_n_components;
     memcpy(
       persistent_pbo->get_memory_for_idx(this->roughness_pbo_idx),
       image_data,
-      persistent_pbo->texture_size
+      image_size
     );
     ResourceManager::free_image(image_data);
   }
@@ -151,24 +162,32 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
       &this->ao_data_height, &this->ao_data_n_components, true
     );
     this->ao_pbo_idx = persistent_pbo->get_new_idx();
+    image_size = this->ao_data_width *
+      this->ao_data_height *
+      this->ao_data_n_components;
     memcpy(
       persistent_pbo->get_memory_for_idx(this->ao_pbo_idx),
       image_data,
-      persistent_pbo->texture_size
+      image_size
     );
     ResourceManager::free_image(image_data);
   }
 
   if (strcmp(this->normal_texture_path, "") != 0) {
+    this->should_use_normal_map = true;
+
     unsigned char* image_data = ResourceManager::load_image(
       this->normal_texture_path, &this->normal_data_width,
       &this->normal_data_height, &this->normal_data_n_components, true
     );
     this->normal_pbo_idx = persistent_pbo->get_new_idx();
+    image_size = this->normal_data_width *
+      this->normal_data_height *
+      this->normal_data_n_components;
     memcpy(
       persistent_pbo->get_memory_for_idx(this->normal_pbo_idx),
       image_data,
-      persistent_pbo->texture_size
+      image_size
     );
     ResourceManager::free_image(image_data);
   }
