@@ -46,45 +46,66 @@ void TextureSetAsset::generate_textures_from_pbo(
 
   GLenum format;
 
-  format = Util::get_texture_format_from_n_components(this->albedo_data_n_components);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0,
-    this->albedo_data_width, this->albedo_data_height,
-    1, format, GL_UNSIGNED_BYTE,
-    persistent_pbo->get_offset_for_idx(this->albedo_pbo_idx)
-  );
+  // TODO: When one of the textures is not set, the shader should take the "static"
+  // value — if we see a texture is not set here, we should set the corresponding
+  // static value to something that makes sense as a default value. Otherwise,
+  // omitting textures will sometimes have weird results.
 
-  format = Util::get_texture_format_from_n_components(this->metallic_data_n_components);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1,
-    this->metallic_data_width, this->metallic_data_height,
-    1, format, GL_UNSIGNED_BYTE,
-    persistent_pbo->get_offset_for_idx(this->metallic_pbo_idx)
-  );
+  // TODO: Textures of different sizes do not currently work. We maybe shouldn't
+  // use texture arrays?
 
-  format = Util::get_texture_format_from_n_components(this->roughness_data_n_components);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2,
-    this->roughness_data_width, this->roughness_data_height,
-    1, format, GL_UNSIGNED_BYTE,
-    persistent_pbo->get_offset_for_idx(this->roughness_pbo_idx)
-  );
+  // TODO: We should check this in a better way, maybe set a bool instead of
+  // doing `strcmp()` all the time.
 
-  format = Util::get_texture_format_from_n_components(this->ao_data_n_components);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3,
-    this->ao_data_width, this->ao_data_height,
-    1, format, GL_UNSIGNED_BYTE,
-    persistent_pbo->get_offset_for_idx(this->ao_pbo_idx)
-  );
+  if (strcmp(this->albedo_texture_path, "") != 0) {
+    format = Util::get_texture_format_from_n_components(this->albedo_data_n_components);
+    glTexSubImage3D(
+      GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0,
+      this->albedo_data_width, this->albedo_data_height,
+      1, format, GL_UNSIGNED_BYTE,
+      persistent_pbo->get_offset_for_idx(this->albedo_pbo_idx)
+    );
+  }
 
-  format = Util::get_texture_format_from_n_components(this->normal_data_n_components);
-  glTexSubImage3D(
-    GL_TEXTURE_2D_ARRAY, 0, 0, 0, 4,
-    this->normal_data_width, this->normal_data_height,
-    1, format, GL_UNSIGNED_BYTE,
-    persistent_pbo->get_offset_for_idx(this->normal_pbo_idx)
-  );
+  if (strcmp(this->metallic_texture_path, "") != 0) {
+    format = Util::get_texture_format_from_n_components(this->metallic_data_n_components);
+    glTexSubImage3D(
+      GL_TEXTURE_2D_ARRAY, 0, 0, 0, 1,
+      this->metallic_data_width, this->metallic_data_height,
+      1, format, GL_UNSIGNED_BYTE,
+      persistent_pbo->get_offset_for_idx(this->metallic_pbo_idx)
+    );
+  }
+
+  if (strcmp(this->roughness_texture_path, "") != 0) {
+    format = Util::get_texture_format_from_n_components(this->roughness_data_n_components);
+    glTexSubImage3D(
+      GL_TEXTURE_2D_ARRAY, 0, 0, 0, 2,
+      this->roughness_data_width, this->roughness_data_height,
+      1, format, GL_UNSIGNED_BYTE,
+      persistent_pbo->get_offset_for_idx(this->roughness_pbo_idx)
+    );
+  }
+
+  if (strcmp(this->ao_texture_path, "") != 0) {
+    format = Util::get_texture_format_from_n_components(this->ao_data_n_components);
+    glTexSubImage3D(
+      GL_TEXTURE_2D_ARRAY, 0, 0, 0, 3,
+      this->ao_data_width, this->ao_data_height,
+      1, format, GL_UNSIGNED_BYTE,
+      persistent_pbo->get_offset_for_idx(this->ao_pbo_idx)
+    );
+  }
+
+  if (strcmp(this->normal_texture_path, "") != 0) {
+    format = Util::get_texture_format_from_n_components(this->normal_data_n_components);
+    glTexSubImage3D(
+      GL_TEXTURE_2D_ARRAY, 0, 0, 0, 4,
+      this->normal_data_width, this->normal_data_height,
+      1, format, GL_UNSIGNED_BYTE,
+      persistent_pbo->get_offset_for_idx(this->normal_pbo_idx)
+    );
+  }
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
