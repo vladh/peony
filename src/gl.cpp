@@ -40,6 +40,12 @@ void update_drawing_options(State *state, GLFWwindow *window) {
   } else {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   }
+
+  if (state->should_use_wireframe) {
+    // This will be handled in the rendering loop.
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
 }
 
 
@@ -83,6 +89,16 @@ void process_input_transient(GLFWwindow *window, State *state) {
   if (state->control.is_key_now_down(GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
     update_drawing_options(state, window);
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_Q)) {
+    state->should_use_wireframe = !state->should_use_wireframe;
+    update_drawing_options(state, window);
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_U)) {
+    log_info("Deleting PBO");
+    state->persistent_pbo.delete_pbo();
   }
 }
 
@@ -274,8 +290,6 @@ void init_window(WindowInfo *window_info) {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
 
-  /* glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); */
-
 #if USE_OPENGL_DEBUG
   GLint flags;
   glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -348,30 +362,33 @@ void render_scene(
     render_pass, render_mode, state->standard_depth_shader_asset
   );
   /* END_TIMER_MIN(draw_all, 1); */
+}
 
-  if (render_pass == RENDERPASS_FORWARD) {
-    glEnable(GL_BLEND);
-    char debug_text[256];
-    sprintf(
-      debug_text,
-      "(fps %.2f)\n"
-      "(t %f)\n"
-      "(dt %f)\n"
-      "(should_limit_fps %d)\n"
-      "(oopses %d)",
-      state->last_fps,
-      state->t,
-      state->dt,
-      state->should_limit_fps,
-      global_oopses
-    );
-    state->text_manager.draw(
-      "main-font", debug_text,
-      15.0f, state->window_info.height - 35.0f,
-      1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-    glDisable(GL_BLEND);
-  }
+
+void render_scene_ui(
+  Memory *memory, State *state
+){
+  glEnable(GL_BLEND);
+  char debug_text[256];
+  sprintf(
+    debug_text,
+    "(fps %.2f)\n"
+    "(t %f)\n"
+    "(dt %f)\n"
+    "(should_limit_fps %d)\n"
+    "(oopses %d)",
+    state->last_fps,
+    state->t,
+    state->dt,
+    state->should_limit_fps,
+    global_oopses
+  );
+  state->text_manager.draw(
+    "main-font", debug_text,
+    15.0f, state->window_info.height - 35.0f,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+  glDisable(GL_BLEND);
 }
 
 
@@ -557,6 +574,7 @@ void scene_update(Memory *memory, State *state) {
   }
 
   // Geese
+#if 0
   {
     real32 spin_deg_per_t = 90.0f;
     for (uint32 idx = 0; idx < state->geese.get_size(); idx++) {
@@ -567,8 +585,10 @@ void scene_update(Memory *memory, State *state) {
       );
     }
   }
+#endif
 
   // Spheres
+#if 0
   {
     real32 spin_deg_per_t = 45.0f;
     for (uint32 idx = 0; idx < state->spheres.get_size(); idx++) {
@@ -579,6 +599,7 @@ void scene_update(Memory *memory, State *state) {
       );
     }
   }
+#endif
 }
 
 
@@ -590,66 +611,97 @@ void update_and_render(Memory *memory, State *state) {
   copy_scene_data_to_ubo(memory, state);
 
   // Clear main framebuffer
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
 
   // Render shadow map
-  for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-    SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(*state->lights.get(idx));
-    Camera::create_shadow_transforms(
-      state->shadow_transforms, spatial_component->position,
-      state->shadow_map_width, state->shadow_map_height,
-      state->shadow_near_clip_dist, state->shadow_far_clip_dist
-    );
+  {
+    for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
+      SpatialComponent *spatial_component =
+        state->spatial_component_manager.get(*state->lights.get(idx));
+      Camera::create_shadow_transforms(
+        state->shadow_transforms, spatial_component->position,
+        state->shadow_map_width, state->shadow_map_height,
+        state->shadow_near_clip_dist, state->shadow_far_clip_dist
+      );
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
-    glViewport(0, 0, state->shadow_map_width, state->shadow_map_height);
+      glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
+      glViewport(
+        0, 0, state->shadow_map_width, state->shadow_map_height
+      );
 
-    glClear(GL_DEPTH_BUFFER_BIT);
+      glClear(GL_DEPTH_BUFFER_BIT);
 
-    state->shadow_light_idx = idx;
-    copy_scene_data_to_ubo(memory, state);
-    render_scene(
-      memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
-    );
+      state->shadow_light_idx = idx;
+      copy_scene_data_to_ubo(memory, state);
+      render_scene(
+        memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
+      );
 
-    glViewport(
-      0, 0, state->window_info.width, state->window_info.height
-    );
+      glViewport(
+        0, 0, state->window_info.width, state->window_info.height
+      );
+    }
   }
 
   // Geometry pass
-  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
+  {
+    if (state->should_use_wireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
+    if (state->should_use_wireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+  }
 
   // Copy depth from geometry pass to lighting pass
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glBlitFramebuffer(
-    0, 0, state->window_info.width, state->window_info.height,
-    0, 0, state->window_info.width, state->window_info.height,
-    GL_DEPTH_BUFFER_BIT, GL_NEAREST
-  );
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBlitFramebuffer(
+      0, 0, state->window_info.width, state->window_info.height,
+      0, 0, state->window_info.width, state->window_info.height,
+      GL_DEPTH_BUFFER_BIT, GL_NEAREST
+    );
+  }
 
   // Lighting pass
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glDisable(GL_DEPTH_TEST);
-  glClearColor(
-    state->background_color.r, state->background_color.g,
-    state->background_color.b, state->background_color.a
-  );
-  glClear(GL_COLOR_BUFFER_BIT);
-  render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
-  glEnable(GL_DEPTH_TEST);
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+    glClearColor(
+      state->background_color.r, state->background_color.g,
+      state->background_color.b, state->background_color.a
+    );
+    glClear(GL_COLOR_BUFFER_BIT);
+    render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
+    glEnable(GL_DEPTH_TEST);
+  }
+
 
   // Forward pass
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
+  {
+    if (state->should_use_wireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
+    if (state->should_use_wireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+  }
+
+  // UI pass
+  {
+    render_scene_ui(memory, state);
+  }
 }
 
 

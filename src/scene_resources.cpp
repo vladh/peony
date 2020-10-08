@@ -120,7 +120,7 @@ void scene_resources_init(Memory *memory, State *state) {
     SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
+    glm::vec4(0.6f, 0.1f, 0.1f, 1.0f), 0.0f, 1.0f, 1.0f
   );
   *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
 

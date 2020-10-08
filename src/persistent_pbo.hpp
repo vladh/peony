@@ -16,6 +16,7 @@ public:
   void* get_offset_for_idx(uint16 idx);
   void* get_memory_for_idx(uint16 idx);
   void allocate_pbo();
+  void delete_pbo();
 
 private:
   uint16 next_idx;

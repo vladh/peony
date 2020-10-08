@@ -20,6 +20,11 @@ void PersistentPbo::allocate_pbo() {
   );
 }
 
+void PersistentPbo::delete_pbo() {
+  glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+  glDeleteBuffers(1, &this->pbo);
+}
+
 
 uint16 PersistentPbo::get_new_idx() {
   uint16 current_idx = this->next_idx;

@@ -89,9 +89,9 @@ float geometry_schlick_ggx(float nv, float roughness) {
 
 float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
   float nv = max(dot(N, V), 0.0);
-  float nl = max(dot(N, L), 0.0);
+  float n_dot_l = max(dot(N, L), 0.0);
   float ggx1 = geometry_schlick_ggx(nv, roughness);
-  float ggx2 = geometry_schlick_ggx(nl, roughness);
+  float ggx2 = geometry_schlick_ggx(n_dot_l, roughness);
 
   return ggx1 * ggx2;
 }
@@ -151,7 +151,7 @@ void main() {
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
-    float nl = max(dot(N, L), 0.0);
+    float n_dot_l = max(dot(N, L), 0.0);
 
     float shadow = 0;
 
@@ -159,7 +159,7 @@ void main() {
       RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
     }
 
-    Lo += (kD * albedo / PI + specular) * radiance * nl * (1.0 - shadow);
+    Lo += (kD * albedo / PI + specular) * radiance * n_dot_l * (1.0 - shadow);
   }
 
   vec3 ambient = vec3(0.03) * albedo * ao;
