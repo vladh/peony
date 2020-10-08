@@ -1,11 +1,4 @@
 uniform sampler2DArray material_texture;
-#if 0
-uniform sampler2D albedo_texture;
-uniform sampler2D metallic_texture;
-uniform sampler2D roughness_texture;
-uniform sampler2D ao_texture;
-uniform sampler2D normal_texture;
-#endif
 
 uniform vec4 albedo_static;
 uniform float metallic_static;
@@ -63,8 +56,7 @@ void main() {
   if (should_use_normal_map) {
     g_normal = get_normal_from_map();
   } else {
-    // TODO: Swizzle this differently.
-    g_normal = vec3(unit_normal.b, unit_normal.g, unit_normal.r);
+    g_normal = unit_normal;
   }
 
   vec3 albedo;

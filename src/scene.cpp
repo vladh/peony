@@ -40,21 +40,34 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->lights.push(entity->handle);
 
-  // Axes
-#if 0
-  entity = state->entity_manager.add("axes");
+  // Temple
+  entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,
     glm::vec3(0.0f, 0.1f, 0.0f),
-    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(1.0f, 1.0f, 1.0f)
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+    glm::vec3(0.1f)
   );
   state->drawable_component_manager.add(
     entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "axes"),
-    RENDERPASS_FORWARD
+    ModelAsset::get_by_name(&state->model_assets, "temple"),
+    RENDERPASS_DEFERRED
   );
-#endif
+
+  // Geese
+  entity = state->entity_manager.add("goose");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(-4.6f, 0.00f, -1.5f),
+    glm::angleAxis(glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+    glm::vec3(0.2f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "goose"),
+    RENDERPASS_DEFERRED
+  );
+  state->geese.push(entity->handle);
 
   // Floor
 #if 0
@@ -88,45 +101,6 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 #endif
 
-  // Temple
-#if 1
-  uint32 n_temples = 1;
-  for (uint32 idx = 0; idx < n_temples; idx++) {
-    entity = state->entity_manager.add("temple");
-    state->spatial_component_manager.add(
-      entity->handle,
-      glm::vec3(0.0f, 0.1f, 0.0f),
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-      glm::vec3(0.1f)
-    );
-    state->drawable_component_manager.add(
-      entity->handle,
-      ModelAsset::get_by_name(&state->model_assets, "temple"),
-      RENDERPASS_DEFERRED
-    );
-  }
-#endif
-
-  // Geese
-#if 0
-  uint32 n_geese = 1;
-  for (uint16 idx = 0; idx < n_geese; idx++) {
-    entity = state->entity_manager.add("goose");
-    state->spatial_component_manager.add(
-      entity->handle,
-      glm::vec3(-20.0f, 0.0f, -5.0f + (real32)idx * 2.0f),
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-      glm::vec3(0.3f)
-    );
-    state->drawable_component_manager.add(
-      entity->handle,
-      ModelAsset::get_by_name(&state->model_assets, "goose"),
-      RENDERPASS_DEFERRED
-    );
-    state->geese.push(entity->handle);
-  }
-#endif
-
   // Spheres
 #if 0
   uint32 n_spheres = 1;
@@ -146,5 +120,21 @@ void scene_init_objects(Memory *memory, State *state) {
     );
     state->spheres.push(entity->handle);
   }
+#endif
+
+  // Axes
+#if 0
+  entity = state->entity_manager.add("axes");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f, 0.1f, 0.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(1.0f, 1.0f, 1.0f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "axes"),
+    RENDERPASS_FORWARD
+  );
 #endif
 }

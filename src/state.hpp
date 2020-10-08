@@ -23,6 +23,7 @@ public:
 
   bool32 is_cursor_disabled;
   bool32 should_limit_fps;
+  bool32 should_use_wireframe;
   glm::vec4 background_color;
 
   Array<ShaderAsset> shader_assets;
