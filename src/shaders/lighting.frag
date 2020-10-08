@@ -40,7 +40,7 @@ float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_tex
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0;
-  float bias = 0.20;
+  float bias = 0.05;
   int n_samples = 20;
 
   float view_distance = length(camera_position - frag_position);

@@ -87,14 +87,14 @@ public:
   void bind_texture_for_node_idx(
     TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
   );
-  void ModelAsset::draw(
+  void draw(
     Memory *memory,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue,
     glm::mat4 *model_matrix
   );
-  void ModelAsset::draw_in_depth_mode(
+  void draw_in_depth_mode(
     Memory *memory,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,
@@ -145,7 +145,7 @@ private:
   void bind_texture_uniforms_for_mesh(
     Mesh *mesh
   );
-  void ModelAsset::prepare_for_draw(
+  void prepare_for_draw(
     Memory *memory,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,

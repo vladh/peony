@@ -47,21 +47,16 @@ const char* Util::stringify_glenum(GLenum thing) {
 }
 
 GLenum Util::get_texture_format_from_n_components(int32 n_components) {
-  if (n_components != 4) {
-    log_fatal("Got an image with n_components != 4, don't know what to do.");
-  }
-  return GL_RGBA;
-#if 0
-  GLenum format = GL_RGB;
   if (n_components == 1) {
-    format = GL_RED;
+    return GL_RED;
   } else if (n_components == 3) {
-    format = GL_RGB;
+    return GL_BGR;
   } else if (n_components == 4) {
-    format = GL_RGBA;
+    return GL_BGRA;
+  } else {
+    log_fatal("Don't know what to do with n_components = %d", n_components);
+    return 0;
   }
-  return format;
-#endif
 }
 
 
