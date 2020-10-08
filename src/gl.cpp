@@ -2,7 +2,6 @@
 
 #define USE_OPENGL_4 false
 #define USE_OPENGL_DEBUG false
-#define USE_1440P true
 #define USE_TIMERS true
 
 #include "gl.hpp"
@@ -226,13 +225,6 @@ void APIENTRY debug_message_callback(
 
 
 void init_window(WindowInfo *window_info) {
-#ifdef USE_1440P
-  window_info->width = 2560;
-  window_info->height = 1440;
-#else
-  window_info->width = 1920;
-  window_info->height = 1080;
-#endif
   strcpy(window_info->title, "hi lol");
 
   glfwInit();
@@ -260,27 +252,34 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
-#if 0
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-#endif
+
+  int32 n_monitors;
+  GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+  GLFWmonitor *target_monitor = monitors[0];
+
+  const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+  glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+  window_info->width = video_mode->width;
+  window_info->height = video_mode->height;
 
   GLFWwindow *window = glfwCreateWindow(
-    window_info->width, window_info->height, window_info->title, nullptr, nullptr
+    window_info->width, window_info->height, window_info->title,
+    /* target_monitor, nullptr */
+    nullptr, nullptr
   );
-  window_info->window = window;
   if (!window) {
     log_fatal("Failed to create GLFW window");
     return;
   }
-  glfwMakeContextCurrent(window);
-
-  glfwSwapInterval(0);
-
-#ifdef USE_1440P
+  window_info->window = window;
   glfwSetWindowPos(window, 0, 0);
-#else
-  glfwSetWindowPos(window, 100, 100);
-#endif
+
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(0);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     log_fatal("Failed to initialize GLAD");
