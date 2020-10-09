@@ -30,6 +30,9 @@ public:
   }
 
   T* get(uint32 idx) {
+    if (idx >= this->size) {
+      return nullptr;
+    }
     return &this->items[idx];
   }
 

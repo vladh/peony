@@ -31,6 +31,11 @@ void TextManager::draw(
 
     Character *character = font_asset->characters.get(c);
 
+    if (!character) {
+      log_warning("Could not get character: %c", c);
+      continue;
+    }
+
     real32 char_x = curr_x + character->bearing.x * scale;
     real32 char_y = curr_y - (character->size.y - character->bearing.y) * scale;
 
