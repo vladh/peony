@@ -8,7 +8,7 @@ uniform float ao_static;
 uniform bool should_use_normal_map;
 
 in VS_OUT {
-  vec3 frag_position;
+  vec3 world_position;
   vec3 normal;
   vec2 tex_coords;
 } fs_in;
@@ -18,26 +18,24 @@ layout (location = 1) out vec3 g_normal;
 layout (location = 2) out vec4 g_albedo;
 layout (location = 3) out vec4 g_pbr;
 
-vec3 grid_sampling_offsets[20] = vec3[] (
-  vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
-  vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
-  vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
-  vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
-  vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
-);
-
 // A simplified way to get our tangent-normals to world-space from LearnOpenGL.
 // Don't really understand how this works!
 // We probably want to convert this to the regular way of calculating them
 // in the future, but since we're using both PBR and deferred lighting,
 // it would be a bit troublesome to integrate into the code.
+// TODO: Move out into globals.
 vec3 get_normal_from_map() {
   // TODO: Swizzle this differently.
-  vec3 tangent_normal_rgb = texture(material_texture, vec3(fs_in.tex_coords, 4)).xyz * 2.0 - 1.0;
-  vec3 tangent_normal = vec3(tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r);
+  vec3 tangent_normal_rgb = texture(
+    material_texture,
+    vec3(fs_in.tex_coords, 4)
+  ).xyz * 2.0 - 1.0;
+  vec3 tangent_normal = vec3(
+    tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r
+  );
 
-  vec3 Q1 = dFdx(fs_in.frag_position);
-  vec3 Q2 = dFdy(fs_in.frag_position);
+  vec3 Q1 = dFdx(fs_in.world_position);
+  vec3 Q2 = dFdy(fs_in.world_position);
   vec2 st1 = dFdx(fs_in.tex_coords);
   vec2 st2 = dFdy(fs_in.tex_coords);
 
@@ -51,7 +49,7 @@ vec3 get_normal_from_map() {
 
 void main() {
   vec3 unit_normal = normalize(fs_in.normal);
-  g_position = fs_in.frag_position;
+  g_position = fs_in.world_position;
 
   if (should_use_normal_map) {
     g_normal = get_normal_from_map();

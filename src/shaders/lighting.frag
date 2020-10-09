@@ -35,15 +35,15 @@ vec3 add_tone_mapping(vec3 rgb) {
   return vec3(1.0) - exp(-rgb * exposure);
 }
 
-float calculate_shadows(vec3 frag_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = frag_position - vec3(light_position[idx_light]);
+float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_texture) {
+  vec3 frag_to_light = world_position - vec3(light_position[idx_light]);
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0;
   float bias = 0.05;
   int n_samples = 20;
 
-  float view_distance = length(camera_position - frag_position);
+  float view_distance = length(camera_position - world_position);
   float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
 
   for (int i = 0; i < n_samples; i++) {
@@ -97,7 +97,7 @@ float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 void main() {
-  vec3 frag_position = texture(g_position_texture, fs_in.tex_coords).rgb;
+  vec3 world_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
 
   // Skip pixels with no normal. These are the background pixels, hence
@@ -120,7 +120,7 @@ void main() {
   float ao = pbr_texture.b;
 
   vec3 N = normal;
-  vec3 V = normalize(camera_position - frag_position);
+  vec3 V = normalize(camera_position - world_position);
 
   vec3 F0 = vec3(0.04);
   F0 = mix(F0, albedo, metallic);
@@ -128,10 +128,10 @@ void main() {
   vec3 Lo = vec3(0.0);
 
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
-    vec3 L = normalize(vec3(light_position[idx_light]) - frag_position);
+    vec3 L = normalize(vec3(light_position[idx_light]) - world_position);
     vec3 H = normalize(V + L);
 
-    float distance = length(vec3(light_position[idx_light]) - frag_position);
+    float distance = length(vec3(light_position[idx_light]) - world_position);
     float attenuation = 1.0 / (
       light_attenuation[idx_light][0] +
       light_attenuation[idx_light][1] * distance +
@@ -156,7 +156,7 @@ void main() {
     float shadow = 0;
 
     if (USE_SHADOWS && n_depth_textures >= n_lights) {
-      RUN_CALCULATE_SHADOWS_ALL(frag_position, idx_light);
+      RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light);
     }
 
     Lo += (kD * albedo / PI + specular) * radiance * n_dot_l * (1.0 - shadow);
