@@ -59,13 +59,12 @@ void scene_resources_init(Memory *memory, State *state) {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "entity",
-      SHADER_STANDARD,
-      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
+      SHADER_OTHER_OBJECT,
+      /* SHADER_DIR"water.vert", SHADER_DIR"water.frag" */
+      SHADER_DIR"water.vert", SHADER_DIR"water.frag",
+      SHADER_DIR"water.geom"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-      glm::vec4(1.0f, 0.0f, 0.0f, 1.0f), 0.0f, 1.0f, 1.0f
-    );
-    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
   }
 
   // Sphere

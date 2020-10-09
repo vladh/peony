@@ -622,7 +622,10 @@ void ModelAsset::draw(
       }
     }
 
-    if (shader_asset->type == SHADER_STANDARD) {
+    if (
+      shader_asset->type == SHADER_STANDARD ||
+      shader_asset->type == SHADER_OTHER_OBJECT
+    ) {
       shader_asset->set_mat4("mesh_transform", &mesh->transform);
     }
 
