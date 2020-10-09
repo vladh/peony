@@ -43,6 +43,7 @@ void scene_resources_init(Memory *memory, State *state) {
     uint32 *index_data;
     Util::make_plane(
       &memory->temp_memory_pool,
+      50, 50,
       64, 64,
       &n_vertices, &n_indices,
       &vertex_data, &index_data

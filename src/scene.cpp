@@ -2,6 +2,7 @@ void scene_init_objects(Memory *memory, State *state) {
   Entity *entity;
 
   // Lights
+#if 1
   entity = state->entity_manager.add("light1");
   state->spatial_component_manager.add(
     entity->handle,
@@ -39,9 +40,10 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
   state->lights.push(entity->handle);
+#endif
 
   // Temple
-#if 1
+#if 0
   entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,
@@ -57,7 +59,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Geese
-#if 1
+#if 0
   entity = state->entity_manager.add("goose");
   state->spatial_component_manager.add(
     entity->handle,
@@ -106,7 +108,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Spheres
-#if 1
+#if 0
   uint32 n_spheres = 1;
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
@@ -125,8 +127,25 @@ void scene_init_objects(Memory *memory, State *state) {
   }
 #endif
 
+  // Plane
+#if 1
+  entity = state->entity_manager.add("plane");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(1.0f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "plane"),
+    RENDERPASS_DEFERRED
+  );
+  state->spheres.push(entity->handle);
+#endif
+
   // Axes
-#if 0
+#if 1
   entity = state->entity_manager.add("axes");
   state->spatial_component_manager.add(
     entity->handle,

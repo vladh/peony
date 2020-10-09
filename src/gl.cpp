@@ -252,8 +252,11 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
+#if 0
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+#endif
 
+#if 1
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
   GLFWmonitor *target_monitor = monitors[0];
@@ -265,6 +268,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
+#else
+  window_info->width = 2560;
+  window_info->height = 1440;
+#endif
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -562,14 +569,21 @@ void scene_update(Memory *memory, State *state) {
 
   // Lights
   {
-    SpatialComponent *spatial = state->spatial_component_manager.get(*state->lights.get(0));
+    EntityHandle *handle = state->lights.get(0);
 
-    real64 time_term = (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-    real64 x_term = 0.0f + cos(time_term) * 8.0f;
-    real64 z_term = 0.0f + sin(time_term) * 8.0f;
+    if (handle) {
+      SpatialComponent *spatial = state->spatial_component_manager.get(*handle);
 
-    spatial->position.x = (real32)x_term;
-    spatial->position.z = (real32)z_term;
+      if (spatial) {
+        real64 time_term =
+          (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+        real64 x_term = 0.0f + cos(time_term) * 8.0f;
+        real64 z_term = 0.0f + sin(time_term) * 8.0f;
+
+        spatial->position.x = (real32)x_term;
+        spatial->position.z = (real32)z_term;
+      }
+    }
   }
 
   // Geese
