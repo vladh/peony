@@ -117,12 +117,13 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   if (this->is_static) {
     return;
   }
+
+  this->mutex.lock();
+
   if (this->have_textures_been_copied_to_pbo) {
     log_warning("Trying to load already loaded TextureSetAsset.");
     return;
   }
-
-  this->mutex.lock();
 
   uint32 image_size;
 
@@ -213,7 +214,7 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
     ResourceManager::free_image(image_data);
   }
 
-  this->mutex.unlock();
-
   this->have_textures_been_copied_to_pbo = true;
+
+  this->mutex.unlock();
 }
