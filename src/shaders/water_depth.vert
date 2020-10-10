@@ -43,8 +43,5 @@ void main() {
   vec3 water_position = make_water_position(prelim_world_position.xz);
   vec3 water_normal = make_water_normal(water_position);
 
-  gl_Position = projection * view * vec4(water_position, 1.0);
-  vs_out.world_position = water_position;
-  vs_out.normal = normalize(water_normal);
-  vs_out.tex_coords = tex_coords;
+  gl_Position = vec4(water_position, 1.0);
 }

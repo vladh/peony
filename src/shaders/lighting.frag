@@ -1,5 +1,5 @@
-#define GAMMA 2.2
-#define USE_SHADOWS true
+#define GAMMA 5.2
+#define USE_SHADOWS false
 #define SHOULD_LINEARISE_ALBEDO true
 
 vec3 grid_sampling_offsets[20] = vec3[] (
@@ -40,8 +40,8 @@ float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_te
   float current_depth = length(frag_to_light);
 
   float shadow = 0.0;
-  float bias = 0.05;
-  int n_samples = 20;
+  float bias = 0.15;
+  int n_samples = 10;
 
   float view_distance = length(camera_position - world_position);
   float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
@@ -78,19 +78,17 @@ float distribution_ggx(vec3 N, vec3 H, float roughness) {
   return num / denom;
 }
 
-float geometry_schlick_ggx(float nv, float roughness) {
+float geometry_schlick_ggx(float n_dot_v, float roughness) {
   float k = pow(roughness + 1.0, 2) / 8.0;
 
-  float num = nv;
-  float denom = nv * (1.0 - k) + k;
+  float num = n_dot_v;
+  float denom = n_dot_v * (1.0 - k) + k;
 
   return num / denom;
 }
 
-float geometry_smith(vec3 N, vec3 V, vec3 L, float roughness) {
-  float nv = max(dot(N, V), 0.0);
-  float n_dot_l = max(dot(N, L), 0.0);
-  float ggx1 = geometry_schlick_ggx(nv, roughness);
+float geometry_smith(float n_dot_v, float n_dot_l, float roughness) {
+  float ggx1 = geometry_schlick_ggx(n_dot_v, roughness);
   float ggx2 = geometry_schlick_ggx(n_dot_l, roughness);
 
   return ggx1 * ggx2;
@@ -121,6 +119,7 @@ void main() {
 
   vec3 N = normal;
   vec3 V = normalize(camera_position - world_position);
+  float n_dot_v = max(dot(N, V), 0.0);
 
   vec3 F0 = vec3(0.04);
   F0 = mix(F0, albedo, metallic);
@@ -130,6 +129,7 @@ void main() {
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
     vec3 L = normalize(vec3(light_position[idx_light]) - world_position);
     vec3 H = normalize(V + L);
+    float n_dot_l = max(dot(N, L), 0.0);
 
     float distance = length(vec3(light_position[idx_light]) - world_position);
     float attenuation = 1.0 / (
@@ -140,18 +140,16 @@ void main() {
     vec3 radiance = vec3(light_color[idx_light]) * attenuation;
 
     float NDF = distribution_ggx(N, H, roughness);
-    float G = geometry_smith(N, V, L, roughness);
+    float G = geometry_smith(n_dot_v, n_dot_l, roughness);
     vec3 F = fresnel_schlick(max(dot(H, V), 0.0), F0);
 
     vec3 numerator = NDF * G * F;
     float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-    vec3 specular = numerator / max(denominator, 0.001);
+    vec3 specular = numerator / max(denominator, 0.00001);
 
     vec3 kS = F;
     vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
-
-    float n_dot_l = max(dot(N, L), 0.0);
 
     float shadow = 0;
 
@@ -160,6 +158,7 @@ void main() {
     }
 
     Lo += (kD * albedo / PI + specular) * radiance * n_dot_l * (1.0 - shadow);
+    // Lo += specular;
   }
 
   vec3 ambient = vec3(0.03) * albedo * ao;
@@ -169,4 +168,8 @@ void main() {
   color = correct_gamma(color);
 
   frag_color = vec4(color, 1.0);
+  vec3 nv_vec = vec3(dot(N, V), dot(N, V), dot(N, V));
+  // frag_color = vec4(normal, 1.0);
+  // frag_color = vec4(nv_vec, 1.0);
+  // frag_color = vec4(color - normal, 1.0);
 }
