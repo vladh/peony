@@ -9,5 +9,5 @@ out vec3 vertex_normal;
 
 void main() {
   gl_Position = projection * view * model * mesh_transform * vec4(position, 1.0);
-  vertex_normal = normal;
+  vertex_normal = normalize(normal);
 }

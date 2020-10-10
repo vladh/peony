@@ -14,7 +14,7 @@ out BLOCK {
 } gs_out;
 
 void main() {
-  float normal_length = 0.2;
+  float normal_length = 0.1;
 
   for (int idx = 0; idx < 3; idx++) {
     vec3 P = gs_in[idx].world_position.xyz;

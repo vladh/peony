@@ -14,8 +14,8 @@ out BLOCK {
 void main() {
   vec3 prelim_world_position = vec3(model * mesh_transform * vec4(position, 1.0));
 
-  vec3 water_position = make_water_position(prelim_world_position.xz);
-  vec3 water_normal = make_water_normal(water_position);
+  vec3 water_position = water_make_position(prelim_world_position.xz);
+  vec3 water_normal = water_make_normal(water_position);
 
   gl_Position = projection * view * vec4(water_position, 1.0);
   vs_out.world_position = water_position;

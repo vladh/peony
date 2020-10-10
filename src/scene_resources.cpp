@@ -212,6 +212,8 @@ void scene_resources_init(Memory *memory, State *state) {
         "entity",
         SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
+        /* SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", */
+        /* SHADER_DIR"normal_visualizer.geom" */
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
         "resources/textures/shop/03_-_Default_BaseColor.tga.png",
@@ -229,6 +231,8 @@ void scene_resources_init(Memory *memory, State *state) {
         "entity",
         SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
+        /* SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", */
+        /* SHADER_DIR"normal_visualizer.geom" */
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
         "resources/textures/shop/01_-_Default_BaseColor.tga.png",
@@ -246,6 +250,8 @@ void scene_resources_init(Memory *memory, State *state) {
         "entity",
         SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
+        /* SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", */
+        /* SHADER_DIR"normal_visualizer.geom" */
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
         "resources/textures/shop/02_-_Default_BaseColor.tga.png",

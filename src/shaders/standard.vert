@@ -13,7 +13,7 @@ out BLOCK {
 
 void main() {
   vs_out.world_position = vec3(model * mesh_transform * vec4(position, 1.0));
-  vs_out.normal = mat3(transpose(inverse(model * mesh_transform))) * normal;
+  vs_out.normal = normalize(mat3(transpose(inverse(model * mesh_transform))) * normal);
   vs_out.tex_coords = tex_coords;
   gl_Position = projection * view * vec4(vs_out.world_position, 1.0);
 }
