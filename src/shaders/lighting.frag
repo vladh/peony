@@ -1,14 +1,4 @@
-#define GAMMA 5.2
-#define USE_SHADOWS false
 #define SHOULD_LINEARISE_ALBEDO true
-
-vec3 grid_sampling_offsets[20] = vec3[] (
-  vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
-  vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
-  vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
-  vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
-  vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
-);
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_normal_texture;
@@ -24,16 +14,18 @@ in BLOCK {
 
 out vec4 frag_color;
 
-vec3 correct_gamma(vec3 rgb) {
-  return pow(rgb, vec3(1.0 / GAMMA));
-}
 
-vec3 add_tone_mapping(vec3 rgb) {
-  // Reinhard tone mapping
-  /* return rgb / (rgb + vec3(1.0)); */
-  // Exposure tone mapping
-  return vec3(1.0) - exp(-rgb * exposure);
-}
+// TODO: MOVE THIS TO COMMON. //////////////////////////
+#define USE_SHADOWS true
+
+vec3 grid_sampling_offsets[20] = vec3[] (
+  vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
+  vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
+  vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
+  vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
+  vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);
+
 
 float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_texture) {
   vec3 frag_to_light = world_position - vec3(light_position[idx_light]);
@@ -60,46 +52,14 @@ float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_te
 
   return shadow;
 }
-
-vec3 fresnel_schlick(float cosTheta, vec3 F0) {
-  return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
-float distribution_ggx(vec3 N, vec3 H, float roughness) {
-  float a = roughness * roughness;
-  float a2 = a * a;
-  float NdotH = max(dot(N, H), 0.0);
-  float NdotH2 = NdotH * NdotH;
-
-  float num = a2;
-  float denom = (NdotH2 * (a2 - 1.0) + 1.0);
-  denom = PI * denom * denom;
-
-  return num / denom;
-}
-
-float geometry_schlick_ggx(float n_dot_v, float roughness) {
-  float k = pow(roughness + 1.0, 2) / 8.0;
-
-  float num = n_dot_v;
-  float denom = n_dot_v * (1.0 - k) + k;
-
-  return num / denom;
-}
-
-float geometry_smith(float n_dot_v, float n_dot_l, float roughness) {
-  float ggx1 = geometry_schlick_ggx(n_dot_v, roughness);
-  float ggx2 = geometry_schlick_ggx(n_dot_l, roughness);
-
-  return ggx1 * ggx2;
-}
+/////////////////////////////////////////////////////////
 
 void main() {
   vec3 world_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
 
-  // Skip pixels with no normal. These are the background pixels, hence
-  // letting the background color shine through.
+  // Skip pixels with no normal. These are the background pixels, so we
+  // let the background color shine through.
   if (normal == vec3(0.0, 0.0, 0.0)) {
     discard;
   }
@@ -119,7 +79,7 @@ void main() {
 
   vec3 N = normal;
   vec3 V = normalize(camera_position - world_position);
-  float n_dot_v = max(dot(N, V), 0.0);
+  float n_dot_v = abs(dot(N, V)) + M_EPSILON;
 
   vec3 F0 = vec3(0.04);
   F0 = mix(F0, albedo, metallic);
@@ -127,38 +87,19 @@ void main() {
   vec3 Lo = vec3(0.0);
 
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
-    vec3 L = normalize(vec3(light_position[idx_light]) - world_position);
-    vec3 H = normalize(V + L);
-    float n_dot_l = max(dot(N, L), 0.0);
-
-    float distance = length(vec3(light_position[idx_light]) - world_position);
-    float attenuation = 1.0 / (
-      light_attenuation[idx_light][0] +
-      light_attenuation[idx_light][1] * distance +
-      light_attenuation[idx_light][2] * (distance * distance)
-    );
-    vec3 radiance = vec3(light_color[idx_light]) * attenuation;
-
-    float NDF = distribution_ggx(N, H, roughness);
-    float G = geometry_smith(n_dot_v, n_dot_l, roughness);
-    vec3 F = fresnel_schlick(max(dot(H, V), 0.0), F0);
-
-    vec3 numerator = NDF * G * F;
-    float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-    vec3 specular = numerator / max(denominator, 0.00001);
-
-    vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
-    kD *= 1.0 - metallic;
-
     float shadow = 0;
 
     if (USE_SHADOWS && n_depth_textures >= n_lights) {
       RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light);
     }
 
-    Lo += (kD * albedo / PI + specular) * radiance * n_dot_l * (1.0 - shadow);
-    // Lo += specular;
+    Lo += compute_sphere_light(
+      world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
+      light_attenuation[idx_light],
+      albedo, metallic, roughness,
+      N, V,
+      n_dot_v, F0
+    ) * (1.0 - shadow);
   }
 
   vec3 ambient = vec3(0.03) * albedo * ao;
@@ -168,8 +109,4 @@ void main() {
   color = correct_gamma(color);
 
   frag_color = vec4(color, 1.0);
-  // vec3 nv_vec = vec3(dot(N, V), dot(N, V), dot(N, V));
-  // frag_color = vec4(normal, 1.0);
-  // frag_color = vec4(nv_vec, 1.0);
-  // frag_color = vec4(color - normal, 1.0);
 }
