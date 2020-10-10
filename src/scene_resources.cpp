@@ -2,11 +2,12 @@ void scene_resources_init(Memory *memory, State *state) {
   ModelAsset *model_asset;
   TextureSetAsset *texture_set;
   ShaderAsset *shader_asset;
+  ShaderAsset *depth_shader_asset;
 
   state->standard_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "standard_depth",
-    SHADER_STANDARD_DEPTH,
+    SHADER_DEPTH,
     SHADER_DIR"standard_depth.vert", SHADER_DIR"standard_depth.frag",
     SHADER_DIR"standard_depth.geom"
   );
@@ -32,7 +33,7 @@ void scene_resources_init(Memory *memory, State *state) {
       "axes",
       GL_LINES
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
   }
 
   // Plane
@@ -61,13 +62,20 @@ void scene_resources_init(Memory *memory, State *state) {
       "water",
       SHADER_STANDARD,
       SHADER_DIR"water.vert", SHADER_DIR"water.frag"
-      /* SHADER_DIR"water.vert", SHADER_DIR"water.frag", */
-      /* SHADER_DIR"water.geom" */
+    );
+    depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory,
+      "water_depth",
+      SHADER_DEPTH,
+      SHADER_DIR"water.vert", SHADER_DIR"water.frag",
+      SHADER_DIR"standard_depth.geom"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       glm::vec4(0.0f, 0.0f, 0.9f, 1.0f), 0.0f, 0.8f, 1.0f
     );
-    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {
+      shader_asset, depth_shader_asset, texture_set, true, 0, 0
+    };
   }
 
   // Sphere
@@ -103,7 +111,7 @@ void scene_resources_init(Memory *memory, State *state) {
       "", /* "resources/textures/rusted_iron/ao.png", */
       "resources/textures/rusted_iron/normal.png"
     );
-    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
   // ===============================
@@ -121,7 +129,7 @@ void scene_resources_init(Memory *memory, State *state) {
       SHADER_OTHER_OBJECT,
       SHADER_DIR"light.vert", SHADER_DIR"light.frag"
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
   }
 
   // Cart
@@ -138,7 +146,7 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       glm::vec4(0.2f, 0.2f, 1.0f, 1.0f), 0.0f, 0.8f, 1.0f
     );
-    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
   // Goose
@@ -155,7 +163,7 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       glm::vec4(0.6f, 0.1f, 0.1f, 1.0f), 0.0f, 1.0f, 1.0f
     );
-    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
   // Floor
@@ -172,7 +180,7 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
       glm::vec4(0.9f, 0.8f, 0.7f, 1.0f), 0.0f, 1.0f, 1.0f
     );
-    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
   // Temple
@@ -195,7 +203,7 @@ void scene_resources_init(Memory *memory, State *state) {
         "resources/textures/shop/AO-3.tga.png",
         "resources/textures/shop/03_-_Default_Normal.tga.png"
       );
-      *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 0};
+      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 0};
     }
 
     {
@@ -212,7 +220,7 @@ void scene_resources_init(Memory *memory, State *state) {
         "resources/textures/shop/AO-1.tga.png",
         "resources/textures/shop/01_-_Default_Normal.tga.png"
       );
-      *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 1};
+      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 1};
     }
 
     {
@@ -229,7 +237,7 @@ void scene_resources_init(Memory *memory, State *state) {
         "resources/textures/shop/AO-2.tga.png",
         "resources/textures/shop/02_-_Default_Normal.tga.png"
       );
-      *model_asset->mesh_templates.push() = {shader_asset, texture_set, false, 0, 2};
+      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 2};
     }
   }
 }

@@ -33,6 +33,8 @@ void TextureSetAsset::generate_textures_from_pbo(
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool
 ) {
+  this->mutex.lock();
+
   if (this->is_static) {
     return;
   }
@@ -110,15 +112,17 @@ void TextureSetAsset::generate_textures_from_pbo(
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
   this->have_textures_been_generated = true;
+
+  this->mutex.unlock();
 }
 
 
 void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
+  this->mutex.lock();
+
   if (this->is_static) {
     return;
   }
-
-  this->mutex.lock();
 
   if (this->have_textures_been_copied_to_pbo) {
     log_warning("Trying to load already loaded TextureSetAsset.");
