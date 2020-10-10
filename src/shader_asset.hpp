@@ -1,6 +1,10 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#define SHADER_DIR "src/shaders/"
+#define SHADER_COMMON_PATH SHADER_DIR"common.glsl"
+#define SHADER_COMMON_FRAGMENT_PATH SHADER_DIR"common_fragment.glsl"
+
 constexpr uint8 MAX_N_UNIFORMS = 64;
 constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
 constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
@@ -69,6 +73,7 @@ private:
     uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
   );
   const char* load_file(Memory *memory, const char *path);
+  const char* load_frag_file(Memory *memory, const char *path);
   int32 get_uniform_location(const char *name);
   void load_uniforms();
 };

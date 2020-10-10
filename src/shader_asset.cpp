@@ -59,11 +59,28 @@ uint32 ShaderAsset::make_program(
 
 
 const char* ShaderAsset::load_file(Memory *memory, const char *path) {
-  // TODO: It's a bit wasteful to add `common.glsl` to every single
-  // shader. Maybe it would be better to somehow do it selectively.
-  return ResourceManager::load_two_files(
-    &memory->temp_memory_pool, SHADER_COMMON_PATH, path
+  uint32 f1_size = ResourceManager::get_file_size(SHADER_COMMON_PATH);
+  uint32 f2_size = ResourceManager::get_file_size(path);
+  char *file_memory = (char*)memory->temp_memory_pool.push(
+    f1_size + f2_size + 1, path
   );
+  ResourceManager::load_file(file_memory, SHADER_COMMON_PATH);
+  ResourceManager::load_file(file_memory + f1_size, path);
+  return file_memory;
+}
+
+
+const char* ShaderAsset::load_frag_file(Memory *memory, const char *path) {
+  uint32 f1_size = ResourceManager::get_file_size(SHADER_COMMON_PATH);
+  uint32 f2_size = ResourceManager::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
+  uint32 f3_size = ResourceManager::get_file_size(path);
+  char *file_memory = (char*)memory->temp_memory_pool.push(
+    f1_size + f2_size + f3_size + 1, path
+  );
+  ResourceManager::load_file(file_memory, SHADER_COMMON_PATH);
+  ResourceManager::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
+  ResourceManager::load_file(file_memory + f1_size + f2_size, path);
+  return file_memory;
 }
 
 
@@ -130,7 +147,7 @@ ShaderAsset::ShaderAsset(
   memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
   this->program = make_program(
     make_shader(vert_path, load_file(memory, vert_path), GL_VERTEX_SHADER),
-    make_shader(frag_path, load_file(memory, frag_path), GL_FRAGMENT_SHADER)
+    make_shader(frag_path, load_frag_file(memory, frag_path), GL_FRAGMENT_SHADER)
   );
   load_uniforms();
 
@@ -150,7 +167,7 @@ ShaderAsset::ShaderAsset(
   memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
   this->program = make_program(
     make_shader(vert_path, load_file(memory, vert_path), GL_VERTEX_SHADER),
-    make_shader(frag_path, load_file(memory, frag_path), GL_FRAGMENT_SHADER),
+    make_shader(frag_path, load_frag_file(memory, frag_path), GL_FRAGMENT_SHADER),
     make_shader(geom_path, load_file(memory, geom_path), GL_GEOMETRY_SHADER)
   );
   load_uniforms();

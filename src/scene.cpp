@@ -108,7 +108,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Spheres
-#if 0
+#if 1
   uint32 n_spheres = 1;
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
@@ -139,7 +139,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "plane"),
-    RENDERPASS_FORWARD
+    RENDERPASS_DEFERRED
   );
 #endif
 

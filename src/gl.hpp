@@ -1,9 +1,6 @@
 #ifndef GL_H
 #define GL_H
 
-#define SHADER_DIR "src/shaders/"
-#define SHADER_COMMON_PATH SHADER_DIR"common.glsl"
-
 // TODO: Decide which ones we should actually be including.
 // Add assert.h?
 #include <stdlib.h>

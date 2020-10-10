@@ -43,8 +43,8 @@ void scene_resources_init(Memory *memory, State *state) {
     uint32 *index_data;
     Util::make_plane(
       &memory->temp_memory_pool,
-      50, 50,
-      64, 64,
+      100, 100,
+      256, 256,
       &n_vertices, &n_indices,
       &vertex_data, &index_data
     );
@@ -58,13 +58,16 @@ void scene_resources_init(Memory *memory, State *state) {
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
-      "entity",
-      SHADER_OTHER_OBJECT,
-      /* SHADER_DIR"water.vert", SHADER_DIR"water.frag" */
-      SHADER_DIR"water.vert", SHADER_DIR"water.frag",
-      SHADER_DIR"water.geom"
+      "water",
+      SHADER_STANDARD,
+      SHADER_DIR"water.vert", SHADER_DIR"water.frag"
+      /* SHADER_DIR"water.vert", SHADER_DIR"water.frag", */
+      /* SHADER_DIR"water.geom" */
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, true, 0, 0};
+    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
+      glm::vec4(0.0f, 0.0f, 0.9f, 1.0f), 0.0f, 0.8f, 1.0f
+    );
+    *model_asset->mesh_templates.push() = {shader_asset, texture_set, true, 0, 0};
   }
 
   // Sphere

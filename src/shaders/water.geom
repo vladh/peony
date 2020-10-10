@@ -16,9 +16,9 @@ out GS_OUT {
 } gs_out;
 
 void main() {
-  for(int idx = 0; idx < N_VERTICES; idx++) {
+  for (int idx = 0; idx < N_VERTICES; idx++) {
     gs_out.world_position = gs_in.world_position;
-    gl_Position = projection * view * gl_in[idx].gl_Position;
+    gl_Position = gl_in[idx].gl_Position;
     gs_out.normal = gs_in.normal;
     gs_out.tex_coords = gs_in.tex_coords;
 
