@@ -95,6 +95,10 @@ void process_input_transient(GLFWwindow *window, State *state) {
     update_drawing_options(state, window);
   }
 
+  if (state->control.is_key_now_down(GLFW_KEY_TAB)) {
+    state->should_pause = !state->should_pause;
+  }
+
   if (state->control.is_key_now_down(GLFW_KEY_U)) {
     log_info("Deleting PBO");
     state->persistent_pbo.delete_pbo();
@@ -735,8 +739,12 @@ void run_main_loop(Memory *memory, State *state) {
 
     std::chrono::duration<real64> time_since_last_frame = frame_start - last_frame_start;
     std::chrono::duration<real64> time_since_game_start = frame_start - game_start;
-    state->t = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_game_start).count();
-    state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_last_frame).count();
+
+    if (!state->should_pause) {
+      state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_last_frame).count();
+      /* state->t = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_game_start).count(); */
+      state->t += state->dt;
+    }
 
     if (time_since_second_start >= std::chrono::seconds(1)) {
       second_start = frame_start;

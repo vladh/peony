@@ -7,7 +7,7 @@ uniform float ao_static;
 
 uniform bool should_use_normal_map;
 
-in VS_OUT {
+in BLOCK {
   vec3 world_position;
   vec3 normal;
   vec2 tex_coords;

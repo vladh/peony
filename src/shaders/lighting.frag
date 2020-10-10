@@ -18,7 +18,7 @@ uniform sampler2D g_pbr_texture;
 uniform int n_depth_textures;
 uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
-in VS_OUT {
+in BLOCK {
   vec2 tex_coords;
 } fs_in;
 
@@ -168,7 +168,7 @@ void main() {
   color = correct_gamma(color);
 
   frag_color = vec4(color, 1.0);
-  vec3 nv_vec = vec3(dot(N, V), dot(N, V), dot(N, V));
+  // vec3 nv_vec = vec3(dot(N, V), dot(N, V), dot(N, V));
   // frag_color = vec4(normal, 1.0);
   // frag_color = vec4(nv_vec, 1.0);
   // frag_color = vec4(color - normal, 1.0);

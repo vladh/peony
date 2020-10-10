@@ -1,7 +1,7 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;
 
-out GS_OUT {
+out BLOCK {
   vec4 world_position;
 } gs_out;
 

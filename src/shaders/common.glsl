@@ -35,8 +35,13 @@ struct WaveParameterSet {
   float speed;
 };
 
-int n_waves;
-WaveParameterSet wave_parameter_sets[10];
+int n_waves = 4;
+WaveParameterSet wave_parameter_sets[4] = WaveParameterSet[4](
+  WaveParameterSet(vec2(1.0, 0.0), 0.8, 0.6, 1.0, 1.0),
+  WaveParameterSet(vec2(0.8, 0.0), 0.2, 0.2, 4.0, 1.5),
+  WaveParameterSet(vec2(0.0, 1.0), 0.2, 0.2, 2.0, 0.8),
+  WaveParameterSet(vec2(0.0, 0.7), 0.1, 0.1, 1.5, 0.6)
+);
 
 vec3 make_water_normal(vec3 water_position) {
   vec3 wave_normal = vec3(0.0, 1.0, 0.0);

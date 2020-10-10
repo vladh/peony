@@ -3,6 +3,7 @@ State::State(
   WindowInfo window_info
 ) :
   should_stop(false),
+  should_pause(false),
   window_info(window_info),
 
   camera_main(CAMERA_PERSPECTIVE),
