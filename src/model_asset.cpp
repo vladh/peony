@@ -205,13 +205,14 @@ void ModelAsset::load(Memory *memory) {
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
+  this->mutex.lock();
+
   if (this->model_source == MODELSOURCE_FILE) {
     char path[256];
     strcpy(path, this->directory);
     strcat(path, "/");
     strcat(path, this->filename);
 
-    this->mutex.lock();
     const aiScene *scene = aiImportFile(
       path,
       aiProcess_Triangulate
@@ -226,7 +227,6 @@ void ModelAsset::load(Memory *memory) {
       // NOTE: Uncomment this when changing to proper normal mapping.
       /* | aiProcess_CalcTangentSpace */
     );
-    this->mutex.unlock();
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
       log_fatal("assimp error: %s", aiGetErrorString());
@@ -242,6 +242,8 @@ void ModelAsset::load(Memory *memory) {
 
   this->is_mesh_data_loading_in_progress = false;
   this->is_mesh_data_loading_done = true;
+
+  this->mutex.unlock();
 }
 
 
@@ -392,30 +394,32 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
 }
 
 
-void ModelAsset::set_shader_to_mesh(
-  uint32 idx_mesh, ShaderAsset *shader_asset
+void ModelAsset::set_shader_for_mesh(
+  uint32 idx_mesh, ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
   mesh->shader_asset = shader_asset;
+  mesh->depth_shader_asset = depth_shader_asset;
 }
 
 
 void ModelAsset::set_shader(
-  ShaderAsset *shader_asset
+  ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    set_shader_to_mesh(idx_mesh, shader_asset);
+    set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
   }
 }
 
 
 void ModelAsset::set_shader_for_node_idx(
-  ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+  ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
+  uint8 node_depth, uint8 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
     Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      set_shader_to_mesh(idx_mesh, shader_asset);
+      set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
     }
   }
 }
@@ -478,10 +482,11 @@ void ModelAsset::prepare_for_draw(
       MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
       if (mesh_template->apply_to_all_meshes) {
-        set_shader(mesh_template->shader_asset);
+        set_shader(mesh_template->shader_asset, mesh_template->depth_shader_asset);
       } else {
         set_shader_for_node_idx(
           mesh_template->shader_asset,
+          mesh_template->depth_shader_asset,
           mesh_template->node_depth, mesh_template->node_idx
         );
       }
@@ -591,10 +596,11 @@ void ModelAsset::draw(
   }
 
   uint32 last_used_shader_program = 0;
+  ShaderAsset *shader_asset;
 
   for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
     Mesh *mesh = this->meshes.get(idx);
-    ShaderAsset *shader_asset = mesh->shader_asset;
+    shader_asset = mesh->shader_asset;
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
     if (shader_asset->program != last_used_shader_program) {
@@ -648,6 +654,7 @@ void ModelAsset::draw_in_depth_mode(
   glm::mat4 *model_matrix,
   ShaderAsset *standard_depth_shader_asset
 ) {
+  // TODO: We can probably merge this into the normal `draw()` above.
   prepare_for_draw(
     memory, persistent_pbo, texture_name_pool, task_queue
   );
@@ -656,13 +663,22 @@ void ModelAsset::draw_in_depth_mode(
     return;
   }
 
+  uint32 last_used_shader_program = 0;
   ShaderAsset *shader_asset = standard_depth_shader_asset;
-
-  glUseProgram(shader_asset->program);
-  shader_asset->set_mat4("model", model_matrix);
 
   for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
     Mesh *mesh = this->meshes.get(idx);
+    if (mesh->depth_shader_asset) {
+      shader_asset = mesh->depth_shader_asset;
+    }
+
+    // If our shader program has changed since our last mesh, tell OpenGL about it.
+    if (shader_asset->program != last_used_shader_program) {
+      glUseProgram(shader_asset->program);
+      last_used_shader_program = shader_asset->program;
+      shader_asset->set_mat4("model", model_matrix);
+    }
+
     shader_asset->set_mat4("mesh_transform", &mesh->transform);
 
     glBindVertexArray(mesh->vao);

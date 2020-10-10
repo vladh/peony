@@ -11,6 +11,7 @@ enum ModelSource {
 
 struct MeshShaderTextureTemplate {
   ShaderAsset *shader_asset;
+  ShaderAsset *depth_shader_asset;
   TextureSetAsset *texture_set_asset;
   bool32 apply_to_all_meshes;
   uint8 node_depth;
@@ -27,6 +28,7 @@ struct Mesh {
   glm::mat4 transform;
   TextureSetAsset *texture_set_asset;
   ShaderAsset *shader_asset;
+  ShaderAsset *depth_shader_asset;
   uint64 indices_pack;
   uint32 n_vertices;
   uint32 n_indices;
@@ -69,14 +71,15 @@ public:
     const char *name,
     GLenum mode
   );
-  void set_shader_to_mesh(
-    uint32 idx_mesh, ShaderAsset *shader_asset
+  void set_shader_for_mesh(
+    uint32 idx_mesh, ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
   );
   void set_shader(
-    ShaderAsset *shader_asset
+    ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
   );
   void set_shader_for_node_idx(
-    ShaderAsset *shader_asset, uint8 node_depth, uint8 node_idx
+    ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
+    uint8 node_depth, uint8 node_idx
   );
   void bind_texture_to_mesh(
     uint32 idx_mesh, TextureSetAsset *texture_set_asset
