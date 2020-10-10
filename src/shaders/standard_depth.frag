@@ -1,4 +1,4 @@
-in GS_OUT {
+in BLOCK {
   vec4 world_position;
 } fs_in;
 

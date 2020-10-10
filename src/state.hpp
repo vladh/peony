@@ -10,7 +10,8 @@ struct WindowInfo {
 
 class State {
 public:
-  bool32 should_stop = false;
+  bool32 should_stop;
+  bool32 should_pause;
   WindowInfo window_info;
 
   Camera camera_main;

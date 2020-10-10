@@ -3,13 +3,13 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices=N_VERTICES) out;
 
-out VS_OUT {
+out BLOCK {
   vec3 world_position;
   vec3 normal;
   vec2 tex_coords;
 } gs_in;
 
-out GS_OUT {
+out BLOCK {
   vec3 world_position;
   vec3 normal;
   vec2 tex_coords;
