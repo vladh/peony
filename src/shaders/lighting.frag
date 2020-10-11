@@ -14,46 +14,6 @@ in BLOCK {
 
 out vec4 frag_color;
 
-
-// TODO: MOVE THIS TO COMMON. //////////////////////////
-#define USE_SHADOWS true
-
-vec3 grid_sampling_offsets[20] = vec3[] (
-  vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
-  vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
-  vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
-  vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
-  vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
-);
-
-
-float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_texture) {
-  vec3 frag_to_light = world_position - vec3(light_position[idx_light]);
-  float current_depth = length(frag_to_light);
-
-  float shadow = 0.0;
-  float bias = 0.15;
-  int n_samples = 10;
-
-  float view_distance = length(camera_position - world_position);
-  float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
-
-  for (int i = 0; i < n_samples; i++) {
-    float closest_depth = texture(
-      depth_texture,
-      frag_to_light + grid_sampling_offsets[i] * sample_radius
-    ).r * far_clip_dist;
-
-    if (current_depth - bias > closest_depth) {
-      shadow += 1.0;
-    }
-  }
-  shadow /= float(n_samples);
-
-  return shadow;
-}
-/////////////////////////////////////////////////////////
-
 void main() {
   vec3 world_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
