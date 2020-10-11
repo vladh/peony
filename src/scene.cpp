@@ -91,30 +91,30 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 #endif
 
-  // Cart
-#if 0
-  entity = state->entity_manager.add("cart");
+  // Rocks
+#if 1
+  entity = state->entity_manager.add("rocks");
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec3(-5.1f, 1.45f, 2.0f),
+    glm::vec3(0.0f, -2.0f, 0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(0.003f)
+    glm::vec3(0.03f)
   );
   state->drawable_component_manager.add(
     entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "cart"),
+    ModelAsset::get_by_name(&state->model_assets, "rocks"),
     RENDERPASS_DEFERRED
   );
 #endif
 
   // Spheres
-#if 1
-  uint32 n_spheres = 1;
+#if 0
+  uint32 n_spheres = 8;
   for (uint16 idx = 0; idx < n_spheres; idx++) {
     entity = state->entity_manager.add("sphere");
     state->spatial_component_manager.add(
       entity->handle,
-      glm::vec3(-5.0f, 0.65f, -3.0f),
+      glm::vec3(Util::random(-3.0f, 3.0f), 0.0f, Util::random(-3.0f, 3.0f)),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(0.5f)
     );

@@ -7,7 +7,6 @@ public:
   bool32 have_textures_been_copied_to_pbo = false;
   bool32 have_textures_been_generated = false;
   bool32 have_textures_been_bound = false;
-  bool32 should_use_normal_map = false;
 
   // Loaded texture maps.
   uint32 material_texture = 0;
@@ -49,6 +48,7 @@ public:
   real32 metallic_static = -1.0f;
   real32 roughness_static = -1.0f;
   real32 ao_static = -1.0f;
+  bool32 should_use_normal_map = false;
 
   std::mutex mutex;
 
