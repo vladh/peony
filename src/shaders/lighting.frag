@@ -80,10 +80,7 @@ void main() {
   vec3 N = normal;
   vec3 V = normalize(camera_position - world_position);
   float n_dot_v = abs(dot(N, V)) + M_EPSILON;
-
-  vec3 F0 = vec3(0.04);
-  F0 = mix(F0, albedo, metallic);
-
+  vec3 F0 = mix(vec3(0.04), albedo, metallic);
   vec3 Lo = vec3(0.0);
 
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
@@ -102,6 +99,7 @@ void main() {
     ) * (1.0 - shadow);
   }
 
+  // TODO: Add better ambient term.
   vec3 ambient = vec3(0.03) * albedo * ao;
   vec3 color = ambient + Lo;
 
