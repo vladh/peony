@@ -378,7 +378,6 @@ void render_scene(
 void render_scene_ui(
   Memory *memory, State *state
 ){
-  glEnable(GL_BLEND);
   char debug_text[256];
   sprintf(
     debug_text,
@@ -398,7 +397,6 @@ void render_scene_ui(
     15.0f, state->window_info.height - 35.0f,
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
-  glDisable(GL_BLEND);
 }
 
 
@@ -704,6 +702,7 @@ void update_and_render(Memory *memory, State *state) {
 
 
   // Forward pass
+  glEnable(GL_BLEND);
   {
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -719,6 +718,7 @@ void update_and_render(Memory *memory, State *state) {
   {
     render_scene_ui(memory, state);
   }
+  glDisable(GL_BLEND);
 }
 
 
