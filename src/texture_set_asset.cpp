@@ -67,6 +67,8 @@ void TextureSetAsset::generate_textures_from_pbo(
       1, format, GL_UNSIGNED_BYTE,
       persistent_pbo->get_offset_for_idx(this->albedo_pbo_idx)
     );
+  } else {
+    this->albedo_static = glm::vec4(1.0f, 0.0f, 0.0f, 1.0f);
   }
 
   if (strcmp(this->metallic_texture_path, "") != 0) {
@@ -77,6 +79,8 @@ void TextureSetAsset::generate_textures_from_pbo(
       1, format, GL_UNSIGNED_BYTE,
       persistent_pbo->get_offset_for_idx(this->metallic_pbo_idx)
     );
+  } else {
+    this->metallic_static = 0.0f;
   }
 
   if (strcmp(this->roughness_texture_path, "") != 0) {
@@ -87,6 +91,8 @@ void TextureSetAsset::generate_textures_from_pbo(
       1, format, GL_UNSIGNED_BYTE,
       persistent_pbo->get_offset_for_idx(this->roughness_pbo_idx)
     );
+  } else {
+    this->roughness_static = 1.0f;
   }
 
   if (strcmp(this->ao_texture_path, "") != 0) {
@@ -97,9 +103,12 @@ void TextureSetAsset::generate_textures_from_pbo(
       1, format, GL_UNSIGNED_BYTE,
       persistent_pbo->get_offset_for_idx(this->ao_pbo_idx)
     );
+  } else {
+    this->ao_static = 1.0f;
   }
 
   if (strcmp(this->normal_texture_path, "") != 0) {
+    this->should_use_normal_map = true;
     format = Util::get_texture_format_from_n_components(this->normal_data_n_components);
     glTexSubImage3D(
       GL_TEXTURE_2D_ARRAY, 0, 0, 0, 4,
@@ -107,6 +116,8 @@ void TextureSetAsset::generate_textures_from_pbo(
       1, format, GL_UNSIGNED_BYTE,
       persistent_pbo->get_offset_for_idx(this->normal_pbo_idx)
     );
+  } else {
+    this->should_use_normal_map = false;
   }
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
@@ -200,8 +211,6 @@ void TextureSetAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   }
 
   if (strcmp(this->normal_texture_path, "") != 0) {
-    this->should_use_normal_map = true;
-
     unsigned char* image_data = ResourceManager::load_image(
       this->normal_texture_path, &this->normal_data_width,
       &this->normal_data_height, &this->normal_data_n_components, true
