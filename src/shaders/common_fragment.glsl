@@ -129,9 +129,9 @@ vec3 compute_sphere_light(
 ) {
   vec3 L = normalize(light_position - world_position);
   vec3 H = normalize(V + L);
-  float n_dot_l = clamp(dot(N, L), M_EPSILON, 1.0);
-  float h_dot_v = clamp(dot(H, V), M_EPSILON, 1.0);
-  float n_dot_h = clamp(dot(N, H), M_EPSILON, 1.0);
+  float n_dot_l = max(dot(N, L), M_EPSILON);
+  float h_dot_v = max(dot(H, V), M_EPSILON);
+  float n_dot_h = max(dot(N, H), M_EPSILON);
 
   float distance = length(light_position - world_position);
   float attenuation = 1.0 / (
