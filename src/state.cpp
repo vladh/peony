@@ -4,6 +4,7 @@ State::State(
 ) :
   should_stop(false),
   should_pause(false),
+  should_hide_ui(false),
   window_info(window_info),
 
   camera_main(CAMERA_PERSPECTIVE),

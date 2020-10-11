@@ -12,6 +12,7 @@ class State {
 public:
   bool32 should_stop;
   bool32 should_pause;
+  bool32 should_hide_ui;
   WindowInfo window_info;
 
   Camera camera_main;

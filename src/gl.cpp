@@ -99,6 +99,10 @@ void process_input_transient(GLFWwindow *window, State *state) {
     state->should_pause = !state->should_pause;
   }
 
+  if (state->control.is_key_now_down(GLFW_KEY_BACKSPACE)) {
+    state->should_hide_ui = !state->should_hide_ui;
+  }
+
   if (state->control.is_key_now_down(GLFW_KEY_U)) {
     log_info("Deleting PBO");
     state->persistent_pbo.delete_pbo();
@@ -702,7 +706,6 @@ void update_and_render(Memory *memory, State *state) {
 
 
   // Forward pass
-  glEnable(GL_BLEND);
   {
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -714,9 +717,12 @@ void update_and_render(Memory *memory, State *state) {
     }
   }
 
+  glEnable(GL_BLEND);
   // UI pass
   {
-    render_scene_ui(memory, state);
+    if (!state->should_hide_ui) {
+      render_scene_ui(memory, state);
+    }
   }
   glDisable(GL_BLEND);
 }
