@@ -705,6 +705,7 @@ void update_and_render(Memory *memory, State *state) {
   }
 
 
+  glEnable(GL_BLEND);
   // Forward pass
   {
     if (state->should_use_wireframe) {
@@ -717,7 +718,6 @@ void update_and_render(Memory *memory, State *state) {
     }
   }
 
-  glEnable(GL_BLEND);
   // UI pass
   {
     if (!state->should_hide_ui) {
