@@ -350,8 +350,8 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
 
 void ModelAsset::bind_shader_and_texture_as_screenquad(
-  uint32 g_position_texture, uint32 g_normal_texture,
-  uint32 g_albedo_texture, uint32 g_pbr_texture,
+  Texture *g_position_texture, Texture *g_normal_texture,
+  Texture *g_albedo_texture, Texture *g_pbr_texture,
   uint32 n_depth_textures,
   uint32 *depth_textures,
   ShaderAsset *shader_asset
@@ -372,22 +372,22 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
 
   shader_asset->set_int(
     "g_position_texture",
-    shader_asset->add_texture_unit(g_position_texture, GL_TEXTURE_2D)
+    shader_asset->add_texture_unit(g_position_texture->texture_name, GL_TEXTURE_2D)
   );
 
   shader_asset->set_int(
     "g_normal_texture",
-    shader_asset->add_texture_unit(g_normal_texture, GL_TEXTURE_2D)
+    shader_asset->add_texture_unit(g_normal_texture->texture_name, GL_TEXTURE_2D)
   );
 
   shader_asset->set_int(
     "g_albedo_texture",
-    shader_asset->add_texture_unit(g_albedo_texture, GL_TEXTURE_2D)
+    shader_asset->add_texture_unit(g_albedo_texture->texture_name, GL_TEXTURE_2D)
   );
 
   shader_asset->set_int(
     "g_pbr_texture",
-    shader_asset->add_texture_unit(g_pbr_texture, GL_TEXTURE_2D)
+    shader_asset->add_texture_unit(g_pbr_texture->texture_name, GL_TEXTURE_2D)
   );
 
   shader_asset->did_set_texture_uniforms = true;

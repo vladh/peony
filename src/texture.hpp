@@ -31,6 +31,23 @@ public:
     path(path)
   {
   }
+
+  Texture(
+    TextureType type,
+    const char* uniform_name,
+    uint32 texture_name,
+    int32 width,
+    int32 height,
+    int32 n_components
+  ) :
+    type(type),
+    uniform_name(uniform_name),
+    texture_name(texture_name),
+    width(width),
+    height(height),
+    n_components(n_components)
+  {
+  }
 };
 
 #endif

@@ -28,7 +28,9 @@ void TextureSet::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 
   for (uint32 idx = 0; idx < this->textures.size; idx++) {
     Texture *texture = this->textures.get(idx);
-
+    if (texture->texture_name) {
+      continue;
+    }
     unsigned char *image_data = ResourceManager::load_image(
       texture->path, &texture->width, &texture->height,
       &texture->n_components, true
@@ -58,6 +60,9 @@ void TextureSet::generate_textures_from_pbo(
 
   for (uint32 idx = 0; idx < this->textures.size; idx++) {
     Texture *texture = this->textures.get(idx);
+    if (texture->texture_name) {
+      continue;
+    }
     texture->texture_name = texture_name_pool->get_next();
     glBindTexture(GL_TEXTURE_2D, texture->texture_name);
     glTexSubImage2D(
