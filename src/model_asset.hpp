@@ -122,8 +122,8 @@ public:
   // polluate the normal pipeline with all the g_buffer/shadowmap
   // stuff.
   void bind_shader_and_texture_as_screenquad(
-    uint32 g_position_texture, uint32 g_normal_texture,
-    uint32 g_albedo_texture, uint32 g_pbr_texture,
+    Texture *g_position_texture, Texture *g_normal_texture,
+    Texture *g_albedo_texture, Texture *g_pbr_texture,
     uint32 n_depth_textures,
     uint32 *depth_textures,
     ShaderAsset *shader_asset

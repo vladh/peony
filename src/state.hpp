@@ -66,10 +66,10 @@ public:
   ShaderCommon shader_common;
 
   uint32 g_buffer;
-  uint32 g_position_texture;
-  uint32 g_normal_texture;
-  uint32 g_albedo_texture;
-  uint32 g_pbr_texture;
+  Texture *g_position_texture;
+  Texture *g_normal_texture;
+  Texture *g_albedo_texture;
+  Texture *g_pbr_texture;
 
   State(Memory *memory, WindowInfo window_info);
 };

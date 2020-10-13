@@ -77,6 +77,7 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set->set_metallic_static(0.0f);
     texture_set->set_roughness_static(1.0f);
     texture_set->set_ao_static(1.0f);
+    texture_set->add(*state->g_albedo_texture);
     *model_asset->mesh_templates.push() = {
       shader_asset, depth_shader_asset, texture_set, true, 0, 0
     };

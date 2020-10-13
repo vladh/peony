@@ -457,56 +457,91 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
   glGenFramebuffers(1, &state->g_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
 
-  glGenTextures(1, &state->g_position_texture);
-  glBindTexture(GL_TEXTURE_2D, state->g_position_texture);
+  uint32 g_position_texture_name;
+  uint32 g_normal_texture_name;
+  uint32 g_albedo_texture_name;
+  uint32 g_pbr_texture_name;
+
+  glGenTextures(1, &g_position_texture_name);
+  glGenTextures(1, &g_normal_texture_name);
+  glGenTextures(1, &g_albedo_texture_name);
+  glGenTextures(1, &g_pbr_texture_name);
+
+  state->g_position_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_position_texture")
+  ) Texture(
+    TEXTURE_OTHER, "g_position_texture", g_position_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+  state->g_normal_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_normal_texture")
+  ) Texture(
+    TEXTURE_OTHER, "g_normal_texture", g_normal_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+  state->g_albedo_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_albedo_texture")
+  ) Texture(
+    TEXTURE_OTHER, "g_albedo_texture", g_albedo_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+  state->g_pbr_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_pbr_texture")
+  ) Texture(
+    TEXTURE_OTHER, "g_pbr_texture", g_pbr_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+
+  glBindTexture(GL_TEXTURE_2D, state->g_position_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->window_info.width, state->window_info.height,
+    state->g_position_texture->width, state->g_position_texture->height,
     0, GL_RGBA, GL_FLOAT, NULL
   );
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, state->g_position_texture, 0
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    state->g_position_texture->texture_name, 0
   );
 
-  glGenTextures(1, &state->g_normal_texture);
-  glBindTexture(GL_TEXTURE_2D, state->g_normal_texture);
+  glBindTexture(GL_TEXTURE_2D, state->g_normal_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->window_info.width, state->window_info.height,
+    state->g_normal_texture->width, state->g_normal_texture->height,
     0, GL_RGBA, GL_FLOAT, NULL
   );
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, state->g_normal_texture, 0
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+    state->g_normal_texture->texture_name, 0
   );
 
-  glGenTextures(1, &state->g_albedo_texture);
-  glBindTexture(GL_TEXTURE_2D, state->g_albedo_texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA,
-    state->window_info.width, state->window_info.height,
-    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
-  );
+  glBindTexture(GL_TEXTURE_2D, state->g_albedo_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA,
+    state->g_albedo_texture->width, state->g_albedo_texture->height,
+    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
+  );
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, state->g_albedo_texture, 0
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
+    state->g_albedo_texture->texture_name, 0
   );
 
-  glGenTextures(1, &state->g_pbr_texture);
-  glBindTexture(GL_TEXTURE_2D, state->g_pbr_texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA,
-    state->window_info.width, state->window_info.height,
-    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
-  );
+  glBindTexture(GL_TEXTURE_2D, state->g_pbr_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA,
+    state->g_pbr_texture->width, state->g_pbr_texture->height,
+    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
+  );
   glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, state->g_pbr_texture, 0
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D,
+    state->g_pbr_texture->texture_name, 0
   );
 
   uint32 attachments[4] = {
@@ -828,6 +863,8 @@ int main() {
   update_drawing_options(state, window_info.window);
   glfwSetWindowUserPointer(window_info.window, state);
 
+  state->texture_name_pool.allocate_texture_names();
+
   init_deferred_lighting_buffers(&memory, state);
   init_shader_buffers(&memory, state);
 
@@ -841,8 +878,6 @@ int main() {
   // and before `allocate_texture_names()` or we get a lot of lag at the
   // beginning...?
   state->persistent_pbo.allocate_pbo();
-
-  state->texture_name_pool.allocate_texture_names();
 
 #if 0
   memory.asset_memory_pool.print();
