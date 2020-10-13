@@ -5,6 +5,9 @@ constexpr uint32 MAX_N_MESHES = 2048;
 constexpr uint8 MAX_N_TEXTURE_SETS = 8;
 constexpr uint8 MAX_N_MESH_TEMPLATES = 128;
 
+// NOTE:
+// * MODELSOURCE_DATA: Loaded on initialisation, from given vertex data.
+// * MODELSOURCE_FILE: Loaded on demand, from file.
 enum ModelSource {
   MODELSOURCE_FILE, MODELSOURCE_DATA
 };
@@ -12,7 +15,7 @@ enum ModelSource {
 struct MeshShaderTextureTemplate {
   ShaderAsset *shader_asset;
   ShaderAsset *depth_shader_asset;
-  TextureSetAsset *texture_set_asset;
+  TextureSet *texture_set;
   bool32 apply_to_all_meshes;
   uint8 node_depth;
   uint8 node_idx;
@@ -26,7 +29,7 @@ struct Vertex {
 
 struct Mesh {
   glm::mat4 transform;
-  TextureSetAsset *texture_set_asset;
+  TextureSet *texture_set;
   ShaderAsset *shader_asset;
   ShaderAsset *depth_shader_asset;
   uint64 indices_pack;
@@ -40,16 +43,14 @@ struct Mesh {
   Array<uint32> indices;
 };
 
-class ModelAsset : public Asset {
+class ModelAsset {
 public:
-  // NOTE:
-  // * MODELSOURCE_DATA: Loaded on initialisation, from given vertex data.
-  // * MODELSOURCE_FILE: Loaded on demand, from file.
+  const char *name;
   ModelSource model_source;
   const char *directory;
   const char *filename;
   Array<Mesh> meshes;
-  Array<TextureSetAsset> texture_sets;
+  Array<TextureSet> texture_sets;
   Array<MeshShaderTextureTemplate> mesh_templates;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
@@ -82,13 +83,13 @@ public:
     uint8 node_depth, uint8 node_idx
   );
   void bind_texture_to_mesh(
-    uint32 idx_mesh, TextureSetAsset *texture_set_asset
+    uint32 idx_mesh, TextureSet *texture_set
   );
   void bind_texture(
-    TextureSetAsset *texture_set_asset
+    TextureSet *texture_set
   );
   void bind_texture_for_node_idx(
-    TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
+    TextureSet *texture_set, uint8 node_depth, uint8 node_idx
   );
   void draw(
     Memory *memory,

@@ -21,15 +21,15 @@ void TextureNamePool::allocate_texture_names() {
   glGenTextures(this->n_textures, this->texture_names);
 
   for (uint32 idx = 0; idx < this->n_textures; idx++) {
-    glBindTexture(GL_TEXTURE_2D_ARRAY, this->texture_names[idx]);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, this->mipmap_max_level);
-    glTexStorage3D(
-      GL_TEXTURE_2D_ARRAY, this->mipmap_max_level + 1, GL_RGBA8,
-      this->texture_width, this->texture_height, this->texture_depth
+    glBindTexture(GL_TEXTURE_2D, this->texture_names[idx]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, this->mipmap_max_level);
+    glTexStorage2D(
+      GL_TEXTURE_2D, this->mipmap_max_level + 1, GL_RGBA8,
+      this->texture_width, this->texture_height
     );
   }
 

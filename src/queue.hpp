@@ -4,6 +4,9 @@
 template <typename T>
 class Queue {
 public:
+  uint32 size = 0;
+  uint32 max_size = 0;
+
   Queue(MemoryPool *pool, uint32 new_max_size, const char *debug_name) {
     this->max_size = new_max_size;
     this->items = (T*)pool->push(sizeof(T) * this->max_size, debug_name);
@@ -47,20 +50,10 @@ public:
     return item;
   }
 
-  uint32 get_size() {
-    return this->size;
-  }
-
-  uint32 get_max_size() {
-    return this->max_size;
-  }
-
 private:
   T *items = nullptr;
   uint32 head = 0;
   uint32 tail = 0;
-  uint32 size = 0;
-  uint32 max_size = 0;
 };
 
 #endif

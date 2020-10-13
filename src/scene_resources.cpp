@@ -1,6 +1,6 @@
 void scene_resources_init(Memory *memory, State *state) {
   ModelAsset *model_asset;
-  TextureSetAsset *texture_set;
+  TextureSet *texture_set;
   ShaderAsset *shader_asset;
   ShaderAsset *depth_shader_asset;
 
@@ -72,9 +72,11 @@ void scene_resources_init(Memory *memory, State *state) {
       SHADER_DIR"water_depth.vert", SHADER_DIR"standard_depth.frag",
       SHADER_DIR"standard_depth.geom"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-      glm::vec4(0.0f, 0.0f, 0.9f, 1.0f), 0.0f, 1.0f, 1.0f
-    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->set_albedo_static(glm::vec4(0.0f, 0.0f, 0.9f, 1.0f));
+    texture_set->set_metallic_static(0.0f);
+    texture_set->set_roughness_static(1.0f);
+    texture_set->set_ao_static(1.0f);
     *model_asset->mesh_templates.push() = {
       shader_asset, depth_shader_asset, texture_set, true, 0, 0
     };
@@ -106,13 +108,12 @@ void scene_resources_init(Memory *memory, State *state) {
       SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-      "resources/textures/rusted_iron/albedo.png",
-      "resources/textures/rusted_iron/metallic.png",
-      "resources/textures/rusted_iron/roughness.png",
-      "", /* "resources/textures/rusted_iron/ao.png", */
-      "resources/textures/rusted_iron/normal.png"
-    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/rusted_iron/albedo.png"));
+    texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/rusted_iron/metallic.png"));
+    texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/rusted_iron/roughness.png"));
+    texture_set->set_ao_static(1.0f);
+    texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/rusted_iron/normal.png"));
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
@@ -145,13 +146,12 @@ void scene_resources_init(Memory *memory, State *state) {
       SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-      "resources/textures/rocks/2k/Stones_Color.jpg",
-      "",
-      "resources/textures/rocks/2k/Stones_Roughness.jpg",
-      "",
-      "resources/textures/rocks/2k/Stones_Normal.jpg"
-    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/rocks/2k/Stones_Color.jpg"));
+    texture_set->set_metallic_static(0.0f);
+    texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/rocks/2k/Stones_Roughness.jpg"));
+    texture_set->set_ao_static(1.0f);
+    texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/rocks/2k/Stones_Normal.jpg"));
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
@@ -166,9 +166,11 @@ void scene_resources_init(Memory *memory, State *state) {
       SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-      glm::vec4(0.6f, 0.1f, 0.1f, 1.0f), 0.0f, 1.0f, 1.0f
-    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->set_albedo_static(glm::vec4(0.6f, 0.1f, 0.1f, 1.0f));
+    texture_set->set_metallic_static(0.0f);
+    texture_set->set_roughness_static(1.0f);
+    texture_set->set_ao_static(1.0f);
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
@@ -183,9 +185,11 @@ void scene_resources_init(Memory *memory, State *state) {
       SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-      glm::vec4(0.9f, 0.8f, 0.7f, 1.0f), 0.0f, 1.0f, 1.0f
-    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->set_albedo_static(glm::vec4(0.9f, 0.8f, 0.7f, 1.0f));
+    texture_set->set_metallic_static(0.0f);
+    texture_set->set_roughness_static(1.0f);
+    texture_set->set_ao_static(1.0f);
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
@@ -203,13 +207,12 @@ void scene_resources_init(Memory *memory, State *state) {
         SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
       );
-      texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-        "resources/textures/shop/03_-_Default_BaseColor.tga.png",
-        "resources/textures/shop/03_-_Default_Metallic.tga.png",
-        "resources/textures/shop/03_-_Default_Roughness.tga.png",
-        "resources/textures/shop/AO-3.tga.png",
-        "resources/textures/shop/03_-_Default_Normal.tga.png"
-      );
+      texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+      texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/shop/03_-_Default_BaseColor.tga.png"));
+      texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/shop/03_-_Default_Metallic.tga.png"));
+      texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/shop/03_-_Default_Roughness.tga.png"));
+      texture_set->add(Texture(TEXTURE_AO, "ao_texture", "resources/textures/shop/AO-3.tga.png"));
+      texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/03_-_Default_Normal.tga.png"));
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 0};
     }
 
@@ -220,13 +223,12 @@ void scene_resources_init(Memory *memory, State *state) {
         SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
       );
-      texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-        "resources/textures/shop/01_-_Default_BaseColor.tga.png",
-        "resources/textures/shop/01_-_Default_Metallic.tga.png",
-        "resources/textures/shop/01_-_Default_Roughness.tga.png",
-        "resources/textures/shop/AO-1.tga.png",
-        "resources/textures/shop/01_-_Default_Normal.tga.png"
-      );
+      texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+      texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/shop/01_-_Default_BaseColor.tga.png"));
+      texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/shop/01_-_Default_Metallic.tga.png"));
+      texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture","resources/textures/shop/01_-_Default_Roughness.tga.png"));
+      texture_set->add(Texture(TEXTURE_AO, "ao_texture", "resources/textures/shop/AO-1.tga.png"));
+      texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/01_-_Default_Normal.tga.png"));
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 1};
     }
 
@@ -237,13 +239,12 @@ void scene_resources_init(Memory *memory, State *state) {
         SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
       );
-      texture_set = new(model_asset->texture_sets.push()) TextureSetAsset(
-        "resources/textures/shop/02_-_Default_BaseColor.tga.png",
-        "resources/textures/shop/02_-_Default_Metallic.tga.png",
-        "resources/textures/shop/02_-_Default_Roughness.tga.png",
-        "resources/textures/shop/AO-2.tga.png",
-        "resources/textures/shop/02_-_Default_Normal.tga.png"
-      );
+      texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+      texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/shop/02_-_Default_BaseColor.tga.png"));
+      texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/shop/02_-_Default_Metallic.tga.png"));
+      texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/shop/02_-_Default_Roughness.tga.png"));
+      texture_set->add(Texture(TEXTURE_AO, "ao_texture", "resources/textures/shop/AO-2.tga.png"));
+      texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/02_-_Default_Normal.tga.png"));
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 2};
     }
 #endif

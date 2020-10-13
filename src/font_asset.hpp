@@ -10,8 +10,9 @@ struct Character {
   real32 texture_x;
 };
 
-class FontAsset : public Asset {
+class FontAsset {
 public:
+  const char *name;
   Array<Character> characters;
   uint32 atlas_width;
   uint32 atlas_height;

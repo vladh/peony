@@ -17,7 +17,7 @@ global_variable uint32 global_oopses = 0;
 #include "font_asset.cpp"
 #include "shader_asset.cpp"
 #include "persistent_pbo.cpp"
-#include "texture_set_asset.cpp"
+#include "texture_set.cpp"
 #include "camera.cpp"
 #include "memory.cpp"
 #include "control.cpp"
@@ -346,8 +346,8 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
 
-  shader_common->n_lights = state->lights.get_size();
-  for (uint32 idx = 0; idx < state->lights.get_size(); idx++) {
+  shader_common->n_lights = state->lights.size;
+  for (uint32 idx = 0; idx < state->lights.size; idx++) {
     SpatialComponent *spatial_component =
       state->spatial_component_manager.get(*state->lights.get(idx));
     LightComponent *light_component =
@@ -418,7 +418,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
   state->shadow_map_height = 2048;
   state->shadow_near_clip_dist = 0.05f;
   state->shadow_far_clip_dist = 200.0f;
-  state->n_shadow_framebuffers = state->lights.get_size();
+  state->n_shadow_framebuffers = state->lights.size;
 
   for (
     uint32 idx_framebuffer = 0;
@@ -596,7 +596,7 @@ void scene_update(Memory *memory, State *state) {
 #if 0
   {
     real32 spin_deg_per_t = 90.0f;
-    for (uint32 idx = 0; idx < state->geese.get_size(); idx++) {
+    for (uint32 idx = 0; idx < state->geese.size; idx++) {
       SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
       spatial->rotation *= glm::angleAxis(
         glm::radians(spin_deg_per_t * (real32)state->dt),
@@ -610,7 +610,7 @@ void scene_update(Memory *memory, State *state) {
 #if 0
   {
     real32 spin_deg_per_t = 45.0f;
-    for (uint32 idx = 0; idx < state->spheres.get_size(); idx++) {
+    for (uint32 idx = 0; idx < state->spheres.size; idx++) {
       SpatialComponent *spatial = state->spatial_component_manager.get(*state->spheres.get(idx));
       spatial->rotation *= glm::angleAxis(
         glm::radians(spin_deg_per_t * (real32)state->dt),
@@ -787,7 +787,7 @@ void run_loading_loop(std::mutex *mutex, Memory *memory, State *state) {
     Task *task = nullptr;
 
     mutex->lock();
-    if (state->task_queue.get_size() > 0) {
+    if (state->task_queue.size > 0) {
       task = state->task_queue.pop();
     }
     mutex->unlock();
