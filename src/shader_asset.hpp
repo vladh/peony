@@ -18,8 +18,9 @@ enum ShaderType {
   SHADER_UI
 };
 
-class ShaderAsset : public Asset {
+class ShaderAsset {
 public:
+  const char *name;
   bool did_set_texture_uniforms;
   uint32 program;
   ShaderType type;

@@ -66,13 +66,13 @@ void ModelAsset::setup_mesh_vertex_buffers_for_file_source(
 
   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   glBufferData(
-    GL_ARRAY_BUFFER, sizeof(Vertex) * vertices->get_size(),
+    GL_ARRAY_BUFFER, sizeof(Vertex) * vertices->size,
     vertices->get_items_ptr(), GL_STATIC_DRAW
   );
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices->get_size(),
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices->size,
     indices->get_items_ptr(), GL_STATIC_DRAW
   );
 
@@ -103,7 +103,7 @@ void ModelAsset::load_mesh(
   glm::mat4 transform, Pack indices_pack
 ) {
   mesh->transform = transform;
-  mesh->texture_set_asset = nullptr;
+  mesh->texture_set = nullptr;
   mesh->mode = GL_TRIANGLES;
 
   mesh->indices_pack = indices_pack;
@@ -248,11 +248,11 @@ void ModelAsset::load(Memory *memory) {
 
 
 void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
-  for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
+  for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
     MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-    if (mesh_template->texture_set_asset) {
-      mesh_template->texture_set_asset->copy_textures_to_pbo(persistent_pbo);
+    if (mesh_template->texture_set) {
+      mesh_template->texture_set->copy_textures_to_pbo(persistent_pbo);
     }
   }
 
@@ -286,19 +286,19 @@ ModelAsset::ModelAsset(
   uint32 *index_data, uint32 n_indices,
   const char *new_name,
   GLenum mode
-) : meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+) :
+  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
   mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
   this->name = new_name;
-  this->is_mesh_data_loading_done = true;
   this->model_source = new_model_source;
   this->directory = "";
   this->filename = "";
 
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);
-  mesh->texture_set_asset = nullptr;
+  mesh->texture_set = nullptr;
   mesh->mode = mode;
   mesh->n_vertices = n_vertices;
   mesh->n_indices = n_indices;
@@ -306,15 +306,16 @@ ModelAsset::ModelAsset(
   setup_mesh_vertex_buffers_for_data_source(
     mesh, vertex_data, n_vertices, index_data, n_indices
   );
+  this->is_mesh_data_loading_done = true;
   this->is_vertex_buffer_setup_done = true;
 }
 
 
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
-  TextureSetAsset *texture_set_asset = mesh->texture_set_asset;
+  TextureSet *texture_set = mesh->texture_set;
   ShaderAsset *shader_asset = mesh->shader_asset;
 
-  if (shader_asset->did_set_texture_uniforms || !texture_set_asset) {
+  if (shader_asset->did_set_texture_uniforms || !texture_set) {
     return;
   }
 
@@ -322,22 +323,21 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     glUseProgram(shader_asset->program);
 
     shader_asset->set_bool(
-      "should_use_normal_map", texture_set_asset->should_use_normal_map
+      "should_use_normal_map", texture_set->should_use_normal_map
     );
 
-    shader_asset->set_vec4("albedo_static", &texture_set_asset->albedo_static);
-    shader_asset->set_float("metallic_static", texture_set_asset->metallic_static);
-    shader_asset->set_float("roughness_static", texture_set_asset->roughness_static);
-    shader_asset->set_float("ao_static", texture_set_asset->ao_static);
+    shader_asset->set_vec4("albedo_static", &texture_set->albedo_static);
+    shader_asset->set_float("metallic_static", texture_set->metallic_static);
+    shader_asset->set_float("roughness_static", texture_set->roughness_static);
+    shader_asset->set_float("ao_static", texture_set->ao_static);
 
-    shader_asset->set_int(
-      "material_texture",
-      shader_asset->add_texture_unit(
-        texture_set_asset->material_texture,
-        GL_TEXTURE_2D_ARRAY
-      )
-    );
-
+    for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
+      Texture *texture = texture_set->textures.get(idx);
+      shader_asset->set_int(
+        texture->uniform_name,
+        shader_asset->add_texture_unit(texture->texture_name, GL_TEXTURE_2D)
+      );
+    }
   } else {
     log_info(
       "Tried to set texture uniforms, but there is nothing to do for this shader: \"%s\"",
@@ -391,6 +391,8 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
   );
 
   shader_asset->did_set_texture_uniforms = true;
+  this->is_shader_setting_done = true;
+  this->is_texture_set_binding_done = true;
 }
 
 
@@ -406,7 +408,7 @@ void ModelAsset::set_shader_for_mesh(
 void ModelAsset::set_shader(
   ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
     set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
   }
 }
@@ -416,7 +418,7 @@ void ModelAsset::set_shader_for_node_idx(
   ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
   uint8 node_depth, uint8 node_idx
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
     Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
@@ -426,30 +428,30 @@ void ModelAsset::set_shader_for_node_idx(
 
 
 void ModelAsset::bind_texture_to_mesh(
-  uint32 idx_mesh, TextureSetAsset *texture_set_asset
+  uint32 idx_mesh, TextureSet *texture_set
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
-  mesh->texture_set_asset = texture_set_asset;
+  mesh->texture_set = texture_set;
   bind_texture_uniforms_for_mesh(mesh);
 }
 
 
 void ModelAsset::bind_texture(
-  TextureSetAsset *texture_set_asset
+  TextureSet *texture_set
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
-    bind_texture_to_mesh(idx_mesh, texture_set_asset);
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
+    bind_texture_to_mesh(idx_mesh, texture_set);
   }
 }
 
 
 void ModelAsset::bind_texture_for_node_idx(
-  TextureSetAsset *texture_set_asset, uint8 node_depth, uint8 node_idx
+  TextureSet *texture_set, uint8 node_depth, uint8 node_idx
 ) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.get_size(); idx_mesh++) {
+  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
     Mesh *mesh = this->meshes.get(idx_mesh);
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      bind_texture_to_mesh(idx_mesh, texture_set_asset);
+      bind_texture_to_mesh(idx_mesh, texture_set);
     }
   }
 }
@@ -469,113 +471,115 @@ void ModelAsset::prepare_for_draw(
 
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
   if (this->is_mesh_data_loading_done && !this->is_vertex_buffer_setup_done) {
-    for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
+    for (uint32 idx = 0; idx < this->meshes.size; idx++) {
       Mesh *mesh = this->meshes.get(idx);
       setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
     }
     this->is_vertex_buffer_setup_done = true;
   }
 
-  // Step 3: Once the mesh data is loaded, bind shaders for their respective meshes.
-  if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
-    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
-      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+  if (this->mesh_templates.size > 0) {
+    // Step 3: Once the mesh data is loaded, bind shaders for their respective meshes.
+    if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
+      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
-      if (mesh_template->apply_to_all_meshes) {
-        set_shader(mesh_template->shader_asset, mesh_template->depth_shader_asset);
-      } else {
-        set_shader_for_node_idx(
-          mesh_template->shader_asset,
-          mesh_template->depth_shader_asset,
-          mesh_template->node_depth, mesh_template->node_idx
-        );
-      }
-    }
-    this->is_shader_setting_done = true;
-  }
-
-  // Step 4: In parallel with the above, on a second thread, load all textures
-  // for this model from their files and copy them over to the PBO.
-  if (
-    !this->is_texture_copying_to_pbo_done &&
-    !this->is_texture_copying_to_pbo_in_progress
-  ) {
-    // NOTE: Make sure we don't spawn threads that do nothing, or queue up
-    // useless work for threads!
-    bool32 should_try_to_copy_textures = false;
-    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
-      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
-      if (mesh_template->texture_set_asset) {
-        should_try_to_copy_textures = true;
-        break;
-      }
-    }
-
-    if (should_try_to_copy_textures) {
-      this->is_texture_copying_to_pbo_in_progress = true;
-      task_queue->push({TASKTYPE_COPY_TEXTURES_TO_PBO, this, persistent_pbo, nullptr});
-    } else {
-      this->is_texture_copying_to_pbo_done = true;
-    }
-  }
-
-  // Step 5: Once all of the above is complete, copy the texture data from the
-  // PBO to the actual textures, and bind the uniforms.
-  if (
-    this->is_mesh_data_loading_done &&
-    this->is_vertex_buffer_setup_done &&
-    this->is_shader_setting_done &&
-    this->is_texture_copying_to_pbo_done &&
-    !this->is_texture_set_binding_done
-  ) {
-    START_TIMER(copy_pbo_to_texture_and_bind);
-
-    bool32 did_have_to_generate_or_bind_texture = false;
-
-    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
-      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
-
-      if (
-        mesh_template->texture_set_asset &&
-        !mesh_template->texture_set_asset->have_textures_been_generated
-      ) {
-        mesh_template->texture_set_asset->generate_textures_from_pbo(
-          persistent_pbo, texture_name_pool
-        );
-        did_have_to_generate_or_bind_texture = true;
-        break;
-      }
-    }
-
-    for (uint32 idx = 0; idx < this->mesh_templates.get_size(); idx++) {
-      MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
-
-      if (
-        mesh_template->texture_set_asset &&
-        mesh_template->texture_set_asset->have_textures_been_generated &&
-        !mesh_template->texture_set_asset->have_textures_been_bound
-      ) {
         if (mesh_template->apply_to_all_meshes) {
-          bind_texture(
-            mesh_template->texture_set_asset
-          );
+          set_shader(mesh_template->shader_asset, mesh_template->depth_shader_asset);
         } else {
-          bind_texture_for_node_idx(
-            mesh_template->texture_set_asset,
+          set_shader_for_node_idx(
+            mesh_template->shader_asset,
+            mesh_template->depth_shader_asset,
             mesh_template->node_depth, mesh_template->node_idx
           );
         }
-        mesh_template->texture_set_asset->have_textures_been_bound = true;
-        did_have_to_generate_or_bind_texture = true;
-        break;
+      }
+      this->is_shader_setting_done = true;
+    }
+
+    // Step 4: In parallel with the above, on a second thread, load all textures
+    // for this model from their files and copy them over to the PBO.
+    if (
+      !this->is_texture_copying_to_pbo_done &&
+      !this->is_texture_copying_to_pbo_in_progress
+    ) {
+      // NOTE: Make sure we don't spawn threads that do nothing, or queue up
+      // useless work for threads!
+      bool32 should_try_to_copy_textures = false;
+      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+        if (mesh_template->texture_set) {
+          should_try_to_copy_textures = true;
+          break;
+        }
+      }
+
+      if (should_try_to_copy_textures) {
+        this->is_texture_copying_to_pbo_in_progress = true;
+        task_queue->push({TASKTYPE_COPY_TEXTURES_TO_PBO, this, persistent_pbo, nullptr});
+      } else {
+        this->is_texture_copying_to_pbo_done = true;
       }
     }
 
-    if (!did_have_to_generate_or_bind_texture) {
-      this->is_texture_set_binding_done = true;
-    }
+    // Step 5: Once all of the above is complete, copy the texture data from the
+    // PBO to the actual textures, and bind the uniforms.
+    if (
+      this->is_mesh_data_loading_done &&
+      this->is_vertex_buffer_setup_done &&
+      this->is_shader_setting_done &&
+      this->is_texture_copying_to_pbo_done &&
+      !this->is_texture_set_binding_done
+    ) {
+      START_TIMER(copy_pbo_to_texture_and_bind);
 
-    END_TIMER(copy_pbo_to_texture_and_bind);
+      bool32 did_have_to_generate_or_bind_texture = false;
+
+      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+
+        if (
+          mesh_template->texture_set &&
+          !mesh_template->texture_set->have_textures_been_generated
+        ) {
+          mesh_template->texture_set->generate_textures_from_pbo(
+            persistent_pbo, texture_name_pool
+          );
+          did_have_to_generate_or_bind_texture = true;
+          break;
+        }
+      }
+
+      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+
+        if (
+          mesh_template->texture_set &&
+          mesh_template->texture_set->have_textures_been_generated &&
+          !mesh_template->texture_set->have_textures_been_bound
+        ) {
+          if (mesh_template->apply_to_all_meshes) {
+            bind_texture(
+              mesh_template->texture_set
+            );
+          } else {
+            bind_texture_for_node_idx(
+              mesh_template->texture_set,
+              mesh_template->node_depth, mesh_template->node_idx
+            );
+          }
+          mesh_template->texture_set->have_textures_been_bound = true;
+          did_have_to_generate_or_bind_texture = true;
+          break;
+        }
+      }
+
+      if (!did_have_to_generate_or_bind_texture) {
+        this->is_texture_set_binding_done = true;
+      }
+
+      END_TIMER(copy_pbo_to_texture_and_bind);
+    }
   }
 }
 
@@ -598,7 +602,7 @@ void ModelAsset::draw(
   uint32 last_used_shader_program = 0;
   ShaderAsset *shader_asset;
 
-  for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
+  for (uint32 idx = 0; idx < this->meshes.size; idx++) {
     Mesh *mesh = this->meshes.get(idx);
     shader_asset = mesh->shader_asset;
 
@@ -666,7 +670,7 @@ void ModelAsset::draw_in_depth_mode(
   uint32 last_used_shader_program = 0;
   ShaderAsset *shader_asset = standard_depth_shader_asset;
 
-  for (uint32 idx = 0; idx < this->meshes.get_size(); idx++) {
+  for (uint32 idx = 0; idx < this->meshes.size; idx++) {
     Mesh *mesh = this->meshes.get(idx);
     if (mesh->depth_shader_asset) {
       shader_asset = mesh->depth_shader_asset;
@@ -695,7 +699,7 @@ void ModelAsset::draw_in_depth_mode(
 ModelAsset* ModelAsset::get_by_name(
   Array<ModelAsset> *assets, const char *name
 ) {
-  for (uint32 idx = 0; idx < assets->get_size(); idx++) {
+  for (uint32 idx = 0; idx < assets->size; idx++) {
     ModelAsset *asset = assets->get(idx);
     if (strcmp(asset->name, name) == 0) {
       return asset;

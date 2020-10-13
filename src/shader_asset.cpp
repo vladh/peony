@@ -252,7 +252,7 @@ void ShaderAsset::set_mat4(const char *uniform_name, glm::mat4 *mat) {
 ShaderAsset* ShaderAsset::get_by_name(
   Array<ShaderAsset> *assets, const char *name
 ) {
-  for (uint32 idx = 0; idx < assets->get_size(); idx++) {
+  for (uint32 idx = 0; idx < assets->size; idx++) {
     ShaderAsset *asset = assets->get(idx);
     if (strcmp(asset->name, name) == 0) {
       return asset;

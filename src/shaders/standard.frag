@@ -1,4 +1,8 @@
-uniform sampler2DArray material_texture;
+uniform sampler2D albedo_texture;
+uniform sampler2D metallic_texture;
+uniform sampler2D roughness_texture;
+uniform sampler2D ao_texture;
+uniform sampler2D normal_texture;
 
 uniform vec4 albedo_static;
 uniform float metallic_static;
@@ -24,7 +28,7 @@ void main() {
 
   if (should_use_normal_map) {
     g_normal = get_normal_from_map(
-      texture(material_texture, vec3(fs_in.tex_coords, 4)),
+      texture(normal_texture, fs_in.tex_coords),
       fs_in.world_position,
       fs_in.normal,
       fs_in.tex_coords
@@ -36,7 +40,7 @@ void main() {
   vec3 albedo;
   if (albedo_static.x < 0) {
     // TODO: Swizzle this differently.
-    vec4 g_albedo_rgb = texture(material_texture, vec3(fs_in.tex_coords, 0));
+    vec4 g_albedo_rgb = texture(albedo_texture, fs_in.tex_coords);
     g_albedo = vec4(g_albedo_rgb.z, g_albedo_rgb.y, g_albedo_rgb.x, g_albedo_rgb.a);
   } else {
     g_albedo = albedo_static;
@@ -44,21 +48,21 @@ void main() {
 
   float metallic;
   if (metallic_static < 0) {
-    metallic = texture(material_texture, vec3(fs_in.tex_coords, 1)).r;
+    metallic = texture(metallic_texture, fs_in.tex_coords).r;
   } else {
     metallic = metallic_static;
   }
 
   float roughness;
   if (roughness_static < 0) {
-    roughness = texture(material_texture, vec3(fs_in.tex_coords, 2)).r;
+    roughness = texture(roughness_texture, fs_in.tex_coords).r;
   } else {
     roughness = roughness_static;
   }
 
   float ao;
   if (ao_static < 0) {
-    ao = texture(material_texture, vec3(fs_in.tex_coords, 3)).r;
+    ao = texture(ao_texture, fs_in.tex_coords).r;
   } else {
     ao = ao_static;
   }
