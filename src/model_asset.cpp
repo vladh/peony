@@ -546,7 +546,6 @@ void ModelAsset::prepare_for_draw(
             persistent_pbo, texture_name_pool
           );
           did_have_to_generate_or_bind_texture = true;
-          break;
         }
       }
 
@@ -570,7 +569,6 @@ void ModelAsset::prepare_for_draw(
           }
           mesh_template->texture_set->have_textures_been_bound = true;
           did_have_to_generate_or_bind_texture = true;
-          break;
         }
       }
 
