@@ -45,6 +45,7 @@ public:
   void set_mat2(const char *name, glm::mat2 *mat);
   void set_mat3(const char *name, glm::mat3 *mat);
   void set_mat4(const char *name, glm::mat4 *mat);
+  void reset_texture_units();
   uint32 add_texture_unit(
     uint32 texture_unit, GLenum texture_unit_type
   );

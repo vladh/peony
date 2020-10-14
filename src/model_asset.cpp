@@ -331,6 +331,8 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     shader_asset->set_float("roughness_static", texture_set->roughness_static);
     shader_asset->set_float("ao_static", texture_set->ao_static);
 
+    shader_asset->reset_texture_units();
+
     for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
       Texture *texture = texture_set->textures.get(idx);
       log_info(
@@ -367,6 +369,8 @@ void ModelAsset::bind_shader_and_texture_as_screenquad(
   glUseProgram(shader_asset->program);
 
   shader_asset->set_int("n_depth_textures", n_depth_textures);
+
+  shader_asset->reset_texture_units();
 
   for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
     shader_asset->set_int(

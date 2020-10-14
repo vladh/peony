@@ -78,4 +78,9 @@ public:
   State(Memory *memory, WindowInfo window_info);
 };
 
+struct MemoryAndState {
+  Memory *memory;
+  State *state;
+};
+
 #endif
