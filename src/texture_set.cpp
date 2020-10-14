@@ -60,7 +60,7 @@ void TextureSet::generate_textures_from_pbo(
 
   for (uint32 idx = 0; idx < this->textures.size; idx++) {
     Texture *texture = this->textures.get(idx);
-    if (texture->texture_name) {
+    if (texture->texture_name != 0) {
       continue;
     }
     texture->texture_name = texture_name_pool->get_next();

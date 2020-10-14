@@ -333,6 +333,11 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
     for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
       Texture *texture = texture_set->textures.get(idx);
+      log_info(
+        "Setting uniforms: (model %s) (texture->uniform_name %s) "
+        "(texture->texture_name %d)",
+        this->name, texture->uniform_name, texture->texture_name
+      );
       shader_asset->set_int(
         texture->uniform_name,
         shader_asset->add_texture_unit(texture->texture_name, GL_TEXTURE_2D)
@@ -593,7 +598,11 @@ void ModelAsset::draw(
     memory, persistent_pbo, texture_name_pool, task_queue
   );
 
-  if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
+  if (
+    !this->is_mesh_data_loading_done ||
+    !this->is_shader_setting_done ||
+    !this->is_texture_set_binding_done
+  ) {
     return;
   }
 

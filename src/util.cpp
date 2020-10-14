@@ -312,3 +312,100 @@ void Util::print_texture_internalformat_info(GLenum internal_format) {
   log_info("optimal image type: %s", Util::stringify_glenum(optimal_image_type));
   log_newline();
 }
+
+
+void APIENTRY Util::debug_message_callback(
+  GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
+  const char *message, const void *userParam
+) {
+  // Ignore insignificant error/warning codes
+  if (
+    // Framebuffer detailed info: The driver allocated storage for
+    // renderbuffer 1.
+    id == 131169 ||
+    // Program/shader state performance warning: Vertex shader in program 19
+    // is being recompiled based on GL state.
+    id == 131218 ||
+    // Buffer detailed info: Buffer object 1522 (bound to
+    // GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING_ARB (0), and GL_ARRAY_BUFFER_ARB,
+    // usage hint is GL_DYNAMIC_DRAW) will use VIDEO memory as the source for
+    // buffer object operations.
+    id == 131185 ||
+    // Texture state usage warning: The texture object (0) bound to texture
+    // image unit 4 does not have a defined base level and cannot be used for
+    // texture mapping.
+    id == 131204
+  ) {
+    return;
+  }
+
+  log_warning("Debug message (%d): %s", id, message);
+
+  switch (source) {
+    case GL_DEBUG_SOURCE_API:
+      log_warning("Source: API");
+      break;
+    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+      log_warning("Source: Window System");
+      break;
+    case GL_DEBUG_SOURCE_SHADER_COMPILER:
+      log_warning("Source: Shader Compiler");
+      break;
+    case GL_DEBUG_SOURCE_THIRD_PARTY:
+      log_warning("Source: Third Party");
+      break;
+    case GL_DEBUG_SOURCE_APPLICATION:
+      log_warning("Source: Application");
+      break;
+    case GL_DEBUG_SOURCE_OTHER:
+      log_warning("Source: Other");
+      break;
+  }
+
+  switch (type) {
+    case GL_DEBUG_TYPE_ERROR:
+      log_warning("Type: Error");
+      break;
+    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+      log_warning("Type: Deprecated Behaviour");
+      break;
+    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+      log_warning("Type: Undefined Behaviour");
+      break;
+    case GL_DEBUG_TYPE_PORTABILITY:
+      log_warning("Type: Portability");
+      break;
+    case GL_DEBUG_TYPE_PERFORMANCE:
+      log_warning("Type: Performance");
+      break;
+    case GL_DEBUG_TYPE_MARKER:
+      log_warning("Type: Marker");
+      break;
+    case GL_DEBUG_TYPE_PUSH_GROUP:
+      log_warning("Type: Push Group");
+      break;
+    case GL_DEBUG_TYPE_POP_GROUP:
+      log_warning("Type: Pop Group");
+      break;
+    case GL_DEBUG_TYPE_OTHER:
+      log_warning("Type: Other");
+      break;
+  }
+
+  switch (severity) {
+    case GL_DEBUG_SEVERITY_HIGH:
+      log_warning("Severity: high");
+      break;
+    case GL_DEBUG_SEVERITY_MEDIUM:
+      log_warning("Severity: medium");
+      break;
+    case GL_DEBUG_SEVERITY_LOW:
+      log_warning("Severity: low");
+      break;
+    case GL_DEBUG_SEVERITY_NOTIFICATION:
+      log_warning("Severity: notification");
+      break;
+  }
+
+  log_newline();
+}
