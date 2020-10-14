@@ -5,6 +5,7 @@ class TextureSet {
 public:
   bool32 have_textures_been_generated = false;
   bool32 have_textures_been_bound = false;
+  bool32 is_g_buffer_dependent = false;
 
   Array<Texture> textures;
 

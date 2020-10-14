@@ -2,12 +2,15 @@
 #define TEXTURE_H
 
 enum TextureType {
-  TEXTURE_NONE,
   TEXTURE_ALBEDO,
   TEXTURE_METALLIC,
   TEXTURE_ROUGHNESS,
   TEXTURE_AO,
   TEXTURE_NORMAL,
+  TEXTURE_G_POSITION,
+  TEXTURE_G_NORMAL,
+  TEXTURE_G_ALBEDO,
+  TEXTURE_G_PBR,
   TEXTURE_OTHER
 };
 
@@ -21,6 +24,7 @@ public:
   int32 height = 0;
   int32 n_components = 0;
   uint16 pbo_idx_for_copy;
+  bool32 is_g_buffer_dependent = false;
 
   Texture(
     TextureType type,
@@ -31,6 +35,14 @@ public:
     uniform_name(uniform_name),
     path(path)
   {
+    if (
+      type == TEXTURE_G_POSITION ||
+      type == TEXTURE_G_NORMAL ||
+      type == TEXTURE_G_ALBEDO ||
+      type == TEXTURE_G_PBR
+    ) {
+      this->is_g_buffer_dependent = true;
+    }
   }
 
   Texture(
@@ -48,6 +60,14 @@ public:
     height(height),
     n_components(n_components)
   {
+    if (
+      type == TEXTURE_G_POSITION ||
+      type == TEXTURE_G_NORMAL ||
+      type == TEXTURE_G_ALBEDO ||
+      type == TEXTURE_G_PBR
+    ) {
+      this->is_g_buffer_dependent = true;
+    }
   }
 };
 

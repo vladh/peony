@@ -34,279 +34,6 @@ global_variable uint32 global_oopses = 0;
 #include "state.cpp"
 
 
-void update_drawing_options(State *state, GLFWwindow *window) {
-  if (state->is_cursor_disabled) {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  } else {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-  }
-
-  if (state->should_use_wireframe) {
-    // This will be handled in the rendering loop.
-  } else {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-}
-
-
-void process_input_continuous(GLFWwindow *window, State *state) {
-  if (state->control.is_key_down(GLFW_KEY_W)) {
-    state->camera_active->move_front_back(1);
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_S)) {
-    state->camera_active->move_front_back(-1);
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_A)) {
-    state->camera_active->move_left_right(-1);
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_D)) {
-    state->camera_active->move_left_right(1);
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_SPACE)) {
-    state->camera_active->move_up_down(1);
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
-    state->camera_active->move_up_down(-1);
-  }
-}
-
-
-void process_input_transient(GLFWwindow *window, State *state) {
-  if (state->control.is_key_now_down(GLFW_KEY_ESCAPE)) {
-    glfwSetWindowShouldClose(window, true);
-  }
-
-  if (state->control.is_key_now_down(GLFW_KEY_F)) {
-    state->should_limit_fps = !state->should_limit_fps;
-    update_drawing_options(state, window);
-  }
-
-  if (state->control.is_key_now_down(GLFW_KEY_C)) {
-    state->is_cursor_disabled = !state->is_cursor_disabled;
-    update_drawing_options(state, window);
-  }
-
-  if (state->control.is_key_now_down(GLFW_KEY_Q)) {
-    state->should_use_wireframe = !state->should_use_wireframe;
-    update_drawing_options(state, window);
-  }
-
-  if (state->control.is_key_now_down(GLFW_KEY_TAB)) {
-    state->should_pause = !state->should_pause;
-  }
-
-  if (state->control.is_key_now_down(GLFW_KEY_BACKSPACE)) {
-    state->should_hide_ui = !state->should_hide_ui;
-  }
-
-  if (state->control.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
-    log_info("Deleting PBO");
-    state->persistent_pbo.delete_pbo();
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_P)) {
-    state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
-  }
-
-  if (state->control.is_key_down(GLFW_KEY_ENTER)) {
-    state->should_manually_advance_to_next_frame = true;
-  }
-}
-
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-  State *state = (State*)glfwGetWindowUserPointer(window);
-  state->window_info.width = width;
-  state->window_info.height = height;
-  log_info(
-    "Window is now: %d x %d", state->window_info.width, state->window_info.height
-  );
-  // TODO: Actually resize shit!
-  glViewport(0, 0, width, height);
-}
-
-
-void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
-  State *state = (State*)glfwGetWindowUserPointer(window);
-  glm::vec2 mouse_offset = state->control.update_mouse(x, y);
-  state->camera_active->update_mouse(mouse_offset);
-}
-
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-  State *state = (State*)glfwGetWindowUserPointer(window);
-  state->control.update_keys(key, scancode, action, mods);
-  process_input_transient(window, state);
-}
-
-
-void init_window(WindowInfo *window_info) {
-  strcpy(window_info->title, "hi lol");
-
-  glfwInit();
-
-#if USE_OPENGL_4
-  log_info("Using OpenGL 4.3");
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#else
-  log_info("Using OpenGL 3.3");
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#endif
-
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-
-#if defined(__APPLE__)
-  log_info("Using GLFW_OPENGL_FORWARD_COMPAT");
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-#if USE_OPENGL_DEBUG
-  log_info("Using OpenGL debug context");
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
-
-#if USE_NO_WINDOW_DECORATION
-  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-#endif
-
-  int32 n_monitors;
-  GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[0];
-
-  const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
-  glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-  glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-  glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-  glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  window_info->width = video_mode->width;
-  window_info->height = video_mode->height;
-
-  GLFWwindow *window = glfwCreateWindow(
-    window_info->width, window_info->height, window_info->title,
-    /* target_monitor, nullptr */
-    nullptr, nullptr
-  );
-  if (!window) {
-    log_fatal("Failed to create GLFW window");
-    return;
-  }
-  window_info->window = window;
-  glfwSetWindowPos(window, 0, 0);
-
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(0);
-
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    log_fatal("Failed to initialize GLAD");
-    return;
-  }
-
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_MULTISAMPLE);
-
-#if USE_OPENGL_DEBUG
-  GLint flags;
-  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-
-  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(Util::debug_message_callback, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-  } else {
-    log_fatal("Tried to initialise OpenGL debug output but couldn't");
-  }
-#endif
-
-  glEnable(GL_CULL_FACE);
-
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  glViewport(0, 0, window_info->width, window_info->height);
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetKeyCallback(window, key_callback);
-}
-
-
-void copy_scene_data_to_ubo(Memory *memory, State *state) {
-  ShaderCommon *shader_common = &state->shader_common;
-
-  shader_common->far_clip_dist = state->shadow_far_clip_dist;
-  shader_common->shadow_light_idx = state->shadow_light_idx;
-
-  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
-  shader_common->view = state->camera_active->view;
-  shader_common->projection = state->camera_active->projection;
-  shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
-  shader_common->exposure = state->camera_active->exposure;
-  shader_common->t = (float)state->t;
-
-  shader_common->n_lights = state->lights.size;
-  for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(*state->lights.get(idx));
-    LightComponent *light_component =
-      state->light_component_manager.get(*state->lights.get(idx));
-    shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
-    shader_common->light_color[idx] = light_component->color;
-    shader_common->light_attenuation[idx] = light_component->attenuation;
-  }
-
-  glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
-}
-
-
-void render_scene(
-  Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
-) {
-  state->drawable_component_manager.draw_all(
-    memory,
-    &state->persistent_pbo,
-    &state->texture_name_pool,
-    &state->spatial_component_manager,
-    &state->task_queue,
-    render_pass, render_mode, state->standard_depth_shader_asset
-  );
-}
-
-
-void render_scene_ui(
-  Memory *memory, State *state
-){
-  char debug_text[256];
-  sprintf(
-    debug_text,
-    "(fps %.2f)\n"
-    "(t %f)\n"
-    "(dt %f)\n"
-    "(frame %d)\n"
-    "(should_limit_fps %d)\n"
-    "(oopses %d)",
-    state->last_fps,
-    state->t,
-    state->dt,
-    state->n_frames_since_start,
-    state->should_limit_fps,
-    global_oopses
-  );
-  state->text_manager.draw(
-    "main-font", debug_text,
-    15.0f, state->window_info.height - 35.0f,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
-}
-
-
 void init_ubo(Memory *memory, State *state) {
   glGenBuffers(1, &state->ubo_shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
@@ -369,25 +96,25 @@ void init_g_buffer(Memory *memory, State *state) {
   state->g_position_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_position_texture")
   ) Texture(
-    TEXTURE_OTHER, "g_position_texture", g_position_texture_name,
+    TEXTURE_G_POSITION, "g_position_texture", g_position_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_normal_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_normal_texture")
   ) Texture(
-    TEXTURE_OTHER, "g_normal_texture", g_normal_texture_name,
+    TEXTURE_G_NORMAL, "g_normal_texture", g_normal_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_albedo_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_albedo_texture")
   ) Texture(
-    TEXTURE_OTHER, "g_albedo_texture", g_albedo_texture_name,
+    TEXTURE_G_ALBEDO, "g_albedo_texture", g_albedo_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_pbr_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_pbr_texture")
   ) Texture(
-    TEXTURE_OTHER, "g_pbr_texture", g_pbr_texture_name,
+    TEXTURE_G_PBR, "g_pbr_texture", g_pbr_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
@@ -498,6 +225,323 @@ void init_screenquad(Memory *memory, State *state) {
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad"),
     RENDERPASS_LIGHTING
+  );
+}
+
+
+void update_drawing_options(State *state, GLFWwindow *window) {
+  if (state->is_cursor_disabled) {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+  } else {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  }
+
+  if (state->should_use_wireframe) {
+    // This will be handled in the rendering loop.
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
+}
+
+
+void process_input_continuous(GLFWwindow *window, State *state) {
+  if (state->control.is_key_down(GLFW_KEY_W)) {
+    state->camera_active->move_front_back(1);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_S)) {
+    state->camera_active->move_front_back(-1);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_A)) {
+    state->camera_active->move_left_right(-1);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_D)) {
+    state->camera_active->move_left_right(1);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_SPACE)) {
+    state->camera_active->move_up_down(1);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
+    state->camera_active->move_up_down(-1);
+  }
+}
+
+
+void process_input_transient(GLFWwindow *window, State *state) {
+  if (state->control.is_key_now_down(GLFW_KEY_ESCAPE)) {
+    glfwSetWindowShouldClose(window, true);
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_F)) {
+    state->should_limit_fps = !state->should_limit_fps;
+    update_drawing_options(state, window);
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_C)) {
+    state->is_cursor_disabled = !state->is_cursor_disabled;
+    update_drawing_options(state, window);
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_Q)) {
+    state->should_use_wireframe = !state->should_use_wireframe;
+    update_drawing_options(state, window);
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_TAB)) {
+    state->should_pause = !state->should_pause;
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_BACKSPACE)) {
+    state->should_hide_ui = !state->should_hide_ui;
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
+    log_info("Deleting PBO");
+    state->persistent_pbo.delete_pbo();
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_P)) {
+    state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_ENTER)) {
+    state->should_manually_advance_to_next_frame = true;
+  }
+}
+
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  Memory *memory = memory_and_state->memory;
+  log_info(
+    "Window is now: %d x %d", state->window_info.width, state->window_info.height
+  );
+  state->window_info.width = width;
+  state->window_info.height = height;
+  state->text_manager.update_text_projection(width, height);
+  init_g_buffer(memory, state);
+
+  // TODO: Figure out a nicer way of doing this?
+#if 0
+  for (uint32 idx = 0; idx < state->drawable_component_manager.components->size; idx++) {
+    DrawableComponent *component = state->drawable_component_manager.components->get(idx);
+    if (
+      component->model_asset &&
+      strcmp(component->model_asset->name, "screenquad") == 0
+    ) {
+      log_info("Found screenquad");
+      component->model_asset->bind_shader_and_texture_as_screenquad(
+        state->g_position_texture,
+        state->g_normal_texture,
+        state->g_albedo_texture,
+        state->g_pbr_texture,
+        state->n_shadow_framebuffers,
+        state->shadow_cubemaps,
+        // TODO: Fix this.
+        component->model_asset->meshes.get(0)->shader_asset
+      );
+    }
+  }
+#endif
+
+#if 0
+  for (
+    uint32 idx_component = 0;
+    idx_component < state->drawable_component_manager.components->size;
+    idx_component++
+  ) {
+    DrawableComponent *component = state->drawable_component_manager.components->get(
+      idx_component
+    );
+    for (
+      uint32 idx_mesh = 0; idx_mesh < component->
+  }
+#endif
+}
+
+
+void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  glm::vec2 mouse_offset = state->control.update_mouse(x, y);
+  state->camera_active->update_mouse(mouse_offset);
+}
+
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  state->control.update_keys(key, scancode, action, mods);
+  process_input_transient(window, state);
+}
+
+
+void init_window(WindowInfo *window_info) {
+  strcpy(window_info->title, "hi lol");
+
+  glfwInit();
+
+#if USE_OPENGL_4
+  log_info("Using OpenGL 4.3");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#else
+  log_info("Using OpenGL 3.3");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#endif
+
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
+
+#if defined(__APPLE__)
+  log_info("Using GLFW_OPENGL_FORWARD_COMPAT");
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+#if USE_OPENGL_DEBUG
+  log_info("Using OpenGL debug context");
+  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
+
+#if USE_NO_WINDOW_DECORATION
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+#endif
+
+  int32 n_monitors;
+  GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+  GLFWmonitor *target_monitor = monitors[0];
+
+  const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+  glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+  /* window_info->width = video_mode->width; */
+  /* window_info->height = video_mode->height; */
+  window_info->width = 800;
+  window_info->height = 600;
+
+  GLFWwindow *window = glfwCreateWindow(
+    window_info->width, window_info->height, window_info->title,
+    /* target_monitor, nullptr */
+    nullptr, nullptr
+  );
+  if (!window) {
+    log_fatal("Failed to create GLFW window");
+    return;
+  }
+  window_info->window = window;
+  /* glfwSetWindowPos(window, 0, 0); */
+  glfwSetWindowPos(window, 200, 200);
+
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(0);
+
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    log_fatal("Failed to initialize GLAD");
+    return;
+  }
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_MULTISAMPLE);
+
+#if USE_OPENGL_DEBUG
+  GLint flags;
+  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    glDebugMessageCallback(Util::debug_message_callback, nullptr);
+    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+  } else {
+    log_fatal("Tried to initialise OpenGL debug output but couldn't");
+  }
+#endif
+
+  glEnable(GL_CULL_FACE);
+
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glViewport(0, 0, window_info->width, window_info->height);
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetKeyCallback(window, key_callback);
+}
+
+
+void copy_scene_data_to_ubo(Memory *memory, State *state) {
+  ShaderCommon *shader_common = &state->shader_common;
+
+  shader_common->far_clip_dist = state->shadow_far_clip_dist;
+  shader_common->shadow_light_idx = state->shadow_light_idx;
+
+  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
+  shader_common->view = state->camera_active->view;
+  shader_common->projection = state->camera_active->projection;
+  shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
+  shader_common->exposure = state->camera_active->exposure;
+  shader_common->t = (float)state->t;
+
+  shader_common->n_lights = state->lights.size;
+  for (uint32 idx = 0; idx < state->lights.size; idx++) {
+    SpatialComponent *spatial_component =
+      state->spatial_component_manager.get(*state->lights.get(idx));
+    LightComponent *light_component =
+      state->light_component_manager.get(*state->lights.get(idx));
+    shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
+    shader_common->light_color[idx] = light_component->color;
+    shader_common->light_attenuation[idx] = light_component->attenuation;
+  }
+
+  glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
+  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
+}
+
+
+void render_scene(
+  Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
+) {
+  state->drawable_component_manager.draw_all(
+    memory,
+    &state->persistent_pbo,
+    &state->texture_name_pool,
+    &state->spatial_component_manager,
+    &state->task_queue,
+    render_pass, render_mode, state->standard_depth_shader_asset
+  );
+}
+
+
+void render_scene_ui(
+  Memory *memory, State *state
+){
+  char debug_text[256];
+  sprintf(
+    debug_text,
+    "(fps %.2f)\n"
+    "(t %f)\n"
+    "(dt %f)\n"
+    "(frame %d)\n"
+    "(should_limit_fps %d)\n"
+    "(oopses %d)",
+    state->last_fps,
+    state->t,
+    state->dt,
+    state->n_frames_since_start,
+    state->should_limit_fps,
+    global_oopses
+  );
+  state->text_manager.draw(
+    "main-font", debug_text,
+    15.0f, state->window_info.height - 35.0f,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 }
 
@@ -769,7 +813,9 @@ int main() {
 #endif
 
   update_drawing_options(state, window_info.window);
-  glfwSetWindowUserPointer(window_info.window, state);
+
+  MemoryAndState memory_and_state = {&memory, state};
+  glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
   state->texture_name_pool.allocate_texture_names();
 

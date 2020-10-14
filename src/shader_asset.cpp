@@ -84,6 +84,11 @@ const char* ShaderAsset::load_frag_file(Memory *memory, const char *path) {
 }
 
 
+void ShaderAsset::reset_texture_units() {
+  this->n_texture_units = 0;
+}
+
+
 uint32 ShaderAsset::add_texture_unit(
   uint32 new_texture_unit, GLenum new_texture_unit_type
 ) {

@@ -5,6 +5,8 @@ class SpatialComponentManager;
 
 class DrawableComponentManager {
 public:
+  Array<DrawableComponent> *components;
+
   DrawableComponentManager(
     Array<DrawableComponent> *components
   );
@@ -28,7 +30,6 @@ public:
   );
 
 private:
-  Array<DrawableComponent> *components;
 };
 
 #endif
