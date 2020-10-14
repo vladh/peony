@@ -2,6 +2,8 @@ State::State(
   Memory *memory,
   WindowInfo window_info
 ) :
+  is_manual_frame_advance_enabled(false),
+  should_manually_advance_to_next_frame(false),
   should_stop(false),
   should_pause(false),
   should_hide_ui(false),
@@ -14,6 +16,7 @@ State::State(
   t(0),
   dt(0),
   last_fps(0),
+  n_frames_since_start(0),
 
   is_cursor_disabled(true),
   should_limit_fps(false),
@@ -64,6 +67,10 @@ State::State(
   texture_name_pool(memory, 64, 2048, 2048, 5, 4),
   task_queue(
     Queue<Task>(&memory->entity_memory_pool, 128, "task_queue")
-  )
+  ),
+  shadow_map_width(2048),
+  shadow_map_height(2048),
+  shadow_near_clip_dist(0.05f),
+  shadow_far_clip_dist(200.0f)
 {
 }

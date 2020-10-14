@@ -31,6 +31,10 @@ public:
   );
   static glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from);
   static void print_texture_internalformat_info(GLenum internal_format);
+  static void APIENTRY debug_message_callback(
+    GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
+    const char *message, const void *userParam
+  );
 };
 
 #endif

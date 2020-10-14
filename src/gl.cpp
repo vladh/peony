@@ -3,6 +3,7 @@
 #define USE_OPENGL_4 false
 #define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
+#define USE_NO_WINDOW_DECORATION false
 
 #include "gl.hpp"
 
@@ -103,9 +104,17 @@ void process_input_transient(GLFWwindow *window, State *state) {
     state->should_hide_ui = !state->should_hide_ui;
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_U)) {
+  if (state->control.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
     log_info("Deleting PBO");
     state->persistent_pbo.delete_pbo();
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_P)) {
+    state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_ENTER)) {
+    state->should_manually_advance_to_next_frame = true;
   }
 }
 
@@ -117,6 +126,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   log_info(
     "Window is now: %d x %d", state->window_info.width, state->window_info.height
   );
+  // TODO: Actually resize shit!
   glViewport(0, 0, width, height);
 }
 
@@ -132,103 +142,6 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   State *state = (State*)glfwGetWindowUserPointer(window);
   state->control.update_keys(key, scancode, action, mods);
   process_input_transient(window, state);
-}
-
-
-void APIENTRY debug_message_callback(
-  GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
-  const char *message, const void *userParam
-) {
-  // Ignore insignificant error/warning codes
-  if (
-    // Framebuffer detailed info: The driver allocated storage for
-    // renderbuffer 1.
-    id == 131169 ||
-    // Program/shader state performance warning: Vertex shader in program 19
-    // is being recompiled based on GL state.
-    id == 131218 ||
-    // Buffer detailed info: Buffer object 1522 (bound to
-    // GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING_ARB (0), and GL_ARRAY_BUFFER_ARB,
-    // usage hint is GL_DYNAMIC_DRAW) will use VIDEO memory as the source for
-    // buffer object operations.
-    id == 131185 ||
-    // Texture state usage warning: The texture object (0) bound to texture
-    // image unit 4 does not have a defined base level and cannot be used for
-    // texture mapping.
-    id == 131204
-  ) {
-    return;
-  }
-
-  log_warning("Debug message (%d): %s", id, message);
-
-  switch (source) {
-    case GL_DEBUG_SOURCE_API:
-      log_warning("Source: API");
-      break;
-    case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-      log_warning("Source: Window System");
-      break;
-    case GL_DEBUG_SOURCE_SHADER_COMPILER:
-      log_warning("Source: Shader Compiler");
-      break;
-    case GL_DEBUG_SOURCE_THIRD_PARTY:
-      log_warning("Source: Third Party");
-      break;
-    case GL_DEBUG_SOURCE_APPLICATION:
-      log_warning("Source: Application");
-      break;
-    case GL_DEBUG_SOURCE_OTHER:
-      log_warning("Source: Other");
-      break;
-  }
-
-  switch (type) {
-    case GL_DEBUG_TYPE_ERROR:
-      log_warning("Type: Error");
-      break;
-    case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-      log_warning("Type: Deprecated Behaviour");
-      break;
-    case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-      log_warning("Type: Undefined Behaviour");
-      break;
-    case GL_DEBUG_TYPE_PORTABILITY:
-      log_warning("Type: Portability");
-      break;
-    case GL_DEBUG_TYPE_PERFORMANCE:
-      log_warning("Type: Performance");
-      break;
-    case GL_DEBUG_TYPE_MARKER:
-      log_warning("Type: Marker");
-      break;
-    case GL_DEBUG_TYPE_PUSH_GROUP:
-      log_warning("Type: Push Group");
-      break;
-    case GL_DEBUG_TYPE_POP_GROUP:
-      log_warning("Type: Pop Group");
-      break;
-    case GL_DEBUG_TYPE_OTHER:
-      log_warning("Type: Other");
-      break;
-  }
-
-  switch (severity) {
-    case GL_DEBUG_SEVERITY_HIGH:
-      log_warning("Severity: high");
-      break;
-    case GL_DEBUG_SEVERITY_MEDIUM:
-      log_warning("Severity: medium");
-      break;
-    case GL_DEBUG_SEVERITY_LOW:
-      log_warning("Severity: low");
-      break;
-    case GL_DEBUG_SEVERITY_NOTIFICATION:
-      log_warning("Severity: notification");
-      break;
-  }
-
-  log_newline();
 }
 
 
@@ -260,11 +173,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
-#if 0
+#if USE_NO_WINDOW_DECORATION
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
 #endif
 
-#if 1
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
   GLFWmonitor *target_monitor = monitors[0];
@@ -276,10 +188,6 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
-#else
-  window_info->width = 2560;
-  window_info->height = 1440;
-#endif
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -311,7 +219,7 @@ void init_window(WindowInfo *window_info) {
   if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
     glEnable(GL_DEBUG_OUTPUT);
     glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(debug_message_callback, nullptr);
+    glDebugMessageCallback(Util::debug_message_callback, nullptr);
     glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
   } else {
     log_fatal("Tried to initialise OpenGL debug output but couldn't");
@@ -330,15 +238,11 @@ void init_window(WindowInfo *window_info) {
 
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
-  // TODO: Some of these things don't change every frame. Do we want to do a
-  // separate block for those?
   ShaderCommon *shader_common = &state->shader_common;
 
-  // NOTE: These are constant.
   shader_common->far_clip_dist = state->shadow_far_clip_dist;
   shader_common->shadow_light_idx = state->shadow_light_idx;
 
-  // NOTE: These change every frame.
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
@@ -359,14 +263,12 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 
 void render_scene(
   Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
 ) {
-  /* START_TIMER(draw_all); */
   state->drawable_component_manager.draw_all(
     memory,
     &state->persistent_pbo,
@@ -375,7 +277,6 @@ void render_scene(
     &state->task_queue,
     render_pass, render_mode, state->standard_depth_shader_asset
   );
-  /* END_TIMER_MIN(draw_all, 1); */
 }
 
 
@@ -388,11 +289,13 @@ void render_scene_ui(
     "(fps %.2f)\n"
     "(t %f)\n"
     "(dt %f)\n"
+    "(frame %d)\n"
     "(should_limit_fps %d)\n"
     "(oopses %d)",
     state->last_fps,
     state->t,
     state->dt,
+    state->n_frames_since_start,
     state->should_limit_fps,
     global_oopses
   );
@@ -404,7 +307,7 @@ void render_scene_ui(
 }
 
 
-void init_shader_buffers(Memory *memory, State *state) {
+void init_ubo(Memory *memory, State *state) {
   glGenBuffers(1, &state->ubo_shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
@@ -414,10 +317,6 @@ void init_shader_buffers(Memory *memory, State *state) {
 
 
 void init_shadow_buffers(Memory *memory, State *state) {
-  state->shadow_map_width = 2048;
-  state->shadow_map_height = 2048;
-  state->shadow_near_clip_dist = 0.05f;
-  state->shadow_far_clip_dist = 200.0f;
   state->n_shadow_framebuffers = state->lights.size;
 
   for (
@@ -453,7 +352,7 @@ void init_shadow_buffers(Memory *memory, State *state) {
 }
 
 
-void init_deferred_lighting_buffers(Memory *memory, State *state) {
+void init_g_buffer(Memory *memory, State *state) {
   glGenFramebuffers(1, &state->g_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
 
@@ -567,7 +466,7 @@ void init_deferred_lighting_buffers(Memory *memory, State *state) {
 }
 
 
-void scene_init_screenquad(Memory *memory, State *state) {
+void init_screenquad(Memory *memory, State *state) {
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
   ShaderAsset *shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
@@ -658,6 +557,7 @@ void scene_update(Memory *memory, State *state) {
 
 
 void update_and_render(Memory *memory, State *state) {
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   scene_update(memory, state);
   state->camera_active->update_matrices(
     state->window_info.width, state->window_info.height
@@ -667,12 +567,14 @@ void update_and_render(Memory *memory, State *state) {
   // Clear main framebuffer
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
   // Render shadow map
   {
+    glViewport(
+      0, 0, state->shadow_map_width, state->shadow_map_height
+    );
     for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
       SpatialComponent *spatial_component =
         state->spatial_component_manager.get(*state->lights.get(idx));
@@ -683,10 +585,6 @@ void update_and_render(Memory *memory, State *state) {
       );
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
-      glViewport(
-        0, 0, state->shadow_map_width, state->shadow_map_height
-      );
-
       glClear(GL_DEPTH_BUFFER_BIT);
 
       state->shadow_light_idx = idx;
@@ -694,11 +592,10 @@ void update_and_render(Memory *memory, State *state) {
       render_scene(
         memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
       );
-
-      glViewport(
-        0, 0, state->window_info.width, state->window_info.height
-      );
     }
+    glViewport(
+      0, 0, state->window_info.width, state->window_info.height
+    );
   }
 
   // Geometry pass
@@ -707,7 +604,6 @@ void update_and_render(Memory *memory, State *state) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
     if (state->should_use_wireframe) {
@@ -764,41 +660,53 @@ void update_and_render(Memory *memory, State *state) {
 
 
 void run_main_loop(Memory *memory, State *state) {
-  std::chrono::steady_clock::time_point game_start = std::chrono::steady_clock::now();
-  std::chrono::steady_clock::time_point second_start = game_start;
-  std::chrono::steady_clock::time_point frame_start = game_start;
-  std::chrono::steady_clock::time_point last_frame_start = game_start;
+  std::chrono::steady_clock::time_point second_start = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point last_frame_start = std::chrono::steady_clock::now();
+  // 1/165 seconds (for 165 fps)
   std::chrono::nanoseconds frame_duration = std::chrono::nanoseconds(6060606);
+  std::chrono::steady_clock::time_point time_frame_should_end;
   uint32 n_frames_this_second = 0;
+  state->n_frames_since_start = 0;
 
   while (!state->should_stop) {
-    n_frames_this_second++;
-    last_frame_start = frame_start;
-    frame_start = std::chrono::steady_clock::now();
-    std::chrono::duration<real64> time_since_second_start = frame_start - second_start;
-    std::chrono::steady_clock::time_point frame_end_target_time = frame_start + frame_duration;
-
-    std::chrono::duration<real64> time_since_last_frame = frame_start - last_frame_start;
-    std::chrono::duration<real64> time_since_game_start = frame_start - game_start;
-
-    if (!state->should_pause) {
-      state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_last_frame).count();
-      /* state->t = std::chrono::duration_cast<std::chrono::duration<float>>(time_since_game_start).count(); */
-      state->t += state->dt;
-    }
-
-    if (time_since_second_start >= std::chrono::seconds(1)) {
-      second_start = frame_start;
-      state->last_fps = n_frames_this_second;
-      n_frames_this_second = 0;
-    }
-
     glfwPollEvents();
     process_input_continuous(state->window_info.window, state);
-    update_and_render(memory, state);
 
-    if (state->should_limit_fps) {
-      std::this_thread::sleep_until(frame_end_target_time);
+    if (
+      !state->is_manual_frame_advance_enabled ||
+      state->should_manually_advance_to_next_frame
+    ) {
+      state->n_frames_since_start++;
+      last_frame_start = frame_start;
+      frame_start = std::chrono::steady_clock::now();
+      time_frame_should_end = frame_start + frame_duration;
+
+      // If we should pause, stop time-based events.
+      if (!state->should_pause) {
+        state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(
+          frame_start - last_frame_start
+        ).count();
+        state->t += state->dt;
+      }
+
+      // Count FPS.
+      n_frames_this_second++;
+      std::chrono::duration<real64> time_since_second_start = frame_start - second_start;
+      if (time_since_second_start >= std::chrono::seconds(1)) {
+        second_start = frame_start;
+        state->last_fps = n_frames_this_second;
+        n_frames_this_second = 0;
+      }
+
+      update_and_render(memory, state);
+      if (state->is_manual_frame_advance_enabled) {
+        state->should_manually_advance_to_next_frame = false;
+      }
+
+      if (state->should_limit_fps) {
+        std::this_thread::sleep_until(time_frame_should_end);
+      }
     }
 
     START_TIMER(swap_buffers);
@@ -840,8 +748,8 @@ int main() {
 
   srand((uint32)time(NULL));
   Memory memory;
-  WindowInfo window_info;
 
+  WindowInfo window_info;
   init_window(&window_info);
   if (!window_info.window) {
     return -1;
@@ -865,14 +773,14 @@ int main() {
 
   state->texture_name_pool.allocate_texture_names();
 
-  init_deferred_lighting_buffers(&memory, state);
-  init_shader_buffers(&memory, state);
+  init_g_buffer(&memory, state);
+  init_ubo(&memory, state);
 
   scene_resources_init(&memory, state);
   scene_init_objects(&memory, state);
 
   init_shadow_buffers(&memory, state);
-  scene_init_screenquad(&memory, state);
+  init_screenquad(&memory, state);
 
   // NOTE: For some reason, this has to happen after `init_shadow_buffers()`
   // and before `allocate_texture_names()` or we get a lot of lag at the

@@ -7,6 +7,7 @@ layout (location = 2) in vec2 tex_coords;
 
 out BLOCK {
   vec3 world_position;
+  vec4 screen_position;
   vec3 normal;
   vec2 tex_coords;
 } vs_out;
@@ -18,6 +19,7 @@ void main() {
   vec3 water_normal = water_make_normal(water_position);
 
   gl_Position = projection * view * vec4(water_position, 1.0);
+  vs_out.screen_position = gl_Position;
   vs_out.world_position = water_position;
   vs_out.normal = normalize(water_normal);
   vs_out.tex_coords = tex_coords;

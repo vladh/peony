@@ -10,6 +10,8 @@ struct WindowInfo {
 
 class State {
 public:
+  bool32 is_manual_frame_advance_enabled;
+  bool32 should_manually_advance_to_next_frame;
   bool32 should_stop;
   bool32 should_pause;
   bool32 should_hide_ui;
@@ -22,6 +24,7 @@ public:
   real64 t;
   real64 dt;
   real64 last_fps;
+  uint32 n_frames_since_start;
 
   bool32 is_cursor_disabled;
   bool32 should_limit_fps;
@@ -50,17 +53,18 @@ public:
   TextureNamePool texture_name_pool;
   Queue<Task> task_queue;
 
-  ShaderAsset *standard_depth_shader_asset;
-
   uint32 shadow_map_width;
   uint32 shadow_map_height;
   real32 shadow_near_clip_dist;
   real32 shadow_far_clip_dist;
+
   uint32 shadow_framebuffers[MAX_N_SHADOW_FRAMEBUFFERS];
   uint32 shadow_cubemaps[MAX_N_SHADOW_FRAMEBUFFERS];
   uint32 n_shadow_framebuffers;
   uint32 shadow_light_idx;
   glm::mat4 shadow_transforms[6];
+
+  ShaderAsset *standard_depth_shader_asset;
 
   uint32 ubo_shader_common;
   ShaderCommon shader_common;
