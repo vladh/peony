@@ -39,6 +39,10 @@ public:
     return &this->items[idx];
   }
 
+  void set(uint32 idx, T *new_item) {
+    *(this->items + idx) = *new_item;
+  }
+
   T* get_items_ptr() {
     return this->items;
   }

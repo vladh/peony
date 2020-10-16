@@ -1,5 +1,5 @@
 void TextureSet::add(Texture texture) {
-  if (texture->is_g_buffer_dependent) {
+  if (texture.is_g_buffer_dependent) {
     this->is_g_buffer_dependent = true;
   }
   this->textures.push(texture);
