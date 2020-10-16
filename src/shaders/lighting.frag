@@ -1,12 +1,7 @@
-#define SHOULD_LINEARIZE_ALBEDO true
-
 uniform sampler2D g_position_texture;
 uniform sampler2D g_normal_texture;
 uniform sampler2D g_albedo_texture;
 uniform sampler2D g_pbr_texture;
-
-uniform int n_depth_textures;
-uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
 
 in BLOCK {
   vec2 tex_coords;
@@ -24,14 +19,7 @@ void main() {
     discard;
   }
 
-  // Albedo is generally in sRGB space, so we convert it to linear space
-  vec3 albedo;
-  if (SHOULD_LINEARIZE_ALBEDO) {
-    albedo = linearize_albedo(texture(g_albedo_texture, fs_in.tex_coords).rgb);
-  } else {
-    albedo = texture(g_albedo_texture, fs_in.tex_coords).rgb;
-  }
-
+  vec3 albedo = linearize_albedo(texture(g_albedo_texture, fs_in.tex_coords).rgb);
   vec4 pbr_texture = texture(g_pbr_texture, fs_in.tex_coords);
   float metallic = pbr_texture.r;
   float roughness = pbr_texture.g;
@@ -39,8 +27,7 @@ void main() {
 
   vec3 color = compute_pbr_light(
     albedo, metallic, roughness, ao,
-    world_position, normal,
-    n_depth_textures, depth_textures
+    world_position, normal
   );
 
   color = add_tone_mapping(color);
