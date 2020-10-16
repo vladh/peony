@@ -315,11 +315,16 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
   TextureSet *texture_set = mesh->texture_set;
   ShaderAsset *shader_asset = mesh->shader_asset;
 
-  if (shader_asset->did_set_texture_uniforms || !texture_set) {
+  if (!texture_set) {
     return;
   }
 
-  if (shader_asset->type == SHADER_STANDARD) {
+  // TODO: We're trying to set some unneccessary uniforms here, such as
+  // `should_use_normal_map` on the screenquad and so on. It's ok because
+  // they are checked and skipped inside ShaderAsset.set*, but it would
+  // be clearer to come up with a way of showing which uniforms we need
+  // to set and which not.
+  if (shader_asset->type != SHADER_DEPTH) {
     glUseProgram(shader_asset->program);
 
     shader_asset->set_bool(
@@ -333,6 +338,8 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
     shader_asset->reset_texture_units();
 
+    uint32 n_depth_textures = 0;
+
     for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
       Texture *texture = texture_set->textures.get(idx);
       log_info(
@@ -340,68 +347,21 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
         "(texture->texture_name %d)",
         this->name, texture->uniform_name, texture->texture_name
       );
+      if (texture->type == TEXTURE_DEPTH) {
+        n_depth_textures++;
+      }
       shader_asset->set_int(
         texture->uniform_name,
-        shader_asset->add_texture_unit(texture->texture_name, GL_TEXTURE_2D)
+        shader_asset->add_texture_unit(texture->texture_name, texture->target)
       );
     }
-  } else {
-    log_info(
-      "Tried to set texture uniforms, but there is nothing to do for this shader: \"%s\"",
-      shader_asset->name
-    );
+
+    if (n_depth_textures > 0) {
+      shader_asset->set_int("n_depth_textures", n_depth_textures);
+    }
   }
 
   shader_asset->did_set_texture_uniforms = true;
-}
-
-
-void ModelAsset::bind_shader_and_texture_as_screenquad(
-  Texture *g_position_texture, Texture *g_normal_texture,
-  Texture *g_albedo_texture, Texture *g_pbr_texture,
-  uint32 n_depth_textures,
-  uint32 *depth_textures,
-  ShaderAsset *shader_asset
-) {
-  Mesh *mesh = this->meshes.get(0);
-  mesh->shader_asset = shader_asset;
-
-  glUseProgram(shader_asset->program);
-
-  shader_asset->set_int("n_depth_textures", n_depth_textures);
-
-  shader_asset->reset_texture_units();
-
-  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
-    shader_asset->set_int(
-      DEPTH_TEXTURE_UNIFORM_NAMES[idx],
-      shader_asset->add_texture_unit(depth_textures[idx], GL_TEXTURE_CUBE_MAP)
-    );
-  }
-
-  shader_asset->set_int(
-    "g_position_texture",
-    shader_asset->add_texture_unit(g_position_texture->texture_name, GL_TEXTURE_2D)
-  );
-
-  shader_asset->set_int(
-    "g_normal_texture",
-    shader_asset->add_texture_unit(g_normal_texture->texture_name, GL_TEXTURE_2D)
-  );
-
-  shader_asset->set_int(
-    "g_albedo_texture",
-    shader_asset->add_texture_unit(g_albedo_texture->texture_name, GL_TEXTURE_2D)
-  );
-
-  shader_asset->set_int(
-    "g_pbr_texture",
-    shader_asset->add_texture_unit(g_pbr_texture->texture_name, GL_TEXTURE_2D)
-  );
-
-  shader_asset->did_set_texture_uniforms = true;
-  this->is_shader_setting_done = true;
-  this->is_texture_set_binding_done = true;
 }
 
 
@@ -441,7 +401,9 @@ void ModelAsset::bind_texture_to_mesh(
 ) {
   Mesh *mesh = this->meshes.get(idx_mesh);
   mesh->texture_set = texture_set;
-  bind_texture_uniforms_for_mesh(mesh);
+  if (!mesh->shader_asset->did_set_texture_uniforms) {
+    bind_texture_uniforms_for_mesh(mesh);
+  }
 }
 
 

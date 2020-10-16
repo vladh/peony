@@ -96,24 +96,28 @@ void init_g_buffer(Memory *memory, State *state) {
   state->g_position_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_position_texture")
   ) Texture(
+    GL_TEXTURE_2D,
     TEXTURE_G_POSITION, "g_position_texture", g_position_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_normal_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_normal_texture")
   ) Texture(
+    GL_TEXTURE_2D,
     TEXTURE_G_NORMAL, "g_normal_texture", g_normal_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_albedo_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_albedo_texture")
   ) Texture(
+    GL_TEXTURE_2D,
     TEXTURE_G_ALBEDO, "g_albedo_texture", g_albedo_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_pbr_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_pbr_texture")
   ) Texture(
+    GL_TEXTURE_2D,
     TEXTURE_G_PBR, "g_pbr_texture", g_pbr_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
@@ -210,15 +214,21 @@ void init_screenquad(Memory *memory, State *state) {
     "screenquad",
     GL_TRIANGLES
   );
-  model_asset->bind_shader_and_texture_as_screenquad(
-    state->g_position_texture,
-    state->g_normal_texture,
-    state->g_albedo_texture,
-    state->g_pbr_texture,
-    state->n_shadow_framebuffers,
-    state->shadow_cubemaps,
-    shader_asset
-  );
+  TextureSet *texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+  texture_set->add(*state->g_position_texture);
+  texture_set->add(*state->g_normal_texture);
+  texture_set->add(*state->g_albedo_texture);
+  texture_set->add(*state->g_pbr_texture);
+  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
+    texture_set->add(Texture(
+        GL_TEXTURE_CUBE_MAP,
+        TEXTURE_DEPTH, DEPTH_TEXTURE_UNIFORM_NAMES[idx], state->shadow_cubemaps[idx],
+        state->shadow_map_width, state->shadow_map_height, 1
+    ));
+  }
+  *model_asset->mesh_templates.push() = {
+    shader_asset, nullptr, texture_set, true, 0, 0
+  };
 
   Entity *entity = state->entity_manager.add("screenquad");
   state->drawable_component_manager.add(
@@ -324,32 +334,11 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   state->window_info.width = width;
   state->window_info.height = height;
   state->text_manager.update_text_projection(width, height);
+
+  // TODO: Only regenerate all this shit once we're done resizing, not for every little bit of the resize.
   init_g_buffer(memory, state);
 
-  // TODO: Figure out a nicer way of doing this?
-#if 0
-  for (uint32 idx = 0; idx < state->drawable_component_manager.components->size; idx++) {
-    DrawableComponent *component = state->drawable_component_manager.components->get(idx);
-    if (
-      component->model_asset &&
-      strcmp(component->model_asset->name, "screenquad") == 0
-    ) {
-      log_info("Found screenquad");
-      component->model_asset->bind_shader_and_texture_as_screenquad(
-        state->g_position_texture,
-        state->g_normal_texture,
-        state->g_albedo_texture,
-        state->g_pbr_texture,
-        state->n_shadow_framebuffers,
-        state->shadow_cubemaps,
-        // TODO: Fix this.
-        component->model_asset->meshes.get(0)->shader_asset
-      );
-    }
-  }
-#endif
-
-#if 0
+  // TODO: I hate this.
   for (
     uint32 idx_component = 0;
     idx_component < state->drawable_component_manager.components->size;
@@ -358,10 +347,31 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     DrawableComponent *component = state->drawable_component_manager.components->get(
       idx_component
     );
+    ModelAsset *model_asset = component->model_asset;
     for (
-      uint32 idx_mesh = 0; idx_mesh < component->
+      uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
+    ) {
+      Mesh *mesh = model_asset->meshes.get(idx_mesh);
+      if (mesh->texture_set && mesh->texture_set->is_g_buffer_dependent) {
+        log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
+        for(
+          uint32 idx_texture = 0; idx_texture < mesh->texture_set->textures.size; idx_texture++
+        ) {
+          Texture *texture = mesh->texture_set->textures.get(idx_texture);
+          if (texture->type == TEXTURE_G_POSITION) {
+            mesh->texture_set->textures.set(idx_texture, state->g_position_texture);
+          } else if (texture->type == TEXTURE_G_NORMAL) {
+            mesh->texture_set->textures.set(idx_texture, state->g_normal_texture);
+          } else if (texture->type == TEXTURE_G_ALBEDO) {
+            mesh->texture_set->textures.set(idx_texture, state->g_albedo_texture);
+          } else if (texture->type == TEXTURE_G_PBR) {
+            mesh->texture_set->textures.set(idx_texture, state->g_pbr_texture);
+          }
+        }
+        model_asset->bind_texture_uniforms_for_mesh(mesh);
+      }
+    }
   }
-#endif
 }
 
 
@@ -422,10 +432,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  /* window_info->width = video_mode->width; */
-  /* window_info->height = video_mode->height; */
-  window_info->width = 800;
-  window_info->height = 600;
+  window_info->width = video_mode->width;
+  window_info->height = video_mode->height;
+  /* window_info->width = 800; */
+  /* window_info->height = 600; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -437,8 +447,8 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  /* glfwSetWindowPos(window, 0, 0); */
-  glfwSetWindowPos(window, 200, 200);
+  glfwSetWindowPos(window, 0, 0);
+  /* glfwSetWindowPos(window, 200, 200); */
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);

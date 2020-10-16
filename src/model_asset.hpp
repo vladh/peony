@@ -116,17 +116,8 @@ public:
   static ModelAsset* get_by_name(
     Array<ModelAsset> *assets, const char *name
   );
-  // Normal models use `::set_shader_asset()` and
-  // `::bind_shader_and_texture()` and so on, but the screenquad
-  // is initialised separately through this method, so as not to
-  // polluate the normal pipeline with all the g_buffer/shadowmap
-  // stuff.
-  void bind_shader_and_texture_as_screenquad(
-    Texture *g_position_texture, Texture *g_normal_texture,
-    Texture *g_albedo_texture, Texture *g_pbr_texture,
-    uint32 n_depth_textures,
-    uint32 *depth_textures,
-    ShaderAsset *shader_asset
+  void bind_texture_uniforms_for_mesh(
+    Mesh *mesh
   );
 
 private:
@@ -145,9 +136,6 @@ private:
   void load_node(
     Memory *memory, aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
-  );
-  void bind_texture_uniforms_for_mesh(
-    Mesh *mesh
   );
   void prepare_for_draw(
     Memory *memory,

@@ -183,34 +183,38 @@ ShaderAsset::ShaderAsset(
 
 
 int32 ShaderAsset::get_uniform_location(const char *uniform_name) {
-  int32 uniform_idx = -1;
+  // Look up in cache.
   for (uint32 idx = 0; idx < n_intrinsic_uniforms; idx++) {
     if (strcmp(intrinsic_uniform_names[idx], uniform_name) == 0) {
-      uniform_idx = idx;
-      break;
+      return intrinsic_uniform_locations[idx];
     }
   }
-  if (uniform_idx == -1) {
-    GLint location = glGetUniformLocation(this->program, uniform_name);
-    if (location != -1) {
-      uniform_idx = n_intrinsic_uniforms;
-      intrinsic_uniform_locations[uniform_idx] = location;
-      strcpy(intrinsic_uniform_names[uniform_idx], uniform_name);
-      n_intrinsic_uniforms++;
-    } else {
-      if (IS_NOT_FINDING_UNIFORM_FATAL) {
-        log_fatal("Could not get uniform: %s", uniform_name);
-      } else {
-        log_error("Could not get uniform: %s", uniform_name);
-      }
-    }
+
+  // Missed cache, look up with `glGetUniformLocation()`.
+  GLint location = glGetUniformLocation(this->program, uniform_name);
+
+#if 0
+  uniform_idx = n_intrinsic_uniforms;
+  intrinsic_uniform_locations[uniform_idx] = location;
+  strcpy(intrinsic_uniform_names[uniform_idx], uniform_name);
+  n_intrinsic_uniforms++;
+#endif
+
+  if (location == -1) {
+    log_error("Could not get uniform: %s", uniform_name);
+  } else {
+    log_info("Missed uniform cache for %s", uniform_name);
   }
-  return intrinsic_uniform_locations[uniform_idx];
+
+  return location;
 }
 
 
 void ShaderAsset::set_int(const char *uniform_name, uint32 value) {
-  glUniform1i(this->get_uniform_location(uniform_name), value);
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniform1i(location, value);
+  }
 }
 
 
@@ -220,37 +224,58 @@ void ShaderAsset::set_bool(const char *uniform_name, bool value) {
 
 
 void ShaderAsset::set_float(const char *uniform_name, float value) {
-  glUniform1f(get_uniform_location(uniform_name), value);
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniform1f(location, value);
+  }
 }
 
 
 void ShaderAsset::set_vec2(const char *uniform_name, glm::vec2 *value) {
-  glUniform2fv(get_uniform_location(uniform_name), 1, glm::value_ptr(*value));
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniform2fv(location, 1, glm::value_ptr(*value));
+  }
 }
 
 
 void ShaderAsset::set_vec3(const char *uniform_name, glm::vec3 *value) {
-  glUniform3fv(get_uniform_location(uniform_name), 1, glm::value_ptr(*value));
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniform3fv(location, 1, glm::value_ptr(*value));
+  }
 }
 
 
 void ShaderAsset::set_vec4(const char *uniform_name, glm::vec4 *value) {
-  glUniform4fv(get_uniform_location(uniform_name), 1, glm::value_ptr(*value));
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniform4fv(location, 1, glm::value_ptr(*value));
+  }
 }
 
 
 void ShaderAsset::set_mat2(const char *uniform_name, glm::mat2 *mat) {
-  glUniformMatrix2fv(get_uniform_location(uniform_name), 1, GL_FALSE, glm::value_ptr(*mat));
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
+  }
 }
 
 
 void ShaderAsset::set_mat3(const char *uniform_name, glm::mat3 *mat) {
-  glUniformMatrix3fv(get_uniform_location(uniform_name), 1, GL_FALSE, glm::value_ptr(*mat));
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
+  }
 }
 
 
 void ShaderAsset::set_mat4(const char *uniform_name, glm::mat4 *mat) {
-  glUniformMatrix4fv(get_uniform_location(uniform_name), 1, GL_FALSE, glm::value_ptr(*mat));
+  int32 location = get_uniform_location(uniform_name);
+  if (location >= 0) {
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
+  }
 }
 
 

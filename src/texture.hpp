@@ -11,12 +11,14 @@ enum TextureType {
   TEXTURE_G_NORMAL,
   TEXTURE_G_ALBEDO,
   TEXTURE_G_PBR,
+  TEXTURE_DEPTH,
   TEXTURE_OTHER
 };
 
 class Texture {
 public:
-  TextureType type = TEXTURE_NONE;
+  GLenum target;
+  TextureType type;
   const char* uniform_name;
   const char* path;
   uint32 texture_name = 0;
@@ -35,6 +37,7 @@ public:
     uniform_name(uniform_name),
     path(path)
   {
+    this->target = GL_TEXTURE_2D;
     if (
       type == TEXTURE_G_POSITION ||
       type == TEXTURE_G_NORMAL ||
@@ -46,6 +49,7 @@ public:
   }
 
   Texture(
+    GLenum target,
     TextureType type,
     const char* uniform_name,
     uint32 texture_name,
@@ -53,6 +57,7 @@ public:
     int32 height,
     int32 n_components
   ) :
+    target(target),
     type(type),
     uniform_name(uniform_name),
     texture_name(texture_name),
