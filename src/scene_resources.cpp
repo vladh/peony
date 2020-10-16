@@ -1,4 +1,4 @@
-void scene_resources_init(Memory *memory, State *state) {
+void scene_init_resources(Memory *memory, State *state) {
   ModelAsset *model_asset;
   TextureSet *texture_set;
   ShaderAsset *shader_asset;
@@ -78,6 +78,13 @@ void scene_resources_init(Memory *memory, State *state) {
     texture_set->set_roughness_static(1.0f);
     texture_set->set_ao_static(1.0f);
     texture_set->add(*state->g_albedo_texture);
+    for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
+      texture_set->add(Texture(
+          GL_TEXTURE_CUBE_MAP,
+          TEXTURE_DEPTH, DEPTH_TEXTURE_UNIFORM_NAMES[idx], state->shadow_cubemaps[idx],
+          state->shadow_map_width, state->shadow_map_height, 1
+      ));
+    }
     *model_asset->mesh_templates.push() = {
       shader_asset, depth_shader_asset, texture_set, true, 0, 0
     };
@@ -250,4 +257,37 @@ void scene_resources_init(Memory *memory, State *state) {
     }
 #endif
   }
+
+  // Screenquad
+  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "lighting",
+    SHADER_LIGHTING,
+    SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
+  );
+
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory,
+    MODELSOURCE_DATA,
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad",
+    GL_TRIANGLES
+  );
+  texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+  texture_set->add(*state->g_position_texture);
+  texture_set->add(*state->g_normal_texture);
+  texture_set->add(*state->g_albedo_texture);
+  texture_set->add(*state->g_pbr_texture);
+  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
+    texture_set->add(Texture(
+        GL_TEXTURE_CUBE_MAP,
+        TEXTURE_DEPTH, DEPTH_TEXTURE_UNIFORM_NAMES[idx], state->shadow_cubemaps[idx],
+        state->shadow_map_width, state->shadow_map_height, 1
+    ));
+  }
+  *model_asset->mesh_templates.push() = {
+    shader_asset, nullptr, texture_set, true, 0, 0
+  };
 }

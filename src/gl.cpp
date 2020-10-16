@@ -44,7 +44,6 @@ void init_ubo(Memory *memory, State *state) {
 
 
 void init_shadow_buffers(Memory *memory, State *state) {
-  state->n_shadow_framebuffers = state->lights.size;
 
   for (
     uint32 idx_framebuffer = 0;
@@ -194,48 +193,6 @@ void init_g_buffer(Memory *memory, State *state) {
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     log_error("Framebuffer not complete!");
   }
-}
-
-
-void init_screenquad(Memory *memory, State *state) {
-  real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-  ShaderAsset *shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "lighting",
-    SHADER_LIGHTING,
-    SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
-  );
-
-  ModelAsset *model_asset = new(state->model_assets.push()) ModelAsset(
-    memory,
-    MODELSOURCE_DATA,
-    screenquad_vertices, 6,
-    nullptr, 0,
-    "screenquad",
-    GL_TRIANGLES
-  );
-  TextureSet *texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-  texture_set->add(*state->g_position_texture);
-  texture_set->add(*state->g_normal_texture);
-  texture_set->add(*state->g_albedo_texture);
-  texture_set->add(*state->g_pbr_texture);
-  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
-    texture_set->add(Texture(
-        GL_TEXTURE_CUBE_MAP,
-        TEXTURE_DEPTH, DEPTH_TEXTURE_UNIFORM_NAMES[idx], state->shadow_cubemaps[idx],
-        state->shadow_map_width, state->shadow_map_height, 1
-    ));
-  }
-  *model_asset->mesh_templates.push() = {
-    shader_asset, nullptr, texture_set, true, 0, 0
-  };
-
-  Entity *entity = state->entity_manager.add("screenquad");
-  state->drawable_component_manager.add(
-    entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "screenquad"),
-    RENDERPASS_LIGHTING
-  );
 }
 
 
@@ -801,10 +758,14 @@ int main() {
   START_TIMER(init);
 
   srand((uint32)time(NULL));
+  START_TIMER(allocate_memory);
   Memory memory;
+  END_TIMER(allocate_memory);
 
   WindowInfo window_info;
+  START_TIMER(init_window);
   init_window(&window_info);
+  END_TIMER(init_window);
   if (!window_info.window) {
     return -1;
   }
@@ -815,6 +776,8 @@ int main() {
   std::thread loading_thread_1 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
   std::thread loading_thread_2 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
   std::thread loading_thread_3 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
+  std::thread loading_thread_4 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
+  std::thread loading_thread_5 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
 
 #if 0
   Util::print_texture_internalformat_info(GL_RGB8);
@@ -828,19 +791,11 @@ int main() {
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
   state->texture_name_pool.allocate_texture_names();
-
   init_g_buffer(&memory, state);
-  init_ubo(&memory, state);
-
-  scene_resources_init(&memory, state);
-  scene_init_objects(&memory, state);
-
   init_shadow_buffers(&memory, state);
-  init_screenquad(&memory, state);
-
-  // NOTE: For some reason, this has to happen after `init_shadow_buffers()`
-  // and before `allocate_texture_names()` or we get a lot of lag at the
-  // beginning...?
+  init_ubo(&memory, state);
+  scene_init_resources(&memory, state);
+  scene_init_objects(&memory, state);
   state->persistent_pbo.allocate_pbo();
 
 #if 0
@@ -857,6 +812,8 @@ int main() {
   loading_thread_1.join();
   loading_thread_2.join();
   loading_thread_3.join();
+  loading_thread_4.join();
+  loading_thread_5.join();
 
   destroy_window();
   return 0;

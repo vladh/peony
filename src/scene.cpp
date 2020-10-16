@@ -40,6 +40,24 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
   state->lights.push(entity->handle);
+
+  state->n_shadow_framebuffers = state->lights.size;
+#endif
+
+  // Plane
+#if 1
+  entity = state->entity_manager.add("plane");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(1.0f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "plane"),
+    RENDERPASS_FORWARD
+  );
 #endif
 
   // Temple
@@ -127,22 +145,6 @@ void scene_init_objects(Memory *memory, State *state) {
   }
 #endif
 
-  // Plane
-#if 1
-  entity = state->entity_manager.add("plane");
-  state->spatial_component_manager.add(
-    entity->handle,
-    glm::vec3(0.0f),
-    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(1.0f)
-  );
-  state->drawable_component_manager.add(
-    entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "plane"),
-    RENDERPASS_FORWARD
-  );
-#endif
-
   // Axes
 #if 1
   entity = state->entity_manager.add("axes");
@@ -158,4 +160,12 @@ void scene_init_objects(Memory *memory, State *state) {
     RENDERPASS_FORWARD
   );
 #endif
+
+  // Screenquad
+  entity = state->entity_manager.add("screenquad");
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "screenquad"),
+    RENDERPASS_LIGHTING
+  );
 }

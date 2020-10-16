@@ -1,6 +1,9 @@
 #define GAMMA 2.2
 #define USE_SHADOWS true
 
+uniform int n_depth_textures;
+uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
+
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
@@ -209,8 +212,7 @@ vec3 compute_sphere_light(
 
 vec3 compute_pbr_light(
   vec3 albedo, float metallic, float roughness, float ao,
-  vec3 world_position, vec3 normal,
-  int n_depth_textures, samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS]
+  vec3 world_position, vec3 normal
 ) {
   vec3 N = normal;
   vec3 V = normalize(camera_position - world_position);
