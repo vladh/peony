@@ -93,6 +93,19 @@ vec3 get_normal_from_map(
 }
 
 
+vec3 desaturate(vec3 color, float factor) {
+  // https://github.com/jamieowen/glsl-blend/blob/master/_temp/conversion/desaturate.glsl
+  vec3 filter = vec3(0.3, 0.59, 0.11);
+  vec3 gray = vec3(dot(filter, color));
+  return mix(color, gray, factor);
+}
+
+
+vec3 linearize_albedo(vec3 albedo) {
+  return pow(albedo, vec3(2.2));
+}
+
+
 vec3 correct_gamma(vec3 rgb) {
   return pow(rgb, vec3(1.0 / GAMMA));
 }
@@ -192,4 +205,38 @@ vec3 compute_sphere_light(
   kD *= 1.0 - metallic;
 
   return (kD * albedo / M_PI + specular) * radiance * n_dot_l;
+}
+
+vec3 compute_pbr_light(
+  vec3 albedo, float metallic, float roughness, float ao,
+  vec3 world_position, vec3 normal,
+  int n_depth_textures, samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS]
+) {
+  vec3 N = normal;
+  vec3 V = normalize(camera_position - world_position);
+  float n_dot_v = max(dot(N, V), M_EPSILON);
+  vec3 F0 = mix(vec3(0.04), albedo, metallic);
+  vec3 Lo = vec3(0.0);
+
+  for (int idx_light = 0; idx_light < n_lights; idx_light++) {
+    float shadow = 0;
+
+    if (USE_SHADOWS && n_depth_textures >= n_lights) {
+      RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light);
+    }
+
+    Lo += compute_sphere_light(
+      world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
+      light_attenuation[idx_light],
+      albedo, metallic, roughness,
+      N, V,
+      n_dot_v, F0
+    ) * (1.0 - shadow);
+  }
+
+  // TODO: Add better ambient term.
+  vec3 ambient = vec3(0.03) * albedo * ao;
+  vec3 color = ambient + Lo;
+
+  return color;
 }

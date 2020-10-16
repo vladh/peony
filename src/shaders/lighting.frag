@@ -1,4 +1,4 @@
-#define SHOULD_LINEARISE_ALBEDO true
+#define SHOULD_LINEARIZE_ALBEDO true
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_normal_texture;
@@ -26,8 +26,8 @@ void main() {
 
   // Albedo is generally in sRGB space, so we convert it to linear space
   vec3 albedo;
-  if (SHOULD_LINEARISE_ALBEDO) {
-    albedo = pow(texture(g_albedo_texture, fs_in.tex_coords).rgb, vec3(2.2));
+  if (SHOULD_LINEARIZE_ALBEDO) {
+    albedo = linearize_albedo(texture(g_albedo_texture, fs_in.tex_coords).rgb);
   } else {
     albedo = texture(g_albedo_texture, fs_in.tex_coords).rgb;
   }
@@ -37,31 +37,11 @@ void main() {
   float roughness = pbr_texture.g;
   float ao = pbr_texture.b;
 
-  vec3 N = normal;
-  vec3 V = normalize(camera_position - world_position);
-  float n_dot_v = max(dot(N, V), M_EPSILON);
-  vec3 F0 = mix(vec3(0.04), albedo, metallic);
-  vec3 Lo = vec3(0.0);
-
-  for (int idx_light = 0; idx_light < n_lights; idx_light++) {
-    float shadow = 0;
-
-    if (USE_SHADOWS && n_depth_textures >= n_lights) {
-      RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light);
-    }
-
-    Lo += compute_sphere_light(
-      world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
-      light_attenuation[idx_light],
-      albedo, metallic, roughness,
-      N, V,
-      n_dot_v, F0
-    ) * (1.0 - shadow);
-  }
-
-  // TODO: Add better ambient term.
-  vec3 ambient = vec3(0.03) * albedo * ao;
-  vec3 color = ambient + Lo;
+  vec3 color = compute_pbr_light(
+    albedo, metallic, roughness, ao,
+    world_position, normal,
+    n_depth_textures, depth_textures
+  );
 
   color = add_tone_mapping(color);
   color = correct_gamma(color);
