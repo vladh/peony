@@ -6,7 +6,13 @@ out BLOCK {
 } gs_out;
 
 void main() {
-  for (int face = 0; face < 6; face++) {
+  int n_faces_for_this_light;
+  if (light_direction[shadow_light_idx] == vec4(0.0, 0.0, 0.0, 1.0)) {
+    n_faces_for_this_light = 6;
+  } else {
+    n_faces_for_this_light = 1;
+  }
+  for (int face = 0; face < n_faces_for_this_light; face++) {
     int layer_face = (shadow_light_idx * 6) + face;
     gl_Layer = layer_face;
 

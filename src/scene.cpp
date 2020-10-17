@@ -2,7 +2,7 @@ void scene_init_objects(Memory *memory, State *state) {
   Entity *entity;
 
   // Lights
-#if 0
+#if 1
   entity = state->entity_manager.add("light1");
   state->spatial_component_manager.add(
     entity->handle,
@@ -18,7 +18,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->light_component_manager.add(
     entity->handle,
     glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec4(9.0f, 9.0f, 9.0f, 1.0f),
+    glm::vec4(5.0f, 5.0f, 5.0f, 1.0f),
     glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
   );
   state->lights.push(entity->handle);
@@ -26,7 +26,7 @@ void scene_init_objects(Memory *memory, State *state) {
   entity = state->entity_manager.add("light2");
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec4(-4.0f, 16.0f, 0.0f, 1.0f),
+    glm::vec4(-10.0f, 0.0f, 0.0f, 1.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
@@ -37,9 +37,9 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->light_component_manager.add(
     entity->handle,
-    glm::vec3(1.0f, -0.0f, 0.0f),
-    glm::vec4(3.5f, 3.5f, 3.5f, 1.0f),
-    glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
+    glm::vec3(1.0f, 0.0f, 0.0f),
+    glm::vec4(4.0f, 4.0f, 4.0f, 1.0f),
+    glm::vec4(0.0f, 0.0f, 0.0f, 0.0f)
   );
   state->lights.push(entity->handle);
 #else
@@ -101,7 +101,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Temple
-#if 0
+#if 1
   entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,

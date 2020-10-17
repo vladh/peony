@@ -99,48 +99,65 @@ void Camera::update_mouse(glm::vec2 mouse_offset) {
 
 void Camera::create_shadow_transforms(
   glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS],
-  SpatialComponentManager *spatial_component_manager, Array<EntityHandle> *lights,
+  SpatialComponentManager *spatial_component_manager,
+  LightComponentManager *light_component_manager,
+  Array<EntityHandle> *lights,
   uint32 shadowmap_width, uint32 shadowmap_height,
   real32 near_clip_dist, real32 far_clip_dist
 ) {
-  glm::mat4 shadow_projection = glm::perspective(
+  glm::mat4 perspective_projection = glm::perspective(
     glm::radians(90.0f),
     (real32)shadowmap_width / (real32)shadowmap_height,
     near_clip_dist, far_clip_dist
   );
 
+  glm::mat4 ortho_projection = glm::ortho(
+    -10.0f, 10.0f, -10.0f, 10.0f, near_clip_dist, far_clip_dist
+  );
+
   for (uint32 idx = 0; idx < lights->size; idx++) {
-    SpatialComponent *spatial_component = spatial_component_manager->get(*lights->get(idx));
+    EntityHandle light = *lights->get(idx);
+    SpatialComponent *spatial_component = spatial_component_manager->get(light);
+    LightComponent *light_component = light_component_manager->get(light);
     glm::vec3 pos = spatial_component->position;
-    shadow_transforms[(idx * 6) + 0] = shadow_projection * glm::lookAt(
-      pos,
-      pos + glm::vec3(1.0f, 0.0f, 0.0f),
-      glm::vec3(0.0f, -1.0f, 0.0f)
-    );
-    shadow_transforms[(idx * 6) + 1] = shadow_projection * glm::lookAt(
-      pos,
-      pos + glm::vec3(-1.0f, 0.0f, 0.0f),
-      glm::vec3(0.0f, -1.0f, 0.0f)
-    );
-    shadow_transforms[(idx * 6) + 2] = shadow_projection * glm::lookAt(
-      pos,
-      pos + glm::vec3(0.0f, 1.0f, 0.0f),
-      glm::vec3(0.0f, 0.0f, 1.0f)
-    );
-    shadow_transforms[(idx * 6) + 3] = shadow_projection * glm::lookAt(
-      pos,
-      pos + glm::vec3(0.0f, -1.0f, 0.0f),
-      glm::vec3(0.0f, 0.0f, -1.0f)
-    );
-    shadow_transforms[(idx * 6) + 4] = shadow_projection * glm::lookAt(
-      pos,
-      pos + glm::vec3(0.0f, 0.0f, 1.0f),
-      glm::vec3(0.0f, -1.0f, 0.0f)
-    );
-    shadow_transforms[(idx * 6) + 5] = shadow_projection * glm::lookAt(
-      pos,
-      pos + glm::vec3(0.0f, 0.0f, -1.0f),
-      glm::vec3(0.0f, -1.0f, 0.0f)
-    );
+
+    if (light_component->direction == glm::vec3(0.0f, 0.0f, 0.0f)) {
+      shadow_transforms[(idx * 6) + 0] = perspective_projection * glm::lookAt(
+        pos,
+        pos + glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+      shadow_transforms[(idx * 6) + 1] = perspective_projection * glm::lookAt(
+        pos,
+        pos + glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+      shadow_transforms[(idx * 6) + 2] = perspective_projection * glm::lookAt(
+        pos,
+        pos + glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+      );
+      shadow_transforms[(idx * 6) + 3] = perspective_projection * glm::lookAt(
+        pos,
+        pos + glm::vec3(0.0f, -1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, -1.0f)
+      );
+      shadow_transforms[(idx * 6) + 4] = perspective_projection * glm::lookAt(
+        pos,
+        pos + glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+      shadow_transforms[(idx * 6) + 5] = perspective_projection * glm::lookAt(
+        pos,
+        pos + glm::vec3(0.0f, 0.0f, -1.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+    } else {
+      shadow_transforms[(idx * 6) + 0] = ortho_projection * glm::lookAt(
+        pos,
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
+      );
+    }
   }
 }

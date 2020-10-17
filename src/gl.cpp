@@ -576,7 +576,9 @@ void update_and_render(Memory *memory, State *state) {
 
     Camera::create_shadow_transforms(
       state->shadow_transforms,
-      &state->spatial_component_manager, &state->lights,
+      &state->spatial_component_manager,
+      &state->light_component_manager,
+      &state->lights,
       state->shadowmap_width, state->shadowmap_height,
       state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
     );
