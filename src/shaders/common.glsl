@@ -24,6 +24,7 @@ layout (std140) uniform shader_common {
   float pad_oops3;
 
   vec4 light_position[MAX_N_LIGHTS];
+  vec4 light_direction[MAX_N_LIGHTS];
   vec4 light_color[MAX_N_LIGHTS];
   vec4 light_attenuation[MAX_N_LIGHTS];
 };

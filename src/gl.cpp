@@ -463,6 +463,7 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
     LightComponent *light_component =
       state->light_component_manager.get(*state->lights.get(idx));
     shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
+    shader_common->light_direction[idx] = glm::vec4(light_component->direction, 1.0f);
     shader_common->light_color[idx] = light_component->color;
     shader_common->light_attenuation[idx] = light_component->attenuation;
   }

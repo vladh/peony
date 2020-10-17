@@ -34,6 +34,7 @@ struct ShaderCommon {
   float pad_oops3;
 
   glm::vec4 light_position[MAX_N_LIGHTS];
+  glm::vec4 light_direction[MAX_N_LIGHTS];
   glm::vec4 light_color[MAX_N_LIGHTS];
   glm::vec4 light_attenuation[MAX_N_LIGHTS];
 };

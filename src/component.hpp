@@ -11,6 +11,7 @@ struct DrawableComponent : public Component {
 };
 
 struct LightComponent : public Component {
+  glm::vec3 direction;
   glm::vec4 color;
   glm::vec4 attenuation;
 };
