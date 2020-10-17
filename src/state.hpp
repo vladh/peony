@@ -53,16 +53,14 @@ public:
   TextureNamePool texture_name_pool;
   Queue<Task> task_queue;
 
-  uint32 shadow_map_width;
-  uint32 shadow_map_height;
-  real32 shadow_near_clip_dist;
-  real32 shadow_far_clip_dist;
+  uint32 shadowmap_width;
+  uint32 shadowmap_height;
+  real32 shadowmap_near_clip_dist;
+  real32 shadowmap_far_clip_dist;
 
-  uint32 shadow_framebuffers[MAX_N_SHADOW_FRAMEBUFFERS];
-  uint32 shadow_cubemaps[MAX_N_SHADOW_FRAMEBUFFERS];
-  uint32 n_shadow_framebuffers;
-  uint32 shadow_light_idx;
-  glm::mat4 shadow_transforms[6];
+  uint32 shadowmap_framebuffer;
+  uint32 shadowmap;
+  glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   ShaderAsset *standard_depth_shader_asset;
 

@@ -78,13 +78,10 @@ void scene_init_resources(Memory *memory, State *state) {
     texture_set->set_roughness_static(1.0f);
     texture_set->set_ao_static(1.0f);
     texture_set->add(*state->g_albedo_texture);
-    for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
-      texture_set->add(Texture(
-          GL_TEXTURE_CUBE_MAP,
-          TEXTURE_DEPTH, DEPTH_TEXTURE_UNIFORM_NAMES[idx], state->shadow_cubemaps[idx],
-          state->shadow_map_width, state->shadow_map_height, 1
-      ));
-    }
+    texture_set->add(Texture(
+        GL_TEXTURE_CUBE_MAP_ARRAY, TEXTURE_SHADOWMAP, "shadowmap", state->shadowmap,
+        state->shadowmap_width, state->shadowmap_height, 1
+    ));
     *model_asset->mesh_templates.push() = {
       shader_asset, depth_shader_asset, texture_set, true, 0, 0
     };
@@ -280,13 +277,10 @@ void scene_init_resources(Memory *memory, State *state) {
   texture_set->add(*state->g_normal_texture);
   texture_set->add(*state->g_albedo_texture);
   texture_set->add(*state->g_pbr_texture);
-  for (uint32 idx = 0; idx < MAX_N_SHADOW_FRAMEBUFFERS; idx++) {
-    texture_set->add(Texture(
-        GL_TEXTURE_CUBE_MAP,
-        TEXTURE_DEPTH, DEPTH_TEXTURE_UNIFORM_NAMES[idx], state->shadow_cubemaps[idx],
-        state->shadow_map_width, state->shadow_map_height, 1
-    ));
-  }
+  texture_set->add(Texture(
+      GL_TEXTURE_CUBE_MAP_ARRAY, TEXTURE_SHADOWMAP, "shadowmap", state->shadowmap,
+      state->shadowmap_width, state->shadowmap_height, 1
+  ));
   *model_asset->mesh_templates.push() = {
     shader_asset, nullptr, texture_set, true, 0, 0
   };

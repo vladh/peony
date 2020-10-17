@@ -26,7 +26,7 @@ void main() {
   vec3 unit_normal = normalize(fs_in.normal);
   g_position = fs_in.world_position;
 
-  if (false && should_use_normal_map) {
+  if (should_use_normal_map) {
     g_normal = get_normal_from_map(
       texture(normal_texture, fs_in.tex_coords),
       fs_in.world_position,

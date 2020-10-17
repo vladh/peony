@@ -338,8 +338,6 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
     shader_asset->reset_texture_units();
 
-    uint32 n_depth_textures = 0;
-
     for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
       Texture *texture = texture_set->textures.get(idx);
       log_info(
@@ -347,17 +345,10 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
         "(texture->texture_name %d)",
         this->name, texture->uniform_name, texture->texture_name
       );
-      if (texture->type == TEXTURE_DEPTH) {
-        n_depth_textures++;
-      }
       shader_asset->set_int(
         texture->uniform_name,
         shader_asset->add_texture_unit(texture->texture_name, texture->target)
       );
-    }
-
-    if (n_depth_textures > 0) {
-      shader_asset->set_int("n_depth_textures", n_depth_textures);
     }
   }
 
@@ -618,7 +609,6 @@ void ModelAsset::draw(
     } else {
       glDrawArrays(mesh->mode, 0, mesh->n_vertices);
     }
-    glBindVertexArray(0);
   }
 }
 
@@ -664,7 +654,6 @@ void ModelAsset::draw_in_depth_mode(
     } else {
       glDrawArrays(mesh->mode, 0, mesh->n_vertices);
     }
-    glBindVertexArray(0);
   }
 }
 
