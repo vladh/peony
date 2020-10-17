@@ -1,6 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_OPENGL_4 false
 #define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
 #define USE_NO_WINDOW_DECORATION false
@@ -353,16 +352,9 @@ void init_window(WindowInfo *window_info) {
 
   glfwInit();
 
-#if USE_OPENGL_4
-  log_info("Using OpenGL 4.3");
+  log_info("Using OpenGL 4.1");
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#else
-  log_info("Using OpenGL 3.3");
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-#endif
-
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_SAMPLES, 4);
 
