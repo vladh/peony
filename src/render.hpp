@@ -1,5 +1,4 @@
 constexpr uint16 MAX_N_LIGHTS = 8;
-constexpr uint16 MAX_N_SHADOW_FRAMEBUFFERS = MAX_N_LIGHTS;
 
 enum RenderMode {
   RENDERMODE_REGULAR, RENDERMODE_DEPTH
@@ -18,7 +17,7 @@ struct Light {
 struct ShaderCommon {
   glm::mat4 view;
   glm::mat4 projection;
-  glm::mat4 shadow_transforms[6];
+  glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   glm::vec3 camera_position;
   float pad_woops;

@@ -1,14 +1,13 @@
-#version 330 core
+#version 410 core
 
 #define M_PI 3.14159265358979323846
 #define M_EPSILON 1e-5
 #define MAX_N_LIGHTS 8
-#define MAX_N_SHADOW_FRAMEBUFFERS MAX_N_LIGHTS
 
 layout (std140) uniform shader_common {
   mat4 view;
   mat4 projection;
-  mat4 shadow_transforms[6];
+  mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   vec3 camera_position;
   float pad_oops;

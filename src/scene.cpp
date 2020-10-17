@@ -2,7 +2,7 @@ void scene_init_objects(Memory *memory, State *state) {
   Entity *entity;
 
   // Lights
-#if 1
+#if 0
   entity = state->entity_manager.add("light1");
   state->spatial_component_manager.add(
     entity->handle,
@@ -42,8 +42,46 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
   state->lights.push(entity->handle);
+#else
+  entity = state->entity_manager.add("light1");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec4(-7.0f, 3.0f, 0.0f, 1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(0.3f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "light"),
+    RENDERPASS_FORWARD
+  );
+  state->light_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec4(9.0f, 9.0f, 9.0f, 1.0f),
+    glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
+  );
+  state->lights.push(entity->handle);
 
-  state->n_shadow_framebuffers = state->lights.size;
+  entity = state->entity_manager.add("light2");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec4(-4.0f, 16.0f, 0.0f, 1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(0.3f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "light"),
+    RENDERPASS_FORWARD
+  );
+  state->light_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),
+    glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
+  );
+  state->lights.push(entity->handle);
 #endif
 
   // Plane
@@ -63,7 +101,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Temple
-#if 1
+#if 0
   entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,

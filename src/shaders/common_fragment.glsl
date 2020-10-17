@@ -1,8 +1,7 @@
 #define GAMMA 2.2
 #define USE_SHADOWS true
 
-uniform int n_depth_textures;
-uniform samplerCube depth_textures[MAX_N_SHADOW_FRAMEBUFFERS];
+uniform samplerCubeArray shadowmap;
 
 vec3 grid_sampling_offsets[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -13,7 +12,7 @@ vec3 grid_sampling_offsets[20] = vec3[] (
 );
 
 
-float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_texture) {
+float calculate_shadows(vec3 world_position, int idx_light) {
   vec3 frag_to_light = world_position - vec3(light_position[idx_light]);
   float current_depth = length(frag_to_light);
 
@@ -26,8 +25,8 @@ float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_te
 
   for (int i = 0; i < n_samples; i++) {
     float closest_depth = texture(
-      depth_texture,
-      frag_to_light + grid_sampling_offsets[i] * sample_radius
+      shadowmap,
+      vec4(frag_to_light + grid_sampling_offsets[i] * sample_radius, idx_light)
     ).r * far_clip_dist;
 
     if (current_depth - bias > closest_depth) {
@@ -37,31 +36,6 @@ float calculate_shadows(vec3 world_position, int idx_light, samplerCube depth_te
   shadow /= float(n_samples);
 
   return shadow;
-}
-
-
-// NOTE: We need this hack because GLSL doesn't allow us to index samplerCubes
-// by non-constant indices, so we can't do depth_textures[idx_light].
-// We could fix this by using cube_map_arrays, but that would require
-// switching to OpenGL 4.1, since they are not supported on macOS
-// in 3.3 even with an extension.
-
-#define RUN_CALCULATE_SHADOWS(world_position, idx_light, idx_texture) { \
-  if (idx_texture < n_depth_textures && idx_light == idx_texture) { \
-    shadow += calculate_shadows(world_position, idx_light, depth_textures[idx_texture]); \
-  } \
-}
-
-
-#define RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light) { \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 0); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 1); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 2); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 3); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 4); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 5); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 6); \
-  RUN_CALCULATE_SHADOWS(world_position, idx_light, 7); \
 }
 
 
@@ -255,12 +229,11 @@ vec3 compute_pbr_light(
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
     float shadow = 0;
 
-    if (USE_SHADOWS && n_depth_textures >= n_lights) {
-      RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light);
+    if (USE_SHADOWS) {
+      shadow += calculate_shadows(world_position, idx_light);
     }
 
     if (light_direction[idx_light] == vec4(0.0f, 0.0f, 0.0f, 1.0f)) {
-#if 0
       Lo += compute_sphere_light(
         world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
         light_attenuation[idx_light],
@@ -268,7 +241,6 @@ vec3 compute_pbr_light(
         N, V,
         n_dot_v, F0
       ) * (1.0 - shadow);
-#endif
     } else {
       Lo += compute_directional_light(
         world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
@@ -281,9 +253,8 @@ vec3 compute_pbr_light(
   }
 
   // TODO: Add better ambient term.
-  /* vec3 ambient = vec3(0.03) * albedo * ao; */
-  /* vec3 color = ambient + Lo; */
-  vec3 color = Lo;
+  vec3 ambient = vec3(0.03) * albedo * ao;
+  vec3 color = ambient + Lo;
 
   return color;
 }

@@ -5,7 +5,7 @@ Camera::Camera(CameraType new_type) {
   this->position = glm::vec3(-7.0f, 3.0f, 7.0f);
   this->front = glm::vec3(0.0f, 0.0f, 0.0f);
   this->up = glm::vec3(0.0f, 1.0f, 0.0f);
-  this->speed = 0.015f;
+  this->speed = 5.0f;
   this->fov = 90.0f;
   this->near_clip_dist = 0.1f;
   this->far_clip_dist = 100.0f;
@@ -69,19 +69,19 @@ void Camera::update_matrices(
   }
 }
 
-void Camera::move_front_back(real32 sign) {
-  this->position += sign * this->speed * this->front;
+void Camera::move_front_back(real32 sign, real64 dt) {
+  this->position += (sign * this->speed * (real32)dt) * this->front;
 }
 
-void Camera::move_left_right(real32 sign) {
+void Camera::move_left_right(real32 sign, real64 dt) {
   glm::vec3 direction = glm::normalize(glm::cross(
     this->front, this->up
   ));
-  this->position += sign * direction * this->speed;
+  this->position += (sign * this->speed * (real32)dt) * direction;
 }
 
-void Camera::move_up_down(real32 sign) {
-  this->position += sign * this->speed * this->up;
+void Camera::move_up_down(real32 sign, real64 dt) {
+  this->position += (sign * this->speed * (real32)dt) * this->up;
 }
 
 void Camera::update_mouse(glm::vec2 mouse_offset) {
@@ -98,43 +98,49 @@ void Camera::update_mouse(glm::vec2 mouse_offset) {
 }
 
 void Camera::create_shadow_transforms(
-  glm::mat4 shadow_transforms[6], glm::vec3 light_position,
-  uint32 shadow_map_width, uint32 shadow_map_height,
+  glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS],
+  SpatialComponentManager *spatial_component_manager, Array<EntityHandle> *lights,
+  uint32 shadowmap_width, uint32 shadowmap_height,
   real32 near_clip_dist, real32 far_clip_dist
 ) {
   glm::mat4 shadow_projection = glm::perspective(
     glm::radians(90.0f),
-    (real32)shadow_map_width / (real32)shadow_map_height,
+    (real32)shadowmap_width / (real32)shadowmap_height,
     near_clip_dist, far_clip_dist
   );
-  shadow_transforms[0] = shadow_projection * glm::lookAt(
-    light_position,
-    light_position + glm::vec3(1.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, -1.0f, 0.0f)
-  );
-  shadow_transforms[1] = shadow_projection * glm::lookAt(
-    light_position,
-    light_position + glm::vec3(-1.0f, 0.0f, 0.0f),
-    glm::vec3(0.0f, -1.0f, 0.0f)
-  );
-  shadow_transforms[2] = shadow_projection * glm::lookAt(
-    light_position,
-    light_position + glm::vec3(0.0f, 1.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, 1.0f)
-  );
-  shadow_transforms[3] = shadow_projection * glm::lookAt(
-    light_position,
-    light_position + glm::vec3(0.0f, -1.0f, 0.0f),
-    glm::vec3(0.0f, 0.0f, -1.0f)
-  );
-  shadow_transforms[4] = shadow_projection * glm::lookAt(
-    light_position,
-    light_position + glm::vec3(0.0f, 0.0f, 1.0f),
-    glm::vec3(0.0f, -1.0f, 0.0f)
-  );
-  shadow_transforms[5] = shadow_projection * glm::lookAt(
-    light_position,
-    light_position + glm::vec3(0.0f, 0.0f, -1.0f),
-    glm::vec3(0.0f, -1.0f, 0.0f)
-  );
+
+  for (uint32 idx = 0; idx < lights->size; idx++) {
+    SpatialComponent *spatial_component = spatial_component_manager->get(*lights->get(idx));
+    glm::vec3 pos = spatial_component->position;
+    shadow_transforms[(idx * 6) + 0] = shadow_projection * glm::lookAt(
+      pos,
+      pos + glm::vec3(1.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, -1.0f, 0.0f)
+    );
+    shadow_transforms[(idx * 6) + 1] = shadow_projection * glm::lookAt(
+      pos,
+      pos + glm::vec3(-1.0f, 0.0f, 0.0f),
+      glm::vec3(0.0f, -1.0f, 0.0f)
+    );
+    shadow_transforms[(idx * 6) + 2] = shadow_projection * glm::lookAt(
+      pos,
+      pos + glm::vec3(0.0f, 1.0f, 0.0f),
+      glm::vec3(0.0f, 0.0f, 1.0f)
+    );
+    shadow_transforms[(idx * 6) + 3] = shadow_projection * glm::lookAt(
+      pos,
+      pos + glm::vec3(0.0f, -1.0f, 0.0f),
+      glm::vec3(0.0f, 0.0f, -1.0f)
+    );
+    shadow_transforms[(idx * 6) + 4] = shadow_projection * glm::lookAt(
+      pos,
+      pos + glm::vec3(0.0f, 0.0f, 1.0f),
+      glm::vec3(0.0f, -1.0f, 0.0f)
+    );
+    shadow_transforms[(idx * 6) + 5] = shadow_projection * glm::lookAt(
+      pos,
+      pos + glm::vec3(0.0f, 0.0f, -1.0f),
+      glm::vec3(0.0f, -1.0f, 0.0f)
+    );
+  }
 }

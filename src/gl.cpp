@@ -42,38 +42,26 @@ void init_ubo(Memory *memory, State *state) {
 }
 
 
-void init_shadow_buffers(Memory *memory, State *state) {
+void init_shadowmaps(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->shadowmap_framebuffer);
+  glGenTextures(1, &state->shadowmap);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, state->shadowmap);
 
-  for (
-    uint32 idx_framebuffer = 0;
-    idx_framebuffer < MAX_N_SHADOW_FRAMEBUFFERS;
-    idx_framebuffer++
-  ) {
-    glGenFramebuffers(1, &state->shadow_framebuffers[idx_framebuffer]);
-    glGenTextures(1, &state->shadow_cubemaps[idx_framebuffer]);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, state->shadow_cubemaps[idx_framebuffer]);
+  glTexStorage3D(
+    GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
+    state->shadowmap_width, state->shadowmap_height,
+    6 * MAX_N_LIGHTS
+  );
 
-    for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
-      glTexImage2D(
-        GL_TEXTURE_CUBE_MAP_POSITIVE_X + idx_face, 0, GL_DEPTH_COMPONENT,
-        state->shadow_map_width, state->shadow_map_height,
-        0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
-      );
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx_framebuffer]);
-    glFramebufferTexture(
-      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadow_cubemaps[idx_framebuffer], 0
-    );
-    glDrawBuffer(GL_NONE);
-    glReadBuffer(GL_NONE);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  }
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->shadowmap_framebuffer);
+  glFramebufferTexture(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadowmap, 0
+  );
 }
 
 
@@ -212,27 +200,27 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (state->control.is_key_down(GLFW_KEY_W)) {
-    state->camera_active->move_front_back(1);
+    state->camera_active->move_front_back(1, state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_S)) {
-    state->camera_active->move_front_back(-1);
+    state->camera_active->move_front_back(-1, state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_A)) {
-    state->camera_active->move_left_right(-1);
+    state->camera_active->move_left_right(-1, state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_D)) {
-    state->camera_active->move_left_right(1);
+    state->camera_active->move_left_right(1, state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_SPACE)) {
-    state->camera_active->move_up_down(1);
+    state->camera_active->move_up_down(1, state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
-    state->camera_active->move_up_down(-1);
+    state->camera_active->move_up_down(-1, state->dt);
   }
 }
 
@@ -435,20 +423,21 @@ void init_window(WindowInfo *window_info) {
 }
 
 
-void copy_scene_data_to_ubo(Memory *memory, State *state) {
+void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_idx) {
   ShaderCommon *shader_common = &state->shader_common;
 
-  shader_common->far_clip_dist = state->shadow_far_clip_dist;
-  shader_common->shadow_light_idx = state->shadow_light_idx;
-
-  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
+  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
+
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
-
+  shader_common->far_clip_dist = state->shadowmap_far_clip_dist;
   shader_common->n_lights = state->lights.size;
+
+  shader_common->shadow_light_idx = shadow_light_idx;
+
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
     SpatialComponent *spatial_component =
       state->spatial_component_manager.get(*state->lights.get(idx));
@@ -462,6 +451,11 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
+}
+
+
+void copy_scene_data_to_ubo(Memory *memory, State *state) {
+  copy_scene_data_to_ubo(memory, state, 0);
 }
 
 
@@ -577,26 +571,26 @@ void update_and_render(Memory *memory, State *state) {
   // Render shadow map
   {
     glViewport(
-      0, 0, state->shadow_map_width, state->shadow_map_height
+      0, 0, state->shadowmap_width, state->shadowmap_height
     );
-    for (uint32 idx = 0; idx < state->n_shadow_framebuffers; idx++) {
-      SpatialComponent *spatial_component =
-        state->spatial_component_manager.get(*state->lights.get(idx));
-      Camera::create_shadow_transforms(
-        state->shadow_transforms, spatial_component->position,
-        state->shadow_map_width, state->shadow_map_height,
-        state->shadow_near_clip_dist, state->shadow_far_clip_dist
-      );
 
-      glBindFramebuffer(GL_FRAMEBUFFER, state->shadow_framebuffers[idx]);
-      glClear(GL_DEPTH_BUFFER_BIT);
+    Camera::create_shadow_transforms(
+      state->shadow_transforms,
+      &state->spatial_component_manager, &state->lights,
+      state->shadowmap_width, state->shadowmap_height,
+      state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
+    );
 
-      state->shadow_light_idx = idx;
-      copy_scene_data_to_ubo(memory, state);
+    glBindFramebuffer(GL_FRAMEBUFFER, state->shadowmap_framebuffer);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    for (uint32 idx = 0; idx < state->lights.size; idx++) {
+      copy_scene_data_to_ubo(memory, state, idx);
       render_scene(
         memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
       );
     }
+
     glViewport(
       0, 0, state->window_info.width, state->window_info.height
     );
@@ -785,7 +779,7 @@ int main() {
 
   state->texture_name_pool.allocate_texture_names();
   init_g_buffer(&memory, state);
-  init_shadow_buffers(&memory, state);
+  init_shadowmaps(&memory, state);
   init_ubo(&memory, state);
   scene_init_resources(&memory, state);
   scene_init_objects(&memory, state);
