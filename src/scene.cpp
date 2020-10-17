@@ -17,6 +17,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->light_component_manager.add(
     entity->handle,
+    glm::vec3(0.0f, 0.0f, 0.0f),
     glm::vec4(9.0f, 9.0f, 9.0f, 1.0f),
     glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
   );
@@ -36,7 +37,8 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->light_component_manager.add(
     entity->handle,
-    glm::vec4(0.5f, 0.5f, 0.5f, 1.0f),
+    glm::vec3(1.0f, -0.0f, 0.0f),
+    glm::vec4(3.5f, 3.5f, 3.5f, 1.0f),
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
   );
   state->lights.push(entity->handle);
@@ -61,7 +63,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Temple
-#if 0
+#if 1
   entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,

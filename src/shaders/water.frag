@@ -11,8 +11,7 @@ layout (location = 0) out vec4 frag_color;
 
 void main() {
   vec3 unit_normal = normalize(fs_in.normal);
-  vec3 water_color = vec3(0.0, 0.0, 0.5);
-  vec3 water_albedo = vec3(0.1, 0.1, 1.0);
+  vec3 water_albedo = vec3(0.0, 0.5, 0.9);
   vec3 underwater_albedo = linearize_albedo(
     texture(g_albedo_texture, fs_in.screen_position).rgb
   );
@@ -22,5 +21,5 @@ void main() {
     water_albedo, 0.0, 1.0, 1.0,
     fs_in.world_position, fs_in.normal
   );
-  frag_color = vec4(pbr_light + water_color + refraction_color, 1.0);
+  frag_color = vec4(pbr_light + refraction_color, 1.0);
 }

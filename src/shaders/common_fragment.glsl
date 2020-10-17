@@ -174,6 +174,38 @@ float neumann_visibility(float n_dot_v, float n_dot_l) {
 }
 
 
+vec3 compute_directional_light(
+  vec3 world_position, vec3 light_position, vec3 light_color,
+  vec4 light_direction,
+  vec3 albedo, float metallic, float roughness,
+  vec3 N, vec3 V,
+  float n_dot_v, vec3 F0
+) {
+  vec3 L = normalize(vec3(-light_direction));
+  vec3 H = normalize(V + L);
+  float n_dot_l = max(dot(N, L), M_EPSILON);
+  float h_dot_v = max(dot(H, V), M_EPSILON);
+  float n_dot_h = max(dot(N, H), M_EPSILON);
+
+  vec3 radiance = light_color;
+
+  float NDF = distribution_ggx(n_dot_h, roughness);
+  float G = geometry_smith(n_dot_v, n_dot_l, roughness);
+  vec3 F = fresnel_schlick(h_dot_v, F0);
+
+  vec3 numerator = NDF * G * F;
+  float denominator = 4.0 * n_dot_v * n_dot_l;
+  vec3 specular = numerator / max(denominator, M_EPSILON);
+
+  vec3 kS = F;
+  vec3 kD = vec3(1.0) - kS;
+  kD *= 1.0 - metallic;
+
+  /* return (kD * albedo / M_PI + specular) * radiance * n_dot_l; */
+  return radiance * n_dot_l;
+}
+
+
 vec3 compute_sphere_light(
   vec3 world_position, vec3 light_position, vec3 light_color,
   vec4 light_attenuation,
@@ -227,18 +259,31 @@ vec3 compute_pbr_light(
       RUN_CALCULATE_SHADOWS_ALL(world_position, idx_light);
     }
 
-    Lo += compute_sphere_light(
-      world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
-      light_attenuation[idx_light],
-      albedo, metallic, roughness,
-      N, V,
-      n_dot_v, F0
-    ) * (1.0 - shadow);
+    if (light_direction[idx_light] == vec4(0.0f, 0.0f, 0.0f, 1.0f)) {
+#if 0
+      Lo += compute_sphere_light(
+        world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
+        light_attenuation[idx_light],
+        albedo, metallic, roughness,
+        N, V,
+        n_dot_v, F0
+      ) * (1.0 - shadow);
+#endif
+    } else {
+      Lo += compute_directional_light(
+        world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
+        light_direction[idx_light],
+        albedo, metallic, roughness,
+        N, V,
+        n_dot_v, F0
+      ) * (1.0 - shadow);
+    }
   }
 
   // TODO: Add better ambient term.
-  vec3 ambient = vec3(0.03) * albedo * ao;
-  vec3 color = ambient + Lo;
+  /* vec3 ambient = vec3(0.03) * albedo * ao; */
+  /* vec3 color = ambient + Lo; */
+  vec3 color = Lo;
 
   return color;
 }
