@@ -175,8 +175,7 @@ vec3 compute_directional_light(
   vec3 kD = vec3(1.0) - kS;
   kD *= 1.0 - metallic;
 
-  /* return (kD * albedo / M_PI + specular) * radiance * n_dot_l; */
-  return radiance * n_dot_l;
+  return (kD * albedo / M_PI + specular) * radiance * n_dot_l;
 }
 
 
@@ -255,6 +254,7 @@ vec3 compute_pbr_light(
   // TODO: Add better ambient term.
   vec3 ambient = vec3(0.03) * albedo * ao;
   vec3 color = ambient + Lo;
+  /* vec3 color = Lo; */
 
   return color;
 }
