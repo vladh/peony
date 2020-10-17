@@ -28,11 +28,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 
-#if USE_OPENGL_4
-#include "../include/glad_430.cpp"
-#else
-#include "../include/glad_330.cpp"
-#endif
+#include "../include/glad.cpp"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
