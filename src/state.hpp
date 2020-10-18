@@ -58,8 +58,10 @@ public:
   real32 shadowmap_near_clip_dist;
   real32 shadowmap_far_clip_dist;
 
-  uint32 shadowmap_framebuffer;
-  uint32 shadowmap;
+  uint32 cube_shadowmaps_framebuffer;
+  uint32 cube_shadowmaps;
+  uint32 texture_shadowmaps_framebuffer;
+  uint32 texture_shadowmaps;
   glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   ShaderAsset *standard_depth_shader_asset;

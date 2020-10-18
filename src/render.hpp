@@ -8,10 +8,8 @@ enum RenderPass {
   RENDERPASS_DEFERRED, RENDERPASS_FORWARD, RENDERPASS_LIGHTING
 };
 
-struct Light {
-  glm::vec4 position;
-  glm::vec4 color;
-  glm::vec4 attenuation;
+enum LightType {
+  LIGHT_POINT, LIGHT_DIRECTIONAL
 };
 
 struct ShaderCommon {
@@ -20,7 +18,7 @@ struct ShaderCommon {
   glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   glm::vec3 camera_position;
-  float pad_woops;
+  float pad_oops;
 
   float exposure;
   float t;
@@ -33,6 +31,7 @@ struct ShaderCommon {
   float pad_oops3;
 
   glm::vec4 light_position[MAX_N_LIGHTS];
+  glm::vec4 light_type[MAX_N_LIGHTS];
   glm::vec4 light_direction[MAX_N_LIGHTS];
   glm::vec4 light_color[MAX_N_LIGHTS];
   glm::vec4 light_attenuation[MAX_N_LIGHTS];

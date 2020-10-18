@@ -43,9 +43,10 @@ void init_ubo(Memory *memory, State *state) {
 
 
 void init_shadowmaps(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->shadowmap_framebuffer);
-  glGenTextures(1, &state->shadowmap);
-  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, state->shadowmap);
+  // Cube
+  glGenFramebuffers(1, &state->cube_shadowmaps_framebuffer);
+  glGenTextures(1, &state->cube_shadowmaps);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, state->cube_shadowmaps);
 
   glTexStorage3D(
     GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
@@ -53,14 +54,34 @@ void init_shadowmaps(Memory *memory, State *state) {
     6 * MAX_N_LIGHTS
   );
 
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->shadowmap_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
   glFramebufferTexture(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->shadowmap, 0
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->cube_shadowmaps, 0
+  );
+
+  // Texture
+  glGenFramebuffers(1, &state->texture_shadowmaps_framebuffer);
+  glGenTextures(1, &state->texture_shadowmaps);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, state->texture_shadowmaps);
+
+  glTexStorage3D(
+    GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F,
+    state->shadowmap_width, state->shadowmap_height,
+    MAX_N_LIGHTS
+  );
+
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
+  glFramebufferTexture(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->texture_shadowmaps, 0
   );
 }
 
@@ -439,11 +460,11 @@ void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_id
   shader_common->shadow_light_idx = shadow_light_idx;
 
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(*state->lights.get(idx));
-    LightComponent *light_component =
-      state->light_component_manager.get(*state->lights.get(idx));
+    EntityHandle handle = *state->lights.get(idx);
+    SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
+    LightComponent *light_component = state->light_component_manager.get(handle);
     shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
+    shader_common->light_type[idx] = glm::vec4(light_component->type, 0.0f, 0.0f, 0.0f);
     shader_common->light_direction[idx] = glm::vec4(light_component->direction, 1.0f);
     shader_common->light_color[idx] = light_component->color;
     shader_common->light_attenuation[idx] = light_component->attenuation;
@@ -507,21 +528,24 @@ void scene_update(Memory *memory, State *state) {
 
   // Lights
   {
+#if 1
     EntityHandle *handle = state->lights.get(0);
 
     if (handle) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(*handle);
+      SpatialComponent *spatial_component = state->spatial_component_manager.get(*handle);
+      LightComponent *light_component = state->light_component_manager.get(*handle);
 
-      if (spatial) {
+      if (spatial_component && light_component->type == LIGHT_POINT) {
         real64 time_term =
           (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
         real64 x_term = 0.0f + cos(time_term) * 8.0f;
         real64 z_term = 0.0f + sin(time_term) * 8.0f;
 
-        spatial->position.x = (real32)x_term;
-        spatial->position.z = (real32)z_term;
+        spatial_component->position.x = (real32)x_term;
+        spatial_component->position.z = (real32)z_term;
       }
     }
+#endif
   }
 
   // Geese
@@ -583,10 +607,18 @@ void update_and_render(Memory *memory, State *state) {
       state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
     );
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->shadowmap_framebuffer);
-    glClear(GL_DEPTH_BUFFER_BIT);
-
     for (uint32 idx = 0; idx < state->lights.size; idx++) {
+      EntityHandle handle = *state->lights.get(idx);
+      LightComponent *light_component = state->light_component_manager.get(handle);
+
+      // TODO: Keep separate indices into the two framebuffers to avoid wasting space.
+      if (light_component->type == LIGHT_POINT) {
+        glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
+      } else if (light_component->type == LIGHT_DIRECTIONAL) {
+        glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
+      }
+      glClear(GL_DEPTH_BUFFER_BIT);
+
       copy_scene_data_to_ubo(memory, state, idx);
       render_scene(
         memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
