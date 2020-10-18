@@ -16,45 +16,43 @@ uniform sampler2DArray texture_shadowmaps;
 
 float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
   float shadow = 0.0;
-  // TODO: Calculate this better.
-  float bias = 0.15;
+  // TODO: Calculate this in a better way.
+  float bias = 0.15 / far_clip_dist;
 
   vec3 light_to_frag = world_position - vec3(light_position[idx_light]);
-  float depth_sign = sign(dot(light_to_frag, vec3(light_direction[idx_light])));
-  float current_depth = length(light_to_frag) * depth_sign;
   float view_distance = length(camera_position - world_position);
 
   if (light_type[idx_light].x == LIGHT_POINT) {
     // TODO: Improve this.
     float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
+    float current_depth = length(light_to_frag) / far_clip_dist;
 
-    vec3 sampling_coords = light_to_frag;
     for (int i = 0; i < SHADOW_N_SAMPLES; i++) {
       vec4 sample_p = vec4(
-        sampling_coords + SHADOW_GRID_SAMPLING_OFFSETS[i] * sample_radius, idx_light
+        light_to_frag + SHADOW_GRID_SAMPLING_OFFSETS[i] * sample_radius, idx_light
       );
-      float closest_depth = texture(cube_shadowmaps, sample_p).r * far_clip_dist;
+      float closest_depth = texture(cube_shadowmaps, sample_p).r;
       if (current_depth - bias > closest_depth) {
         shadow += 1.0;
       }
     }
 
     shadow /= float(SHADOW_N_SAMPLES);
-
   } else if (light_type[idx_light].x == LIGHT_DIRECTIONAL) {
     // TODO: Improve this.
     float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 1250.0;
+    float depth_sign = sign(dot(light_to_frag, vec3(light_direction[idx_light])));
+    float current_depth = length(light_to_frag) * depth_sign / far_clip_dist;
 
     vec3 light_space_position = vec3(
       shadow_transforms[idx_light * 6] * vec4(world_position, 1.0)
     ) * 0.5 + 0.5;
-    vec2 sampling_coords = light_space_position.xy;
 
     for (int i = 0; i < SHADOW_N_SAMPLES; i++) {
       vec3 sample_p = vec3(
-        sampling_coords + SHADOW_GRID_SAMPLING_OFFSETS[i].xy * sample_radius, idx_light
+        light_space_position.xy + SHADOW_GRID_SAMPLING_OFFSETS[i].xy * sample_radius, idx_light
       );
-      float closest_depth = texture(texture_shadowmaps, sample_p).r * far_clip_dist;
+      float closest_depth = texture(texture_shadowmaps, sample_p).r;
       if (current_depth - bias > closest_depth) {
         shadow += 1.0;
       }
