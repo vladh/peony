@@ -105,6 +105,10 @@ void Camera::create_shadow_transforms(
   uint32 shadowmap_width, uint32 shadowmap_height,
   real32 near_clip_dist, real32 far_clip_dist
 ) {
+  // TODO: Store these more efficiently. We're storing 2D and 3D shadow
+  // transforms in the same place, wasting 5 times the space
+  // required for the 2D ones.
+
   glm::mat4 perspective_projection = glm::perspective(
     glm::radians(90.0f),
     (real32)shadowmap_width / (real32)shadowmap_height,
@@ -119,44 +123,44 @@ void Camera::create_shadow_transforms(
     EntityHandle light = *lights->get(idx);
     SpatialComponent *spatial_component = spatial_component_manager->get(light);
     LightComponent *light_component = light_component_manager->get(light);
-    glm::vec3 pos = spatial_component->position;
+    glm::vec3 position = spatial_component->position;
 
-    if (light_component->direction == glm::vec3(0.0f, 0.0f, 0.0f)) {
+    if (light_component->type == LIGHT_POINT) {
       shadow_transforms[(idx * 6) + 0] = perspective_projection * glm::lookAt(
-        pos,
-        pos + glm::vec3(1.0f, 0.0f, 0.0f),
+        position,
+        position + glm::vec3(1.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, -1.0f, 0.0f)
       );
       shadow_transforms[(idx * 6) + 1] = perspective_projection * glm::lookAt(
-        pos,
-        pos + glm::vec3(-1.0f, 0.0f, 0.0f),
+        position,
+        position + glm::vec3(-1.0f, 0.0f, 0.0f),
         glm::vec3(0.0f, -1.0f, 0.0f)
       );
       shadow_transforms[(idx * 6) + 2] = perspective_projection * glm::lookAt(
-        pos,
-        pos + glm::vec3(0.0f, 1.0f, 0.0f),
+        position,
+        position + glm::vec3(0.0f, 1.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, 1.0f)
       );
       shadow_transforms[(idx * 6) + 3] = perspective_projection * glm::lookAt(
-        pos,
-        pos + glm::vec3(0.0f, -1.0f, 0.0f),
+        position,
+        position + glm::vec3(0.0f, -1.0f, 0.0f),
         glm::vec3(0.0f, 0.0f, -1.0f)
       );
       shadow_transforms[(idx * 6) + 4] = perspective_projection * glm::lookAt(
-        pos,
-        pos + glm::vec3(0.0f, 0.0f, 1.0f),
+        position,
+        position + glm::vec3(0.0f, 0.0f, 1.0f),
         glm::vec3(0.0f, -1.0f, 0.0f)
       );
       shadow_transforms[(idx * 6) + 5] = perspective_projection * glm::lookAt(
-        pos,
-        pos + glm::vec3(0.0f, 0.0f, -1.0f),
+        position,
+        position + glm::vec3(0.0f, 0.0f, -1.0f),
         glm::vec3(0.0f, -1.0f, 0.0f)
       );
-    } else {
+    } else if (light_component->type == LIGHT_DIRECTIONAL) {
       shadow_transforms[(idx * 6) + 0] = ortho_projection * glm::lookAt(
-        pos,
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
+        position,
+        position + light_component->direction,
+        glm::vec3(0.0f, -1.0f, 0.0f)
       );
     }
   }

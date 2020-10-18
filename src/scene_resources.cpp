@@ -79,7 +79,13 @@ void scene_init_resources(Memory *memory, State *state) {
     texture_set->set_ao_static(1.0f);
     texture_set->add(*state->g_albedo_texture);
     texture_set->add(Texture(
-        GL_TEXTURE_CUBE_MAP_ARRAY, TEXTURE_SHADOWMAP, "shadowmap", state->shadowmap,
+        GL_TEXTURE_CUBE_MAP_ARRAY,
+        TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
+        state->shadowmap_width, state->shadowmap_height, 1
+    ));
+    texture_set->add(Texture(
+        GL_TEXTURE_2D_ARRAY,
+        TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
         state->shadowmap_width, state->shadowmap_height, 1
     ));
     *model_asset->mesh_templates.push() = {
@@ -278,7 +284,13 @@ void scene_init_resources(Memory *memory, State *state) {
   texture_set->add(*state->g_albedo_texture);
   texture_set->add(*state->g_pbr_texture);
   texture_set->add(Texture(
-      GL_TEXTURE_CUBE_MAP_ARRAY, TEXTURE_SHADOWMAP, "shadowmap", state->shadowmap,
+      GL_TEXTURE_CUBE_MAP_ARRAY,
+      TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
+      state->shadowmap_width, state->shadowmap_height, 1
+  ));
+  texture_set->add(Texture(
+      GL_TEXTURE_2D_ARRAY,
+      TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
       state->shadowmap_width, state->shadowmap_height, 1
   ));
   *model_asset->mesh_templates.push() = {

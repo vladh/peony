@@ -9,6 +9,7 @@ public:
 
   LightComponent* add(
     EntityHandle entity_handle,
+    LightType type,
     glm::vec3 direction,
     glm::vec4 color,
     glm::vec4 attenuation

@@ -4,6 +4,9 @@
 #define M_EPSILON 1e-5
 #define MAX_N_LIGHTS 8
 
+#define LIGHT_POINT 0
+#define LIGHT_DIRECTIONAL 1
+
 layout (std140) uniform shader_common {
   mat4 view;
   mat4 projection;
@@ -23,6 +26,7 @@ layout (std140) uniform shader_common {
   float pad_oops3;
 
   vec4 light_position[MAX_N_LIGHTS];
+  vec4 light_type[MAX_N_LIGHTS];
   vec4 light_direction[MAX_N_LIGHTS];
   vec4 light_color[MAX_N_LIGHTS];
   vec4 light_attenuation[MAX_N_LIGHTS];
