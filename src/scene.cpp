@@ -3,7 +3,7 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Lights
 #if 1
-#if 0
+#if 1
   entity = state->entity_manager.add("light1");
   state->spatial_component_manager.add(
     entity->handle,
