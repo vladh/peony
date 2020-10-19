@@ -81,12 +81,12 @@ void scene_init_resources(Memory *memory, State *state) {
     texture_set->add(Texture(
         GL_TEXTURE_CUBE_MAP_ARRAY,
         TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
-        state->shadowmap_width, state->shadowmap_height, 1
+        state->cube_shadowmap_width, state->cube_shadowmap_height, 1
     ));
     texture_set->add(Texture(
         GL_TEXTURE_2D_ARRAY,
         TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
-        state->shadowmap_width, state->shadowmap_height, 1
+        state->texture_shadowmap_width, state->texture_shadowmap_height, 1
     ));
     *model_asset->mesh_templates.push() = {
       shader_asset, depth_shader_asset, texture_set, true, 0, 0
@@ -286,12 +286,12 @@ void scene_init_resources(Memory *memory, State *state) {
   texture_set->add(Texture(
       GL_TEXTURE_CUBE_MAP_ARRAY,
       TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
-      state->shadowmap_width, state->shadowmap_height, 1
+      state->cube_shadowmap_width, state->cube_shadowmap_height, 1
   ));
   texture_set->add(Texture(
       GL_TEXTURE_2D_ARRAY,
       TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
-      state->shadowmap_width, state->shadowmap_height, 1
+      state->texture_shadowmap_width, state->texture_shadowmap_height, 1
   ));
   *model_asset->mesh_templates.push() = {
     shader_asset, nullptr, texture_set, true, 0, 0

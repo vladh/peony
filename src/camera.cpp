@@ -102,7 +102,8 @@ void Camera::create_shadow_transforms(
   SpatialComponentManager *spatial_component_manager,
   LightComponentManager *light_component_manager,
   Array<EntityHandle> *lights,
-  uint32 shadowmap_width, uint32 shadowmap_height,
+  uint32 cube_shadowmap_width, uint32 cube_shadowmap_height,
+  uint32 texture_shadowmap_width, uint32 texture_shadowmap_height,
   real32 near_clip_dist, real32 far_clip_dist
 ) {
   // TODO: Store these more efficiently. We're storing 2D and 3D shadow
@@ -111,12 +112,17 @@ void Camera::create_shadow_transforms(
 
   glm::mat4 perspective_projection = glm::perspective(
     glm::radians(90.0f),
-    (real32)shadowmap_width / (real32)shadowmap_height,
+    (real32)cube_shadowmap_width / (real32)cube_shadowmap_height,
     near_clip_dist, far_clip_dist
   );
 
+  real32 ortho_size_factor = 100.0f;
+  real32 ortho_width = texture_shadowmap_width / ortho_size_factor;
+  real32 ortho_height = texture_shadowmap_height / ortho_size_factor;
   glm::mat4 ortho_projection = glm::ortho(
-    -10.0f, 10.0f, -10.0f, 10.0f, near_clip_dist, far_clip_dist
+    -ortho_width, ortho_width,
+    -ortho_height, ortho_height,
+    near_clip_dist, far_clip_dist
   );
 
   for (uint32 idx = 0; idx < lights->size; idx++) {

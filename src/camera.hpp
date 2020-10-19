@@ -25,7 +25,8 @@ public:
     SpatialComponentManager *spatial_component_manager,
     LightComponentManager *light_component_manager,
     Array<EntityHandle> *lights,
-    uint32 shadowmap_width, uint32 shadowmap_height,
+    uint32 cube_shadowmap_width, uint32 cube_shadowmap_height,
+    uint32 texture_shadowmap_width, uint32 texture_shadowmap_height,
     real32 near_clip_dist, real32 far_clip_dist
   );
 
