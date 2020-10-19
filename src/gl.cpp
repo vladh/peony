@@ -531,20 +531,25 @@ void scene_update(Memory *memory, State *state) {
   // Lights
   {
 #if 1
-    EntityHandle *handle = state->lights.get(0);
+    for (uint32 idx = 0; idx < state->lights.size; idx++) {
+      EntityHandle *handle = state->lights.get(idx);
 
-    if (handle) {
-      SpatialComponent *spatial_component = state->spatial_component_manager.get(*handle);
-      LightComponent *light_component = state->light_component_manager.get(*handle);
+      if (handle) {
+        SpatialComponent *spatial_component = state->spatial_component_manager.get(*handle);
+        LightComponent *light_component = state->light_component_manager.get(*handle);
 
-      if (spatial_component && light_component->type == LIGHT_POINT) {
-        real64 time_term =
-          (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-        real64 x_term = 0.0f + cos(time_term) * 8.0f;
-        real64 z_term = 0.0f + sin(time_term) * 8.0f;
+        if (spatial_component && light_component->type == LIGHT_POINT) {
+          real64 time_term =
+            (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+          real64 x_term = 0.0f + cos(time_term) * 8.0f;
+          real64 z_term = 0.0f + sin(time_term) * 8.0f;
 
-        spatial_component->position.x = (real32)x_term;
-        spatial_component->position.z = (real32)z_term;
+          spatial_component->position.x = (real32)x_term;
+          spatial_component->position.z = (real32)z_term;
+        } else if (spatial_component && light_component->type == LIGHT_DIRECTIONAL) {
+          spatial_component->position = state->camera_active->position +
+            -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
+        }
       }
     }
 #endif

@@ -26,7 +26,6 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
 #if 1
-  real32 light_distance = 30.0f;
   glm::vec3 light_direction = glm::vec3(1.0f, -0.5f, 0.0f);
   entity = state->entity_manager.add("light2");
   state->drawable_component_manager.add(
@@ -43,7 +42,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec4(-light_direction * light_distance, 1.0f),
+    glm::vec4(-light_direction * DIRECTIONAL_LIGHT_DISTANCE, 1.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
