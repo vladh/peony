@@ -1,5 +1,5 @@
 constexpr uint16 MAX_N_LIGHTS = 8;
-constexpr real32 DIRECTIONAL_LIGHT_DISTANCE = 30.0f;
+constexpr real32 DIRECTIONAL_LIGHT_DISTANCE = 15.0f;
 
 enum RenderMode {
   RENDERMODE_REGULAR,

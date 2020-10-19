@@ -116,7 +116,7 @@ void Camera::create_shadow_transforms(
     near_clip_dist, far_clip_dist
   );
 
-  real32 ortho_size_factor = 100.0f;
+  real32 ortho_size_factor = 200.0f;
   real32 ortho_width = texture_shadowmap_width / ortho_size_factor;
   real32 ortho_height = texture_shadowmap_height / ortho_size_factor;
   glm::mat4 ortho_projection = glm::ortho(
