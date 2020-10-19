@@ -53,8 +53,10 @@ public:
   TextureNamePool texture_name_pool;
   Queue<Task> task_queue;
 
-  uint32 shadowmap_width;
-  uint32 shadowmap_height;
+  uint32 cube_shadowmap_width;
+  uint32 cube_shadowmap_height;
+  uint32 texture_shadowmap_width;
+  uint32 texture_shadowmap_height;
   real32 shadowmap_near_clip_dist;
   real32 shadowmap_far_clip_dist;
 

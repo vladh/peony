@@ -68,8 +68,10 @@ State::State(
   task_queue(
     Queue<Task>(&memory->entity_memory_pool, 128, "task_queue")
   ),
-  shadowmap_width(2048),
-  shadowmap_height(2048),
+  cube_shadowmap_width(this->window_info.width),
+  cube_shadowmap_height(this->window_info.width),
+  texture_shadowmap_width(this->window_info.width * 2),
+  texture_shadowmap_height(this->window_info.height * 2),
   shadowmap_near_clip_dist(0.05f),
   shadowmap_far_clip_dist(200.0f)
 {

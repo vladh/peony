@@ -50,7 +50,7 @@ void init_shadowmaps(Memory *memory, State *state) {
 
   glTexStorage3D(
     GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-    state->shadowmap_width, state->shadowmap_height,
+    state->cube_shadowmap_width, state->cube_shadowmap_height,
     6 * MAX_N_LIGHTS
   );
 
@@ -71,7 +71,7 @@ void init_shadowmaps(Memory *memory, State *state) {
 
   glTexStorage3D(
     GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-    state->shadowmap_width, state->shadowmap_height,
+    state->texture_shadowmap_width, state->texture_shadowmap_height,
     MAX_N_LIGHTS
   );
 
@@ -596,16 +596,14 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
   {
-    glViewport(
-      0, 0, state->shadowmap_width, state->shadowmap_height
-    );
 
     Camera::create_shadow_transforms(
       state->shadow_transforms,
       &state->spatial_component_manager,
       &state->light_component_manager,
       &state->lights,
-      state->shadowmap_width, state->shadowmap_height,
+      state->cube_shadowmap_width, state->cube_shadowmap_height,
+      state->texture_shadowmap_width, state->texture_shadowmap_height,
       state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
     );
 
@@ -615,8 +613,14 @@ void update_and_render(Memory *memory, State *state) {
 
       // TODO: Keep separate indices into the two framebuffers to avoid wasting space.
       if (light_component->type == LIGHT_POINT) {
+        glViewport(
+          0, 0, state->cube_shadowmap_width, state->cube_shadowmap_height
+        );
         glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
       } else if (light_component->type == LIGHT_DIRECTIONAL) {
+        glViewport(
+          0, 0, state->texture_shadowmap_width, state->texture_shadowmap_height
+        );
         glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
       }
       glClear(GL_DEPTH_BUFFER_BIT);
@@ -624,6 +628,9 @@ void update_and_render(Memory *memory, State *state) {
       copy_scene_data_to_ubo(memory, state, idx);
       render_scene(
         memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
+      );
+      render_scene(
+        memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_DEPTH
       );
     }
 
@@ -677,7 +684,8 @@ void update_and_render(Memory *memory, State *state) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    render_scene(memory, state, RENDERPASS_FORWARD, RENDERMODE_REGULAR);
+    render_scene(memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_REGULAR);
+    render_scene(memory, state, RENDERPASS_FORWARD_NODEPTH, RENDERMODE_REGULAR);
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
