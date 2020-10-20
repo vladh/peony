@@ -21,7 +21,7 @@ State::State(
   is_cursor_disabled(true),
   should_limit_fps(false),
   should_use_wireframe(false),
-  background_color(glm::vec4(0.9f, 0.9f, 0.9f, 1.0f)),
+  background_color(glm::vec4(0.81f, 0.93f, 1.00f, 1.0f)),
 
   shader_assets(
     Array<ShaderAsset>(&memory->asset_memory_pool, 512, "shader_assets")

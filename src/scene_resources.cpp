@@ -73,10 +73,7 @@ void scene_init_resources(Memory *memory, State *state) {
       SHADER_DIR"standard_depth.geom"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-    texture_set->set_albedo_static(glm::vec4(0.0f, 0.0f, 0.9f, 1.0f));
-    texture_set->set_metallic_static(0.0f);
-    texture_set->set_roughness_static(1.0f);
-    texture_set->set_ao_static(1.0f);
+    texture_set->add(*state->g_position_texture);
     texture_set->add(*state->g_albedo_texture);
     texture_set->add(Texture(
         GL_TEXTURE_CUBE_MAP_ARRAY,

@@ -2,32 +2,9 @@ void scene_init_objects(Memory *memory, State *state) {
   Entity *entity;
 
   // Lights
-#if 0
-  entity = state->entity_manager.add("light1");
-  state->spatial_component_manager.add(
-    entity->handle,
-    glm::vec4(-7.0f, 3.0f, 0.0f, 1.0f),
-    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(0.3f)
-  );
-  state->drawable_component_manager.add(
-    entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "light"),
-    RENDERPASS_FORWARD_NODEPTH
-  );
-  state->light_component_manager.add(
-    entity->handle,
-    LIGHT_POINT,
-    glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec4(5.0f, 5.0f, 5.0f, 1.0f),
-    glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
-  );
-  state->lights.push(entity->handle);
-#endif
-
 #if 1
   glm::vec3 light_direction = glm::vec3(1.0f, -0.5f, 0.0f);
-  entity = state->entity_manager.add("light2");
+  entity = state->entity_manager.add("directional_light");
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "light"),
@@ -49,6 +26,29 @@ void scene_init_objects(Memory *memory, State *state) {
   state->lights.push(entity->handle);
 #endif
 
+#if 0
+  entity = state->entity_manager.add("point_light");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec4(-7.0f, 3.0f, 0.0f, 1.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(0.3f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "light"),
+    RENDERPASS_FORWARD_NODEPTH
+  );
+  state->light_component_manager.add(
+    entity->handle,
+    LIGHT_POINT,
+    glm::vec3(0.0f, 0.0f, 0.0f),
+    glm::vec4(5.0f, 5.0f, 5.0f, 1.0f),
+    glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
+  );
+  state->lights.push(entity->handle);
+#endif
+
   // Plane
 #if 1
   entity = state->entity_manager.add("plane");
@@ -66,7 +66,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Temple
-#if 1
+#if 0
   entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,
