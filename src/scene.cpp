@@ -119,9 +119,9 @@ void scene_init_objects(Memory *memory, State *state) {
   entity = state->entity_manager.add("rocks");
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec3(0.0f, -2.0f, 0.0f),
+    glm::vec3(0.0f, -4.0f, 0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(0.03f)
+    glm::vec3(0.05f)
   );
   state->drawable_component_manager.add(
     entity->handle,
