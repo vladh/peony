@@ -4,6 +4,7 @@ vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.09, 0.18);
 vec3 WATER_ALBEDO_SHALLOW = vec3(0.48, 0.54, 0.36);
 float WATER_MAX_DEPTH = 2.0;
 float WATER_MIN_DEPTH = 0.0;
+float WATER_MAX_PASSTHROUGH_DISTANCE = 2.0;
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_albedo_texture;
@@ -44,7 +45,11 @@ void main() {
   vec3 water_albedo = mix(WATER_ALBEDO_DEEP, WATER_ALBEDO_SHALLOW, 1 - h_dot_v);
   vec3 underwater_albedo = texture(g_albedo_texture, fs_in.screen_position).rgb;
   vec3 underwater_object_world_position = texture(g_position_texture, fs_in.screen_position).rgb;
-  float distance_to_underwater_object = length(fs_in.world_position - underwater_object_world_position);
+  float underwater_object_distance_factor = (1 - to_unit_interval(
+    length(fs_in.world_position - underwater_object_world_position),
+    0.0,
+    WATER_MAX_PASSTHROUGH_DISTANCE
+  )) / 2;
 
   // vec3 refraction_color = desaturate(underwater_albedo, 0.5) * water_albedo;
   // vec3 pbr_light = compute_pbr_light(
@@ -64,7 +69,7 @@ void main() {
   vec3 refracted = 0 +
     WATER_ALBEDO_DEEP +
     diffuse(N, L, 80.0) * WATER_ALBEDO_SHALLOW * 0.12 +
-    (underwater_albedo * (1.0 - distance_to_underwater_object)) +
+    (underwater_albedo * underwater_object_distance_factor) +
     vec3(1.0, 0.0, 0.0) * depth_factor;
   vec3 color = mix(refracted, reflected, F);
 
