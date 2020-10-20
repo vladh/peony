@@ -1,6 +1,7 @@
 #define GAMMA 2.2
-#define USE_SHADOWS true
-
+#define USE_SHADOWS false
+/* #define WATER_F0 0.15 */
+#define WATER_F0 0.02037
 #define SHADOW_N_SAMPLES 20
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
@@ -127,6 +128,11 @@ vec3 fresnel_schlick(float cosTheta, vec3 F0) {
 }
 
 
+float fresnel_schlick(float cosTheta, float F0) {
+  return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+
 float distribution_ggx(float n_dot_h, float roughness) {
   float a = roughness * roughness;
   float a2 = a * a;
@@ -175,7 +181,7 @@ float neumann_visibility(float n_dot_v, float n_dot_l) {
 
 
 vec3 compute_directional_light(
-  vec3 world_position, vec3 light_position, vec3 light_color,
+  vec3 world_position, vec3 light_color,
   vec4 light_direction,
   vec3 albedo, float metallic, float roughness,
   vec3 N, vec3 V,
@@ -206,19 +212,19 @@ vec3 compute_directional_light(
 
 
 vec3 compute_point_light(
-  vec3 world_position, vec3 light_position, vec3 light_color,
+  vec3 world_position, vec3 curr_light_position, vec3 light_color,
   vec4 light_attenuation,
   vec3 albedo, float metallic, float roughness,
   vec3 N, vec3 V,
   float n_dot_v, vec3 F0
 ) {
-  vec3 L = normalize(light_position - world_position);
+  vec3 L = normalize(curr_light_position - world_position);
   vec3 H = normalize(V + L);
   float n_dot_l = max(dot(N, L), M_EPSILON);
   float h_dot_v = max(dot(H, V), M_EPSILON);
   float n_dot_h = max(dot(N, H), M_EPSILON);
 
-  float distance = length(light_position - world_position);
+  float distance = length(curr_light_position - world_position);
   float attenuation = 1.0 / (
     light_attenuation[0] +
     light_attenuation[1] * distance +
@@ -268,7 +274,7 @@ vec3 compute_pbr_light(
       ) * (1.0 - shadow);
     } else if (light_type[idx_light].x == LIGHT_DIRECTIONAL) {
       Lo += compute_directional_light(
-        world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
+        world_position, vec3(light_color[idx_light]),
         light_direction[idx_light],
         albedo, metallic, roughness,
         N, V,
@@ -278,7 +284,7 @@ vec3 compute_pbr_light(
   }
 
   // TODO: Add better ambient term.
-  vec3 ambient = vec3(0.03) * albedo * ao;
+  vec3 ambient = vec3(0.20) * albedo * ao;
   vec3 color = ambient + Lo;
 
   return color;
