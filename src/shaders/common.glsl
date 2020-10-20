@@ -167,7 +167,6 @@ vec3 water_make_normal(vec3 water_position) {
 float to_unit_interval(float x, float min_val, float max_val) {
   return clamp(
     (x - min_val) / (max_val - min_val),
-    min_val,
-    max_val
+    0, 1
   );
 }
