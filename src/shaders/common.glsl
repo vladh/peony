@@ -40,12 +40,12 @@ struct WaveParameterSet {
   float speed;
 };
 
-int n_waves = 8;
-WaveParameterSet wave_parameter_sets[8] = WaveParameterSet[8](
+int n_waves = 5;
+WaveParameterSet wave_parameter_sets[5] = WaveParameterSet[5](
   // Choppy small waves
-  WaveParameterSet(vec2(0.8, 0.1), 0.02, 0.001, 14.8, 0.2),
-  WaveParameterSet(vec2(0.4, 0.5), 0.02, 0.003, 15.2, 0.3),
-  WaveParameterSet(vec2(0.3, 0.7), 0.02, 0.002, 16.3, 0.4),
+  /* WaveParameterSet(vec2(0.8, 0.1), 0.02, 0.001, 14.8, 0.2), */
+  /* WaveParameterSet(vec2(0.4, 0.5), 0.02, 0.003, 15.2, 0.3), */
+  /* WaveParameterSet(vec2(0.3, 0.7), 0.02, 0.002, 16.3, 0.4), */
   // Big waves
   WaveParameterSet(vec2(0.0, 0.8), 0.5, 0.41, 0.8, 0.8),
   WaveParameterSet(vec2(0.65, 0.0), 0.3, 0.25, 1.1, 1.2),

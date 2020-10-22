@@ -47,7 +47,8 @@ void scene_init_resources(Memory *memory, State *state) {
       100, 100,
       512, 512,
       &n_vertices, &n_indices,
-      &vertex_data, &index_data
+      &vertex_data, &index_data,
+      30
     );
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
@@ -75,6 +76,7 @@ void scene_init_resources(Memory *memory, State *state) {
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
     texture_set->add(*state->g_position_texture);
     texture_set->add(*state->g_albedo_texture);
+    /* texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/water-0342normal.jpg")); */
     texture_set->add(Texture(
         GL_TEXTURE_CUBE_MAP_ARRAY,
         TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
