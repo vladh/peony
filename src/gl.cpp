@@ -758,7 +758,7 @@ void run_main_loop(Memory *memory, State *state) {
 
     START_TIMER(swap_buffers);
     glfwSwapBuffers(state->window_info.window);
-    END_TIMER_MIN(swap_buffers, 5);
+    END_TIMER_MIN(swap_buffers, 16);
 
     if (glfwWindowShouldClose(state->window_info.window)) {
       state->should_stop = true;
