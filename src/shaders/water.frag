@@ -19,8 +19,8 @@ in BLOCK {
 layout (location = 0) out vec4 frag_color;
 
 
-float diffuse(vec3 N, vec3 L, float p) {
-  return pow(dot(N, L) * 0.4 + 0.6, p);
+float diffuse(float n_dot_l, float p) {
+  return pow(n_dot_l * 0.4 + 0.6, p);
 }
 
 
@@ -41,6 +41,7 @@ void main() {
   vec3 H = normalize(V + L);
   float h_dot_v = max(dot(H, V), M_EPSILON);
   float n_dot_v = max(dot(N, V), M_EPSILON);
+  float n_dot_l = max(dot(N, L), M_EPSILON);
   vec3 n_min_v = N - V;
 
   // float F = fresnel_schlick(h_dot_v, WATER_F0);
@@ -87,7 +88,7 @@ void main() {
   vec3 reflected = SKY_ALBEDO;
   vec3 refracted = 0 +
     WATER_ALBEDO_DEEP +
-    diffuse(N, L, 80.0) * (WATER_ALBEDO_SHALLOW * 0.12) +
+    diffuse(n_dot_l, 80.0) * (WATER_ALBEDO_SHALLOW * 0.12) +
     (WATER_ALBEDO_SHALLOW * depth_factor) +
     underwater_albedo;
   vec3 color = mix(refracted, reflected, F);
