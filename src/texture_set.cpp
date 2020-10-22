@@ -66,7 +66,7 @@ void TextureSet::generate_textures_from_pbo(
     if (texture->texture_name != 0) {
       continue;
     }
-    texture->texture_name = texture_name_pool->get_next();
+    texture->texture_name = texture_name_pool->get_next(texture->width);
     glBindTexture(GL_TEXTURE_2D, texture->texture_name);
     glTexSubImage2D(
       GL_TEXTURE_2D, 0, 0, 0,

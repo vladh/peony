@@ -8,6 +8,9 @@ float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_albedo_texture;
+uniform sampler2D normal_texture;
+
+uniform bool should_use_normal_map;
 
 in BLOCK {
   vec3 world_position;
@@ -45,7 +48,18 @@ void main() {
   vec3 underwater_obj_position = texture(g_position_texture, fs_in.screen_position).rgb;
   vec3 curr_light_position = vec3(light_position[0]); // Directional light
   vec3 unit_normal = normalize(fs_in.normal);
-  vec3 N = unit_normal;
+  vec3 N;
+
+  if (should_use_normal_map) {
+    N = get_normal_from_map(
+      texture(normal_texture, fs_in.tex_coords),
+      fs_in.world_position,
+      fs_in.normal,
+      fs_in.tex_coords
+    );
+  } else {
+    N = unit_normal;
+  }
 
   vec3 V = normalize(camera_position - fs_in.world_position);
   vec3 L = normalize(curr_light_position - fs_in.world_position);
@@ -86,7 +100,7 @@ void main() {
 
   float depth_factor = to_unit_interval(fs_in.world_position.y, WATER_MIN_DEPTH, WATER_MAX_DEPTH);
 
-  vec3 reflected = SKY_ALBEDO;
+  // vec3 reflected = SKY_ALBEDO;
   vec3 reflected = get_sky_color(R);
   vec3 refracted = 0 +
     WATER_ALBEDO_DEEP +

@@ -64,7 +64,7 @@ State::State(
     Array<EntityHandle>(&memory->entity_memory_pool, 512, "spheres")
   ),
   persistent_pbo(25, 2048, 2048, 4),
-  texture_name_pool(memory, 64, 2048, 2048, 5, 4),
+  texture_name_pool(memory, 64, 4),
   task_queue(
     Queue<Task>(&memory->entity_memory_pool, 128, "task_queue")
   ),
