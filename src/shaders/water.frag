@@ -16,6 +16,8 @@ in BLOCK {
   vec3 world_position;
   vec2 screen_position;
   vec3 normal;
+  vec3 bitangent;
+  vec3 tangent;
   vec2 tex_coords;
 } fs_in;
 
@@ -51,12 +53,12 @@ void main() {
   vec3 N;
 
   if (should_use_normal_map) {
-    N = get_normal_from_map(
-      texture(normal_texture, fs_in.tex_coords),
-      fs_in.world_position,
-      fs_in.normal,
-      fs_in.tex_coords
+    vec3 tangent_normal_rgb = texture(normal_texture, fs_in.tex_coords).xyz * 2.0 - 1.0;
+    vec3 tangent_normal = vec3(
+      tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r
     );
+    mat3 TBN = mat3(fs_in.tangent, fs_in.bitangent, fs_in.normal);
+    N = normalize(TBN * tangent_normal);
   } else {
     N = unit_normal;
   }

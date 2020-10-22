@@ -40,19 +40,19 @@ struct WaveParameterSet {
   float speed;
 };
 
-int n_waves = 5;
-WaveParameterSet wave_parameter_sets[5] = WaveParameterSet[5](
+int n_waves = 8;
+WaveParameterSet wave_parameter_sets[8] = WaveParameterSet[8](
   // Choppy small waves
-  /* WaveParameterSet(vec2(0.8, 0.1), 0.02, 0.001, 14.8, 0.2), */
-  /* WaveParameterSet(vec2(0.4, 0.5), 0.02, 0.003, 15.2, 0.3), */
-  /* WaveParameterSet(vec2(0.3, 0.7), 0.02, 0.002, 16.3, 0.4), */
+  WaveParameterSet(vec2(0.8, 0.1), 0.03, 0.001, 14.8, 0.2),
+  WaveParameterSet(vec2(0.4, 0.5), 0.02, 0.003, 15.2, 0.3),
+  WaveParameterSet(vec2(0.0, 1.0), 0.05, 0.002, 3.3, 0.4),
   // Big waves
   WaveParameterSet(vec2(0.0, 0.8), 0.5, 0.41, 0.8, 0.8),
-  WaveParameterSet(vec2(0.65, 0.0), 0.3, 0.25, 1.1, 1.2),
-  WaveParameterSet(vec2(0.75, 0.0), 0.2, 0.12, 0.8, 0.3),
-  WaveParameterSet(vec2(0.5, 0.5), 0.2, 0.20, 0.3, 0.3),
+  WaveParameterSet(vec2(0.1, 0.7), 0.3, 0.25, 0.9, 1.5),
+  WaveParameterSet(vec2(0.75, 0.1), 0.2, 0.12, 0.8, 0.5),
+  WaveParameterSet(vec2(0.5, 0.5), 0.2, 0.20, 0.3, 0.1),
   // Slow large waves
-  WaveParameterSet(vec2(1.0, 0.0), 0.1, 0.12, 0.12, 0.25)
+  WaveParameterSet(vec2(0.5, 0.5), 0.1, 0.12, 0.12, 0.25)
 );
 
 vec3 water_make_normal_gerstner_osgw(vec3 water_position) {
@@ -139,8 +139,12 @@ vec3 water_make_position_gerstner_vlad(vec2 vertex_position) {
 // WA = w * A
 // S() = sin term
 // C() = cos term
-vec3 water_make_normal_gerstner_vlad(vec3 wave_position) {
-  vec3 wave_normal = vec3(0.0, 1.0, 0.0);
+vec3 water_make_normal_gerstner_vlad(
+  vec3 wave_position, out vec3 normal, out vec3 bitangent, out vec3 tangent
+) {
+  normal = vec3(0.0, 1.0, 0.0);
+  bitangent = vec3(1.0, 0.0, 0.0);
+  tangent = vec3(0.0, 0.0, 1.0);
 
   for (int idx = 0; idx < n_waves; idx++) {
     float amplitude = wave_parameter_sets[idx].amplitude;
@@ -155,20 +159,30 @@ vec3 water_make_normal_gerstner_vlad(vec3 wave_position) {
     float sin_term = sin(sin_cos_argument);
     float cos_term = cos(sin_cos_argument);
 
-    wave_normal.x -= direction.x * wa * cos_term;
-    wave_normal.z -= direction.y * wa * cos_term;
-    wave_normal.y -= steepness * wa * sin_term;
+    normal.x -= direction.x * wa * cos_term;
+    normal.z -= direction.y * wa * cos_term;
+    normal.y -= steepness * wa * sin_term;
+
+    bitangent.x -= steepness * pow(direction.x, 2) * wa * sin_term;
+    bitangent.y += direction.x * wa * cos_term;
+    bitangent.z -= steepness * direction.x * direction.y * wa * sin_term;
+
+    tangent.x -= steepness * direction.x * direction.y * wa * sin_term;
+    tangent.y += direction.y * wa * cos_term;
+    tangent.z -= steepness * pow(direction.y, 2) * wa * sin_term;
   }
 
-  return wave_normal;
+  return normal;
 }
 
 vec3 water_make_position(vec2 vertex_position) {
   return water_make_position_gerstner_vlad(vertex_position);
 }
 
-vec3 water_make_normal(vec3 water_position) {
-  return water_make_normal_gerstner_vlad(water_position);
+vec3 water_make_normal(
+  vec3 water_position, inout vec3 normal, inout vec3 bitangent, inout vec3 tangent
+) {
+  return water_make_normal_gerstner_vlad(water_position, normal, bitangent, tangent);
 }
 
 float to_unit_interval(float x, float min_val, float max_val) {
@@ -176,4 +190,10 @@ float to_unit_interval(float x, float min_val, float max_val) {
     (x - min_val) / (max_val - min_val),
     0, 1
   );
+}
+
+float hash(vec2 p) {
+  // https://stackoverflow.com/q/12964279/3803222
+  float h = dot(p, vec2(127.1,311.7));
+  return fract(sin(h) * 43758.5453123);
 }
