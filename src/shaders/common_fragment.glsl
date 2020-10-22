@@ -1,6 +1,5 @@
 #define GAMMA 2.2
 #define USE_SHADOWS false
-/* #define WATER_F0 0.15 */
 #define WATER_F0 0.02037
 #define SHADOW_N_SAMPLES 20
 
