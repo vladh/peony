@@ -42,14 +42,17 @@ struct WaveParameterSet {
 
 int n_waves = 8;
 WaveParameterSet wave_parameter_sets[8] = WaveParameterSet[8](
-  WaveParameterSet(vec2(0.8, 0.1), 0.02, 0.001, 14.0, 0.2),
-  WaveParameterSet(vec2(0.4, 0.5), 0.02, 0.001, 15.0, 0.3),
-  WaveParameterSet(vec2(0.2, 0.7), 0.02, 0.001, 16.0, 0.4),
-  WaveParameterSet(vec2(0.8, 0.0), 0.6, 0.4, 0.8, 0.8),
-  WaveParameterSet(vec2(0.8, 0.0), 0.4, 0.2, 1.0, 1.2),
-  WaveParameterSet(vec2(0.8, 0.0), 0.2, 0.1, 1.8, 1.3),
-  WaveParameterSet(vec2(0.0, 1.0), 0.2, 0.2, 2.0, 0.8),
-  WaveParameterSet(vec2(0.0, 0.7), 0.2, 0.1, 0.05, 0.5)
+  // Choppy small waves
+  WaveParameterSet(vec2(0.8, 0.1), 0.02, 0.001, 14.8, 0.2),
+  WaveParameterSet(vec2(0.4, 0.5), 0.02, 0.003, 15.2, 0.3),
+  WaveParameterSet(vec2(0.3, 0.7), 0.02, 0.002, 16.3, 0.4),
+  // Big waves
+  WaveParameterSet(vec2(0.0, 0.8), 0.5, 0.41, 0.8, 0.8),
+  WaveParameterSet(vec2(0.65, 0.0), 0.3, 0.25, 1.1, 1.2),
+  WaveParameterSet(vec2(0.75, 0.0), 0.2, 0.12, 0.8, 0.3),
+  WaveParameterSet(vec2(0.5, 0.5), 0.2, 0.20, 0.3, 0.3),
+  // Slow large waves
+  WaveParameterSet(vec2(1.0, 0.0), 0.1, 0.12, 0.12, 0.25)
 );
 
 vec3 water_make_normal_gerstner_osgw(vec3 water_position) {
