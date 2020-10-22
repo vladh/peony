@@ -37,11 +37,11 @@ void MemoryPool::zero_out() {
 
 
 void* MemoryPool::push(uint32 item_size, const char *item_debug_name) {
-#if 0
+#if 1
   log_info(
     "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
-    this->name, B_TO_MB((real64)), size, debug_name,
-    B_TO_MB((real64)pool->used), pool->used
+    this->name, B_TO_MB((real64)item_size), item_size, item_debug_name,
+    B_TO_MB((real64)this->used), this->used
   );
 #endif
   this->mutex.lock();
@@ -83,7 +83,7 @@ Memory::Memory(
   state_memory_size(sizeof(State)),
   asset_memory_pool("assets", MB_TO_B(64)),
   entity_memory_pool("entities", MB_TO_B(64)),
-  temp_memory_pool("temp", MB_TO_B(64))
+  temp_memory_pool("temp", MB_TO_B(256))
 {
   this->state_memory = (State*)malloc(this->state_memory_size);
   memset(this->state_memory, 0, this->state_memory_size);
