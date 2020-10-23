@@ -4,14 +4,17 @@ vec3 SKY_ALBEDO = vec3(0.81, 0.93, 1.00);
 vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.09, 0.18);
 vec3 WATER_ALBEDO_SHALLOW = vec3(0.0, 0.5, 0.5);
 // vec3 WATER_ALBEDO_SHALLOW = vec3(0.48, 0.54, 0.36);
+vec3 WATER_FOAM_COLOR = vec3(1.0, 1.0, 1.0);
+float WATER_FOAM_ALPHA = 0.8;
 float WATER_MAX_DEPTH = 2.0;
 float WATER_MIN_DEPTH = 0.0;
 float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
-float WATER_FOAM_DIST = 2.0;
+float WATER_FOAM_DIST = 1.5;
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_albedo_texture;
 uniform sampler2D normal_texture;
+uniform sampler2D foam_texture;
 
 uniform bool should_use_normal_map;
 
@@ -129,13 +132,22 @@ void main() {
   //   }
   // }
 
+  vec2 foam_tex_coords = fs_in.tex_coords * 2;
+  float channelA = texture(
+    foam_texture,
+    foam_tex_coords - vec2(3.0, cos(fs_in.tex_coords.x))
+  ).r;
+  float channelB = texture(
+    foam_texture,
+    foam_tex_coords * 0.5 + vec2(sin(fs_in.tex_coords.y), 3.0)
+  ).b;
+  float mask = clamp(pow((channelA + channelB), 2), 0, 1);
+
   float water_to_underwater_dist = length(fs_in.world_position - underwater_position);
-  if (underwater_position != vec3(0.0, 0.0, 0.0) && water_to_underwater_dist < WATER_FOAM_DIST) {
-    color = mix(
-      vec3(1.0, 1.0, 1.0),
-      color,
-      max(0.0, water_to_underwater_dist / WATER_FOAM_DIST)
-    );
+  float foam_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_DIST);
+  vec3 foam = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_falloff;
+  if (underwater_position != vec3(0.0, 0.0, 0.0)) {
+    color += clamp(foam - mask, 0.0, 1.0);
   }
 
   frag_color = vec4(color, 1.0);
