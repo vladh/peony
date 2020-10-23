@@ -9,6 +9,7 @@ class Camera {
 public:
   glm::mat4 view;
   glm::vec3 position;
+  real64 pitch;
   glm::mat4 projection;
   real32 exposure;
 
@@ -33,7 +34,6 @@ public:
 private:
   CameraType type;
   real64 yaw;
-  real64 pitch;
   glm::vec3 front;
   glm::vec3 up;
   real32 speed;

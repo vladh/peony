@@ -7,13 +7,16 @@
 #define LIGHT_POINT 0
 #define LIGHT_DIRECTIONAL 1
 
+vec3 SKY_ALBEDO = vec3(0.56, 0.77, 0.95);
+vec3 GROUND_ALBEDO = vec3(1.0, 1.0, 1.0);
+
 layout (std140) uniform shader_common {
   mat4 view;
   mat4 projection;
   mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   vec3 camera_position;
-  float pad_oops;
+  float camera_pitch;
 
   float exposure;
   float t;

@@ -24,7 +24,7 @@ struct ShaderCommon {
   glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   glm::vec3 camera_position;
-  float pad_oops;
+  float camera_pitch;
 
   float exposure;
   float t;
