@@ -4,9 +4,10 @@ TextureNamePool::TextureNamePool(
   this->n_textures = n_textures;
   this->mipmap_max_level = mipmap_max_level;
 
-  this->n_sizes = 2;
-  this->sizes[0] = 512;
-  this->sizes[1] = 2048;
+  this->n_sizes = 3;
+  this->sizes[0] = 256;
+  this->sizes[1] = 512;
+  this->sizes[2] = 2048;
 
   this->texture_names = (uint32*)memory->asset_memory_pool.push(
     sizeof(uint32) * this->n_textures * this->n_sizes, "texture_names"
