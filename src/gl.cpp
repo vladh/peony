@@ -453,6 +453,7 @@ void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_id
   shader_common->projection = state->camera_active->projection;
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
+  shader_common->camera_pitch = (float)state->camera_active->pitch;
 
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;

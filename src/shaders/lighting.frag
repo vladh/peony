@@ -9,14 +9,19 @@ in BLOCK {
 
 out vec4 frag_color;
 
+
 void main() {
   vec3 world_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;
 
-  // Skip pixels with no normal. These are the background pixels, so we
-  // let the background color shine through.
+  // Pixels which have no normals are background pixels.
   if (normal == vec3(0.0, 0.0, 0.0)) {
-    discard;
+    frag_color = vec4(mix(
+      GROUND_ALBEDO,
+      SKY_ALBEDO,
+      fs_in.tex_coords.y - (camera_pitch / 90.0)
+    ), 1.0);
+    return;
   }
 
   vec3 albedo = linearize_albedo(texture(g_albedo_texture, fs_in.tex_coords).rgb);
