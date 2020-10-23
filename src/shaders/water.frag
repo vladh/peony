@@ -108,7 +108,6 @@ void main() {
 
   float depth_factor = to_unit_interval(fs_in.world_position.y, WATER_MIN_DEPTH, WATER_MAX_DEPTH);
 
-  // vec3 reflected = SKY_ALBEDO;
   vec3 reflected = get_sky_color(R);
   vec3 refracted = 0 +
     WATER_ALBEDO_DEEP +
@@ -116,21 +115,8 @@ void main() {
     underwater_albedo;
 
   vec3 color = mix(refracted, reflected, F);
-  // float attenuation = max(1.0 - dot(water_dist, water_dist) * 0.001, 0.0);
-  float attenuation = 1.0;
-  color += WATER_ALBEDO_SHALLOW * depth_factor * attenuation;
+  color += WATER_ALBEDO_SHALLOW * depth_factor;
   color += specular(r_dot_l);
-
-  // for (int idx = 0; idx < N_UNDERWATER_POSITION_SAMPLES; idx++) {
-  //   vec3 sampled_underwater_position = texture(
-  //     g_position_texture, fs_in.screen_position + (TEXTURE_SAMPLING_OFFSETS[idx] * 10.0)
-  //   ).rgb;
-  //   float water_to_underwater_dist = length(fs_in.world_position - sampled_underwater_position);
-  //   if (sampled_underwater_position != vec3(0.0, 0.0, 0.0) && water_to_underwater_dist < 1.0) {
-  //     color = vec3(0.0, 0.0, 0.0);
-  //     break;
-  //   }
-  // }
 
   vec2 foam_tex_coords = fs_in.tex_coords * 2;
   float channelA = texture(
