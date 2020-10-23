@@ -1,7 +1,7 @@
 #define GAMMA 2.2
 #define USE_SHADOWS false
 #define WATER_F0 0.02037
-#define SHADOW_N_SAMPLES 20
+#define N_SHADOW_SAMPLES 20
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
@@ -9,6 +9,14 @@ vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
   vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
   vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
+);
+
+vec2 TEXTURE_SAMPLING_OFFSETS[9] = vec2[] (
+  vec2( 0.0,  0.0),
+  vec2(-1.0,  0.0), vec2(1.0,  0.0),
+  vec2( 0.0, -1.0), vec2(0.0,  1.0),
+  vec2(-1.0, -1.0), vec2(1.0, -1.0),
+  vec2(-1.0,  1.0), vec2(1.0,  1.0)
 );
 
 uniform samplerCubeArray cube_shadowmaps;
@@ -27,7 +35,7 @@ float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
     float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
     float current_depth = length(light_to_frag) / far_clip_dist;
 
-    for (int i = 0; i < SHADOW_N_SAMPLES; i++) {
+    for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
       vec4 sample_p = vec4(
         light_to_frag + SHADOW_GRID_SAMPLING_OFFSETS[i] * sample_radius, idx_light
       );
@@ -37,7 +45,7 @@ float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
       }
     }
 
-    shadow /= float(SHADOW_N_SAMPLES);
+    shadow /= float(N_SHADOW_SAMPLES);
   } else if (light_type[idx_light].x == LIGHT_DIRECTIONAL) {
     // TODO: Improve this.
     float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 1250.0;
@@ -48,7 +56,7 @@ float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
       shadow_transforms[idx_light * 6] * vec4(world_position, 1.0)
     ) * 0.5 + 0.5;
 
-    for (int i = 0; i < SHADOW_N_SAMPLES; i++) {
+    for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
       vec3 sample_p = vec3(
         light_space_position.xy + SHADOW_GRID_SAMPLING_OFFSETS[i].xy * sample_radius, idx_light
       );
@@ -58,7 +66,7 @@ float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
       }
     }
 
-    shadow /= float(SHADOW_N_SAMPLES);
+    shadow /= float(N_SHADOW_SAMPLES);
   }
 
   return shadow;

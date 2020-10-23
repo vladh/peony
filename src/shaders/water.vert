@@ -23,14 +23,6 @@ void main() {
   vec3 water_tangent;
   water_make_normal(water_position, water_normal, water_bitangent, water_tangent);
 
-  /* vec3 noise = vec3( */
-  /*   (hash(tex_coords + 0) - 0.5) * 0.1, */
-  /*   (hash(tex_coords + 1) - 0.5) * 0.1, */
-  /*   (hash(tex_coords + 2) - 0.5) * 0.1 */
-  /* ); */
-  /* water_position += noise; */
-  /* water_normal += noise; */
-
   gl_Position = projection * view * vec4(water_position, 1.0);
 
   vec3 ndc = gl_Position.xyz / gl_Position.w;
