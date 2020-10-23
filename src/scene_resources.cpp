@@ -141,7 +141,7 @@ void scene_init_resources(Memory *memory, State *state) {
       memory,
       "light",
       SHADER_OTHER_OBJECT,
-      SHADER_DIR"light.vert", SHADER_DIR"light.frag"
+      SHADER_DIR"simple.vert", SHADER_DIR"simple.frag"
     );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
   }
