@@ -12,6 +12,8 @@ public:
   real64 pitch;
   glm::mat4 projection;
   real32 exposure;
+  real32 horizontal_fov;
+  real32 vertical_fov;
 
   Camera(CameraType type);
   void move_front_back(real32 sign, real64 dt);
@@ -37,7 +39,6 @@ private:
   glm::vec3 front;
   glm::vec3 up;
   real32 speed;
-  real32 fov;
   real32 near_clip_dist;
   real32 far_clip_dist;
 };

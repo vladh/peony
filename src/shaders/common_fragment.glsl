@@ -3,6 +3,11 @@
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20
 
+/* vec3 SKY_ALBEDO = vec3(0.56, 0.77, 0.95); */
+/* vec3 GROUND_ALBEDO = vec3(1.0, 1.0, 1.0); */
+vec3 SKY_ALBEDO = vec3(1.0, 0.0, 0.0);
+vec3 GROUND_ALBEDO = vec3(0.0, 0.0, 1.0);
+
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
@@ -21,6 +26,23 @@ vec2 TEXTURE_SAMPLING_OFFSETS[9] = vec2[] (
 
 uniform samplerCubeArray cube_shadowmaps;
 uniform sampler2DArray texture_shadowmaps;
+
+
+vec3 get_sky_color(float angle) {
+  if (angle > 90.0) {
+    angle = 180.0 - angle;
+  }
+  if (angle < -90.0) {
+    angle = -180.0 - angle;
+  }
+  return mix(
+    GROUND_ALBEDO,
+    SKY_ALBEDO,
+    // [-90, 90] → [0, 180] → [0, 1]
+    (angle + 90.0) / 180.0
+  );
+}
+
 
 float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
   float shadow = 0.0;

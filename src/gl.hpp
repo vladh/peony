@@ -36,6 +36,8 @@
 #include "../include/cacheline.hpp"
 
 #include "types.hpp"
+#include "math.hpp"
+#include "debug.hpp"
 #include "log.hpp"
 #include "memory.hpp"
 #include "util.hpp"
