@@ -6,7 +6,8 @@ Camera::Camera(CameraType new_type) {
   this->front = glm::vec3(0.0f, 0.0f, 0.0f);
   this->up = glm::vec3(0.0f, 1.0f, 0.0f);
   this->speed = 5.0f;
-  this->fov = 90.0f;
+  this->horizontal_fov = 90.0f;
+  this->vertical_fov = 0.0f; // Filled in later
   this->near_clip_dist = 0.1f;
   this->far_clip_dist = 100.0f;
   this->exposure = 1.0f;
@@ -49,10 +50,14 @@ void Camera::update_matrices_perspective(
   );
 
   this->projection = glm::perspective(
-    glm::radians(this->fov),
+    glm::radians(this->horizontal_fov),
     (real32)window_width / (real32)window_height,
     this->near_clip_dist, this->far_clip_dist
   );
+  // https://en.wikipedia.org/wiki/Field_of_view_in_video_games#Field_of_view_calculations
+  this->vertical_fov = (real32)RAD_TO_DEG(2 * atan(
+    tan(DEG_TO_RAD(this->horizontal_fov) / 2) * window_height / window_width
+  ));
 }
 
 void Camera::update_matrices(

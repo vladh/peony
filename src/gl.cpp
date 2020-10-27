@@ -455,12 +455,14 @@ void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_id
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
   shader_common->camera_pitch = (float)state->camera_active->pitch;
 
+  shader_common->camera_horizontal_fov = state->camera_active->horizontal_fov;
+  shader_common->camera_vertical_fov = state->camera_active->vertical_fov;
+  shader_common->shadow_light_idx = shadow_light_idx;
+
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
   shader_common->far_clip_dist = state->shadowmap_far_clip_dist;
   shader_common->n_lights = state->lights.size;
-
-  shader_common->shadow_light_idx = shadow_light_idx;
 
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
     EntityHandle handle = *state->lights.get(idx);
@@ -508,12 +510,14 @@ void render_scene_ui(
     "(dt %f)\n"
     "(frame %d)\n"
     "(should_limit_fps %d)\n"
+    "(pitch %f)\n"
     "(oopses %d)",
     state->last_fps,
     state->t,
     state->dt,
     state->n_frames_since_start,
     state->should_limit_fps,
+    state->camera_active->pitch,
     global_oopses
   );
   state->text_manager.draw(

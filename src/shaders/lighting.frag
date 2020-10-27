@@ -16,10 +16,9 @@ void main() {
 
   // Pixels which have no normals are background pixels.
   if (normal == vec3(0.0, 0.0, 0.0)) {
-    frag_color = vec4(mix(
-      GROUND_ALBEDO,
-      SKY_ALBEDO,
-      fs_in.tex_coords.y - (camera_pitch / 90.0)
+    frag_color = vec4(get_sky_color(
+      (-camera_pitch) +
+      ((fs_in.tex_coords.y - 0.5) * (camera_vertical_fov * 2))
     ), 1.0);
     return;
   }
