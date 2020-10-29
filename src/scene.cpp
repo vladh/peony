@@ -49,9 +49,9 @@ void scene_init_objects(Memory *memory, State *state) {
   state->lights.push(entity->handle);
 #endif
 
-  // Plane
+  // Ocean
 #if 1
-  entity = state->entity_manager.add("plane");
+  entity = state->entity_manager.add("ocean");
   state->spatial_component_manager.add(
     entity->handle,
     glm::vec3(0.0f),
@@ -60,9 +60,10 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->drawable_component_manager.add(
     entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "plane"),
+    ModelAsset::get_by_name(&state->model_assets, "ocean"),
     RENDERPASS_FORWARD_DEPTH
   );
+  state->ocean = entity->handle;
 #endif
 
   // Temple

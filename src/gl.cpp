@@ -560,6 +560,20 @@ void scene_update(Memory *memory, State *state) {
 #endif
   }
 
+  // Water
+  {
+#if 1
+    if (state->ocean) {
+      SpatialComponent *spatial_component = state->spatial_component_manager.get(state->ocean);
+      spatial_component->position = glm::vec3(
+        state->camera_active->position.x,
+        0,
+        state->camera_active->position.z
+      );
+    }
+#endif
+  }
+
   // Geese
 #if 0
   {

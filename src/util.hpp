@@ -21,8 +21,7 @@ public:
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    real32 **vertex_data, uint32 **index_data,
-    real32 texcoord_factor
+    real32 **vertex_data, uint32 **index_data
   );
   static void make_sphere(
     MemoryPool *memory_pool,
