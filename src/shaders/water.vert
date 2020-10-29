@@ -7,7 +7,6 @@ layout (location = 2) in vec2 tex_coords;
 
 out BLOCK {
   vec3 world_position;
-  vec3 prelim_world_position;
   vec2 screen_position;
   vec3 normal;
   vec3 bitangent;
@@ -30,7 +29,6 @@ void main() {
   vs_out.screen_position = ndc.xy * 0.5 + 0.5;
 
   vs_out.world_position = water_position;
-  vs_out.prelim_world_position = prelim_world_position;
   vs_out.normal = normalize(water_normal);
   vs_out.bitangent = water_bitangent;
   vs_out.tangent = water_tangent;

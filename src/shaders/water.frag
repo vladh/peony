@@ -18,7 +18,6 @@ uniform bool should_use_normal_map;
 
 in BLOCK {
   vec3 world_position;
-  vec3 prelim_world_position;
   vec2 screen_position;
   vec3 normal;
   vec3 bitangent;
@@ -56,7 +55,7 @@ void main() {
   vec3 curr_light_position = vec3(light_position[0]); // Directional light
   vec3 unit_normal = normalize(fs_in.normal);
   const float plane_size = 100.0;
-  vec2 corrected_tex_coords = (fs_in.prelim_world_position.xz - plane_size / 2) / plane_size;
+  vec2 corrected_tex_coords = (fs_in.world_position.xz - plane_size / 2) / plane_size;
   vec2 normal_tex_coords = corrected_tex_coords * 10.0;
   vec3 N;
 
