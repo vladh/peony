@@ -48,6 +48,7 @@ public:
   Array<EntityHandle> lights;
   Array<EntityHandle> geese;
   Array<EntityHandle> spheres;
+  EntityHandle ocean;
 
   PersistentPbo persistent_pbo;
   TextureNamePool texture_name_pool;

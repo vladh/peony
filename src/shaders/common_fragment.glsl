@@ -3,10 +3,10 @@
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20
 
-/* vec3 SKY_ALBEDO = vec3(0.56, 0.77, 0.95); */
-/* vec3 GROUND_ALBEDO = vec3(1.0, 1.0, 1.0); */
-vec3 SKY_ALBEDO = vec3(1.0, 0.0, 0.0);
-vec3 GROUND_ALBEDO = vec3(0.0, 0.0, 1.0);
+vec3 SKY_ALBEDO = vec3(0.56, 0.77, 0.95);
+vec3 GROUND_ALBEDO = vec3(1.0, 1.0, 1.0);
+/* vec3 SKY_ALBEDO = vec3(1.0, 0.0, 0.0); */
+/* vec3 GROUND_ALBEDO = vec3(0.0, 0.0, 1.0); */
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),

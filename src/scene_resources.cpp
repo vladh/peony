@@ -36,7 +36,7 @@ void scene_init_resources(Memory *memory, State *state) {
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
   }
 
-  // Plane
+  // Ocean
   {
     uint32 n_vertices;
     uint32 n_indices;
@@ -44,18 +44,17 @@ void scene_init_resources(Memory *memory, State *state) {
     uint32 *index_data;
     Util::make_plane(
       &memory->temp_memory_pool,
-      100, 100,
-      512, 512,
+      200, 200,
+      1024, 1024,
       &n_vertices, &n_indices,
-      &vertex_data, &index_data,
-      30
+      &vertex_data, &index_data
     );
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       MODELSOURCE_DATA,
       vertex_data, n_vertices,
       index_data, n_indices,
-      "plane",
+      "ocean",
       GL_TRIANGLES
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(

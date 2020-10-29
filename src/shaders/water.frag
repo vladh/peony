@@ -18,6 +18,7 @@ uniform bool should_use_normal_map;
 
 in BLOCK {
   vec3 world_position;
+  vec3 prelim_world_position;
   vec2 screen_position;
   vec3 normal;
   vec3 bitangent;
@@ -54,10 +55,13 @@ void main() {
   vec3 underwater_position = texture(g_position_texture, fs_in.screen_position).rgb;
   vec3 curr_light_position = vec3(light_position[0]); // Directional light
   vec3 unit_normal = normalize(fs_in.normal);
+  const float plane_size = 100.0;
+  vec2 corrected_tex_coords = (fs_in.prelim_world_position.xz - plane_size / 2) / plane_size;
+  vec2 normal_tex_coords = corrected_tex_coords * 10.0;
   vec3 N;
 
   if (should_use_normal_map) {
-    vec3 tangent_normal_rgb = texture(normal_texture, fs_in.tex_coords).xyz * 2.0 - 1.0;
+    vec3 tangent_normal_rgb = texture(normal_texture, normal_tex_coords).xyz * 2.0 - 1.0;
     vec3 tangent_normal = vec3(
       tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r
     );
@@ -116,14 +120,15 @@ void main() {
   color += WATER_ALBEDO_SHALLOW * depth_factor;
   color += specular(r_dot_l);
 
-  vec2 foam_tex_coords = fs_in.tex_coords * 2;
+  // TODO: There's a better way of doing this.
+  vec2 foam_tex_coords = corrected_tex_coords * 90.0;
   float channelA = texture(
     foam_texture,
-    foam_tex_coords - vec2(3.0, cos(fs_in.tex_coords.x))
+    foam_tex_coords - vec2(3.0, cos(corrected_tex_coords.x))
   ).r;
   float channelB = texture(
     foam_texture,
-    foam_tex_coords * 0.5 + vec2(sin(fs_in.tex_coords.y), 3.0)
+    foam_tex_coords * 0.5 + vec2(sin(corrected_tex_coords.y), 3.0)
   ).b;
   float mask = clamp(pow((channelA + channelB), 2), 0, 1);
 
