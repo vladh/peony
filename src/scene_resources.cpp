@@ -61,9 +61,12 @@ void scene_init_resources(Memory *memory, State *state) {
       memory,
       "water",
       SHADER_STANDARD,
+#if 1
       SHADER_DIR"water.vert", SHADER_DIR"water.frag"
-      /* SHADER_DIR"water.vert", SHADER_DIR"water.frag", */
-      /* SHADER_DIR"normal_visualizer.geom" */
+#else
+      SHADER_DIR"water.vert", SHADER_DIR"water.frag",
+      SHADER_DIR"normal_visualizer.geom"
+#endif
     );
     depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
