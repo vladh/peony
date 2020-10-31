@@ -138,5 +138,7 @@ void main() {
     color += clamp(foam - mask, 0.0, 1.0);
   }
 
+  color = N;
+
   frag_color = vec4(color, 1.0);
 }

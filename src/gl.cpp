@@ -562,7 +562,7 @@ void scene_update(Memory *memory, State *state) {
 
   // Water
   {
-#if 1
+#if 0
     if (state->ocean) {
       SpatialComponent *spatial_component = state->spatial_component_manager.get(state->ocean);
       spatial_component->position = glm::vec3(
