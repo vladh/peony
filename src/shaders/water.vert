@@ -24,7 +24,7 @@ void main() {
   vec3 water_lf_tangent;
   water_make_normal(water_lf_position, water_lf_normal, water_lf_bitangent, water_lf_tangent);
 
-  float noise_freq = 1.5;
+  vec2 noise_freq = vec2(1.5, 0.5);
   float noise_amplitude = 0.3;
   vec3 noise_terms = noised(prelim_world_position.xz * noise_freq);
   float noise_height = noise_terms.x * noise_amplitude;
