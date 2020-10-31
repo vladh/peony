@@ -56,10 +56,10 @@ void main() {
   vec3 unit_normal = normalize(fs_in.normal);
   const float plane_size = 100.0;
   vec2 corrected_tex_coords = (fs_in.world_position.xz - plane_size / 2) / plane_size;
-  vec2 normal_tex_coords = corrected_tex_coords * 30.0 - vec2(t / 20, t / 20);
+  vec2 normal_tex_coords = corrected_tex_coords * 10.0/* - vec2(t / 40, t / 40)*/;
   vec3 N;
 
-  if (false && should_use_normal_map) {
+  if (should_use_normal_map) {
     vec3 tangent_normal_rgb = texture(normal_texture, normal_tex_coords).xyz * 2.0 - 1.0;
     vec3 tangent_normal = vec3(
       tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r
@@ -138,7 +138,7 @@ void main() {
     color += clamp(foam - mask, 0.0, 1.0);
   }
 
-  color = N;
+  // color = N;
 
   frag_color = vec4(color, 1.0);
 }

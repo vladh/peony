@@ -86,8 +86,8 @@ vec4 noised( in vec3 x )
 
 float get_nice_noise(vec2 st) {
   /* return noise(st + vec2(t / 2)) / 2; */
-  /* return noise(st / 2.0); */
-  return noise(st);
+  return noise(st * 1.5) / 5.5;
+  /* return noise(st); */
   /* return sin((st.x + st.y) / 2.0); */
 }
 
@@ -95,62 +95,41 @@ float get_nice_noise(vec2 st) {
 void main() {
   vec3 prelim_world_position = vec3(model * mesh_transform * vec4(position, 1.0));
 
-  /* vec3 water_position = water_make_position(prelim_world_position.xz); */
-  /* vec3 water_normal; */
-  /* vec3 water_bitangent; */
-  /* vec3 water_tangent; */
-  /* water_make_normal(water_position, water_normal, water_bitangent, water_tangent); */
-  const float delta = 0.1;
+  vec3 water_lf_position = water_make_position(prelim_world_position.xz);
+  vec3 water_lf_normal;
+  vec3 water_lf_bitangent;
+  vec3 water_lf_tangent;
+  water_make_normal(water_lf_position, water_lf_normal, water_lf_bitangent, water_lf_tangent);
 
-  vec3 water_position = vec3(
+  const float delta = 0.1;
+  vec3 water_hf_position = vec3(
     prelim_world_position.x,
     get_nice_noise(vec2(prelim_world_position.x, prelim_world_position.z)),
     prelim_world_position.z
   );
-
-  vec3 water_position_dx = vec3(
+  vec3 water_hf_position_dx = vec3(
     prelim_world_position.x + delta,
     get_nice_noise(vec2(prelim_world_position.x + delta, prelim_world_position.z)),
     prelim_world_position.z
   );
-  vec3 water_bitangent = normalize(water_position_dx - water_position);
-
-  vec3 water_position_dz = vec3(
+  vec3 water_hf_bitangent = normalize(water_hf_position_dx - water_hf_position);
+  vec3 water_hf_position_dz = vec3(
     prelim_world_position.x,
     get_nice_noise(vec2(prelim_world_position.x, prelim_world_position.z + delta)),
     prelim_world_position.z + delta
   );
-  vec3 water_tangent = normalize(water_position_dz - water_position);
+  vec3 water_hf_tangent = normalize(water_hf_position_dz - water_hf_position);
+  vec3 water_hf_normal = normalize(cross(water_hf_tangent, water_hf_bitangent));
 
-  /* float y_dx = get_nice_noise(vec2(prelim_world_position.x + delta, prelim_world_position.z)); */
-  /* float dy_dx = y_dx - water_position.y; */
-  /* vec3 water_bitangent = normalize(vec3(delta, dy_dx, 0.0)); */
+  vec3 water_position = water_lf_position + vec3(0.0, water_hf_position.y, 0.0);
+  vec3 water_normal = normalize(water_hf_normal * water_lf_normal);
+  vec3 water_tangent = normalize(water_hf_tangent * water_lf_tangent);
+  vec3 water_bitangent = normalize(water_hf_bitangent * water_lf_bitangent);
 
-  /* float y_dz = get_nice_noise(vec2(prelim_world_position.x, prelim_world_position.z + delta)); */
-  /* float dy_dz = y_dz - water_position.y; */
-  /* vec3 water_tangent = normalize(vec3(0.0, dy_dz, delta)); */
-
-  /* vec4 noise_terms = noised(prelim_world_position); */
-  /* vec3 water_position = vec3( */
-  /*   prelim_world_position.x, */
-  /*   noise_terms[0], */
-  /*   prelim_world_position.z */
-  /* ); */
-  /* vec3 water_bitangent = normalize(vec3(1.0, noise_terms[1], 0.0)); */
-  /* vec3 water_tangent = normalize(vec3(0.0, noise_terms[3], 1.0)); */
-
-  vec3 water_normal = normalize(cross(water_tangent, water_bitangent));
-
-  /* vec3 water_normal = vec3(sin(prelim_world_position.x), 0.0, sin(prelim_world_position.z)); */
-
-  /* vec3 off = vec3(1.0, 1.0, 0.0) / 1; */
-  /* float hL = get_nice_noise(prelim_world_position.xz - off.xz); */
-  /* float hR = get_nice_noise(prelim_world_position.xz + off.xz); */
-  /* float hD = get_nice_noise(prelim_world_position.xz - off.zy); */
-  /* float hU = get_nice_noise(prelim_world_position.xz + off.zy); */
-  /* vec3 water_bitangent = vec3(1.0, 0.0, 0.0); */
-  /* vec3 water_tangent = vec3(0.0, 0.0, 1.0); */
-  /* vec3 water_normal = normalize(vec3(hL - hR, 2.0, hD - hU)); */
+  /* vec3 water_position = water_lf_position; */
+  /* vec3 water_normal = water_lf_normal; */
+  /* vec3 water_tangent = water_lf_tangent; */
+  /* vec3 water_bitangent = water_lf_bitangent; */
 
   gl_Position = projection * view * vec4(water_position, 1.0);
 
