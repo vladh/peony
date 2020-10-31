@@ -2,7 +2,8 @@
 
 #define ARE_NORMAL_MAPS_ENABLED true
 
-vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.09, 0.18);
+// vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.09, 0.18);
+vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.01, 0.10);
 vec3 WATER_ALBEDO_SHALLOW = vec3(0.0, 0.5, 0.5);
 vec3 WATER_FOAM_COLOR = vec3(1.0, 1.0, 1.0);
 float WATER_FOAM_ALPHA = 0.8;
@@ -47,8 +48,8 @@ float specular(float r_dot_v) {
   // float s = 60;
   // float nrm = (s + 8.0) / (M_PI * 8.0);
   // return pow(r_dot_v, s) * nrm;
-  float s = 10000;
-  float specular_strength = 0.8;
+  float s = 1500;
+  float specular_strength = 10.0;
   return pow(r_dot_v, s) * specular_strength;
 }
 
@@ -151,6 +152,9 @@ void main() {
   // color = N;
   // color = vec3(pow(r_dot_v, 500));
   // color = vec3(F);
+
+  color = add_tone_mapping(color);
+  color = correct_gamma(color);
 
   frag_color = vec4(color, 1.0);
 }
