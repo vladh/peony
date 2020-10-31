@@ -83,7 +83,7 @@ Memory::Memory(
   state_memory_size(sizeof(State)),
   asset_memory_pool("assets", MB_TO_B(64)),
   entity_memory_pool("entities", MB_TO_B(64)),
-  temp_memory_pool("temp", MB_TO_B(256))
+  temp_memory_pool("temp", MB_TO_B(512))
 {
   this->state_memory = (State*)malloc(this->state_memory_size);
   memset(this->state_memory, 0, this->state_memory_size);
