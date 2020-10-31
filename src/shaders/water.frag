@@ -47,7 +47,7 @@ float specular(float r_dot_v) {
   // float s = 60;
   // float nrm = (s + 8.0) / (M_PI * 8.0);
   // return pow(r_dot_v, s) * nrm;
-  float s = 2000;
+  float s = 10000;
   float specular_strength = 0.8;
   return pow(r_dot_v, s) * specular_strength;
 }
