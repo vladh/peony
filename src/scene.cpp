@@ -152,7 +152,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Axes
-#if 0
+#if 1
   entity = state->entity_manager.add("axes");
   state->spatial_component_manager.add(
     entity->handle,
