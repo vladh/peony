@@ -3,7 +3,9 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Lights
 #if 1
-  glm::vec3 light_direction = glm::vec3(1.0f, -0.5f, 0.0f);
+  glm::vec3 light_direction = glm::vec3(
+    sin(global_dir_light_angle), -sin(global_dir_light_angle), 0.0f
+  );
   entity = state->entity_manager.add("directional_light");
   state->drawable_component_manager.add(
     entity->handle,
@@ -152,7 +154,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Axes
-#if 1
+#if 0
   entity = state->entity_manager.add("axes");
   state->spatial_component_manager.add(
     entity->handle,
