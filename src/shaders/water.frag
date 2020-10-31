@@ -16,6 +16,8 @@ uniform sampler2D foam_texture;
 
 uniform bool should_use_normal_map;
 
+layout (location = 0) out vec4 frag_color;
+
 in BLOCK {
   vec3 world_position;
   vec2 screen_position;
@@ -24,8 +26,6 @@ in BLOCK {
   vec3 tangent;
   vec2 tex_coords;
 } fs_in;
-
-layout (location = 0) out vec4 frag_color;
 
 
 vec3 get_sky_color(vec3 V) {
