@@ -1,5 +1,7 @@
 #define N_UNDERWATER_POSITION_SAMPLES 1
 
+#define ARE_NORMAL_MAPS_ENABLED true
+
 vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.09, 0.18);
 vec3 WATER_ALBEDO_SHALLOW = vec3(0.0, 0.5, 0.5);
 vec3 WATER_FOAM_COLOR = vec3(1.0, 1.0, 1.0);
@@ -59,7 +61,7 @@ void main() {
   vec2 normal_tex_coords = corrected_tex_coords * 10.0/* - vec2(t / 40, t / 40)*/;
   vec3 N;
 
-  if (should_use_normal_map) {
+  if (ARE_NORMAL_MAPS_ENABLED && should_use_normal_map) {
     vec3 tangent_normal_rgb = texture(normal_texture, normal_tex_coords).xyz * 2.0 - 1.0;
     vec3 tangent_normal = vec3(
       tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r

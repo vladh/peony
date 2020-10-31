@@ -197,3 +197,72 @@ float hash(vec2 p) {
   float h = dot(p, vec2(127.1,311.7));
   return fract(sin(h) * 43758.5453123);
 }
+
+
+vec2 hash_iq(vec2 x) {
+  const vec2 k = vec2(0.3183099, 0.3678794);
+  x = x * k + k.yx;
+  return -1.0 + 2.0 * fract(16.0 * k * fract(x.x * x.y * (x.x + x.y)));
+}
+
+
+vec3 noised(vec2 x) {
+  // https://www.iquilezles.org/www/articles/gradientnoise/gradientnoise.htm
+  vec2 i = floor(x);
+  vec2 f = fract(x);
+
+  vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+  vec2 du = 30.0 * f * f * (f * (f - 2.0) + 1.0);
+
+  vec2 ga = hash_iq(i + vec2(0.0, 0.0));
+  vec2 gb = hash_iq(i + vec2(1.0, 0.0));
+  vec2 gc = hash_iq(i + vec2(0.0, 1.0));
+  vec2 gd = hash_iq(i + vec2(1.0, 1.0));
+
+  float va = dot(ga, f - vec2(0.0, 0.0));
+  float vb = dot(gb, f - vec2(1.0, 0.0));
+  float vc = dot(gc, f - vec2(0.0, 1.0));
+  float vd = dot(gd, f - vec2(1.0, 1.0));
+
+  return vec3(
+    // Value
+    va + u.x * (vb - va) + u.y * (vc - va) + u.x * u.y * (va - vb - vc + vd),
+    // Derivatives
+    ga + u.x * (gb - ga) + u.y * (gc - ga) + u.x * u.y * (ga - gb - gc + gd) +
+    du * (u.yx * (va - vb - vc + vd) + vec2(vb, vc) - va)
+  );
+}
+
+
+
+vec2 random2(vec2 st){
+  st = vec2(
+    dot(st, vec2(127.1, 311.7)),
+    dot(st, vec2(269.5, 183.3))
+  );
+  return -1.0 + 2.0 * fract(sin(st) * 43758.5453123);
+}
+
+
+float noise(vec2 st) {
+  // Gradient Noise by Inigo Quilez - iq/2013
+  // https://www.shadertoy.com/view/XdXGW8
+  vec2 i = floor(st);
+  vec2 f = fract(st);
+
+  vec2 u = f * f * (3.0 - 2.0 * f);
+
+  return mix(
+    mix(
+      dot(random2(i + vec2(0.0, 0.0)), f - vec2(0.0, 0.0)),
+      dot(random2(i + vec2(1.0, 0.0)), f - vec2(1.0, 0.0)),
+      u.x
+    ),
+    mix(
+      dot(random2(i + vec2(0.0, 1.0)), f - vec2(0.0, 1.0)),
+      dot(random2(i + vec2(1.0, 1.0)), f - vec2(1.0, 1.0)),
+      u.x
+    ),
+    u.y
+  );
+}
