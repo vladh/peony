@@ -7,6 +7,7 @@
 #include "gl.hpp"
 
 global_variable uint32 global_oopses = 0;
+global_variable real32 global_dir_light_angle = PI / 4;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -221,6 +222,23 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 }
 
 
+void update_light_position(State *state, real32 amount) {
+  for (uint32 idx = 0; idx < state->lights.size; idx++) {
+    EntityHandle *handle = state->lights.get(idx);
+
+    if (handle) {
+      LightComponent *light_component = state->light_component_manager.get(*handle);
+      if (light_component->type == LIGHT_DIRECTIONAL) {
+        global_dir_light_angle += amount;
+        light_component->direction = glm::vec3(
+          sin(global_dir_light_angle), -cos(global_dir_light_angle), 0.0f
+        );
+      }
+    }
+  }
+}
+
+
 void process_input_continuous(GLFWwindow *window, State *state) {
   if (state->control.is_key_down(GLFW_KEY_W)) {
     state->camera_active->move_front_back(1, state->dt);
@@ -236,6 +254,14 @@ void process_input_continuous(GLFWwindow *window, State *state) {
 
   if (state->control.is_key_down(GLFW_KEY_D)) {
     state->camera_active->move_left_right(1, state->dt);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_Z)) {
+    update_light_position(state, 0.1f * (real32)state->dt);
+  }
+
+  if (state->control.is_key_down(GLFW_KEY_X)) {
+    update_light_position(state, -0.1f * (real32)state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_SPACE)) {
