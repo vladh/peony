@@ -3,8 +3,14 @@
 #define ARE_NORMAL_MAPS_ENABLED true
 
 // vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.09, 0.18);
+
 vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.01, 0.10);
 vec3 WATER_ALBEDO_SHALLOW = vec3(0.0, 0.5, 0.5);
+vec3 WATER_ALBEDO_BRIGHT = vec3(1.0, 1.0, 1.0);
+
+// vec3 WATER_ALBEDO_SHALLOW = vec3(0.52, 0.77, 0.80);
+// vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.44, 0.50);
+
 vec3 WATER_FOAM_COLOR = vec3(1.0, 1.0, 1.0);
 float WATER_FOAM_ALPHA = 0.8;
 float WATER_MAX_DEPTH = 2.0;
@@ -25,8 +31,10 @@ in BLOCK {
   vec3 world_position;
   vec2 screen_position;
   vec3 normal;
+#if SHOULD_CALCUALTE_TANGENT_IN_VERTEX_SHADER
   vec3 bitangent;
   vec3 tangent;
+#endif
   vec2 tex_coords;
 } fs_in;
 
@@ -39,8 +47,7 @@ vec3 get_sky_color(vec3 V) {
 
 
 float diffuse(float n_dot_l) {
-  return pow(n_dot_l * 0.3 + 0.1, 2.0);
-  // return pow(n_dot_l * 0.4 + 0.6, p);
+  return pow(n_dot_l * 0.5, 4.0);
 }
 
 
@@ -48,9 +55,7 @@ float specular(float r_dot_v) {
   // float s = 60;
   // float nrm = (s + 8.0) / (M_PI * 8.0);
   // return pow(r_dot_v, s) * nrm;
-  float s = 1500;
-  float specular_strength = 10.0;
-  return pow(r_dot_v, s) * specular_strength;
+  return pow(r_dot_v, 1500) * 12.0;
 }
 
 
@@ -59,23 +64,52 @@ void main() {
   // vec3 curr_light_position = vec3(light_position[0]); // Directional light
   const float plane_size = 100.0;
   vec2 corrected_tex_coords = (fs_in.world_position.xz - plane_size / 2) / plane_size;
-  vec2 normal_tex_coords = corrected_tex_coords * 10.0 /*- vec2(t / 60, t / 60)*/;
+  vec2 normal_tex_coords_1 = corrected_tex_coords * 30.0 /*- vec2(sin(t) / 25, cos(t) / 35*/;
+  vec2 normal_tex_coords_2 = (corrected_tex_coords + vec2(0.2, 0.4)) * 25.0;
   vec3 unit_normal = normalize(fs_in.normal);
   vec3 N;
 
   if (ARE_NORMAL_MAPS_ENABLED && should_use_normal_map) {
-    vec3 tangent_normal_rgb = texture(normal_texture, normal_tex_coords).xyz * 2.0 - 1.0;
-    vec3 tangent_normal = vec3(
-      tangent_normal_rgb.b, tangent_normal_rgb.g, tangent_normal_rgb.r
+#if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
+    vec3 tangent_normal_1_rgb = texture(normal_texture, normal_tex_coords_1).xyz * 2.0 - 1.0;
+    vec3 tangent_normal_1 = vec3(
+      tangent_normal_1_rgb.b, tangent_normal_1_rgb.g, tangent_normal_1_rgb.r
+    );
+    vec3 tangent_normal_2_rgb = texture(normal_texture, normal_tex_coords_2).xyz * 2.0 - 2.0;
+    vec3 tangent_normal_2 = vec3(
+      tangent_normal_rgb_2.b, tangent_normal_rgb_2.g, tangent_normal_rgb_2.r
+    );
+    vec3 tangent_normal = normalize(
+      (sin(t) * 0.5 + 0.5) * tangent_normal_1 +
+      (cos(t) * 0.5 + 0.5) * tangent_normal_2 +
+      unit_normal
     );
     mat3 TBN = mat3(fs_in.tangent, fs_in.bitangent, unit_normal);
     N = normalize(TBN * tangent_normal);
+#else
+    vec3 normal_from_map_1 = get_normal_from_map(
+      texture(normal_texture, normal_tex_coords_1),
+      fs_in.world_position,
+      unit_normal,
+      normal_tex_coords_1
+    );
+    vec3 normal_from_map_2 = get_normal_from_map(
+      texture(normal_texture, normal_tex_coords_2),
+      fs_in.world_position,
+      unit_normal,
+      normal_tex_coords_2
+    );
+    N = normalize(
+      (sin(t) * 0.5 + 0.5) * normal_from_map_1 +
+      (cos(t) * 0.5 + 0.5) * normal_from_map_2 +
+      unit_normal
+    );
+#endif
   } else {
     N = unit_normal;
   }
 
   vec3 V = normalize(camera_position - fs_in.world_position);
-  // vec3 L = normalize(curr_light_position - fs_in.world_position);
   vec3 L = normalize(vec3(-light_direction[0]));
   vec3 H = normalize(V + L);
   vec3 R = reflect(-L, N);
@@ -114,23 +148,10 @@ void main() {
     underwater_distance_factor;
 
   float depth_factor = to_unit_interval(fs_in.world_position.y, WATER_MIN_DEPTH, WATER_MAX_DEPTH);
-
   vec3 shallow_color = WATER_ALBEDO_SHALLOW * depth_factor;
-  vec3 reflected =
-    // (get_sky_color(R)) +
-    (SKY_ALBEDO / 3.0) +
-    (shallow_color / 2.0);
-  vec3 refracted =
-    underwater_albedo +
-    WATER_ALBEDO_DEEP +
-    (shallow_color / 2.0) +
-    diffuse(n_dot_l) * WATER_ALBEDO_SHALLOW;
-
-  vec3 color =
-    mix(refracted, reflected, F) +
-    specular(r_dot_v);
 
   // TODO: There's a better way of doing this.
+  vec3 foam_color = vec3(0.0);
   vec2 foam_tex_coords = corrected_tex_coords * 90.0;
   float channelA = texture(
     foam_texture,
@@ -141,20 +162,37 @@ void main() {
     foam_tex_coords * 0.5 + vec2(sin(corrected_tex_coords.y), 3.0)
   ).b;
   float mask = clamp(pow((channelA + channelB), 2), 0, 1);
-
   float water_to_underwater_dist = length(fs_in.world_position - underwater_position);
   float foam_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_DIST);
   vec3 foam = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_falloff;
   if (underwater_position != vec3(0.0, 0.0, 0.0)) {
-    color += clamp(foam - mask, 0.0, 1.0);
+    foam_color = clamp(foam - mask, 0.0, 1.0);
   }
 
-  // color = N;
-  // color = vec3(pow(r_dot_v, 500));
-  // color = vec3(F);
+  vec3 reflected =
+    // (get_sky_color(R)) +
+    (SKY_ALBEDO / 3.0) +
+    vec3(0.0);
+
+  vec3 refracted =
+    underwater_albedo +
+    WATER_ALBEDO_DEEP +
+    vec3(0.0);
+
+  vec3 color =
+    mix(refracted, reflected, F) +
+    diffuse(n_dot_l) * SKY_ALBEDO +
+    specular(r_dot_v) * SUN_ALBEDO +
+    shallow_color +
+    foam_color +
+    vec3(0.0);
 
   color = add_tone_mapping(color);
   color = correct_gamma(color);
+
+  // color = N;
+  // color = vec3(pow(n_dot_l * 0.5, 4.0));
+  // color = vec3(F);
 
   frag_color = vec4(color, 1.0);
 }
