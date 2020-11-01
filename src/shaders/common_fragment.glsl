@@ -5,8 +5,7 @@
 
 vec3 SKY_ALBEDO = vec3(0.56, 0.77, 0.95);
 vec3 GROUND_ALBEDO = vec3(1.0, 1.0, 1.0);
-/* vec3 SKY_ALBEDO = vec3(1.0, 0.0, 0.0); */
-/* vec3 GROUND_ALBEDO = vec3(0.0, 0.0, 1.0); */
+vec3 SUN_ALBEDO = vec3(0.96, 0.86, 0.50);
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),

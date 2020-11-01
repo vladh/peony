@@ -3,6 +3,7 @@
 #define M_PI 3.14159265358979323846
 #define M_EPSILON 1e-5
 #define MAX_N_LIGHTS 8
+#define SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER false
 
 #define LIGHT_POINT 0
 #define LIGHT_DIRECTIONAL 1
@@ -40,19 +41,30 @@ struct WaveParameterSet {
   float speed;
 };
 
-const int n_waves = 8;
+const int n_waves = 14;
+const float a = 0.5; // amplitude factor
 WaveParameterSet wave_parameter_sets[n_waves] = WaveParameterSet[n_waves](
   // Choppy small waves
-  WaveParameterSet(vec2(0.8, 0.1), 0.02, 0.001, 7.8, 0.5),
-  WaveParameterSet(vec2(0.2, 0.0), 0.03, 0.003, 5.2, 0.3),
-  WaveParameterSet(vec2(0.0, 1.0), 0.02, 0.002, 4.3, 0.1),
+  /* WaveParameterSet(vec2(0.8, 0.1),  0.02 * amplitude_factor, 0.001, 7.8, 0.5), */
+  /* WaveParameterSet(vec2(0.2, 0.0),  0.03 * amplitude_factor, 0.003, 5.2, 0.3), */
+  /* WaveParameterSet(vec2(0.0, 1.0),  0.02 * amplitude_factor, 0.002, 4.3, 0.1) */
+  // Choppy small waves v2
+  WaveParameterSet(vec2(1.0 + sin(t / 12) / 8, 0.00 + cos(t / 15) / 5), 0.002 * a, 0.001, 17.8, 0.3 + sin(t / 11) / 400),
+  WaveParameterSet(vec2(1.0 + cos(t / 13) / 8, 0.01 + cos(t / 13) / 5), 0.003 * a, 0.003, 15.2, 0.2 + sin(t / 13) / 500),
+  WaveParameterSet(vec2(1.0 + cos(t / 12) / 8, 0.02 + cos(t / 12) / 5), 0.002 * a, 0.002, 14.3, 0.1 + sin(t / 12) / 600),
+  WaveParameterSet(vec2(0.0 + sin(t / 11) / 8, 1.00 + cos(t / 11) / 5), 0.003 * a, 0.001, 15.8, 0.4 + sin(t / 13) / 700),
+  WaveParameterSet(vec2(0.1 + cos(t / 14) / 8, 1.00 + cos(t / 14) / 5), 0.002 * a, 0.003, 14.2, 0.2 + sin(t / 11) / 400),
+  WaveParameterSet(vec2(0.2 + sin(t / 13) / 8, 1.00 + cos(t / 16) / 5), 0.003 * a, 0.002, 13.3, 0.1 + sin(t / 12) / 700),
+  WaveParameterSet(vec2(0.4 + sin(t / 12) / 8, 0.06 + cos(t / 15) / 5), 0.003 * a, 0.002, 13.8, 0.2 + sin(t / 15) / 800),
+  WaveParameterSet(vec2(0.4 + cos(t / 13) / 8, 0.06 + cos(t / 17) / 5), 0.002 * a, 0.003, 11.2, 0.2 + sin(t / 15) / 900),
+  WaveParameterSet(vec2(0.4 + cos(t / 15) / 8, 0.06 + cos(t / 18) / 5), 0.003 * a, 0.002, 12.3, 0.1 + sin(t / 13) / 700),
   // Big waves
-  WaveParameterSet(vec2(0.0, 0.8), 0.5, 0.41, 0.8, 0.8),
-  WaveParameterSet(vec2(0.1, 0.7), 0.3, 0.25, 0.9, 1.5),
-  WaveParameterSet(vec2(0.75, 0.1), 0.2, 0.12, 0.8, 0.5),
-  WaveParameterSet(vec2(0.5, 0.5), 0.2, 0.20, 0.3, 0.1),
+  WaveParameterSet(vec2(0.0, 0.8),  0.5 * a, 0.41, 0.8, 0.8),
+  WaveParameterSet(vec2(0.1, 0.7),  0.3 * a, 0.25, 0.9, 1.5),
+  WaveParameterSet(vec2(0.75, 0.1), 0.2 * a, 0.12, 0.8, 0.5),
+  WaveParameterSet(vec2(0.5, 0.5),  0.2 * a, 0.20, 0.3, 0.1),
   // Slow large waves
-  WaveParameterSet(vec2(0.5, 0.5), 0.3, 0.12, 0.4, 0.25)
+  WaveParameterSet(vec2(0.5, 0.5),  0.3 * a, 0.12, 0.4, 0.25)
 );
 
 vec3 water_make_normal_gerstner_osgw(vec3 water_position) {
@@ -143,8 +155,10 @@ vec3 water_make_normal_gerstner_vlad(
   vec3 wave_position, out vec3 normal, out vec3 bitangent, out vec3 tangent
 ) {
   normal = vec3(0.0, 1.0, 0.0);
+#if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
   bitangent = vec3(1.0, 0.0, 0.0);
   tangent = vec3(0.0, 0.0, 1.0);
+#endif
 
   for (int idx = 0; idx < n_waves; idx++) {
     float amplitude = wave_parameter_sets[idx].amplitude;
@@ -163,6 +177,7 @@ vec3 water_make_normal_gerstner_vlad(
     normal.z -= direction.y * wa * cos_term;
     normal.y -= steepness * wa * sin_term;
 
+#if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
     bitangent.x -= steepness * pow(direction.x, 2) * wa * sin_term;
     bitangent.y += direction.x * wa * cos_term;
     bitangent.z -= steepness * direction.x * direction.y * wa * sin_term;
@@ -170,6 +185,7 @@ vec3 water_make_normal_gerstner_vlad(
     tangent.x -= steepness * direction.x * direction.y * wa * sin_term;
     tangent.y += direction.y * wa * cos_term;
     tangent.z -= steepness * pow(direction.y, 2) * wa * sin_term;
+#endif
   }
 
   return normalize(normal);
