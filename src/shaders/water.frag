@@ -64,8 +64,8 @@ void main() {
   // vec3 curr_light_position = vec3(light_position[0]); // Directional light
   const float plane_size = 100.0;
   vec2 corrected_tex_coords = (fs_in.world_position.xz - plane_size / 2) / plane_size;
-  vec2 normal_tex_coords_1 = corrected_tex_coords * 30.0 /*- vec2(sin(t) / 25, cos(t) / 35*/;
-  vec2 normal_tex_coords_2 = (corrected_tex_coords + vec2(0.2, 0.4)) * 25.0;
+  vec2 normal_tex_coords_1 = corrected_tex_coords * 10.0 /*- vec2(sin(t) / 25, cos(t) / 35*/;
+  vec2 normal_tex_coords_2 = (corrected_tex_coords + vec2(0.2, 0.4)) * 15.0;
   vec3 unit_normal = normalize(fs_in.normal);
   vec3 N;
 
@@ -82,7 +82,7 @@ void main() {
     vec3 tangent_normal = normalize(
       (sin(t) * 0.5 + 0.5) * tangent_normal_1 +
       (cos(t) * 0.5 + 0.5) * tangent_normal_2 +
-      unit_normal
+      unit_normal * 3
     );
     mat3 TBN = mat3(fs_in.tangent, fs_in.bitangent, unit_normal);
     N = normalize(TBN * tangent_normal);
@@ -102,7 +102,7 @@ void main() {
     N = normalize(
       (sin(t) * 0.5 + 0.5) * normal_from_map_1 +
       (cos(t) * 0.5 + 0.5) * normal_from_map_2 +
-      unit_normal
+      unit_normal * 3
     );
 #endif
   } else {

@@ -41,28 +41,34 @@ struct WaveParameterSet {
   float speed;
 };
 
-const int n_waves = 14;
-const float a = 0.5; // amplitude factor
+const int n_waves = 19;
+const float a = 0.9; // amplitude factor
 WaveParameterSet wave_parameter_sets[n_waves] = WaveParameterSet[n_waves](
   // Choppy small waves
   /* WaveParameterSet(vec2(0.8, 0.1),  0.02 * amplitude_factor, 0.001, 7.8, 0.5), */
   /* WaveParameterSet(vec2(0.2, 0.0),  0.03 * amplitude_factor, 0.003, 5.2, 0.3), */
   /* WaveParameterSet(vec2(0.0, 1.0),  0.02 * amplitude_factor, 0.002, 4.3, 0.1) */
   // Choppy small waves v2
-  WaveParameterSet(vec2(1.0 + sin(t / 12) / 8, 0.00 + cos(t / 15) / 5), 0.002 * a, 0.001, 17.8, 0.3 + sin(t / 11) / 400),
-  WaveParameterSet(vec2(1.0 + cos(t / 13) / 8, 0.01 + cos(t / 13) / 5), 0.003 * a, 0.003, 15.2, 0.2 + sin(t / 13) / 500),
-  WaveParameterSet(vec2(1.0 + cos(t / 12) / 8, 0.02 + cos(t / 12) / 5), 0.002 * a, 0.002, 14.3, 0.1 + sin(t / 12) / 600),
-  WaveParameterSet(vec2(0.0 + sin(t / 11) / 8, 1.00 + cos(t / 11) / 5), 0.003 * a, 0.001, 15.8, 0.4 + sin(t / 13) / 700),
-  WaveParameterSet(vec2(0.1 + cos(t / 14) / 8, 1.00 + cos(t / 14) / 5), 0.002 * a, 0.003, 14.2, 0.2 + sin(t / 11) / 400),
-  WaveParameterSet(vec2(0.2 + sin(t / 13) / 8, 1.00 + cos(t / 16) / 5), 0.003 * a, 0.002, 13.3, 0.1 + sin(t / 12) / 700),
-  WaveParameterSet(vec2(0.4 + sin(t / 12) / 8, 0.06 + cos(t / 15) / 5), 0.003 * a, 0.002, 13.8, 0.2 + sin(t / 15) / 800),
-  WaveParameterSet(vec2(0.4 + cos(t / 13) / 8, 0.06 + cos(t / 17) / 5), 0.002 * a, 0.003, 11.2, 0.2 + sin(t / 15) / 900),
-  WaveParameterSet(vec2(0.4 + cos(t / 15) / 8, 0.06 + cos(t / 18) / 5), 0.003 * a, 0.002, 12.3, 0.1 + sin(t / 13) / 700),
+  WaveParameterSet(vec2(1.0 + sin(t / 12) / 8, 0.00 + cos(t / 15) / 5), 0.004 * a, 0.01, 17.8, 0.3 + sin(t / 11) / 400),
+  WaveParameterSet(vec2(1.0 + cos(t / 13) / 8, 0.01 + cos(t / 13) / 5), 0.005 * a, 0.03, 15.2, 0.2 + sin(t / 13) / 500),
+  WaveParameterSet(vec2(1.0 + cos(t / 12) / 8, 0.02 + cos(t / 12) / 5), 0.004 * a, 0.02, 14.3, 0.1 + sin(t / 12) / 600),
+  WaveParameterSet(vec2(0.0 + sin(t / 11) / 8, 1.00 + cos(t / 11) / 5), 0.005 * a, 0.01, 15.8, 0.4 + sin(t / 13) / 700),
+  WaveParameterSet(vec2(0.1 + cos(t / 14) / 8, 1.00 + cos(t / 14) / 5), 0.004 * a, 0.03, 14.2, 0.2 + sin(t / 11) / 400),
+  WaveParameterSet(vec2(0.2 + sin(t / 13) / 8, 1.00 + cos(t / 16) / 5), 0.005 * a, 0.02, 13.3, 0.1 + sin(t / 12) / 700),
+  WaveParameterSet(vec2(0.4 + sin(t / 12) / 8, 0.06 + cos(t / 15) / 5), 0.005 * a, 0.02, 13.8, 0.2 + sin(t / 15) / 800),
+  WaveParameterSet(vec2(0.4 + cos(t / 13) / 8, 0.06 + cos(t / 17) / 5), 0.004 * a, 0.03, 11.2, 0.2 + sin(t / 15) / 900),
+  WaveParameterSet(vec2(0.4 + cos(t / 15) / 8, 0.06 + cos(t / 18) / 5), 0.005 * a, 0.02, 12.3, 0.1 + sin(t / 13) / 700),
+  // Steep high-frequency waves
+  WaveParameterSet(vec2(0.30, 0.50), 0.1 * a, 1.20, 5.3, 0.1),
+  WaveParameterSet(vec2(0.30, 0.50), 0.1 * a, 1.20, 4.3, 0.1),
+  WaveParameterSet(vec2(0.60, 0.10), 0.1 * a, 1.20, 4.3, 0.2),
+  WaveParameterSet(vec2(0.60, 0.10), 0.1 * a, 1.20, 3.3, 0.2),
   // Big waves
-  WaveParameterSet(vec2(0.0, 0.8),  0.5 * a, 0.41, 0.8, 0.8),
-  WaveParameterSet(vec2(0.1, 0.7),  0.3 * a, 0.25, 0.9, 1.5),
-  WaveParameterSet(vec2(0.75, 0.1), 0.2 * a, 0.12, 0.8, 0.5),
-  WaveParameterSet(vec2(0.5, 0.5),  0.2 * a, 0.20, 0.3, 0.1),
+  WaveParameterSet(vec2(0.00, 0.80), 0.3 * a, 0.41, 0.8, 0.8),
+  WaveParameterSet(vec2(0.80, 0.00), 0.3 * a, 0.31, 0.9, 0.7),
+  WaveParameterSet(vec2(0.10, 0.70), 0.3 * a, 0.25, 0.9, 1.5),
+  WaveParameterSet(vec2(0.75, 0.10), 0.2 * a, 0.12, 0.8, 0.5),
+  WaveParameterSet(vec2(0.50, 0.50), 0.2 * a, 0.20, 0.3, 0.1),
   // Slow large waves
   WaveParameterSet(vec2(0.5, 0.5),  0.3 * a, 0.12, 0.4, 0.25)
 );
