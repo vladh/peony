@@ -47,7 +47,9 @@ vec3 get_sky_color(vec3 V) {
 
 
 float diffuse(float n_dot_l) {
-  return pow(n_dot_l * 0.5, 4.0);
+  // return pow(n_dot_l * 0.4 + 0.3, 120.0);
+  // return pow(n_dot_l * 0.3 + 0.1, 2.0);
+  return pow(n_dot_l * 0.4 + 0.3, 4.0);
 }
 
 
@@ -171,7 +173,8 @@ void main() {
 
   vec3 reflected =
     // (get_sky_color(R)) +
-    (SKY_ALBEDO / 3.0) +
+    // SKY_ALBEDO +
+    diffuse(n_dot_l) * SKY_ALBEDO * 5.0 +
     vec3(0.0);
 
   vec3 refracted =
@@ -181,7 +184,6 @@ void main() {
 
   vec3 color =
     mix(refracted, reflected, F) +
-    diffuse(n_dot_l) * SKY_ALBEDO +
     specular(r_dot_v) * SUN_ALBEDO +
     shallow_color +
     foam_color +
@@ -191,7 +193,7 @@ void main() {
   color = correct_gamma(color);
 
   // color = N;
-  // color = vec3(pow(n_dot_l * 0.5, 4.0));
+  // color = vec3(pow(n_dot_l * 0.4 + 0.3, 4.0));
   // color = vec3(F);
 
   frag_color = vec4(color, 1.0);
