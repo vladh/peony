@@ -48,13 +48,17 @@ void main() {
 
   /* vec3 water_position = water_hf_position; */
   /* vec3 water_normal = water_hf_normal; */
+/* #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER */
   /* vec3 water_tangent = water_hf_tangent; */
   /* vec3 water_bitangent = water_hf_bitangent; */
+/* #endif */
 
   /* vec3 water_position = water_lf_position; */
   /* vec3 water_normal = water_lf_normal; */
+/* #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER */
   /* vec3 water_tangent = water_lf_tangent; */
   /* vec3 water_bitangent = water_lf_bitangent; */
+/* #endif */
 
   gl_Position = projection * view * vec4(water_position, 1.0);
 

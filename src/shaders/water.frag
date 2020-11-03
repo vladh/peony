@@ -6,6 +6,7 @@
 
 vec3 WATER_ALBEDO_DEEP = vec3(0.00, 0.01, 0.10);
 vec3 WATER_ALBEDO_SHALLOW = vec3(0.0, 0.5, 0.5);
+vec3 WATER_ALBEDO_VERY_SHALLOW = vec3(0.0, 0.9, 0.9);
 vec3 WATER_ALBEDO_BRIGHT = vec3(1.0, 1.0, 1.0);
 
 // vec3 WATER_ALBEDO_SHALLOW = vec3(0.52, 0.77, 0.80);
@@ -13,8 +14,8 @@ vec3 WATER_ALBEDO_BRIGHT = vec3(1.0, 1.0, 1.0);
 
 vec3 WATER_FOAM_COLOR = vec3(1.0, 1.0, 1.0);
 float WATER_FOAM_ALPHA = 0.8;
-float WATER_MAX_DEPTH = 2.0;
-float WATER_MIN_DEPTH = 0.0;
+float WATER_MAX_HEIGHT = 6.0;
+float WATER_MIN_HEIGHT = -0.5;
 float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
 float WATER_FOAM_DIST = 1.5;
 
@@ -149,8 +150,11 @@ void main() {
     sampled_albedo_discard_factor *
     underwater_distance_factor;
 
-  float depth_factor = to_unit_interval(fs_in.world_position.y, WATER_MIN_DEPTH, WATER_MAX_DEPTH);
-  vec3 shallow_color = WATER_ALBEDO_SHALLOW * depth_factor;
+  float depth_factor = to_unit_interval(
+    fs_in.world_position.y, WATER_MIN_HEIGHT, WATER_MAX_HEIGHT
+  );
+  // vec3 shallow_color = WATER_ALBEDO_VERY_SHALLOW * depth_factor;
+  vec3 shallow_color = mix(WATER_ALBEDO_DEEP, WATER_ALBEDO_VERY_SHALLOW, depth_factor);
 
   // TODO: There's a better way of doing this.
   vec3 foam_color = vec3(0.0);
@@ -173,7 +177,7 @@ void main() {
 
   vec3 reflected =
     // (get_sky_color(R)) +
-    // SKY_ALBEDO +
+    SKY_ALBEDO / 3.0 +
     diffuse(n_dot_l) * SKY_ALBEDO * 5.0 +
     vec3(0.0);
 
