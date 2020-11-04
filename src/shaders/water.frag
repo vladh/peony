@@ -17,7 +17,8 @@ float WATER_FOAM_ALPHA = 0.8;
 float WATER_MAX_HEIGHT = 6.0;
 float WATER_MIN_HEIGHT = -0.5;
 float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
-float WATER_FOAM_DIST = 1.5;
+float WATER_FOAM_DIST = 3.0;
+float WATER_FOAM_SKIRT_DIST = 0.5;
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_albedo_texture;
@@ -160,19 +161,23 @@ void main() {
   vec3 foam_color = vec3(0.0);
   vec2 foam_tex_coords = corrected_tex_coords * 90.0;
   float channelA = texture(
-    foam_texture,
-    foam_tex_coords - vec2(3.0, cos(corrected_tex_coords.x))
+    foam_texture, foam_tex_coords - vec2(3.0, cos(corrected_tex_coords.x))
   ).r;
   float channelB = texture(
-    foam_texture,
-    foam_tex_coords * 0.5 + vec2(sin(corrected_tex_coords.y), 3.0)
+    foam_texture, foam_tex_coords * 0.5 + vec2(sin(corrected_tex_coords.y), 3.0)
   ).b;
   float mask = clamp(pow((channelA + channelB), 2), 0, 1);
   float water_to_underwater_dist = length(fs_in.world_position - underwater_position);
   float foam_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_DIST);
+  float foam_skirt_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_SKIRT_DIST);
   vec3 foam = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_falloff;
+  vec3 foam_skirt = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_skirt_falloff;
   if (underwater_position != vec3(0.0, 0.0, 0.0)) {
-    foam_color = clamp(foam - mask, 0.0, 1.0);
+    // foam_color = clamp(foam - mask, 0.0, 1.0);
+    // foam_color = clamp(foam * foam_falloff, 0.0, 1.0);
+    foam_color = clamp(
+      max(foam - mask, foam_skirt), 0.0, 1.0
+    );
   }
 
   vec3 reflected =
