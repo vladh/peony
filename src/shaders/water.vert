@@ -9,7 +9,7 @@ out BLOCK {
   vec3 world_position;
   vec2 screen_position;
   vec3 normal;
-#if SHOULD_CALCUALTE_TANGENT_IN_VERTEX_SHADER
+#if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
   vec3 bitangent;
   vec3 tangent;
 #endif

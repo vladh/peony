@@ -19,6 +19,7 @@ float WATER_MIN_HEIGHT = -0.5;
 float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
 float WATER_FOAM_DIST = 1.5;
 float WATER_FOAM_SKIRT_DIST = 0.5;
+float WATER_SHADOW_FACTOR = 0.5;
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_albedo_texture;
@@ -33,7 +34,7 @@ in BLOCK {
   vec3 world_position;
   vec2 screen_position;
   vec3 normal;
-#if SHOULD_CALCUALTE_TANGENT_IN_VERTEX_SHADER
+#if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
   vec3 bitangent;
   vec3 tangent;
 #endif
@@ -66,13 +67,14 @@ void main() {
 
   if (ARE_NORMAL_MAPS_ENABLED && should_use_normal_map) {
 #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
+    // TODO: Fix or remove this. It's broken atm.
     vec3 tangent_normal_1_rgb = texture(normal_texture, normal_tex_coords_1).xyz * 2.0 - 1.0;
     vec3 tangent_normal_1 = vec3(
       tangent_normal_1_rgb.b, tangent_normal_1_rgb.g, tangent_normal_1_rgb.r
     );
     vec3 tangent_normal_2_rgb = texture(normal_texture, normal_tex_coords_2).xyz * 2.0 - 2.0;
     vec3 tangent_normal_2 = vec3(
-      tangent_normal_rgb_2.b, tangent_normal_rgb_2.g, tangent_normal_rgb_2.r
+      tangent_normal_2_rgb.b, tangent_normal_2_rgb.g, tangent_normal_2_rgb.r
     );
     vec3 tangent_normal = normalize(
       (sin(t) * 0.5 + 0.5) * tangent_normal_1 +
@@ -105,7 +107,8 @@ void main() {
   }
 
   vec3 V = normalize(camera_position - fs_in.world_position);
-  vec3 L = normalize(vec3(-light_direction[0])); // TODO: Send this light separately?
+  // TODO: Send this light separately?
+  vec3 L = normalize(vec3(-light_direction[0]));
   vec3 H = normalize(V + L);
   vec3 R = reflect(-L, N);
   float h_dot_v = max(dot(H, V), M_EPSILON);
@@ -188,6 +191,12 @@ void main() {
     shallow_color * SUNSET_LIGHT_FACTOR +
     foam_color +
     vec3(0.0);
+
+#if SHOULD_USE_SHADOWS
+  // TODO: Send this light separately?
+  float shadow = calculate_shadows(fs_in.world_position, N, 0);
+  color = color * (1.0 - (shadow * WATER_SHADOW_FACTOR));
+#endif
 
   color = add_tone_mapping(color);
   color = correct_gamma(color);

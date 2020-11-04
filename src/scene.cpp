@@ -133,24 +133,21 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 #endif
 
-  // Spheres
-#if 0
-  uint32 n_spheres = 8;
-  for (uint16 idx = 0; idx < n_spheres; idx++) {
-    entity = state->entity_manager.add("sphere");
-    state->spatial_component_manager.add(
-      entity->handle,
-      glm::vec3(Util::random(-3.0f, 3.0f), 0.0f, Util::random(-3.0f, 3.0f)),
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-      glm::vec3(0.5f)
-    );
-    state->drawable_component_manager.add(
-      entity->handle,
-      ModelAsset::get_by_name(&state->model_assets, "sphere"),
-      RENDERPASS_DEFERRED
-    );
-    state->spheres.push(entity->handle);
-  }
+  // Skysphere
+#if 1
+  entity = state->entity_manager.add("skysphere");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(30.0f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "skysphere"),
+    RENDERPASS_FORWARD_SKYBOX
+  );
+  state->skysphere = entity->handle;
 #endif
 
   // Axes

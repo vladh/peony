@@ -95,7 +95,7 @@ void scene_init_resources(Memory *memory, State *state) {
     };
   }
 
-  // Sphere
+  // Skysphere
   {
     uint32 n_vertices;
     uint32 n_indices;
@@ -112,22 +112,16 @@ void scene_init_resources(Memory *memory, State *state) {
       MODELSOURCE_DATA,
       vertex_data, n_vertices,
       index_data, n_indices,
-      "sphere",
+      "skysphere",
       GL_TRIANGLE_STRIP
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
-      "entity",
-      SHADER_STANDARD,
-      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
+      "skysphere",
+      SHADER_OTHER_OBJECT,
+      SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag"
     );
-    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-    texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/rusted_iron/albedo.png"));
-    texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/rusted_iron/metallic.png"));
-    texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/rusted_iron/roughness.png"));
-    texture_set->set_ao_static(1.0f);
-    texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/rusted_iron/normal.png"));
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
   }
 
   // ===============================

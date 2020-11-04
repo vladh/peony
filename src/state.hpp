@@ -47,7 +47,7 @@ public:
 
   Array<EntityHandle> lights;
   Array<EntityHandle> geese;
-  Array<EntityHandle> spheres;
+  EntityHandle skysphere;
   EntityHandle ocean;
 
   PersistentPbo persistent_pbo;
