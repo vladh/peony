@@ -41,13 +41,6 @@ in BLOCK {
 } fs_in;
 
 
-vec3 get_sky_color(vec3 V) {
-  // TODO: Figure this out.
-  float y = (max(V.y,0.0)*0.8+0.2)*0.8;
-  return vec3(pow(1.0-y,2.0), 1.0-y, 0.6+(1.0-y)*0.4) * 1.1;
-}
-
-
 float diffuse(float n_dot_l) {
   // return pow(n_dot_l * 0.4 + 0.3, 120.0);
   // return pow(n_dot_l * 0.3 + 0.1, 2.0);
@@ -169,8 +162,6 @@ void main() {
     float foam_skirt_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_SKIRT_DIST);
     vec3 foam = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_falloff;
     vec3 foam_skirt = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_skirt_falloff;
-    // foam_color = clamp(foam - mask, 0.0, 1.0);
-    // foam_color = clamp(foam * foam_falloff, 0.0, 1.0);
     foam_color = clamp(
       max(foam - mask, foam_skirt), 0.0, 1.0
     );
@@ -179,11 +170,9 @@ void main() {
   float depth_factor = to_unit_interval(
     fs_in.world_position.y, WATER_MIN_HEIGHT, WATER_MAX_HEIGHT
   );
-  // vec3 shallow_color = WATER_ALBEDO_VERY_SHALLOW * depth_factor;
   vec3 shallow_color = mix(WATER_ALBEDO_DEEP, WATER_ALBEDO_VERY_SHALLOW, depth_factor);
 
   vec3 reflected =
-    // (get_sky_color(R)) +
     SKY_REFLECTION_ALBEDO / 3.0 +
     diffuse(n_dot_l) * SKY_REFLECTION_ALBEDO * 5.0 * SUNSET_LIGHT_FACTOR +
     vec3(0.0);
@@ -204,7 +193,6 @@ void main() {
   color = correct_gamma(color);
 
   // color = N;
-  // color = vec3(pow(n_dot_l * 0.4 + 0.3, 4.0));
   // color = vec3(underwater_position);
 
   frag_color = vec4(color, 1.0);
