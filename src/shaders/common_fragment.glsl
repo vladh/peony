@@ -3,8 +3,30 @@
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20
 
-vec3 SKY_ALBEDO = vec3(0.56, 0.77, 0.95);
-vec3 GROUND_ALBEDO = vec3(1.0, 1.0, 1.0);
+vec3 SUN_DIRECTION = vec3(light_direction[0]); // TODO: Send this light separately?
+vec3 SUN_DIRECTION_AT_SUNSET = vec3(SUN_DIRECTION.x, 0.0, SUN_DIRECTION.z);
+float SUNSET_FACTOR = clamp(
+  pow(dot(SUN_DIRECTION, SUN_DIRECTION_AT_SUNSET), 4),
+  0.0,
+  1.0
+);
+float SUNSET_LIGHT_FACTOR = clamp((1.0 - SUNSET_FACTOR) + 0.1, 0.0, 1.0);
+
+vec3 SKY_ALBEDO = mix(
+  vec3(0.56, 0.77, 0.95),
+  vec3(0.66, 0.47, 0.41),
+  SUNSET_FACTOR
+);
+vec3 GROUND_ALBEDO = mix(
+  vec3(1.0, 1.0, 1.0),
+  vec3(0.98, 0.90, 0.63),
+  SUNSET_FACTOR
+);
+vec3 SKY_REFLECTION_ALBEDO = mix(
+  SKY_ALBEDO,
+  GROUND_ALBEDO,
+  SUNSET_FACTOR
+);
 vec3 SUN_ALBEDO = vec3(0.96, 0.86, 0.50);
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
