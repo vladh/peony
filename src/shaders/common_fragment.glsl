@@ -1,15 +1,14 @@
 #define GAMMA 2.2
-#define USE_SHADOWS false
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20
+#define SHOULD_USE_SHADOWS 1
 
-vec3 SUN_DIRECTION = vec3(light_direction[0]); // TODO: Send this light separately?
-vec3 SUN_DIRECTION_AT_SUNSET = vec3(SUN_DIRECTION.x, 0.0, SUN_DIRECTION.z);
-float SUNSET_FACTOR = clamp(
-  pow(dot(SUN_DIRECTION, SUN_DIRECTION_AT_SUNSET), 4),
-  0.0,
-  1.0
-);
+// TODO: Send this light separately?
+vec3 SUN_DIRECTION = normalize(vec3(light_direction[0]));
+vec3 SUN_DIRECTION_AT_SUNSET = normalize(vec3(SUN_DIRECTION.x, 0.0, SUN_DIRECTION.z));
+float SUN_DOT = dot(SUN_DIRECTION, SUN_DIRECTION_AT_SUNSET);
+float SUN_ANGLE = acos(SUN_DOT);
+float SUNSET_FACTOR = clamp(pow(SUN_DOT, 4), 0.0, 1.0);
 float SUNSET_LIGHT_FACTOR = clamp((1.0 - SUNSET_FACTOR) + 0.1, 0.0, 1.0);
 
 vec3 SKY_ALBEDO = mix(
@@ -50,12 +49,6 @@ uniform sampler2DArray texture_shadowmaps;
 
 
 vec3 get_sky_color(float angle) {
-  if (angle > 90.0) {
-    angle = 180.0 - angle;
-  }
-  if (angle < -90.0) {
-    angle = -180.0 - angle;
-  }
   return mix(
     GROUND_ALBEDO,
     SKY_ALBEDO,
@@ -67,8 +60,7 @@ vec3 get_sky_color(float angle) {
 
 float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
   float shadow = 0.0;
-  // TODO: Calculate this in a better way.
-  float bias = 0.15 / far_clip_dist;
+  float bias = 0.10 / far_clip_dist;
 
   vec3 light_to_frag = world_position - vec3(light_position[idx_light]);
   float view_distance = length(camera_position - world_position);
@@ -310,9 +302,9 @@ vec3 compute_pbr_light(
   for (int idx_light = 0; idx_light < n_lights; idx_light++) {
     float shadow = 0;
 
-    if (USE_SHADOWS) {
+#if SHOULD_USE_SHADOWS
       shadow = calculate_shadows(world_position, N, idx_light);
-    }
+#endif
 
     if (light_type[idx_light].x == LIGHT_POINT) {
       Lo += compute_point_light(

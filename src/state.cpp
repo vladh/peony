@@ -60,9 +60,6 @@ State::State(
   geese(
     Array<EntityHandle>(&memory->entity_memory_pool, 512, "geese")
   ),
-  spheres(
-    Array<EntityHandle>(&memory->entity_memory_pool, 512, "spheres")
-  ),
   persistent_pbo(25, 2048, 2048, 4),
   texture_name_pool(memory, 64, 4),
   task_queue(
@@ -72,8 +69,12 @@ State::State(
   cube_shadowmap_height(this->window_info.width),
   /* texture_shadowmap_width(4096), */
   /* texture_shadowmap_height(4096), */
-  texture_shadowmap_width((uint32)((real32)this->window_info.width * 2.00f)),
-  texture_shadowmap_height((uint32)((real32)this->window_info.height * 2.00f)),
+  texture_shadowmap_width(
+    (uint32)((real32)this->window_info.width * TEXTURE_SHADOWMAP_SCREEN_SIZE_FACTOR)
+  ),
+  texture_shadowmap_height(
+    (uint32)((real32)this->window_info.height * TEXTURE_SHADOWMAP_SCREEN_SIZE_FACTOR)
+  ),
   shadowmap_near_clip_dist(0.05f),
   shadowmap_far_clip_dist(200.0f)
 {

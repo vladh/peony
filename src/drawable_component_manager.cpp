@@ -10,6 +10,9 @@ DrawableComponent* DrawableComponentManager::add(
   ModelAsset *model_asset,
   RenderPass target_render_pass
 ) {
+  if (!model_asset) {
+    log_fatal("Invalid model_asset when creating DrawableComponent.");
+  }
   DrawableComponent *new_component = this->components->push();
   new_component->entity_handle = entity_handle;
   new_component->model_asset = model_asset;

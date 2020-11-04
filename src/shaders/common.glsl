@@ -3,7 +3,7 @@
 #define M_PI 3.14159265358979323846
 #define M_EPSILON 1e-5
 #define MAX_N_LIGHTS 8
-#define SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER false
+#define SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER 0
 
 #define LIGHT_POINT 0
 #define LIGHT_DIRECTIONAL 1
@@ -205,6 +205,16 @@ vec3 water_make_normal(
   vec3 water_position, inout vec3 normal, inout vec3 bitangent, inout vec3 tangent
 ) {
   return water_make_normal_gerstner_vlad(water_position, normal, bitangent, tangent);
+}
+
+float normalize_angle(float angle) {
+  if (angle > 90.0) {
+    return 180.0 - angle;
+  }
+  if (angle < -90.0) {
+    return -180.0 - angle;
+  }
+  return angle;
 }
 
 float to_unit_interval(float x, float min_val, float max_val) {

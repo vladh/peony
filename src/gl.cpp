@@ -462,6 +462,7 @@ void init_window(WindowInfo *window_info) {
 #endif
 
   glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
 
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -586,6 +587,14 @@ void scene_update(Memory *memory, State *state) {
 #endif
   }
 
+  // Skysphere
+  {
+#if 1
+    SpatialComponent *spatial = state->spatial_component_manager.get(state->skysphere);
+    spatial->position = state->camera_active->position;
+#endif
+  }
+
   // Water
   {
 #if 0
@@ -606,20 +615,6 @@ void scene_update(Memory *memory, State *state) {
     real32 spin_deg_per_t = 90.0f;
     for (uint32 idx = 0; idx < state->geese.size; idx++) {
       SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
-      spatial->rotation *= glm::angleAxis(
-        glm::radians(spin_deg_per_t * (real32)state->dt),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-      );
-    }
-  }
-#endif
-
-  // Spheres
-#if 0
-  {
-    real32 spin_deg_per_t = 45.0f;
-    for (uint32 idx = 0; idx < state->spheres.size; idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(*state->spheres.get(idx));
       spatial->rotation *= glm::angleAxis(
         glm::radians(spin_deg_per_t * (real32)state->dt),
         glm::vec3(0.0f, 1.0f, 0.0f)
@@ -730,12 +725,30 @@ void update_and_render(Memory *memory, State *state) {
   glEnable(GL_BLEND);
   // Forward pass
   {
+    // Cull outside, not inside, of sphere.
+    glCullFace(GL_FRONT);
+    // Do not write to depth buffer.
+    glDepthMask(GL_FALSE);
+    // Draw at the very back of our depth range, so as to be behind everything.
+    glDepthRange(0.9999f, 1.0f);
+
+    render_scene(memory, state, RENDERPASS_FORWARD_SKYBOX, RENDERMODE_REGULAR);
+
+    glDepthRange(0.0f, 1.0f);
+    glDepthMask(GL_TRUE);
+    glCullFace(GL_BACK);
+
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     render_scene(memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_REGULAR);
+
+    glDisable(GL_DEPTH_TEST);
     render_scene(memory, state, RENDERPASS_FORWARD_NODEPTH, RENDERMODE_REGULAR);
+    glEnable(GL_DEPTH_TEST);
+
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
