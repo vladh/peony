@@ -17,7 +17,7 @@ float WATER_FOAM_ALPHA = 0.8;
 float WATER_MAX_HEIGHT = 6.0;
 float WATER_MIN_HEIGHT = -0.5;
 float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
-float WATER_FOAM_DIST = 3.0;
+float WATER_FOAM_DIST = 1.5;
 float WATER_FOAM_SKIRT_DIST = 0.5;
 
 uniform sampler2D g_position_texture;
@@ -64,8 +64,6 @@ float specular(float r_dot_v) {
 
 
 void main() {
-  vec3 underwater_position = texture(g_position_texture, fs_in.screen_position).rgb;
-  // vec3 curr_light_position = vec3(light_position[0]); // Directional light
   const float plane_size = 100.0;
   vec2 corrected_tex_coords = (fs_in.world_position.xz - plane_size / 2) / plane_size;
   vec2 normal_tex_coords_1 = corrected_tex_coords * 10.0 /*- vec2(sin(t) / 25, cos(t) / 35*/;
@@ -136,49 +134,53 @@ void main() {
   // the water, or the sampled "underwater" object. We allow for the object
   // to be within a distance of 1 closer to the camera than the water,
   // otherwise we discard the sampled albedo by setting it to 0.
-  vec2 refraction_dir = normalize(vec2(n_min_v.z, n_min_v.x));
-  vec2 refracted_tex_coords = fs_in.screen_position - refraction_dir * 0.010;
-  vec3 refracted_underwater_position = texture(g_position_texture, refracted_tex_coords).rgb;
-  float water_dist = length(camera_position - fs_in.world_position);
-  float underwater_dist = length(camera_position - refracted_underwater_position);
-  float sampled_albedo_discard_factor = max(0, 1 - ((water_dist - underwater_dist) / 1));
-  float underwater_distance_factor = (1 - to_unit_interval(
-    length(fs_in.world_position - underwater_position),
-    0.0,
-    WATER_MAX_PASSTHROUGH_DISTANCE
-  )) / 2;
-  vec3 underwater_albedo = texture(g_albedo_texture, refracted_tex_coords).rgb *
-    sampled_albedo_discard_factor *
-    underwater_distance_factor;
-
-  float depth_factor = to_unit_interval(
-    fs_in.world_position.y, WATER_MIN_HEIGHT, WATER_MAX_HEIGHT
-  );
-  // vec3 shallow_color = WATER_ALBEDO_VERY_SHALLOW * depth_factor;
-  vec3 shallow_color = mix(WATER_ALBEDO_DEEP, WATER_ALBEDO_VERY_SHALLOW, depth_factor);
-
-  // TODO: There's a better way of doing this.
-  vec3 foam_color = vec3(0.0);
-  vec2 foam_tex_coords = corrected_tex_coords * 90.0;
-  float channelA = texture(
-    foam_texture, foam_tex_coords - vec2(3.0, cos(corrected_tex_coords.x))
-  ).r;
-  float channelB = texture(
-    foam_texture, foam_tex_coords * 0.5 + vec2(sin(corrected_tex_coords.y), 3.0)
-  ).b;
-  float mask = clamp(pow((channelA + channelB), 2), 0, 1);
-  float water_to_underwater_dist = length(fs_in.world_position - underwater_position);
-  float foam_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_DIST);
-  float foam_skirt_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_SKIRT_DIST);
-  vec3 foam = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_falloff;
-  vec3 foam_skirt = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_skirt_falloff;
+  vec3 underwater_position = texture(g_position_texture, fs_in.screen_position).rgb;
+  vec3 underwater_albedo = vec3(0.0);
   if (underwater_position != vec3(0.0, 0.0, 0.0)) {
+    vec2 refraction_dir = normalize(vec2(n_min_v.z, n_min_v.x));
+    vec2 refracted_tex_coords = fs_in.screen_position - refraction_dir * 0.010;
+    vec3 refracted_underwater_position = texture(g_position_texture, refracted_tex_coords).rgb;
+    float water_dist = length(camera_position - fs_in.world_position);
+    float underwater_dist = length(camera_position - refracted_underwater_position);
+    float sampled_albedo_discard_factor = max(0, 1 - ((water_dist - underwater_dist) / 1));
+    float underwater_distance_factor = (1 - to_unit_interval(
+      length(fs_in.world_position - underwater_position),
+      0.0,
+      WATER_MAX_PASSTHROUGH_DISTANCE
+    )) / 2;
+    underwater_albedo = texture(g_albedo_texture, refracted_tex_coords).rgb *
+      sampled_albedo_discard_factor *
+      underwater_distance_factor;
+  }
+
+  vec3 foam_color = vec3(0.0);
+  if (underwater_position != vec3(0.0, 0.0, 0.0)) {
+    // TODO: Clean up these texture lookups maybe.
+    vec2 foam_tex_coords = corrected_tex_coords * 90.0;
+    float channelA = texture(
+      foam_texture, foam_tex_coords - vec2(3.0, cos(corrected_tex_coords.x))
+    ).r;
+    float channelB = texture(
+      foam_texture, foam_tex_coords * 0.5 + vec2(sin(corrected_tex_coords.y), 3.0)
+    ).b;
+    float mask = clamp(pow((channelA + channelB), 2), 0, 1);
+    float water_to_underwater_dist = length(fs_in.world_position - underwater_position);
+    float foam_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_DIST);
+    float foam_skirt_falloff = 1 - (water_to_underwater_dist / WATER_FOAM_SKIRT_DIST);
+    vec3 foam = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_falloff;
+    vec3 foam_skirt = WATER_FOAM_COLOR * WATER_FOAM_ALPHA * foam_skirt_falloff;
     // foam_color = clamp(foam - mask, 0.0, 1.0);
     // foam_color = clamp(foam * foam_falloff, 0.0, 1.0);
     foam_color = clamp(
       max(foam - mask, foam_skirt), 0.0, 1.0
     );
   }
+
+  float depth_factor = to_unit_interval(
+    fs_in.world_position.y, WATER_MIN_HEIGHT, WATER_MAX_HEIGHT
+  );
+  // vec3 shallow_color = WATER_ALBEDO_VERY_SHALLOW * depth_factor;
+  vec3 shallow_color = mix(WATER_ALBEDO_DEEP, WATER_ALBEDO_VERY_SHALLOW, depth_factor);
 
   vec3 reflected =
     // (get_sky_color(R)) +
@@ -203,7 +205,7 @@ void main() {
 
   // color = N;
   // color = vec3(pow(n_dot_l * 0.4 + 0.3, 4.0));
-  // color = vec3(F);
+  // color = vec3(underwater_position);
 
   frag_color = vec4(color, 1.0);
 }
