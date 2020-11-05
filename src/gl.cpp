@@ -979,6 +979,7 @@ int main() {
   memory.entity_memory_pool.print();
   memory.temp_memory_pool.print();
 #endif
+
   log_info("Cache line size: %dB", cacheline_get_size());
 
   END_TIMER(init);
