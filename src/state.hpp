@@ -80,8 +80,8 @@ public:
   Texture *g_albedo_texture;
   Texture *g_pbr_texture;
 
-  uint32 p_buffer;
-  Texture *p_color_texture;
+  uint32 l_buffer;
+  Texture *l_color_texture;
 
   State(Memory *memory, WindowInfo window_info);
 };

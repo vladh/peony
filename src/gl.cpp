@@ -206,33 +206,33 @@ void init_g_buffer(Memory *memory, State *state) {
 }
 
 
-void init_p_buffer(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->p_buffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->p_buffer);
+void init_l_buffer(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->l_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
 
-  uint32 p_color_texture_name;
+  uint32 l_color_texture_name;
 
-  glGenTextures(1, &p_color_texture_name);
+  glGenTextures(1, &l_color_texture_name);
 
-  state->p_color_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "p_color_texture")
+  state->l_color_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_color_texture")
   ) Texture(
     GL_TEXTURE_2D,
-    TEXTURE_P_COLOR, "p_color_texture", p_color_texture_name,
+    TEXTURE_P_COLOR, "l_color_texture", l_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
-  glBindTexture(GL_TEXTURE_2D, state->p_color_texture->texture_name);
+  glBindTexture(GL_TEXTURE_2D, state->l_color_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->p_color_texture->width, state->p_color_texture->height,
+    state->l_color_texture->width, state->l_color_texture->height,
     0, GL_RGBA, GL_FLOAT, NULL
   );
   glFramebufferTexture2D(
     GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->p_color_texture->texture_name, 0
+    state->l_color_texture->texture_name, 0
   );
 
   uint32 attachments[1] = {GL_COLOR_ATTACHMENT0};
@@ -678,7 +678,7 @@ void update_and_render(Memory *memory, State *state) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->p_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
@@ -743,7 +743,7 @@ void update_and_render(Memory *memory, State *state) {
   // Copy depth from geometry pass to lighting pass
   {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->p_buffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->l_buffer);
     glBlitFramebuffer(
       0, 0, state->window_info.width, state->window_info.height,
       0, 0, state->window_info.width, state->window_info.height,
@@ -751,7 +751,7 @@ void update_and_render(Memory *memory, State *state) {
     );
   }
 
-  glBindFramebuffer(GL_FRAMEBUFFER, state->p_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
 
   // Lighting pass
   {
@@ -940,7 +940,7 @@ int main() {
 
   state->texture_name_pool.allocate_texture_names();
   init_g_buffer(&memory, state);
-  init_p_buffer(&memory, state);
+  init_l_buffer(&memory, state);
   init_shadowmaps(&memory, state);
   init_ubo(&memory, state);
   scene_init_resources(&memory, state);
