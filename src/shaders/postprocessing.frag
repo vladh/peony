@@ -1,4 +1,5 @@
 uniform sampler2D l_color_texture;
+uniform sampler2D l_bright_color_texture;
 
 in BLOCK {
   vec2 tex_coords;
@@ -11,6 +12,8 @@ void main() {
   vec3 color = vec3(0.0);
 
   color = texture(l_color_texture, fs_in.tex_coords).rgb;
+  vec3 bright_color = texture(l_bright_color_texture, fs_in.tex_coords - vec2(0.01)).rgb;
+  color += bright_color;
   color = add_tone_mapping(color);
   color = correct_gamma(color);
 
