@@ -82,6 +82,7 @@ public:
 
   uint32 l_buffer;
   Texture *l_color_texture;
+  Texture *l_bright_color_texture;
 
   State(Memory *memory, WindowInfo window_info);
 };

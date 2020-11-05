@@ -206,7 +206,6 @@ void scene_init_resources(Memory *memory, State *state) {
       memory, MODELSOURCE_FILE, "temple", "resources/models/", "shop.fbx"
     );
 
-#if 1
     {
       shader_asset = new(state->shader_assets.push()) ShaderAsset(
         memory,
@@ -254,7 +253,6 @@ void scene_init_resources(Memory *memory, State *state) {
       texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/02_-_Default_Normal.tga.png"));
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 2};
     }
-#endif
   }
 
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
@@ -308,5 +306,6 @@ void scene_init_resources(Memory *memory, State *state) {
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
   texture_set->add(*state->l_color_texture);
+  texture_set->add(*state->l_bright_color_texture);
   *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
 }

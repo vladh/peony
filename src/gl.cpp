@@ -211,20 +211,32 @@ void init_l_buffer(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
 
   uint32 l_color_texture_name;
+  uint32 l_bright_color_texture_name;
 
   glGenTextures(1, &l_color_texture_name);
+  glGenTextures(1, &l_bright_color_texture_name);
 
   state->l_color_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_color_texture")
   ) Texture(
     GL_TEXTURE_2D,
-    TEXTURE_P_COLOR, "l_color_texture", l_color_texture_name,
+    TEXTURE_L_COLOR, "l_color_texture", l_color_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+
+  state->l_bright_color_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_bright_color_texture")
+  ) Texture(
+    GL_TEXTURE_2D,
+    TEXTURE_L_BRIGHT_COLOR, "l_bright_color_texture", l_bright_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
   glBindTexture(GL_TEXTURE_2D, state->l_color_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexImage2D(
     GL_TEXTURE_2D, 0, GL_RGBA16F,
     state->l_color_texture->width, state->l_color_texture->height,
@@ -235,8 +247,23 @@ void init_l_buffer(Memory *memory, State *state) {
     state->l_color_texture->texture_name, 0
   );
 
-  uint32 attachments[1] = {GL_COLOR_ATTACHMENT0};
-  glDrawBuffers(1, attachments);
+  glBindTexture(GL_TEXTURE_2D, state->l_bright_color_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->l_bright_color_texture->width, state->l_bright_color_texture->height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+    state->l_bright_color_texture->texture_name, 0
+  );
+
+  uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
 
   uint32 rbo_depth;
   glGenRenderbuffers(1, &rbo_depth);
