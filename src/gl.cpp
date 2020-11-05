@@ -756,11 +756,6 @@ void update_and_render(Memory *memory, State *state) {
   // Lighting pass
   {
     glDisable(GL_DEPTH_TEST);
-    glClearColor(
-      state->background_color.r, state->background_color.g,
-      state->background_color.b, state->background_color.a
-    );
-    glClear(GL_COLOR_BUFFER_BIT);
     render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
     glEnable(GL_DEPTH_TEST);
   }
@@ -768,8 +763,6 @@ void update_and_render(Memory *memory, State *state) {
 
   // Forward pass
   {
-    glEnable(GL_BLEND);
-
     // Skysphere
     {
       // Cull outside, not inside, of sphere.
@@ -802,11 +795,10 @@ void update_and_render(Memory *memory, State *state) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       }
     }
-
-    glDisable(GL_BLEND);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDisable(GL_DEPTH_TEST);
 
   // Postprocessing pass
   {
@@ -821,6 +813,8 @@ void update_and_render(Memory *memory, State *state) {
     }
     glDisable(GL_BLEND);
   }
+
+  glEnable(GL_DEPTH_TEST);
 }
 
 
