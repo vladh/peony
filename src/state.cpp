@@ -67,8 +67,6 @@ State::State(
   ),
   cube_shadowmap_width(this->window_info.width),
   cube_shadowmap_height(this->window_info.width),
-  /* texture_shadowmap_width(4096), */
-  /* texture_shadowmap_height(4096), */
   texture_shadowmap_width(
     (uint32)((real32)this->window_info.width * TEXTURE_SHADOWMAP_SCREEN_SIZE_FACTOR)
   ),

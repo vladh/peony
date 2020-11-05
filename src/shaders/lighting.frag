@@ -24,12 +24,5 @@ void main() {
     world_position, normal
   );
 
-  color = add_tone_mapping(color);
-  color = correct_gamma(color);
-
-  color = texture(
-    texture_shadowmaps, vec3(fs_in.tex_coords, 0)
-  ).rrr;
-
   frag_color = vec4(color, 1.0);
 }
