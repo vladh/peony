@@ -224,7 +224,6 @@ void ModelAsset::load(Memory *memory) {
       | aiProcess_OptimizeMeshes
       // NOTE: Use with caution, goes full YOLO.
       /* aiProcess_OptimizeGraph */
-      // NOTE: Uncomment this when changing to proper normal mapping.
       /* | aiProcess_CalcTangentSpace */
     );
 

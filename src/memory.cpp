@@ -1,4 +1,4 @@
-MemoryPool::MemoryPool(const char *new_name, uint32 new_size) {
+MemoryPool::MemoryPool(const char *new_name, size_t new_size) {
   log_info(
     "Allocating memory pool \"%s\": %.2fMB (%dB)",
     new_name, B_TO_MB((real64)new_size), new_size
@@ -14,8 +14,15 @@ MemoryPool::MemoryPool(const char *new_name, uint32 new_size) {
   // NOTE: The item_debug_names and item_debug_sizes for each MemoryPool
   // is allocated memory that we won't be "keeping track of" (e.g. printing
   // for debugging purposes) in the application. We should remember it's there.
-  this->item_debug_names = (const char**)malloc(sizeof(char*) * this->size);
-  this->item_debug_sizes = (uint32*)malloc(sizeof(uint32) * this->size);
+  size_t item_debug_names_size = sizeof(char*) * N_MAX_MEMORYPOOL_ITEMS;
+  this->item_debug_names = (const char**)malloc(item_debug_names_size);
+  size_t item_debug_sizes_size = sizeof(uint32) * N_MAX_MEMORYPOOL_ITEMS;
+  this->item_debug_sizes = (size_t*)malloc(item_debug_sizes_size);
+  log_info(
+    "Allocating named debugging info: names %.2fMB (%dB), sizes %.2fMB (%dB)",
+    B_TO_MB((real64)item_debug_names_size), item_debug_names_size,
+    B_TO_MB((real64)item_debug_sizes_size), item_debug_sizes_size
+  );
 }
 
 
@@ -36,7 +43,7 @@ void MemoryPool::zero_out() {
 }
 
 
-void* MemoryPool::push(uint32 item_size, const char *item_debug_name) {
+void* MemoryPool::push(size_t item_size, const char *item_debug_name) {
 #if 1
   log_info(
     "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
@@ -87,4 +94,9 @@ Memory::Memory(
 {
   this->state_memory = (State*)malloc(this->state_memory_size);
   memset(this->state_memory, 0, this->state_memory_size);
+
+  log_info(
+    "Allocating memory for state: %.2fMB (%dB)",
+    B_TO_MB((real64)this->state_memory_size), this->state_memory_size
+  );
 }
