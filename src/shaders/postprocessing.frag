@@ -10,10 +10,6 @@ out vec4 frag_color;
 void main() {
   vec3 color = vec3(0.0);
 
-  // color = texture(
-  //   texture_shadowmaps, vec3(fs_in.tex_coords, 0)
-  // ).rrr;
-
   color = texture(p_color_texture, fs_in.tex_coords).rgb;
   color = add_tone_mapping(color);
   color = correct_gamma(color);

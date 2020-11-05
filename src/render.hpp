@@ -1,7 +1,14 @@
 constexpr uint16 MAX_N_LIGHTS = 8;
-constexpr real32 DIRECTIONAL_LIGHT_DISTANCE = 15.0f;
 constexpr real32 SHADOWMAP_ORTHO_PROJECTION_SIZE_FACTOR = 200.0f;
 constexpr real32 TEXTURE_SHADOWMAP_SCREEN_SIZE_FACTOR = 4.0f;
+
+// The position is used in positioning the shadow map, but not
+// in the light calculations. We need to scale the position
+// by some factor such that the shadow map covers the biggest
+// possible area.
+constexpr glm::vec3 DIRECTIONAL_LIGHT_DISTANCE = glm::vec3(
+  50.0f, 15.0f, 50.0f
+);
 
 enum RenderMode {
   RENDERMODE_REGULAR,

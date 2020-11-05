@@ -61,6 +61,8 @@ public:
   real32 shadowmap_near_clip_dist;
   real32 shadowmap_far_clip_dist;
 
+  real32 dir_light_angle;
+
   uint32 cube_shadowmaps_framebuffer;
   uint32 cube_shadowmaps;
   uint32 texture_shadowmaps_framebuffer;

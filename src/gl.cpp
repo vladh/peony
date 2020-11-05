@@ -7,7 +7,6 @@
 #include "gl.hpp"
 
 global_variable uint32 global_oopses = 0;
-global_variable real32 global_dir_light_angle = PI / 4;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -278,9 +277,9 @@ void update_light_position(State *state, real32 amount) {
     if (handle) {
       LightComponent *light_component = state->light_component_manager.get(*handle);
       if (light_component->type == LIGHT_DIRECTIONAL) {
-        global_dir_light_angle += amount;
+        state->dir_light_angle += amount;
         light_component->direction = glm::vec3(
-          sin(global_dir_light_angle), -cos(global_dir_light_angle), 0.0f
+          sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
         );
       }
     }

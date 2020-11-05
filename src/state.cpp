@@ -74,6 +74,7 @@ State::State(
     (uint32)((real32)this->window_info.height * TEXTURE_SHADOWMAP_SCREEN_SIZE_FACTOR)
   ),
   shadowmap_near_clip_dist(0.05f),
-  shadowmap_far_clip_dist(200.0f)
+  shadowmap_far_clip_dist(200.0f),
+  dir_light_angle(PI / 4.0f)
 {
 }
