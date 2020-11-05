@@ -8,17 +8,19 @@ vec3 SUN_DIRECTION = normalize(vec3(light_direction[0]));
 vec3 SUN_DIRECTION_AT_SUNSET = normalize(vec3(SUN_DIRECTION.x, 0.0, SUN_DIRECTION.z));
 float SUN_DOT = dot(SUN_DIRECTION, SUN_DIRECTION_AT_SUNSET);
 float SUN_ANGLE = acos(SUN_DOT);
+float SUN_SIZE = 0.1;
+float SUN_BRIGHTNESS = 50.0;
 float SUNSET_FACTOR = clamp(pow(SUN_DOT, 4), 0.0, 1.0);
 float SUNSET_LIGHT_FACTOR = clamp((1.0 - SUNSET_FACTOR) + 0.1, 0.0, 1.0);
 
 vec3 SKY_ALBEDO = mix(
   vec3(0.56, 0.77, 0.95),
-  vec3(0.66, 0.47, 0.41),
+  vec3(0.26, 0.17, 0.31),
   SUNSET_FACTOR
 );
 vec3 GROUND_ALBEDO = mix(
   vec3(1.0, 1.0, 1.0),
-  vec3(0.98, 0.90, 0.63),
+  vec3(0.98, 0.40, 0.23),
   SUNSET_FACTOR
 );
 vec3 SKY_REFLECTION_ALBEDO = mix(
@@ -26,7 +28,11 @@ vec3 SKY_REFLECTION_ALBEDO = mix(
   GROUND_ALBEDO,
   SUNSET_FACTOR
 );
-vec3 SUN_ALBEDO = vec3(0.96, 0.86, 0.50);
+vec3 SUN_ALBEDO = mix(
+  vec3(1.00, 1.00, 1.00),
+  vec3(0.96, 0.86, 0.50),
+  SUNSET_FACTOR
+) * SUN_BRIGHTNESS;
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),

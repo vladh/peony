@@ -107,8 +107,7 @@ void main() {
   }
 
   vec3 V = normalize(camera_position - fs_in.world_position);
-  // TODO: Send this light separately?
-  vec3 L = normalize(vec3(-light_direction[0]));
+  vec3 L = -SUN_DIRECTION;
   vec3 H = normalize(V + L);
   vec3 R = reflect(-L, N);
   float h_dot_v = max(dot(H, V), M_EPSILON);
@@ -197,9 +196,6 @@ void main() {
   float shadow = calculate_shadows(fs_in.world_position, N, 0);
   color = color * (1.0 - (shadow * WATER_SHADOW_FACTOR));
 #endif
-
-  color = add_tone_mapping(color);
-  color = correct_gamma(color);
 
   // color = N;
   // color = vec3(underwater_position);

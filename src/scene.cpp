@@ -7,11 +7,11 @@ void scene_init_objects(Memory *memory, State *state) {
     sin(global_dir_light_angle), -sin(global_dir_light_angle), 0.0f
   );
   entity = state->entity_manager.add("directional_light");
-  state->drawable_component_manager.add(
-    entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "light"),
-    RENDERPASS_FORWARD_NODEPTH
-  );
+  /* state->drawable_component_manager.add( */
+  /*   entity->handle, */
+  /*   ModelAsset::get_by_name(&state->model_assets, "light"), */
+  /*   RENDERPASS_FORWARD_NODEPTH */
+  /* ); */
   state->light_component_manager.add(
     entity->handle,
     LIGHT_DIRECTIONAL,
@@ -140,7 +140,7 @@ void scene_init_objects(Memory *memory, State *state) {
     entity->handle,
     glm::vec3(0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(30.0f)
+    glm::vec3(75.0f)
   );
   state->drawable_component_manager.add(
     entity->handle,
@@ -166,11 +166,19 @@ void scene_init_objects(Memory *memory, State *state) {
   );
 #endif
 
-  // Screenquad
-  entity = state->entity_manager.add("screenquad");
+  // Lighting screenquad
+  entity = state->entity_manager.add("screenquad_lighting");
   state->drawable_component_manager.add(
     entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "screenquad"),
+    ModelAsset::get_by_name(&state->model_assets, "screenquad_lighting"),
     RENDERPASS_LIGHTING
+  );
+
+  // Postprocessing screenquad
+  entity = state->entity_manager.add("screenquad_postprocessing");
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "screenquad_postprocessing"),
+    RENDERPASS_POSTPROCESSING
   );
 }

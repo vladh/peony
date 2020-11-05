@@ -118,7 +118,7 @@ void scene_init_resources(Memory *memory, State *state) {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "skysphere",
-      SHADER_OTHER_OBJECT,
+      SHADER_LIGHTING,
       SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag"
     );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
@@ -257,21 +257,21 @@ void scene_init_resources(Memory *memory, State *state) {
 #endif
   }
 
-  // Screenquad
   real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
+
+  // Lighting screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "lighting",
     SHADER_LIGHTING,
     SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag"
   );
-
   model_asset = new(state->model_assets.push()) ModelAsset(
     memory,
     MODELSOURCE_DATA,
     screenquad_vertices, 6,
     nullptr, 0,
-    "screenquad",
+    "screenquad_lighting",
     GL_TRIANGLES
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -289,7 +289,24 @@ void scene_init_resources(Memory *memory, State *state) {
       TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
       state->texture_shadowmap_width, state->texture_shadowmap_height, 1
   ));
-  *model_asset->mesh_templates.push() = {
-    shader_asset, nullptr, texture_set, true, 0, 0
-  };
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+
+  // Postprocessing screenquad
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "postprocessing",
+    SHADER_POSTPROCESSING,
+    SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag"
+  );
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory,
+    MODELSOURCE_DATA,
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad_postprocessing",
+    GL_TRIANGLES
+  );
+  texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+  texture_set->add(*state->p_color_texture);
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
 }

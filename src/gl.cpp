@@ -207,6 +207,55 @@ void init_g_buffer(Memory *memory, State *state) {
 }
 
 
+void init_p_buffer(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->p_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->p_buffer);
+
+  uint32 p_color_texture_name;
+
+  glGenTextures(1, &p_color_texture_name);
+
+  state->p_color_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "p_color_texture")
+  ) Texture(
+    GL_TEXTURE_2D,
+    TEXTURE_P_COLOR, "p_color_texture", p_color_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+
+  glBindTexture(GL_TEXTURE_2D, state->p_color_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->p_color_texture->width, state->p_color_texture->height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    state->p_color_texture->texture_name, 0
+  );
+
+  uint32 attachments[1] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, attachments);
+
+  uint32 rbo_depth;
+  glGenRenderbuffers(1, &rbo_depth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+  glRenderbufferStorage(
+    GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+    state->window_info.width, state->window_info.height
+  );
+  glFramebufferRenderbuffer(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
+  );
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_error("Framebuffer not complete!");
+  }
+}
+
+
 void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_cursor_disabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -587,14 +636,6 @@ void scene_update(Memory *memory, State *state) {
 #endif
   }
 
-  // Skysphere
-  {
-#if 1
-    SpatialComponent *spatial = state->spatial_component_manager.get(state->skysphere);
-    spatial->position = state->camera_active->position;
-#endif
-  }
-
   // Water
   {
 #if 0
@@ -633,9 +674,12 @@ void update_and_render(Memory *memory, State *state) {
   );
   copy_scene_data_to_ubo(memory, state);
 
-  // Clear main framebuffer
+  // Clear framebuffers
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->p_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
@@ -700,7 +744,7 @@ void update_and_render(Memory *memory, State *state) {
   // Copy depth from geometry pass to lighting pass
   {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, state->g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->p_buffer);
     glBlitFramebuffer(
       0, 0, state->window_info.width, state->window_info.height,
       0, 0, state->window_info.width, state->window_info.height,
@@ -708,9 +752,10 @@ void update_and_render(Memory *memory, State *state) {
     );
   }
 
+  glBindFramebuffer(GL_FRAMEBUFFER, state->p_buffer);
+
   // Lighting pass
   {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
     glClearColor(
       state->background_color.r, state->background_color.g,
@@ -722,45 +767,61 @@ void update_and_render(Memory *memory, State *state) {
   }
 
 
-  glEnable(GL_BLEND);
   // Forward pass
   {
-    // Cull outside, not inside, of sphere.
-    glCullFace(GL_FRONT);
-    // Do not write to depth buffer.
-    glDepthMask(GL_FALSE);
-    // Draw at the very back of our depth range, so as to be behind everything.
-    glDepthRange(0.9999f, 1.0f);
+    glEnable(GL_BLEND);
 
-    render_scene(memory, state, RENDERPASS_FORWARD_SKYBOX, RENDERMODE_REGULAR);
+    // Skysphere
+    {
+      // Cull outside, not inside, of sphere.
+      glCullFace(GL_FRONT);
+      // Do not write to depth buffer.
+      glDepthMask(GL_FALSE);
+      // Draw at the very back of our depth range, so as to be behind everything.
+      glDepthRange(0.9999f, 1.0f);
 
-    glDepthRange(0.0f, 1.0f);
-    glDepthMask(GL_TRUE);
-    glCullFace(GL_BACK);
+      render_scene(memory, state, RENDERPASS_FORWARD_SKYBOX, RENDERMODE_REGULAR);
 
-    if (state->should_use_wireframe) {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      glDepthRange(0.0f, 1.0f);
+      glDepthMask(GL_TRUE);
+      glCullFace(GL_BACK);
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    render_scene(memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_REGULAR);
+    // Forward
+    {
+      if (state->should_use_wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      }
 
-    glDisable(GL_DEPTH_TEST);
-    render_scene(memory, state, RENDERPASS_FORWARD_NODEPTH, RENDERMODE_REGULAR);
-    glEnable(GL_DEPTH_TEST);
+      render_scene(memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_REGULAR);
 
-    if (state->should_use_wireframe) {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glDisable(GL_DEPTH_TEST);
+      render_scene(memory, state, RENDERPASS_FORWARD_NODEPTH, RENDERMODE_REGULAR);
+      glEnable(GL_DEPTH_TEST);
+
+      if (state->should_use_wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      }
     }
+
+    glDisable(GL_BLEND);
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  // Postprocessing pass
+  {
+    render_scene(memory, state, RENDERPASS_POSTPROCESSING, RENDERMODE_REGULAR);
   }
 
   // UI pass
   {
+    glEnable(GL_BLEND);
     if (!state->should_hide_ui) {
       render_scene_ui(memory, state);
     }
+    glDisable(GL_BLEND);
   }
-  glDisable(GL_BLEND);
 }
 
 
@@ -886,6 +947,7 @@ int main() {
 
   state->texture_name_pool.allocate_texture_names();
   init_g_buffer(&memory, state);
+  init_p_buffer(&memory, state);
   init_shadowmaps(&memory, state);
   init_ubo(&memory, state);
   scene_init_resources(&memory, state);
