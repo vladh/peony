@@ -307,6 +307,6 @@ void scene_init_resources(Memory *memory, State *state) {
     GL_TRIANGLES
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-  texture_set->add(*state->p_color_texture);
+  texture_set->add(*state->l_color_texture);
   *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
 }
