@@ -18,6 +18,7 @@ MemoryPool::MemoryPool(const char *new_name, size_t new_size) {
   this->item_debug_names = (const char**)malloc(item_debug_names_size);
   size_t item_debug_sizes_size = sizeof(uint32) * N_MAX_MEMORYPOOL_ITEMS;
   this->item_debug_sizes = (size_t*)malloc(item_debug_sizes_size);
+
   log_info(
     "Allocating named debugging info: names %.2fMB (%dB), sizes %.2fMB (%dB)",
     B_TO_MB((real64)item_debug_names_size), item_debug_names_size,
@@ -44,13 +45,6 @@ void MemoryPool::zero_out() {
 
 
 void* MemoryPool::push(size_t item_size, const char *item_debug_name) {
-#if 1
-  log_info(
-    "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
-    this->name, B_TO_MB((real64)item_size), item_size, item_debug_name,
-    B_TO_MB((real64)this->used), this->used
-  );
-#endif
   this->mutex.lock();
   assert(this->used + item_size <= this->size);
   void *new_memory = this->memory + this->used;
@@ -58,6 +52,13 @@ void* MemoryPool::push(size_t item_size, const char *item_debug_name) {
   this->item_debug_names[this->n_items] = item_debug_name;
   this->item_debug_sizes[this->n_items] = item_size;
   this->n_items++;
+#if 1
+  log_info(
+    "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
+    this->name, B_TO_MB((real64)item_size), item_size, item_debug_name,
+    B_TO_MB((real64)this->used), this->used
+  );
+#endif
   this->mutex.unlock();
   return new_memory;
 }
