@@ -34,6 +34,8 @@ vec3 SUN_ALBEDO = mix(
   SUNSET_FACTOR
 ) * SUN_BRIGHTNESS;
 
+vec3 FOG_ALBEDO = vec3(0.4, 0.4, 0.8);
+
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
   vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
   vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
