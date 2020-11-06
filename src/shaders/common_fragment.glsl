@@ -2,6 +2,7 @@
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20
 #define SHOULD_USE_SHADOWS 1
+#define SHOULD_USE_FOG 0
 
 // TODO: Send this light separately?
 vec3 SUN_DIRECTION = normalize(vec3(light_direction[0]));
