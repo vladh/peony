@@ -118,6 +118,7 @@ void main() {
   float r_dot_l = max(dot(R, L), M_EPSILON);
   float r_dot_v = max(dot(R, V), M_EPSILON);
   vec3 n_min_v = N - V;
+  float water_dist = length(camera_position - fs_in.world_position);
 
   // TODO: Figure out what's up here.
   float F = fresnel_schlick(h_dot_v, WATER_F0);
@@ -137,7 +138,6 @@ void main() {
     vec2 refraction_dir = normalize(vec2(n_min_v.z, n_min_v.x));
     vec2 refracted_tex_coords = fs_in.screen_position - refraction_dir * 0.010;
     vec3 refracted_underwater_position = texture(g_position_texture, refracted_tex_coords).rgb;
-    float water_dist = length(camera_position - fs_in.world_position);
     float underwater_dist = length(camera_position - refracted_underwater_position);
     float sampled_albedo_discard_factor = max(0, 1 - ((water_dist - underwater_dist) / 1));
     float underwater_distance_factor = (1 - to_unit_interval(
@@ -188,7 +188,7 @@ void main() {
 
   vec3 color =
     mix(refracted, reflected, F) +
-    specular(r_dot_v) * SUN_ALBEDO +
+    specular(r_dot_v) * SUN_ALBEDO * (1.0 / pow(water_dist, 1.3)) +
     shallow_color * SUNSET_LIGHT_FACTOR +
     foam_color +
     vec3(0.0);
