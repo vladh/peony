@@ -21,7 +21,10 @@ enum RenderPass {
   RENDERPASS_FORWARD_NODEPTH,
   RENDERPASS_FORWARD_SKYBOX,
   RENDERPASS_LIGHTING,
-  RENDERPASS_POSTPROCESSING
+  RENDERPASS_POSTPROCESSING,
+  RENDERPASS_PREBLUR,
+  RENDERPASS_BLUR1,
+  RENDERPASS_BLUR2
 };
 
 enum LightType {
@@ -40,7 +43,7 @@ struct ShaderCommon {
   float camera_horizontal_fov;
   float camera_vertical_fov;
   int shadow_light_idx;
-  float pad_oops1;
+  bool is_blur_horizontal;
 
   float exposure;
   float t;

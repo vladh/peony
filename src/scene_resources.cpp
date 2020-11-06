@@ -76,20 +76,26 @@ void scene_init_resources(Memory *memory, State *state) {
       SHADER_DIR"standard_depth.geom"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-    texture_set->add(*state->g_position_texture);
-    texture_set->add(*state->g_albedo_texture);
-    texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/vlachos.jpg"));
-    texture_set->add(Texture(TEXTURE_OTHER, "foam_texture", "resources/textures/water_foam.png"));
-    texture_set->add(Texture(
+    texture_set->add(*state->g_position_texture, "g_position_texture");
+    texture_set->add(*state->g_albedo_texture, "g_albedo_texture");
+    texture_set->add(Texture(TEXTURE_NORMAL, "resources/textures/vlachos.jpg"), "normal_texture");
+    texture_set->add(Texture(TEXTURE_OTHER, "resources/textures/water_foam.png"), "foam_texture");
+    texture_set->add(
+      Texture(
         GL_TEXTURE_CUBE_MAP_ARRAY,
-        TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
+        TEXTURE_SHADOWMAP, state->cube_shadowmaps,
         state->cube_shadowmap_width, state->cube_shadowmap_height, 1
-    ));
-    texture_set->add(Texture(
+      ),
+      "cube_shadowmaps"
+    );
+    texture_set->add(
+      Texture(
         GL_TEXTURE_2D_ARRAY,
-        TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
+        TEXTURE_SHADOWMAP, state->texture_shadowmaps,
         state->texture_shadowmap_width, state->texture_shadowmap_height, 1
-    ));
+      ),
+      "texture_shadowmaps"
+    );
     *model_asset->mesh_templates.push() = {
       shader_asset, depth_shader_asset, texture_set, true, 0, 0
     };
@@ -154,11 +160,20 @@ void scene_init_resources(Memory *memory, State *state) {
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-    texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/rocks/2k/Stones_Color.jpg"));
+    texture_set->add(
+      Texture(TEXTURE_ALBEDO, "resources/textures/rocks/2k/Stones_Color.jpg"),
+      "albedo_texture"
+    );
     texture_set->set_metallic_static(0.0f);
-    texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/rocks/2k/Stones_Roughness.jpg"));
+    texture_set->add(
+      Texture(TEXTURE_ROUGHNESS, "resources/textures/rocks/2k/Stones_Roughness.jpg"),
+      "roughness_texture"
+    );
     texture_set->set_ao_static(1.0f);
-    texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/rocks/2k/Stones_Normal.jpg"));
+    texture_set->add(
+      Texture(TEXTURE_NORMAL, "resources/textures/rocks/2k/Stones_Normal.jpg"),
+      "normal_texture"
+    );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
   }
 
@@ -214,11 +229,26 @@ void scene_init_resources(Memory *memory, State *state) {
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-      texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/shop/03_-_Default_BaseColor.tga.png"));
-      texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/shop/03_-_Default_Metallic.tga.png"));
-      texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/shop/03_-_Default_Roughness.tga.png"));
-      texture_set->add(Texture(TEXTURE_AO, "ao_texture", "resources/textures/shop/AO-3.tga.png"));
-      texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/03_-_Default_Normal.tga.png"));
+      texture_set->add(
+        Texture(TEXTURE_ALBEDO, "resources/textures/shop/03_-_Default_BaseColor.tga.png"),
+        "albedo_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_METALLIC, "resources/textures/shop/03_-_Default_Metallic.tga.png"),
+        "metallic_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_ROUGHNESS, "resources/textures/shop/03_-_Default_Roughness.tga.png"),
+        "roughness_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_AO, "resources/textures/shop/AO-3.tga.png"),
+        "ao_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_NORMAL, "resources/textures/shop/03_-_Default_Normal.tga.png"),
+        "normal_texture"
+      );
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 0};
     }
 
@@ -230,11 +260,26 @@ void scene_init_resources(Memory *memory, State *state) {
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-      texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/shop/01_-_Default_BaseColor.tga.png"));
-      texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/shop/01_-_Default_Metallic.tga.png"));
-      texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture","resources/textures/shop/01_-_Default_Roughness.tga.png"));
-      texture_set->add(Texture(TEXTURE_AO, "ao_texture", "resources/textures/shop/AO-1.tga.png"));
-      texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/01_-_Default_Normal.tga.png"));
+      texture_set->add(
+        Texture(TEXTURE_ALBEDO, "resources/textures/shop/01_-_Default_BaseColor.tga.png"),
+        "albedo_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_METALLIC, "resources/textures/shop/01_-_Default_Metallic.tga.png"),
+        "metallic_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_ROUGHNESS, "resources/textures/shop/01_-_Default_Roughness.tga.png"),
+        "roughness_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_AO, "resources/textures/shop/AO-1.tga.png"),
+        "ao_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_NORMAL, "resources/textures/shop/01_-_Default_Normal.tga.png"),
+        "normal_texture"
+      );
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 1};
     }
 
@@ -246,11 +291,26 @@ void scene_init_resources(Memory *memory, State *state) {
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag"
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-      texture_set->add(Texture(TEXTURE_ALBEDO, "albedo_texture", "resources/textures/shop/02_-_Default_BaseColor.tga.png"));
-      texture_set->add(Texture(TEXTURE_METALLIC, "metallic_texture", "resources/textures/shop/02_-_Default_Metallic.tga.png"));
-      texture_set->add(Texture(TEXTURE_ROUGHNESS, "roughness_texture", "resources/textures/shop/02_-_Default_Roughness.tga.png"));
-      texture_set->add(Texture(TEXTURE_AO, "ao_texture", "resources/textures/shop/AO-2.tga.png"));
-      texture_set->add(Texture(TEXTURE_NORMAL, "normal_texture", "resources/textures/shop/02_-_Default_Normal.tga.png"));
+      texture_set->add(
+        Texture(TEXTURE_ALBEDO, "resources/textures/shop/02_-_Default_BaseColor.tga.png"),
+        "albedo_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_METALLIC, "resources/textures/shop/02_-_Default_Metallic.tga.png"),
+        "metallic_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_ROUGHNESS, "resources/textures/shop/02_-_Default_Roughness.tga.png"),
+        "roughness_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_AO, "resources/textures/shop/AO-2.tga.png"),
+        "ao_texture"
+      );
+      texture_set->add(
+        Texture(TEXTURE_NORMAL, "resources/textures/shop/02_-_Default_Normal.tga.png"),
+        "normal_texture"
+      );
       *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 2};
     }
   }
@@ -273,20 +333,83 @@ void scene_init_resources(Memory *memory, State *state) {
     GL_TRIANGLES
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-  texture_set->add(*state->g_position_texture);
-  texture_set->add(*state->g_normal_texture);
-  texture_set->add(*state->g_albedo_texture);
-  texture_set->add(*state->g_pbr_texture);
-  texture_set->add(Texture(
+  texture_set->add(*state->g_position_texture, "g_position_texture");
+  texture_set->add(*state->g_normal_texture, "g_normal_texture");
+  texture_set->add(*state->g_albedo_texture, "g_albedo_texture");
+  texture_set->add(*state->g_pbr_texture, "g_pbr_texture");
+  texture_set->add(
+    Texture(
       GL_TEXTURE_CUBE_MAP_ARRAY,
-      TEXTURE_SHADOWMAP, "cube_shadowmaps", state->cube_shadowmaps,
+      TEXTURE_SHADOWMAP, state->cube_shadowmaps,
       state->cube_shadowmap_width, state->cube_shadowmap_height, 1
-  ));
-  texture_set->add(Texture(
+    ),
+    "cube_shadowmaps"
+  );
+  texture_set->add(
+    Texture(
       GL_TEXTURE_2D_ARRAY,
-      TEXTURE_SHADOWMAP, "texture_shadowmaps", state->texture_shadowmaps,
+      TEXTURE_SHADOWMAP, state->texture_shadowmaps,
       state->texture_shadowmap_width, state->texture_shadowmap_height, 1
-  ));
+    ),
+    "texture_shadowmaps"
+  );
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+
+  // Preblur screenquad
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "blur",
+    SHADER_POSTPROCESSING,
+    SHADER_DIR"blur.vert", SHADER_DIR"blur.frag"
+  );
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory,
+    MODELSOURCE_DATA,
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad_preblur",
+    GL_TRIANGLES
+  );
+  texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+  texture_set->add(*state->l_bright_color_texture, "source_texture");
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+
+  // Blur 1 screenquad
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "blur",
+    SHADER_POSTPROCESSING,
+    SHADER_DIR"blur.vert", SHADER_DIR"blur.frag"
+  );
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory,
+    MODELSOURCE_DATA,
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad_blur1",
+    GL_TRIANGLES
+  );
+  texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+  texture_set->add(*state->blur2_texture, "source_texture");
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+
+  // Blur 2 screenquad
+  shader_asset = new(state->shader_assets.push()) ShaderAsset(
+    memory,
+    "blur",
+    SHADER_POSTPROCESSING,
+    SHADER_DIR"blur.vert", SHADER_DIR"blur.frag"
+  );
+  model_asset = new(state->model_assets.push()) ModelAsset(
+    memory,
+    MODELSOURCE_DATA,
+    screenquad_vertices, 6,
+    nullptr, 0,
+    "screenquad_blur2",
+    GL_TRIANGLES
+  );
+  texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+  texture_set->add(*state->blur1_texture, "source_texture");
   *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
 
   // Postprocessing screenquad
@@ -305,7 +428,7 @@ void scene_init_resources(Memory *memory, State *state) {
     GL_TRIANGLES
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-  texture_set->add(*state->l_color_texture);
-  texture_set->add(*state->l_bright_color_texture);
+  texture_set->add(*state->l_color_texture, "l_color_texture");
+  texture_set->add(*state->blur2_texture, "bloom_texture");
   *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
 }

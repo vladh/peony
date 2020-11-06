@@ -8,6 +8,7 @@ public:
   bool32 is_g_buffer_dependent = false;
 
   Array<Texture> textures;
+  Array<const char*> texture_uniform_names;
 
   // Hardcoded values for when we can't load a texture.
   glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
@@ -21,10 +22,11 @@ public:
   TextureSet(
     Memory *memory
   ) :
-    textures(Array<Texture>(&memory->entity_memory_pool, 16, "textures"))
+    textures(Array<Texture>(&memory->entity_memory_pool, 16, "textures")),
+    texture_uniform_names(Array<const char*>(&memory->entity_memory_pool, 16, "textures"))
   {
   };
-  void add(Texture texture);
+  void add(Texture texture, const char *uniform_name);
   void set_albedo_static(glm::vec4 albedo_static);
   void set_metallic_static(real32 metallic_static);
   void set_roughness_static(real32 roughness_static);

@@ -174,6 +174,30 @@ void scene_init_objects(Memory *memory, State *state) {
     RENDERPASS_LIGHTING
   );
 
+  // Preblur screenquad
+  entity = state->entity_manager.add("screenquad_preblur");
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "screenquad_preblur"),
+    RENDERPASS_PREBLUR
+  );
+
+  // Blur 1 screenquad
+  entity = state->entity_manager.add("screenquad_blur1");
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "screenquad_blur1"),
+    RENDERPASS_BLUR1
+  );
+
+  // Blur 2 screenquad
+  entity = state->entity_manager.add("screenquad_blur2");
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "screenquad_blur2"),
+    RENDERPASS_BLUR2
+  );
+
   // Postprocessing screenquad
   entity = state->entity_manager.add("screenquad_postprocessing");
   state->drawable_component_manager.add(
