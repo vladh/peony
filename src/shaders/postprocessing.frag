@@ -15,12 +15,14 @@ void main() {
   vec3 bloom = texture(bloom_texture, fs_in.tex_coords).rgb;
   color += bloom / 15.0;
 
+#if SHOULD_USE_FOG
   float depth = texture(l_depth_texture, fs_in.tex_coords).r;
   float linear_depth = linearize_depth(
     depth, camera_near_clip_dist, camera_far_clip_dist
   ) / camera_far_clip_dist;
   float fog_term = pow(linear_depth, 3.0) * 3.0;
   color += FOG_ALBEDO * fog_term;
+#endif
 
   color = add_tone_mapping(color);
   color = correct_gamma(color);
