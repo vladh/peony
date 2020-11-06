@@ -66,15 +66,15 @@ vec3 get_sky_color(float angle) {
 
 float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
   float shadow = 0.0;
-  float bias = 0.10 / far_clip_dist;
+  float bias = 0.10 / shadow_far_clip_dist;
 
   vec3 light_to_frag = world_position - vec3(light_position[idx_light]);
   float view_distance = length(camera_position - world_position);
 
   if (light_type[idx_light].x == LIGHT_POINT) {
     // TODO: Improve this.
-    float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 25.0;
-    float current_depth = length(light_to_frag) / far_clip_dist;
+    float sample_radius = (1.0 + (view_distance / shadow_far_clip_dist)) / 25.0;
+    float current_depth = length(light_to_frag) / shadow_far_clip_dist;
 
     for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
       vec4 sample_p = vec4(
@@ -89,9 +89,9 @@ float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
     shadow /= float(N_SHADOW_SAMPLES);
   } else if (light_type[idx_light].x == LIGHT_DIRECTIONAL) {
     // TODO: Improve this.
-    float sample_radius = (1.0 + (view_distance / far_clip_dist)) / 1250.0;
+    float sample_radius = (1.0 + (view_distance / shadow_far_clip_dist)) / 1250.0;
     float depth_sign = sign(dot(light_to_frag, vec3(light_direction[idx_light])));
-    float current_depth = length(light_to_frag) * depth_sign / far_clip_dist;
+    float current_depth = length(light_to_frag) * depth_sign / shadow_far_clip_dist;
 
     vec3 light_space_position = vec3(
       shadow_transforms[idx_light * 6] * vec4(world_position, 1.0)
