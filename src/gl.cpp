@@ -105,29 +105,25 @@ void init_g_buffer(Memory *memory, State *state) {
   state->g_position_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_position_texture")
   ) Texture(
-    GL_TEXTURE_2D,
-    TEXTURE_G_POSITION, "g_position_texture", g_position_texture_name,
+    GL_TEXTURE_2D, TEXTURE_G_POSITION, g_position_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_normal_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_normal_texture")
   ) Texture(
-    GL_TEXTURE_2D,
-    TEXTURE_G_NORMAL, "g_normal_texture", g_normal_texture_name,
+    GL_TEXTURE_2D, TEXTURE_G_NORMAL, g_normal_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_albedo_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_albedo_texture")
   ) Texture(
-    GL_TEXTURE_2D,
-    TEXTURE_G_ALBEDO, "g_albedo_texture", g_albedo_texture_name,
+    GL_TEXTURE_2D, TEXTURE_G_ALBEDO, g_albedo_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_pbr_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_pbr_texture")
   ) Texture(
-    GL_TEXTURE_2D,
-    TEXTURE_G_PBR, "g_pbr_texture", g_pbr_texture_name,
+    GL_TEXTURE_2D, TEXTURE_G_PBR, g_pbr_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
@@ -219,16 +215,14 @@ void init_l_buffer(Memory *memory, State *state) {
   state->l_color_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_color_texture")
   ) Texture(
-    GL_TEXTURE_2D,
-    TEXTURE_L_COLOR, "l_color_texture", l_color_texture_name,
+    GL_TEXTURE_2D, TEXTURE_L_COLOR, l_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
   state->l_bright_color_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_bright_color_texture")
   ) Texture(
-    GL_TEXTURE_2D,
-    TEXTURE_L_BRIGHT_COLOR, "l_bright_color_texture", l_bright_color_texture_name,
+    GL_TEXTURE_2D, TEXTURE_L_BRIGHT_COLOR, l_bright_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
@@ -282,6 +276,59 @@ void init_l_buffer(Memory *memory, State *state) {
 }
 
 
+void init_blur_buffers(Memory *memory, State *state) {
+  glGenFramebuffers(1, &state->blur1_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
+  uint32 blur1_texture_name;
+  glGenTextures(1, &blur1_texture_name);
+  state->blur1_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur1_texture")
+  ) Texture(
+    GL_TEXTURE_2D, TEXTURE_BLUR, blur1_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+  glBindTexture(GL_TEXTURE_2D, state->blur1_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->blur1_texture->width, state->blur1_texture->height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    state->blur1_texture->texture_name, 0
+  );
+
+  glGenFramebuffers(1, &state->blur2_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
+  uint32 blur2_texture_name;
+  glGenTextures(1, &blur2_texture_name);
+  state->blur2_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur2_texture")
+  ) Texture(
+    GL_TEXTURE_2D, TEXTURE_BLUR, blur2_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
+  glBindTexture(GL_TEXTURE_2D, state->blur2_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_RGBA16F,
+    state->blur2_texture->width, state->blur2_texture->height,
+    0, GL_RGBA, GL_FLOAT, NULL
+  );
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+    state->blur2_texture->texture_name, 0
+  );
+}
+
+
 void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_cursor_disabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -332,11 +379,11 @@ void process_input_continuous(GLFWwindow *window, State *state) {
   }
 
   if (state->control.is_key_down(GLFW_KEY_Z)) {
-    update_light_position(state, 0.1f * (real32)state->dt);
+    update_light_position(state, 0.05f * (real32)state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_X)) {
-    update_light_position(state, -0.1f * (real32)state->dt);
+    update_light_position(state, -0.05f * (real32)state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_SPACE)) {
@@ -548,7 +595,9 @@ void init_window(WindowInfo *window_info) {
 }
 
 
-void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_idx) {
+void copy_scene_data_to_ubo(
+  Memory *memory, State *state, uint32 shadow_light_idx, bool32 is_blur_horizontal
+) {
   ShaderCommon *shader_common = &state->shader_common;
 
   shader_common->view = state->camera_active->view;
@@ -560,6 +609,7 @@ void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_id
   shader_common->camera_horizontal_fov = state->camera_active->horizontal_fov;
   shader_common->camera_vertical_fov = state->camera_active->vertical_fov;
   shader_common->shadow_light_idx = shadow_light_idx;
+  shader_common->is_blur_horizontal = is_blur_horizontal;
 
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
@@ -583,7 +633,7 @@ void copy_scene_data_to_ubo(Memory *memory, State *state, uint32 shadow_light_id
 
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
-  copy_scene_data_to_ubo(memory, state, 0);
+  copy_scene_data_to_ubo(memory, state, 0, false);
 }
 
 
@@ -740,7 +790,7 @@ void update_and_render(Memory *memory, State *state) {
       }
       glClear(GL_DEPTH_BUFFER_BIT);
 
-      copy_scene_data_to_ubo(memory, state, idx);
+      copy_scene_data_to_ubo(memory, state, idx, false);
       render_scene(
         memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
       );
@@ -824,8 +874,30 @@ void update_and_render(Memory *memory, State *state) {
     }
   }
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glDisable(GL_DEPTH_TEST);
+
+  // Blur pass
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
+    copy_scene_data_to_ubo(memory, state, 0, true);
+    render_scene(memory, state, RENDERPASS_PREBLUR, RENDERMODE_REGULAR);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
+    copy_scene_data_to_ubo(memory, state, 0, false);
+    render_scene(memory, state, RENDERPASS_BLUR2, RENDERMODE_REGULAR);
+
+    for (uint32 idx = 0; idx < 3; idx++) {
+      glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
+      copy_scene_data_to_ubo(memory, state, 0, true);
+      render_scene(memory, state, RENDERPASS_BLUR1, RENDERMODE_REGULAR);
+
+      glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
+      copy_scene_data_to_ubo(memory, state, 0, false);
+      render_scene(memory, state, RENDERPASS_BLUR1, RENDERMODE_REGULAR);
+    }
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Postprocessing pass
   {
@@ -968,6 +1040,7 @@ int main() {
   state->texture_name_pool.allocate_texture_names();
   init_g_buffer(&memory, state);
   init_l_buffer(&memory, state);
+  init_blur_buffers(&memory, state);
   init_shadowmaps(&memory, state);
   init_ubo(&memory, state);
   scene_init_resources(&memory, state);

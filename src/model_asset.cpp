@@ -339,13 +339,14 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
     for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
       Texture *texture = texture_set->textures.get(idx);
+      const char *uniform_name = *texture_set->texture_uniform_names.get(idx);
       log_info(
-        "Setting uniforms: (model %s) (texture->uniform_name %s) "
+        "Setting uniforms: (model %s) (uniform_name %s) "
         "(texture->texture_name %d)",
-        this->name, texture->uniform_name, texture->texture_name
+        this->name, uniform_name, texture->texture_name
       );
       shader_asset->set_int(
-        texture->uniform_name,
+        uniform_name,
         shader_asset->add_texture_unit(texture->texture_name, texture->target)
       );
     }

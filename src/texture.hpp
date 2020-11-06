@@ -13,6 +13,7 @@ enum TextureType {
   TEXTURE_G_PBR,
   TEXTURE_L_COLOR,
   TEXTURE_L_BRIGHT_COLOR,
+  TEXTURE_BLUR,
   TEXTURE_SHADOWMAP,
   TEXTURE_OTHER
 };
@@ -21,7 +22,6 @@ class Texture {
 public:
   GLenum target;
   TextureType type;
-  const char* uniform_name;
   const char* path;
   uint32 texture_name = 0;
   int32 width = 0;
@@ -32,11 +32,9 @@ public:
 
   Texture(
     TextureType type,
-    const char* uniform_name,
     const char* path
   ) :
     type(type),
-    uniform_name(uniform_name),
     path(path)
   {
     this->target = GL_TEXTURE_2D;
@@ -53,7 +51,6 @@ public:
   Texture(
     GLenum target,
     TextureType type,
-    const char* uniform_name,
     uint32 texture_name,
     int32 width,
     int32 height,
@@ -61,7 +58,6 @@ public:
   ) :
     target(target),
     type(type),
-    uniform_name(uniform_name),
     texture_name(texture_name),
     width(width),
     height(height),

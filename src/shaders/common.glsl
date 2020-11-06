@@ -19,7 +19,7 @@ layout (std140) uniform shader_common {
   float camera_horizontal_fov;
   float camera_vertical_fov;
   int shadow_light_idx;
-  float pad_oops1;
+  bool is_blur_horizontal;
 
   float exposure;
   float t;
@@ -33,6 +33,16 @@ layout (std140) uniform shader_common {
   vec4 light_attenuation[MAX_N_LIGHTS];
 };
 
+/* uniform float BLUR_WEIGHTS[5] = float[] ( */
+/*   0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216 */
+/* ); */
+uniform float BLUR_WEIGHTS[3] = float[] (
+  0.2270270270, 0.3162162162, 0.0702702703
+);
+uniform float BLUR_OFFSETS[3] = float[] (
+  0.0, 1.3846153846, 3.2307692308
+);
+
 struct WaveParameterSet {
   vec2 direction;
   float amplitude;
@@ -41,9 +51,9 @@ struct WaveParameterSet {
   float speed;
 };
 
-const int n_waves = 19;
+const int N_WAVES = 19;
 const float a = 0.9; // amplitude factor
-WaveParameterSet wave_parameter_sets[n_waves] = WaveParameterSet[n_waves](
+WaveParameterSet WAVE_PARAMETER_SETS[N_WAVES] = WaveParameterSet[N_WAVES](
   // Choppy small waves
   /* WaveParameterSet(vec2(0.8, 0.1),  0.02 * amplitude_factor, 0.001, 7.8, 0.5), */
   /* WaveParameterSet(vec2(0.2, 0.0),  0.03 * amplitude_factor, 0.003, 5.2, 0.3), */
@@ -76,18 +86,18 @@ WaveParameterSet wave_parameter_sets[n_waves] = WaveParameterSet[n_waves](
 vec3 water_make_normal_gerstner_osgw(vec3 water_position) {
   vec3 wave_normal = vec3(0.0, 1.0, 0.0);
 
-  for (int idx = 0; idx < n_waves; idx++) {
-    float proj = dot(water_position.xz, wave_parameter_sets[idx].direction);
-    float phase = t * wave_parameter_sets[idx].speed;
-    float psi = proj * wave_parameter_sets[idx].frequency + phase;
-    float amp_freq = wave_parameter_sets[idx].amplitude *
-      wave_parameter_sets[idx].frequency;
+  for (int idx = 0; idx < N_WAVES; idx++) {
+    float proj = dot(water_position.xz, WAVE_PARAMETER_SETS[idx].direction);
+    float phase = t * WAVE_PARAMETER_SETS[idx].speed;
+    float psi = proj * WAVE_PARAMETER_SETS[idx].frequency + phase;
+    float amp_freq = WAVE_PARAMETER_SETS[idx].amplitude *
+      WAVE_PARAMETER_SETS[idx].frequency;
     float alpha = amp_freq * sin(psi);
 
-    wave_normal.y -= wave_parameter_sets[idx].steepness * alpha;
+    wave_normal.y -= WAVE_PARAMETER_SETS[idx].steepness * alpha;
 
-    float x = wave_parameter_sets[idx].direction.x;
-    float y = wave_parameter_sets[idx].direction.y;
+    float x = WAVE_PARAMETER_SETS[idx].direction.x;
+    float y = WAVE_PARAMETER_SETS[idx].direction.y;
     float omega = amp_freq * cos(psi);
 
     wave_normal.x -= x * omega;
@@ -100,19 +110,19 @@ vec3 water_make_normal_gerstner_osgw(vec3 water_position) {
 vec3 water_make_position_gerstner_osgw(vec2 vertex_position) {
   vec3 wave_position = vec3(vertex_position.x, 0, vertex_position.y);
 
-  for (int idx = 0; idx < n_waves; idx++) {
-    float proj = dot(vertex_position, wave_parameter_sets[idx].direction);
-    float phase = t * wave_parameter_sets[idx].speed;
-    float theta = proj * wave_parameter_sets[idx].frequency + phase;
-    float height = wave_parameter_sets[idx].amplitude * sin(theta);
+  for (int idx = 0; idx < N_WAVES; idx++) {
+    float proj = dot(vertex_position, WAVE_PARAMETER_SETS[idx].direction);
+    float phase = t * WAVE_PARAMETER_SETS[idx].speed;
+    float theta = proj * WAVE_PARAMETER_SETS[idx].frequency + phase;
+    float height = WAVE_PARAMETER_SETS[idx].amplitude * sin(theta);
 
     wave_position.y += height;
 
-    float maximum_width = wave_parameter_sets[idx].steepness *
-      wave_parameter_sets[idx].amplitude;
+    float maximum_width = WAVE_PARAMETER_SETS[idx].steepness *
+      WAVE_PARAMETER_SETS[idx].amplitude;
     float width = maximum_width * cos(theta);
-    float x = wave_parameter_sets[idx].direction.x;
-    float y = wave_parameter_sets[idx].direction.y;
+    float x = WAVE_PARAMETER_SETS[idx].direction.x;
+    float y = WAVE_PARAMETER_SETS[idx].direction.y;
 
     wave_position.x += x * width;
     wave_position.z += y * width;
@@ -132,13 +142,13 @@ vec3 water_make_position_gerstner_osgw(vec2 vertex_position) {
 vec3 water_make_position_gerstner_vlad(vec2 vertex_position) {
   vec3 wave_position = vec3(vertex_position.x, 0, vertex_position.y);
 
-  for (int idx = 0; idx < n_waves; idx++) {
-    float amplitude = wave_parameter_sets[idx].amplitude;
-    float frequency = wave_parameter_sets[idx].frequency;
-    vec2 direction = wave_parameter_sets[idx].direction;
-    float speed = wave_parameter_sets[idx].speed;
+  for (int idx = 0; idx < N_WAVES; idx++) {
+    float amplitude = WAVE_PARAMETER_SETS[idx].amplitude;
+    float frequency = WAVE_PARAMETER_SETS[idx].frequency;
+    vec2 direction = WAVE_PARAMETER_SETS[idx].direction;
+    float speed = WAVE_PARAMETER_SETS[idx].speed;
     float phi = speed * frequency;
-    float steepness = wave_parameter_sets[idx].steepness;
+    float steepness = WAVE_PARAMETER_SETS[idx].steepness;
 
     float sin_cos_argument = dot(frequency * direction, vertex_position) + phi * t;
 
@@ -166,13 +176,13 @@ vec3 water_make_normal_gerstner_vlad(
   tangent = vec3(0.0, 0.0, 1.0);
 #endif
 
-  for (int idx = 0; idx < n_waves; idx++) {
-    float amplitude = wave_parameter_sets[idx].amplitude;
-    float frequency = wave_parameter_sets[idx].frequency;
-    vec2 direction = wave_parameter_sets[idx].direction;
-    float speed = wave_parameter_sets[idx].speed;
+  for (int idx = 0; idx < N_WAVES; idx++) {
+    float amplitude = WAVE_PARAMETER_SETS[idx].amplitude;
+    float frequency = WAVE_PARAMETER_SETS[idx].frequency;
+    vec2 direction = WAVE_PARAMETER_SETS[idx].direction;
+    float speed = WAVE_PARAMETER_SETS[idx].speed;
     float phi = speed * frequency;
-    float steepness = wave_parameter_sets[idx].steepness;
+    float steepness = WAVE_PARAMETER_SETS[idx].steepness;
 
     float wa = frequency * amplitude;
     float sin_cos_argument = frequency * dot(direction, wave_position.xz) + phi * t;

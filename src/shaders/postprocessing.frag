@@ -1,5 +1,5 @@
 uniform sampler2D l_color_texture;
-uniform sampler2D l_bright_color_texture;
+uniform sampler2D bloom_texture;
 
 in BLOCK {
   vec2 tex_coords;
@@ -9,13 +9,10 @@ out vec4 frag_color;
 
 
 void main() {
-  vec3 color = vec3(0.0);
-
-  color = texture(l_color_texture, fs_in.tex_coords).rgb;
-  vec3 bright_color = texture(l_bright_color_texture, fs_in.tex_coords - vec2(0.01)).rgb;
-  color += bright_color;
+  vec3 color = texture(l_color_texture, fs_in.tex_coords).rgb;
+  vec3 bloom = texture(bloom_texture, fs_in.tex_coords).rgb;
+  color += bloom / 100.0;
   color = add_tone_mapping(color);
   color = correct_gamma(color);
-
   frag_color = vec4(color, 1.0);
 }

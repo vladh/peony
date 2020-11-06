@@ -84,6 +84,11 @@ public:
   Texture *l_color_texture;
   Texture *l_bright_color_texture;
 
+  uint32 blur1_buffer;
+  uint32 blur2_buffer;
+  Texture *blur1_texture;
+  Texture *blur2_texture;
+
   State(Memory *memory, WindowInfo window_info);
 };
 
