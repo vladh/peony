@@ -379,11 +379,11 @@ void process_input_continuous(GLFWwindow *window, State *state) {
   }
 
   if (state->control.is_key_down(GLFW_KEY_Z)) {
-    update_light_position(state, 0.05f * (real32)state->dt);
+    update_light_position(state, 0.10f * (real32)state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_X)) {
-    update_light_position(state, -0.05f * (real32)state->dt);
+    update_light_position(state, -0.10f * (real32)state->dt);
   }
 
   if (state->control.is_key_down(GLFW_KEY_SPACE)) {
