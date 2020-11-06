@@ -207,25 +207,13 @@ void init_l_buffer(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
 
   uint32 l_color_texture_name;
-  uint32 l_bright_color_texture_name;
-
   glGenTextures(1, &l_color_texture_name);
-  glGenTextures(1, &l_bright_color_texture_name);
-
   state->l_color_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_color_texture")
   ) Texture(
     GL_TEXTURE_2D, TEXTURE_L_COLOR, l_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
-
-  state->l_bright_color_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_bright_color_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TEXTURE_L_BRIGHT_COLOR, l_bright_color_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-
   glBindTexture(GL_TEXTURE_2D, state->l_color_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -241,6 +229,14 @@ void init_l_buffer(Memory *memory, State *state) {
     state->l_color_texture->texture_name, 0
   );
 
+  uint32 l_bright_color_texture_name;
+  glGenTextures(1, &l_bright_color_texture_name);
+  state->l_bright_color_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_bright_color_texture")
+  ) Texture(
+    GL_TEXTURE_2D, TEXTURE_L_BRIGHT_COLOR, l_bright_color_texture_name,
+    state->window_info.width, state->window_info.height, 4
+  );
   glBindTexture(GL_TEXTURE_2D, state->l_bright_color_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -259,6 +255,7 @@ void init_l_buffer(Memory *memory, State *state) {
   uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
   glDrawBuffers(2, attachments);
 
+#if 0
   uint32 rbo_depth;
   glGenRenderbuffers(1, &rbo_depth);
   glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
@@ -269,6 +266,30 @@ void init_l_buffer(Memory *memory, State *state) {
   glFramebufferRenderbuffer(
     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
   );
+#else
+  uint32 l_depth_texture_name;
+  glGenTextures(1, &l_depth_texture_name);
+  state->l_depth_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_depth_texture")
+  ) Texture(
+    GL_TEXTURE_2D, TEXTURE_L_BRIGHT_COLOR, l_depth_texture_name,
+    state->window_info.width, state->window_info.height, 1
+  );
+  glBindTexture(GL_TEXTURE_2D, state->l_depth_texture->texture_name);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glTexImage2D(
+    GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+    state->l_depth_texture->width, state->l_depth_texture->height,
+    0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+  );
+  glFramebufferTexture2D(
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+    state->l_depth_texture->texture_name, 0
+  );
+#endif
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     log_error("Framebuffer not complete!");
@@ -608,13 +629,16 @@ void copy_scene_data_to_ubo(
 
   shader_common->camera_horizontal_fov = state->camera_active->horizontal_fov;
   shader_common->camera_vertical_fov = state->camera_active->vertical_fov;
+  shader_common->camera_near_clip_dist = state->camera_active->near_clip_dist;
+  shader_common->camera_far_clip_dist = state->camera_active->far_clip_dist;
+
+  shader_common->n_lights = state->lights.size;
   shader_common->shadow_light_idx = shadow_light_idx;
+  shader_common->shadow_far_clip_dist = state->shadowmap_far_clip_dist;
   shader_common->is_blur_horizontal = is_blur_horizontal;
 
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
-  shader_common->far_clip_dist = state->shadowmap_far_clip_dist;
-  shader_common->n_lights = state->lights.size;
 
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
     EntityHandle handle = *state->lights.get(idx);

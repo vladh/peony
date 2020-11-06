@@ -42,13 +42,18 @@ struct ShaderCommon {
 
   float camera_horizontal_fov;
   float camera_vertical_fov;
+  float camera_near_clip_dist;
+  float camera_far_clip_dist;
+
+  int n_lights;
   int shadow_light_idx;
+  float shadow_far_clip_dist;
   bool is_blur_horizontal;
 
   float exposure;
   float t;
-  float far_clip_dist;
-  int n_lights;
+  float padding_oops1;
+  float padding_oops2;
 
   glm::vec4 light_position[MAX_N_LIGHTS];
   glm::vec4 light_type[MAX_N_LIGHTS];

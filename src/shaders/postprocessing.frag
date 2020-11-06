@@ -1,5 +1,6 @@
 uniform sampler2D l_color_texture;
 uniform sampler2D bloom_texture;
+uniform sampler2D l_depth_texture;
 
 in BLOCK {
   vec2 tex_coords;
@@ -10,9 +11,17 @@ out vec4 frag_color;
 
 void main() {
   vec3 color = texture(l_color_texture, fs_in.tex_coords).rgb;
+  float depth = texture(l_depth_texture, fs_in.tex_coords).r;
   vec3 bloom = texture(bloom_texture, fs_in.tex_coords).rgb;
   color += bloom / 15.0;
   color = add_tone_mapping(color);
   color = correct_gamma(color);
+
+  color = vec3(
+    1.0 - linearize_depth(
+      depth, camera_near_clip_dist, camera_far_clip_dist
+    ) / camera_far_clip_dist
+  );
+
   frag_color = vec4(color, 1.0);
 }

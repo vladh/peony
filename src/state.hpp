@@ -83,6 +83,7 @@ public:
   uint32 l_buffer;
   Texture *l_color_texture;
   Texture *l_bright_color_texture;
+  Texture *l_depth_texture;
 
   uint32 blur1_buffer;
   uint32 blur2_buffer;

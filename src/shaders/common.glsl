@@ -18,13 +18,18 @@ layout (std140) uniform shader_common {
 
   float camera_horizontal_fov;
   float camera_vertical_fov;
+  float camera_near_clip_dist;
+  float camera_far_clip_dist;
+
+  int n_lights;
   int shadow_light_idx;
+  float shadow_far_clip_dist;
   bool is_blur_horizontal;
 
   float exposure;
   float t;
-  float far_clip_dist;
-  int n_lights;
+  float padding_oops1;
+  float padding_oops2;
 
   vec4 light_position[MAX_N_LIGHTS];
   vec4 light_type[MAX_N_LIGHTS];
@@ -225,6 +230,12 @@ float normalize_angle(float angle) {
     return -180.0 - angle;
   }
   return angle;
+}
+
+float linearize_depth(float depth, float near_clip_dist, float far_clip_dist) {
+  float z = depth * 2.0 - 1.0;
+  return (2.0 * near_clip_dist * far_clip_dist) /
+    (far_clip_dist + near_clip_dist - z * (far_clip_dist - near_clip_dist));
 }
 
 float to_unit_interval(float x, float min_val, float max_val) {
