@@ -141,23 +141,22 @@ void ShaderAsset::load_uniforms() {
 }
 
 
-ShaderAsset::ShaderAsset(
-  Memory *memory, const char *new_name, ShaderType new_type,
-  const char *vert_path, const char* frag_path
-) {
-  this->name = new_name;
-  this->type = new_type;
-  this->n_texture_units = 0;
-  memset(this->texture_units, 0, sizeof(this->texture_units));
-  memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
-  this->program = make_program(
-    make_shader(vert_path, load_file(memory, vert_path), GL_VERTEX_SHADER),
-    make_shader(frag_path, load_frag_file(memory, frag_path), GL_FRAGMENT_SHADER)
-  );
-  load_uniforms();
+void ShaderAsset::load(Memory *memory) {
+  if (this->geom_path) {
+    this->program = make_program(
+      make_shader(this->vert_path, load_file(memory, this->vert_path), GL_VERTEX_SHADER),
+      make_shader(this->frag_path, load_frag_file(memory, this->frag_path), GL_FRAGMENT_SHADER),
+      make_shader(this->geom_path, load_file(memory, this->geom_path), GL_GEOMETRY_SHADER)
+    );
+  } else {
+    this->program = make_program(
+      make_shader(this->vert_path, load_file(memory, this->vert_path), GL_VERTEX_SHADER),
+      make_shader(this->frag_path, load_frag_file(memory, this->frag_path), GL_FRAGMENT_SHADER)
+    );
+  }
 
-  // TODO: Free this up some other way.
-  /* memory->temp_memory_pool.reset(); */
+  load_uniforms();
+  memory->temp_memory_pool.reset();
 }
 
 
@@ -170,15 +169,10 @@ ShaderAsset::ShaderAsset(
   this->n_texture_units = 0;
   memset(this->texture_units, 0, sizeof(this->texture_units));
   memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
-  this->program = make_program(
-    make_shader(vert_path, load_file(memory, vert_path), GL_VERTEX_SHADER),
-    make_shader(frag_path, load_frag_file(memory, frag_path), GL_FRAGMENT_SHADER),
-    make_shader(geom_path, load_file(memory, geom_path), GL_GEOMETRY_SHADER)
-  );
-  load_uniforms();
-
-  // TODO: Free this up some other way.
-  /* memory->temp_memory_pool.reset(); */
+  this->vert_path = vert_path;
+  this->frag_path = frag_path;
+  this->geom_path = geom_path;
+  load(memory);
 }
 
 

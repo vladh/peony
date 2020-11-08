@@ -114,8 +114,9 @@ void ModelAsset::load_mesh(
   // This is probably quite wasteful, but I haven't figured out a way to
   // elegantly use the data from assimp directly, and I don't think it's
   // possible.
+  // TODO: Change to a memory pool we can somehow clear later.
   mesh->vertices = Array<Vertex>(
-    &memory->temp_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
+    &memory->asset_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
   );
 
   if (!mesh_data->mNormals) {
@@ -158,7 +159,8 @@ void ModelAsset::load_mesh(
 
   mesh->n_indices = n_indices;
   mesh->indices = Array<uint32>(
-    &memory->temp_memory_pool, n_indices, "mesh_indices"
+    // TODO: Change to a memory pool we can somehow clear later.
+    &memory->asset_memory_pool, n_indices, "mesh_indices"
   );
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
@@ -485,7 +487,7 @@ void ModelAsset::prepare_for_draw(
     }
 
     // Step 5: Once all of the above is complete, copy the texture data from the
-    // PBO to the actual textures, and bind the uniforms.
+    // PBO to the actual textures.
     if (
       this->is_mesh_data_loading_done &&
       this->is_vertex_buffer_setup_done &&
@@ -493,7 +495,7 @@ void ModelAsset::prepare_for_draw(
       this->is_texture_copying_to_pbo_done &&
       !this->is_texture_set_binding_done
     ) {
-      START_TIMER(copy_pbo_to_texture_and_bind);
+      START_TIMER(copy_pbo_to_texture);
 
       bool32 did_have_to_generate_or_bind_texture = false;
 
@@ -511,13 +513,24 @@ void ModelAsset::prepare_for_draw(
         }
       }
 
+      if (!did_have_to_generate_or_bind_texture) {
+        this->is_texture_set_binding_done = true;
+      }
+
+      END_TIMER_MIN(copy_pbo_to_texture, 5);
+    }
+
+    // Step 6: Bind the texture uniforms.
+    // NOTE: Because the shader might be reloaded at any time, we need to
+    // check whether or not we need to set any uniforms every time.
+    {
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
         MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
         if (
           mesh_template->texture_set &&
           mesh_template->texture_set->have_textures_been_generated &&
-          !mesh_template->texture_set->have_textures_been_bound
+          !mesh_template->shader_asset->did_set_texture_uniforms
         ) {
           if (mesh_template->apply_to_all_meshes) {
             bind_texture(
@@ -529,16 +542,8 @@ void ModelAsset::prepare_for_draw(
               mesh_template->node_depth, mesh_template->node_idx
             );
           }
-          mesh_template->texture_set->have_textures_been_bound = true;
-          did_have_to_generate_or_bind_texture = true;
         }
       }
-
-      if (!did_have_to_generate_or_bind_texture) {
-        this->is_texture_set_binding_done = true;
-      }
-
-      END_TIMER(copy_pbo_to_texture_and_bind);
     }
   }
 }

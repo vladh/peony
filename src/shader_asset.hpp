@@ -21,21 +21,21 @@ enum ShaderType {
 class ShaderAsset {
 public:
   const char *name;
-  bool did_set_texture_uniforms;
+  const char *vert_path;
+  const char *frag_path;
+  const char *geom_path;
   uint32 program;
   ShaderType type;
   uint32 n_texture_units;
   uint32 texture_units[MAX_N_TEXTURE_UNITS];
   GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
+  bool did_set_texture_uniforms;
 
-  ShaderAsset(
-    Memory *memory, const char *name, ShaderType type,
-    const char *vert_path, const char* frag_path
-  );
   ShaderAsset(
     Memory *memory, const char *name, ShaderType type,
     const char *vert_path, const char *frag_path, const char *geom_path
   );
+  void load(Memory *memory);
   void set_int(const char *name, uint32 value);
   void set_bool(const char *name, bool value);
   void set_float(const char *name, float value);
