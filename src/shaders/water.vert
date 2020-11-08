@@ -6,7 +6,6 @@ layout (location = 2) in vec2 tex_coords;
 
 out BLOCK {
   vec3 world_position;
-  vec2 screen_position;
   vec3 normal;
 #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
   vec3 bitangent;
@@ -45,24 +44,7 @@ void main() {
   vec3 water_bitangent = normalize(water_hf_bitangent + water_lf_bitangent);
 #endif
 
-  /* vec3 water_position = water_hf_position; */
-  /* vec3 water_normal = water_hf_normal; */
-/* #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER */
-  /* vec3 water_tangent = water_hf_tangent; */
-  /* vec3 water_bitangent = water_hf_bitangent; */
-/* #endif */
-
-  /* vec3 water_position = water_lf_position; */
-  /* vec3 water_normal = water_lf_normal; */
-/* #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER */
-  /* vec3 water_tangent = water_lf_tangent; */
-  /* vec3 water_bitangent = water_lf_bitangent; */
-/* #endif */
-
   gl_Position = projection * view * vec4(water_position, 1.0);
-
-  vec3 ndc = gl_Position.xyz / gl_Position.w;
-  vs_out.screen_position = ndc.xy * 0.5 + 0.5;
 
   vs_out.world_position = water_position;
   vs_out.normal = water_normal;

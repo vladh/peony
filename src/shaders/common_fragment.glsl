@@ -69,7 +69,7 @@ vec3 get_sky_color(float angle) {
 
 float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
   float shadow = 0.0;
-  float bias = 0.10 / shadow_far_clip_dist;
+  float bias = 0.20 / shadow_far_clip_dist;
 
   vec3 light_to_frag = world_position - vec3(light_position[idx_light]);
   float view_distance = length(camera_position - world_position);

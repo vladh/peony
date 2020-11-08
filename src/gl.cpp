@@ -650,6 +650,8 @@ void copy_scene_data_to_ubo(
 
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
+  shader_common->window_width = state->window_info.width;
+  shader_common->window_height = state->window_info.height;
 
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
     EntityHandle handle = *state->lights.get(idx);
