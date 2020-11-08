@@ -96,7 +96,8 @@ public:
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue,
-    glm::mat4 *model_matrix
+    glm::mat4 *model_matrix,
+    glm::mat3 *model_normal_matrix
   );
   void draw_in_depth_mode(
     Memory *memory,
@@ -104,6 +105,7 @@ public:
     TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue,
     glm::mat4 *model_matrix,
+    glm::mat3 *model_normal_matrix,
     ShaderAsset *standard_depth_shader_asset
   );
   void load(

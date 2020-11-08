@@ -103,6 +103,7 @@ void ModelAsset::load_mesh(
   glm::mat4 transform, Pack indices_pack
 ) {
   mesh->transform = transform;
+  glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(transform)));
   mesh->texture_set = nullptr;
   mesh->mode = GL_TRIANGLES;
 
@@ -132,13 +133,13 @@ void ModelAsset::load_mesh(
     position.x = mesh_data->mVertices[idx].x;
     position.y = mesh_data->mVertices[idx].y;
     position.z = mesh_data->mVertices[idx].z;
-    vertex->position = position;
+    vertex->position = glm::vec3(mesh->transform * glm::vec4(position, 1.0));
 
     glm::vec3 normal;
     normal.x = mesh_data->mNormals[idx].x;
     normal.y = mesh_data->mNormals[idx].y;
     normal.z = mesh_data->mNormals[idx].z;
-    vertex->normal = normal;
+    vertex->normal = glm::normalize(normal_matrix * normal);
 
     if (mesh_data->mTextureCoords[0]) {
       glm::vec2 tex_coords;
@@ -320,22 +321,27 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     return;
   }
 
-  // TODO: We're trying to set some unneccessary uniforms here, such as
-  // `should_use_normal_map` on the screenquad and so on. It's ok because
-  // they are checked and skipped inside ShaderAsset.set*, but it would
-  // be clearer to come up with a way of showing which uniforms we need
-  // to set and which not.
   if (shader_asset->type != SHADER_DEPTH) {
     glUseProgram(shader_asset->program);
 
-    shader_asset->set_bool(
-      "should_use_normal_map", texture_set->should_use_normal_map
-    );
-
-    shader_asset->set_vec4("albedo_static", &texture_set->albedo_static);
-    shader_asset->set_float("metallic_static", texture_set->metallic_static);
-    shader_asset->set_float("roughness_static", texture_set->roughness_static);
-    shader_asset->set_float("ao_static", texture_set->ao_static);
+    for (
+      uint32 uniform_idx = 0;
+      uniform_idx < shader_asset->n_intrinsic_uniforms;
+      uniform_idx++
+    ) {
+      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+      if (strcmp(uniform_name, "should_use_normal_map") == 0) {
+        shader_asset->set_bool("should_use_normal_map", texture_set->should_use_normal_map);
+      } else if (strcmp(uniform_name, "albedo_static") == 0) {
+        shader_asset->set_vec4("albedo_static", &texture_set->albedo_static);
+      } else if (strcmp(uniform_name, "metallic_static") == 0) {
+        shader_asset->set_float("metallic_static", texture_set->metallic_static);
+      } else if (strcmp(uniform_name, "roughness_static") == 0) {
+        shader_asset->set_float("roughness_static", texture_set->roughness_static);
+      } else if (strcmp(uniform_name, "ao_static") == 0) {
+        shader_asset->set_float("ao_static", texture_set->ao_static);
+      }
+    }
 
     shader_asset->reset_texture_units();
 
@@ -554,7 +560,8 @@ void ModelAsset::draw(
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
   Queue<Task> *task_queue,
-  glm::mat4 *model_matrix
+  glm::mat4 *model_matrix,
+  glm::mat3 *model_normal_matrix
 ) {
   prepare_for_draw(
     memory, persistent_pbo, texture_name_pool, task_queue
@@ -571,21 +578,16 @@ void ModelAsset::draw(
   uint32 last_used_shader_program = 0;
   ShaderAsset *shader_asset;
 
-  for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-    Mesh *mesh = this->meshes.get(idx);
+  for (uint32 mesh_idx = 0; mesh_idx < this->meshes.size; mesh_idx++) {
+    Mesh *mesh = this->meshes.get(mesh_idx);
     shader_asset = mesh->shader_asset;
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
+    bool32 has_shader_changed = false;
     if (shader_asset->program != last_used_shader_program) {
+      has_shader_changed = true;
       glUseProgram(shader_asset->program);
       last_used_shader_program = shader_asset->program;
-
-      if (
-        shader_asset->type == SHADER_STANDARD ||
-        shader_asset->type == SHADER_OTHER_OBJECT
-      ) {
-        shader_asset->set_mat4("model", model_matrix);
-      }
 
       for (
         uint32 texture_idx = 1;
@@ -601,11 +603,18 @@ void ModelAsset::draw(
       }
     }
 
-    if (
-      shader_asset->type == SHADER_STANDARD ||
-      shader_asset->type == SHADER_OTHER_OBJECT
+    // TODO: Set this in the same place as the other uniforms so we don't have to loop twice.
+    for (
+      uint32 uniform_idx = 0;
+      uniform_idx < shader_asset->n_intrinsic_uniforms;
+      uniform_idx++
     ) {
-      shader_asset->set_mat4("mesh_transform", &mesh->transform);
+      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+      if (strcmp(uniform_name, "model_matrix") == 0) {
+        shader_asset->set_mat4("model_matrix", model_matrix);
+      } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+        shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+      }
     }
 
     glBindVertexArray(mesh->vao);
@@ -624,6 +633,7 @@ void ModelAsset::draw_in_depth_mode(
   TextureNamePool *texture_name_pool,
   Queue<Task> *task_queue,
   glm::mat4 *model_matrix,
+  glm::mat3 *model_normal_matrix,
   ShaderAsset *standard_depth_shader_asset
 ) {
   // TODO: We can probably merge this into the normal `draw()` above.
@@ -645,13 +655,25 @@ void ModelAsset::draw_in_depth_mode(
     }
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
+    bool32 has_shader_changed = false;
     if (shader_asset->program != last_used_shader_program) {
       glUseProgram(shader_asset->program);
       last_used_shader_program = shader_asset->program;
-      shader_asset->set_mat4("model", model_matrix);
+      has_shader_changed = true;
     }
 
-    shader_asset->set_mat4("mesh_transform", &mesh->transform);
+    for (
+      uint32 uniform_idx = 0;
+      uniform_idx < shader_asset->n_intrinsic_uniforms;
+      uniform_idx++
+    ) {
+      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+      if (strcmp(uniform_name, "model_matrix") == 0) {
+        shader_asset->set_mat4("model_matrix", model_matrix);
+      } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+        shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+      }
+    }
 
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
