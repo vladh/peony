@@ -350,6 +350,14 @@ void init_blur_buffers(Memory *memory, State *state) {
 }
 
 
+void reload_shaders(Memory *memory, State *state) {
+  for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
+    ShaderAsset *shader_asset = state->shader_assets.get(idx);
+    shader_asset->load(memory);
+  }
+}
+
+
 void update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_cursor_disabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -382,7 +390,7 @@ void update_light_position(State *state, real32 amount) {
 }
 
 
-void process_input_continuous(GLFWwindow *window, State *state) {
+void process_input_continuous(GLFWwindow *window, State *state, Memory *memory) {
   if (state->control.is_key_down(GLFW_KEY_W)) {
     state->camera_active->move_front_back(1, state->dt);
   }
@@ -417,7 +425,7 @@ void process_input_continuous(GLFWwindow *window, State *state) {
 }
 
 
-void process_input_transient(GLFWwindow *window, State *state) {
+void process_input_transient(GLFWwindow *window, State *state, Memory *memory) {
   if (state->control.is_key_now_down(GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
@@ -448,6 +456,10 @@ void process_input_transient(GLFWwindow *window, State *state) {
   if (state->control.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
     log_info("Deleting PBO");
     state->persistent_pbo.delete_pbo();
+  }
+
+  if (state->control.is_key_now_down(GLFW_KEY_R)) {
+    reload_shaders(memory, state);
   }
 
   if (state->control.is_key_down(GLFW_KEY_P)) {
@@ -522,8 +534,9 @@ void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
+  Memory *memory = memory_and_state->memory;
   state->control.update_keys(key, scancode, action, mods);
-  process_input_transient(window, state);
+  process_input_transient(window, state, memory);
 }
 
 
@@ -563,8 +576,6 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
-  /* window_info->width = 800; */
-  /* window_info->height = 600; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -953,7 +964,7 @@ void run_main_loop(Memory *memory, State *state) {
 
   while (!state->should_stop) {
     glfwPollEvents();
-    process_input_continuous(state->window_info.window, state);
+    process_input_continuous(state->window_info.window, state, memory);
 
     if (
       !state->is_manual_frame_advance_enabled ||

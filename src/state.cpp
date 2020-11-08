@@ -75,6 +75,6 @@ State::State(
   ),
   shadowmap_near_clip_dist(0.05f),
   shadowmap_far_clip_dist(200.0f),
-  dir_light_angle(PI / 4.0f)
+  dir_light_angle(PI32 / 4.0f)
 {
 }

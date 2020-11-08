@@ -29,6 +29,7 @@ MemoryPool::MemoryPool(const char *new_name, size_t new_size) {
 
 void MemoryPool::reset() {
   this->mutex.lock();
+  log_info("Resetting memory pool \"%s\"", this->name);
   this->used = 0;
   this->n_items = 0;
   this->mutex.unlock();

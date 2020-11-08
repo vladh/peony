@@ -10,12 +10,18 @@ void TextManager::draw(
 
   uint16 line_height = (uint16)((real32)font_asset->font_size * LINE_HEIGHT_FACTOR);
 
-  glUseProgram(this->shader_asset->program);
-  this->shader_asset->set_vec4("text_color", &color);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, font_asset->texture);
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+
+  glUseProgram(this->shader_asset->program);
+  this->shader_asset->set_vec4("text_color", &color);
+  this->shader_asset->set_mat4("text_projection", &this->text_projection);
+
+  if (!this->shader_asset->did_set_texture_uniforms) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, font_asset->texture);
+    this->shader_asset->did_set_texture_uniforms;
+  }
 
   real32 curr_x = start_x;
   real32 curr_y = start_y;
@@ -77,11 +83,9 @@ void TextManager::draw(
 void TextManager::update_text_projection(
   uint32 window_width, uint32 window_height
 ) {
-  glm::mat4 text_projection = glm::ortho(
+  this->text_projection = glm::ortho(
     0.0f, (real32)window_width, 0.0f, (real32)window_height
   );
-  glUseProgram(this->shader_asset->program);
-  this->shader_asset->set_mat4("text_projection", &text_projection);
 }
 
 
@@ -97,14 +101,15 @@ TextManager::TextManager(
 {
   this->shader_asset = shader_asset;
 
+  update_text_projection(window_width, window_height);
+
   // Shaders
   new(this->shader_asset) ShaderAsset(
     memory,
     "text",
     SHADER_UI,
-    SHADER_DIR"text.vert", SHADER_DIR"text.frag"
+    SHADER_DIR"text.vert", SHADER_DIR"text.frag", nullptr
   );
-  update_text_projection(window_width, window_height);
 
   // Fonts
   FT_Library ft_library;

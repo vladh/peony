@@ -4,6 +4,7 @@ public:
   Array<FontAsset> font_assets;
   uint32 vao;
   uint32 vbo;
+  glm::mat4 text_projection;
 
   TextManager(
     Memory *memory, ShaderAsset *shader_asset,
