@@ -617,6 +617,12 @@ void ModelAsset::draw(
       }
     }
 
+#if 0
+    if (strcmp(this->name, "ocean") == 0) {
+      return;
+    }
+#endif
+
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
       glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);

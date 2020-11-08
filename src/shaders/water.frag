@@ -34,7 +34,6 @@ layout (location = 1) out vec4 l_bright_color;
 
 in BLOCK {
   vec3 world_position;
-  vec2 screen_position;
   vec3 normal;
 #if SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER
   vec3 bitangent;
@@ -132,11 +131,12 @@ void main() {
   // the water, or the sampled "underwater" object. We allow for the object
   // to be within a distance of 1 closer to the camera than the water,
   // otherwise we discard the sampled albedo by setting it to 0.
-  vec3 underwater_position = texture(g_position_texture, fs_in.screen_position).rgb;
+  vec2 screen_position = gl_FragCoord.xy / vec2(window_width, window_height);
+  vec3 underwater_position = texture(g_position_texture, screen_position).rgb;
   vec3 underwater_albedo = vec3(0.0);
   if (underwater_position != vec3(0.0, 0.0, 0.0)) {
     vec2 refraction_dir = normalize(vec2(n_min_v.z, n_min_v.x));
-    vec2 refracted_tex_coords = fs_in.screen_position - refraction_dir * 0.010;
+    vec2 refracted_tex_coords = screen_position - refraction_dir * 0.010;
     vec3 refracted_underwater_position = texture(g_position_texture, refracted_tex_coords).rgb;
     float underwater_dist = length(camera_position - refracted_underwater_position);
     float sampled_albedo_discard_factor = max(0, 1 - ((water_dist - underwater_dist) / 1));
@@ -196,6 +196,8 @@ void main() {
 #if SHOULD_USE_SHADOWS
   // TODO: Send this light separately?
   float shadow = calculate_shadows(fs_in.world_position, N, 0);
+  // Take out the very lightest shadows a little bit.
+  shadow = pow(shadow, 1.5);
   color = color * (1.0 - (shadow * WATER_SHADOW_FACTOR));
 #endif
 

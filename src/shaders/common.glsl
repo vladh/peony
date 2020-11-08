@@ -28,8 +28,8 @@ layout (std140) uniform shader_common {
 
   float exposure;
   float t;
-  float padding_oops1;
-  float padding_oops2;
+  int window_width;
+  int window_height;
 
   vec4 light_position[MAX_N_LIGHTS];
   vec4 light_type[MAX_N_LIGHTS];

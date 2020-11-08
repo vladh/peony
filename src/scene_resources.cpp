@@ -45,7 +45,7 @@ void scene_init_resources(Memory *memory, State *state) {
     Util::make_plane(
       &memory->temp_memory_pool,
       200, 200,
-      2048, 2048,
+      100, 100,
       &n_vertices, &n_indices,
       &vertex_data, &index_data
     );
@@ -73,7 +73,8 @@ void scene_init_resources(Memory *memory, State *state) {
       "water_depth",
       SHADER_DEPTH,
       SHADER_DIR"water_depth.vert", SHADER_DIR"standard_depth.frag",
-      SHADER_DIR"standard_depth.geom"
+      nullptr
+      /* SHADER_DIR"standard_depth.geom" */
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
     texture_set->add(*state->g_position_texture, "g_position_texture");
