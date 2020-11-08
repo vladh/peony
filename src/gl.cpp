@@ -990,6 +990,9 @@ void run_main_loop(Memory *memory, State *state) {
         second_start = frame_start;
         state->last_fps = n_frames_this_second;
         n_frames_this_second = 0;
+        if (state->should_hide_ui) {
+          log_info("%.2f FPS", state->last_fps);
+        }
       }
 
       update_and_render(memory, state);
