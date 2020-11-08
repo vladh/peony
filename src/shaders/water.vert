@@ -1,5 +1,4 @@
-uniform mat4 model;
-uniform mat4 mesh_transform;
+uniform mat4 model_matrix;
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
@@ -18,7 +17,7 @@ out BLOCK {
 
 
 void main() {
-  vec3 prelim_world_position = vec3(model * mesh_transform * vec4(position, 1.0));
+  vec3 prelim_world_position = vec3(model_matrix * vec4(position, 1.0));
 
   vec3 water_lf_position = water_make_position(prelim_world_position.xz);
   vec3 water_lf_normal;

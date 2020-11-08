@@ -31,6 +31,19 @@ public:
   GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
   bool did_set_texture_uniforms;
 
+  /*
+  Intrinsic uniform: A uniform declared by a shader. We only care
+    about intrinsic uniforms in the Shader struct.
+
+  Active uniforms: A uniform used in a shader, which can be either
+    an intrinsic uniform, or a uniform from another source such as a
+    uniform buffer object.
+  */
+
+  uint32 n_intrinsic_uniforms;
+  int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
+  char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
+
   ShaderAsset(
     Memory *memory, const char *name, ShaderType type,
     const char *vert_path, const char *frag_path, const char *geom_path
@@ -54,19 +67,6 @@ public:
   );
 
 private:
-  /*
-  Intrinsic uniform: A uniform declared by a shader. We only care
-    about intrinsic uniforms in the Shader struct.
-
-  Active uniforms: A uniform used in a shader, which can be either
-    an intrinsic uniform, or a uniform from another source such as a
-    uniform buffer object.
-  */
-
-  uint32 n_intrinsic_uniforms;
-  int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
-  char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
-
   void assert_shader_status_ok(uint32 shader, const char* path);
   void assert_program_status_ok(uint32 program);
   uint32 make_shader(const char *path, const char *source, GLenum shader_type);

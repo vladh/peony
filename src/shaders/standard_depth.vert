@@ -1,8 +1,7 @@
-uniform mat4 model;
-uniform mat4 mesh_transform;
+uniform mat4 model_matrix;
 
 layout (location = 0) in vec3 position;
 
 void main() {
-  gl_Position = model * mesh_transform * vec4(position, 1.0);
+  gl_Position = model_matrix * vec4(position, 1.0);
 }

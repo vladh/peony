@@ -52,6 +52,7 @@ void DrawableComponentManager::draw_all(
     }
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
+    glm::mat3 model_normal_matrix = glm::mat4(1.0f);
 
     if (spatial) {
       // TODO: This is somehow really #slow, the multiplication in particular.
@@ -59,6 +60,8 @@ void DrawableComponentManager::draw_all(
       model_matrix = glm::translate(model_matrix, spatial->position);
       model_matrix = glm::scale(model_matrix, spatial->scale);
       model_matrix = model_matrix * glm::toMat4(spatial->rotation);
+
+      model_normal_matrix = glm::mat3(glm::transpose(glm::inverse(model_matrix)));
     }
 
     if (render_mode == RENDERMODE_DEPTH) {
@@ -68,6 +71,7 @@ void DrawableComponentManager::draw_all(
         texture_name_pool,
         task_queue,
         &model_matrix,
+        &model_normal_matrix,
         standard_depth_shader_asset
       );
     } else {
@@ -76,7 +80,8 @@ void DrawableComponentManager::draw_all(
         persistent_pbo,
         texture_name_pool,
         task_queue,
-        spatial ? &model_matrix : nullptr
+        spatial ? &model_matrix : nullptr,
+        spatial ? &model_normal_matrix : nullptr
       );
     }
   }
