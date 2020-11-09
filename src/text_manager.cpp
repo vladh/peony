@@ -107,7 +107,7 @@ TextManager::TextManager(
   new(this->shader_asset) ShaderAsset(
     memory,
     "text",
-    SHADER_UI,
+    SHADER_STANDARD,
     SHADER_DIR"text.vert", SHADER_DIR"text.frag", nullptr
   );
 
