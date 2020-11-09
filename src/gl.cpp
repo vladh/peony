@@ -567,7 +567,7 @@ void init_window(WindowInfo *window_info) {
 
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[0];
+  GLFWmonitor *target_monitor = monitors[2];
 
   const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
   glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
@@ -579,8 +579,8 @@ void init_window(WindowInfo *window_info) {
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
-    /* target_monitor, nullptr */
-    nullptr, nullptr
+    target_monitor, nullptr
+    /* nullptr, nullptr */
   );
   if (!window) {
     log_fatal("Failed to create GLFW window");

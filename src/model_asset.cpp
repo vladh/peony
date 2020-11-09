@@ -503,7 +503,7 @@ void ModelAsset::prepare_for_draw(
     ) {
       START_TIMER(copy_pbo_to_texture);
 
-      bool32 did_have_to_generate_or_bind_texture = false;
+      bool32 did_have_to_generate_texture = false;
 
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
         MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
@@ -515,11 +515,11 @@ void ModelAsset::prepare_for_draw(
           mesh_template->texture_set->generate_textures_from_pbo(
             persistent_pbo, texture_name_pool
           );
-          did_have_to_generate_or_bind_texture = true;
+          did_have_to_generate_texture = true;
         }
       }
 
-      if (!did_have_to_generate_or_bind_texture) {
+      if (!did_have_to_generate_texture) {
         this->is_texture_set_binding_done = true;
       }
 
@@ -601,19 +601,18 @@ void ModelAsset::draw(
           );
         }
       }
-    }
 
-    // TODO: Set this in the same place as the other uniforms so we don't have to loop twice.
-    for (
-      uint32 uniform_idx = 0;
-      uniform_idx < shader_asset->n_intrinsic_uniforms;
-      uniform_idx++
-    ) {
-      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-      if (strcmp(uniform_name, "model_matrix") == 0) {
-        shader_asset->set_mat4("model_matrix", model_matrix);
-      } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-        shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+      for (
+        uint32 uniform_idx = 0;
+        uniform_idx < shader_asset->n_intrinsic_uniforms;
+        uniform_idx++
+      ) {
+        const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+        if (strcmp(uniform_name, "model_matrix") == 0) {
+          shader_asset->set_mat4("model_matrix", model_matrix);
+        } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+          shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+        }
       }
     }
 
@@ -666,18 +665,18 @@ void ModelAsset::draw_in_depth_mode(
       glUseProgram(shader_asset->program);
       last_used_shader_program = shader_asset->program;
       has_shader_changed = true;
-    }
 
-    for (
-      uint32 uniform_idx = 0;
-      uniform_idx < shader_asset->n_intrinsic_uniforms;
-      uniform_idx++
-    ) {
-      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-      if (strcmp(uniform_name, "model_matrix") == 0) {
-        shader_asset->set_mat4("model_matrix", model_matrix);
-      } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-        shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+      for (
+        uint32 uniform_idx = 0;
+        uniform_idx < shader_asset->n_intrinsic_uniforms;
+        uniform_idx++
+      ) {
+        const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+        if (strcmp(uniform_name, "model_matrix") == 0) {
+          shader_asset->set_mat4("model_matrix", model_matrix);
+        } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+          shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+        }
       }
     }
 

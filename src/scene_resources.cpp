@@ -22,7 +22,7 @@ void scene_init_resources(Memory *memory, State *state) {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "axes",
-      SHADER_OTHER_OBJECT,
+      SHADER_STANDARD,
       SHADER_DIR"axes.vert", SHADER_DIR"axes.frag", nullptr
     );
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -45,7 +45,7 @@ void scene_init_resources(Memory *memory, State *state) {
     Util::make_plane(
       &memory->temp_memory_pool,
       200, 200,
-      100, 100,
+      800, 800,
       &n_vertices, &n_indices,
       &vertex_data, &index_data
     );
@@ -74,7 +74,6 @@ void scene_init_resources(Memory *memory, State *state) {
       SHADER_DEPTH,
       SHADER_DIR"water_depth.vert", SHADER_DIR"standard_depth.frag",
       nullptr
-      /* SHADER_DIR"standard_depth.geom" */
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
     texture_set->add(*state->g_position_texture, "g_position_texture");
@@ -126,7 +125,7 @@ void scene_init_resources(Memory *memory, State *state) {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "skysphere",
-      SHADER_LIGHTING,
+      SHADER_STANDARD,
       SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag", nullptr
     );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
@@ -145,7 +144,7 @@ void scene_init_resources(Memory *memory, State *state) {
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory,
       "light",
-      SHADER_OTHER_OBJECT,
+      SHADER_STANDARD,
       SHADER_DIR"simple.vert", SHADER_DIR"simple.frag", nullptr
     );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
@@ -324,7 +323,7 @@ void scene_init_resources(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "lighting",
-    SHADER_LIGHTING,
+    SHADER_STANDARD,
     SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -362,7 +361,7 @@ void scene_init_resources(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "blur",
-    SHADER_POSTPROCESSING,
+    SHADER_STANDARD,
     SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -381,7 +380,7 @@ void scene_init_resources(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "blur",
-    SHADER_POSTPROCESSING,
+    SHADER_STANDARD,
     SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -400,7 +399,7 @@ void scene_init_resources(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "blur",
-    SHADER_POSTPROCESSING,
+    SHADER_STANDARD,
     SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -419,7 +418,7 @@ void scene_init_resources(Memory *memory, State *state) {
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
     memory,
     "postprocessing",
-    SHADER_POSTPROCESSING,
+    SHADER_STANDARD,
     SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
