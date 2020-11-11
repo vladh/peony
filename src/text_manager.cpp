@@ -18,7 +18,6 @@ void TextManager::draw(
 
   glUseProgram(this->shader_asset->program);
   this->shader_asset->set_vec4("text_color", &color);
-  this->shader_asset->set_mat4("text_projection", &this->text_projection);
 
   if (!this->shader_asset->did_set_texture_uniforms) {
     glActiveTexture(GL_TEXTURE0);
@@ -93,18 +92,8 @@ void TextManager::draw(
 }
 
 
-void TextManager::update_text_projection(
-  uint32 window_width, uint32 window_height
-) {
-  this->text_projection = glm::ortho(
-    0.0f, (real32)window_width, 0.0f, (real32)window_height
-  );
-}
-
-
 TextManager::TextManager(
-  Memory *memory, ShaderAsset *shader_asset,
-  uint32 window_width, uint32 window_height
+  Memory *memory, ShaderAsset *shader_asset
 ) :
   font_assets(
     Array<FontAsset>(
@@ -113,8 +102,6 @@ TextManager::TextManager(
   )
 {
   this->shader_asset = shader_asset;
-
-  update_text_projection(window_width, window_height);
 
   // Shaders
   new(this->shader_asset) ShaderAsset(

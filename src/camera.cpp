@@ -1,4 +1,8 @@
-Camera::Camera(CameraType new_type) {
+Camera::Camera(
+  CameraType new_type,
+  real64 window_width,
+  real64 window_height
+) {
   this->type = new_type;
   this->yaw = -45.0f;
   this->pitch = 0.0f;
@@ -11,6 +15,9 @@ Camera::Camera(CameraType new_type) {
   this->near_clip_dist = 0.1f;
   this->far_clip_dist = 100.0f;
   this->exposure = 1.0f;
+
+  update_matrices(window_width, window_height);
+  update_ui_matrices(window_width, window_height);
 }
 
 void Camera::update_matrices_ortho(
@@ -72,6 +79,14 @@ void Camera::update_matrices(
   } else if (this->type == CAMERA_ORTHO) {
     this->update_matrices_ortho(window_width, window_height);
   }
+}
+
+void Camera::update_ui_matrices(
+  real64 window_width, real64 window_height
+) {
+  this->ui_projection = glm::ortho(
+    0.0f, (real32)window_width, 0.0f, (real32)window_height
+  );
 }
 
 void Camera::move_front_back(real32 sign, real64 dt) {

@@ -1,8 +1,8 @@
 void TextureSet::add(
   Texture texture, const char *uniform_name
 ) {
-  if (texture.is_g_buffer_dependent) {
-    this->is_g_buffer_dependent = true;
+  if (texture.is_screensize_dependent) {
+    this->is_screensize_dependent = true;
   }
   this->textures.push(texture);
   this->texture_uniform_names.push(uniform_name);

@@ -4,7 +4,7 @@
 class TextureSet {
 public:
   bool32 have_textures_been_generated = false;
-  bool32 is_g_buffer_dependent = false;
+  bool32 is_screensize_dependent = false;
 
   Array<Texture> textures;
   Array<const char*> texture_uniform_names;
