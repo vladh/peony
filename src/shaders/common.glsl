@@ -11,6 +11,7 @@
 layout (std140) uniform shader_common {
   mat4 view;
   mat4 projection;
+  mat4 ui_projection;
   mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   vec3 camera_position;

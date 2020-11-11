@@ -474,13 +474,23 @@ void ModelAsset::prepare_for_draw(
       !this->is_texture_copying_to_pbo_in_progress
     ) {
       // NOTE: Make sure we don't spawn threads that do nothing, or queue up
-      // useless work for threads!
+      // useless work for threads! This means only copying textures for meshes
+      // that have one or more textures that do not have names yet.
       bool32 should_try_to_copy_textures = false;
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
         MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
         if (mesh_template->texture_set) {
-          should_try_to_copy_textures = true;
-          break;
+          for (
+            uint32 texture_idx = 0;
+            texture_idx < mesh_template->texture_set->textures.size;
+            texture_idx++
+          ) {
+            Texture *texture = mesh_template->texture_set->textures.get(texture_idx);
+            if (!texture->texture_name) {
+              should_try_to_copy_textures = true;
+              break;
+            }
+          }
         }
       }
 
@@ -489,6 +499,7 @@ void ModelAsset::prepare_for_draw(
         task_queue->push({TASKTYPE_COPY_TEXTURES_TO_PBO, this, persistent_pbo, nullptr});
       } else {
         this->is_texture_copying_to_pbo_done = true;
+        this->is_texture_creation_done = true;
       }
     }
 
@@ -499,7 +510,7 @@ void ModelAsset::prepare_for_draw(
       this->is_vertex_buffer_setup_done &&
       this->is_shader_setting_done &&
       this->is_texture_copying_to_pbo_done &&
-      !this->is_texture_set_binding_done
+      !this->is_texture_creation_done
     ) {
       START_TIMER(copy_pbo_to_texture);
 
@@ -520,7 +531,7 @@ void ModelAsset::prepare_for_draw(
       }
 
       if (!did_have_to_generate_texture) {
-        this->is_texture_set_binding_done = true;
+        this->is_texture_creation_done = true;
       }
 
       END_TIMER_MIN(copy_pbo_to_texture, 5);
@@ -529,13 +540,12 @@ void ModelAsset::prepare_for_draw(
     // Step 6: Bind the texture uniforms.
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
-    {
+    if (this->is_texture_creation_done) {
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
         MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
 
         if (
           mesh_template->texture_set &&
-          mesh_template->texture_set->have_textures_been_generated &&
           !mesh_template->shader_asset->did_set_texture_uniforms
         ) {
           if (mesh_template->apply_to_all_meshes) {
@@ -570,7 +580,7 @@ void ModelAsset::draw(
   if (
     !this->is_mesh_data_loading_done ||
     !this->is_shader_setting_done ||
-    !this->is_texture_set_binding_done
+    !this->is_texture_creation_done
   ) {
     return;
   }

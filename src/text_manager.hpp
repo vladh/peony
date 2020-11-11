@@ -7,11 +7,7 @@ public:
   glm::mat4 text_projection;
 
   TextManager(
-    Memory *memory, ShaderAsset *shader_asset,
-    uint32 window_width, uint32 window_height
-  );
-  void update_text_projection(
-    uint32 window_width, uint32 window_height
+    Memory *memory, ShaderAsset *shader_asset
   );
   void draw(
     const char* font_name, const char *str,

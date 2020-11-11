@@ -9,7 +9,11 @@ State::State(
   should_hide_ui(false),
   window_info(window_info),
 
-  camera_main(CAMERA_PERSPECTIVE),
+  camera_main(
+    CAMERA_PERSPECTIVE,
+    this->window_info.width,
+    this->window_info.height
+  ),
   camera_active(&this->camera_main),
   control(),
 
@@ -47,12 +51,7 @@ State::State(
   drawable_component_manager(&this->drawable_components),
   light_component_manager(&this->light_components),
   spatial_component_manager(&this->spatial_components),
-  text_manager(
-    memory,
-    this->shader_assets.push(),
-    this->window_info.width,
-    this->window_info.height
-  ),
+  text_manager(memory, this->shader_assets.push()),
 
   lights(
     Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "lights")

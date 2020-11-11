@@ -57,7 +57,7 @@ public:
   bool32 is_texture_copying_to_pbo_in_progress = false;
   bool32 is_mesh_data_loading_done = false;
   bool32 is_shader_setting_done = false;
-  bool32 is_texture_set_binding_done = false;
+  bool32 is_texture_creation_done = false;
   bool32 is_vertex_buffer_setup_done = false;
   std::mutex mutex;
 

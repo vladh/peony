@@ -35,6 +35,7 @@ enum LightType {
 struct ShaderCommon {
   glm::mat4 view;
   glm::mat4 projection;
+  glm::mat4 ui_projection;
   glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
 
   glm::vec3 camera_position;

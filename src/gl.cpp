@@ -2,7 +2,6 @@
 
 #define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
-#define USE_NO_WINDOW_DECORATION false
 
 #include "gl.hpp"
 
@@ -272,7 +271,7 @@ void init_l_buffer(Memory *memory, State *state) {
   state->l_depth_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_depth_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_L_BRIGHT_COLOR, l_depth_texture_name,
+    GL_TEXTURE_2D, TEXTURE_L_DEPTH, l_depth_texture_name,
     state->window_info.width, state->window_info.height, 1
   );
   glBindTexture(GL_TEXTURE_2D, state->l_depth_texture->texture_name);
@@ -305,7 +304,7 @@ void init_blur_buffers(Memory *memory, State *state) {
   state->blur1_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur1_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_BLUR, blur1_texture_name,
+    GL_TEXTURE_2D, TEXTURE_BLUR1, blur1_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->blur1_texture->texture_name);
@@ -330,7 +329,7 @@ void init_blur_buffers(Memory *memory, State *state) {
   state->blur2_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur2_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_BLUR, blur2_texture_name,
+    GL_TEXTURE_2D, TEXTURE_BLUR2, blur2_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->blur2_texture->texture_name);
@@ -481,10 +480,17 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   );
   state->window_info.width = width;
   state->window_info.height = height;
-  state->text_manager.update_text_projection(width, height);
+  state->camera_active->update_matrices(
+    state->window_info.width, state->window_info.height
+  );
+  state->camera_active->update_ui_matrices(
+    state->window_info.width, state->window_info.height
+  );
 
-  // TODO: Only regenerate all this shit once we're done resizing, not for every little bit of the resize.
+  // TODO: Only regenerate once we're done resizing, not for every little bit of the resize.
   init_g_buffer(memory, state);
+  init_l_buffer(memory, state);
+  init_blur_buffers(memory, state);
 
   // TODO: I hate this.
   for (
@@ -500,7 +506,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
       uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
     ) {
       Mesh *mesh = model_asset->meshes.get(idx_mesh);
-      if (mesh->texture_set && mesh->texture_set->is_g_buffer_dependent) {
+      if (mesh->texture_set && mesh->texture_set->is_screensize_dependent) {
         log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
         for(
           uint32 idx_texture = 0; idx_texture < mesh->texture_set->textures.size; idx_texture++
@@ -514,6 +520,16 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
             mesh->texture_set->textures.set(idx_texture, state->g_albedo_texture);
           } else if (texture->type == TEXTURE_G_PBR) {
             mesh->texture_set->textures.set(idx_texture, state->g_pbr_texture);
+          } else if (texture->type == TEXTURE_L_COLOR) {
+            mesh->texture_set->textures.set(idx_texture, state->l_color_texture);
+          } else if (texture->type == TEXTURE_L_BRIGHT_COLOR) {
+            mesh->texture_set->textures.set(idx_texture, state->l_bright_color_texture);
+          } else if (texture->type == TEXTURE_L_DEPTH) {
+            mesh->texture_set->textures.set(idx_texture, state->l_depth_texture);
+          } else if (texture->type == TEXTURE_BLUR1) {
+            mesh->texture_set->textures.set(idx_texture, state->blur1_texture);
+          } else if (texture->type == TEXTURE_BLUR2) {
+            mesh->texture_set->textures.set(idx_texture, state->blur2_texture);
           }
         }
         model_asset->bind_texture_uniforms_for_mesh(mesh);
@@ -561,9 +577,7 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
 #endif
 
-#if USE_NO_WINDOW_DECORATION
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-#endif
 
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
@@ -576,6 +590,8 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
+  /* window_info->width = 800; */
+  /* window_info->height = 600; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -634,6 +650,7 @@ void copy_scene_data_to_ubo(
 
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
+  shader_common->ui_projection = state->camera_active->ui_projection;
   memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
   shader_common->camera_pitch = (float)state->camera_active->pitch;
@@ -712,7 +729,7 @@ void render_scene_ui(
   state->text_manager.draw(
     "main-font", debug_text,
     15.0f, state->window_info.height - 35.0f,
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    1.0f, glm::vec4(0.00f, 0.33f, 0.93f, 1.0f)
   );
 }
 
@@ -781,10 +798,10 @@ void scene_update(Memory *memory, State *state) {
 
 void update_and_render(Memory *memory, State *state) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  scene_update(memory, state);
   state->camera_active->update_matrices(
     state->window_info.width, state->window_info.height
   );
+  scene_update(memory, state);
   copy_scene_data_to_ubo(memory, state);
 
   // Clear framebuffers
@@ -792,7 +809,16 @@ void update_and_render(Memory *memory, State *state) {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
@@ -847,7 +873,6 @@ void update_and_render(Memory *memory, State *state) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -997,7 +1022,11 @@ void run_main_loop(Memory *memory, State *state) {
         }
       }
 
-      update_and_render(memory, state);
+      // TODO: Don't render on the very first frame. This avoids flashing that happens in
+      // fullscreen. There is a better way to handle this, but whatever, figure it out later.
+      if (state->n_frames_since_start > 1) {
+        update_and_render(memory, state);
+      }
       if (state->is_manual_frame_advance_enabled) {
         state->should_manually_advance_to_next_frame = false;
       }
