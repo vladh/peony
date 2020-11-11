@@ -25,7 +25,7 @@ global_variable uint32 global_oopses = 0;
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
-#include "text_manager.cpp"
+#include "gui_manager.cpp"
 #include "model_asset.cpp"
 #include "scene.cpp"
 #include "scene_resources.cpp"
@@ -726,10 +726,10 @@ void render_scene_ui(
     state->camera_active->pitch,
     global_oopses
   );
-  state->text_manager.draw(
+  state->gui_manager.draw_text(
     "main-font", debug_text,
     15.0f, state->window_info.height - 35.0f,
-    1.0f, glm::vec4(0.00f, 0.33f, 0.93f, 1.0f)
+    1.0f, glm::vec4(0.00f, 0.33f, 0.93f, 0.5f)
   );
 }
 

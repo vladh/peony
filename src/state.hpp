@@ -43,7 +43,7 @@ public:
   DrawableComponentManager drawable_component_manager;
   LightComponentManager light_component_manager;
   SpatialComponentManager spatial_component_manager;
-  TextManager text_manager;
+  GuiManager gui_manager;
 
   Array<EntityHandle> lights;
   Array<EntityHandle> geese;
