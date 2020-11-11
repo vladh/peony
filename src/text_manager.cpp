@@ -1,4 +1,7 @@
 constexpr real32 LINE_HEIGHT_FACTOR = 1.66f;
+constexpr uint32 N_MAX_CHARACTERS_PER_DRAW = 4096;
+constexpr const char *DEFAULT_FONT = "resources/fonts/iosevka-regular.ttf";
+constexpr uint32 DEFAULT_FONT_SIZE = 18;
 
 
 void TextManager::draw(
@@ -25,13 +28,20 @@ void TextManager::draw(
 
   real32 curr_x = start_x;
   real32 curr_y = start_y;
+  size_t str_length = strlen(str);
+  size_t str_printable_length = 0;
 
-  for (uint32 idx = 0; idx < strlen(str); idx++) {
+  // TODO: It would be nice to only allocate as much as we need here.
+  real32 vertices[6 * 4 * N_MAX_CHARACTERS_PER_DRAW];
+
+  for (uint32 idx = 0; idx < str_length; idx++) {
     char c = str[idx];
 
-    if (c == '\n') {
-      curr_x = start_x;
-      curr_y -= line_height;
+    if (c < 32) {
+      if (c == '\n') {
+        curr_x = start_x;
+        curr_y -= line_height;
+      }
       continue;
     }
 
@@ -55,28 +65,31 @@ void TextManager::draw(
     curr_y += (character->advance.y >> 6) * scale;
 
     // Skip glyphs with no pixels, like spaces.
-    if (w == 0 || h == 0) {
+    if (w <= 0 || h <= 0) {
       continue;
     }
 
-    // TODO: Buffer vertices only once, use a matrix to transform the position.
     // NOTE: The correspondence between the y and texture y is the other way
-    // around because the characters are upside down for some reason.
-    real32 vertices[6][4] = {
-      {char_x,     char_y + h,  character->texture_x,                  0},
-      {char_x,     char_y,      character->texture_x,                  char_texture_h},
-      {char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h},
-      {char_x,     char_y + h,  character->texture_x,                  0},
-      {char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h},
-      {char_x + w, char_y + h,  character->texture_x + char_texture_w, 0}
+    // around because the characters are upside down.
+    real32 character_vertices[6 * 4] = {
+      char_x,     char_y + h,  character->texture_x,                  0,
+      char_x,     char_y,      character->texture_x,                  char_texture_h,
+      char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h,
+      char_x,     char_y + h,  character->texture_x,                  0,
+      char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h,
+      char_x + w, char_y + h,  character->texture_x + char_texture_w, 0
     };
-
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    memcpy(
+      vertices + (6 * 4 * str_printable_length),
+      character_vertices,
+      sizeof(character_vertices)
+    );
+    str_printable_length += 1;
   }
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+  size_t vertices_size = sizeof(real32) * 6 * 4 * str_printable_length;
+  glBufferSubData(GL_ARRAY_BUFFER, 0, vertices_size, vertices);
+  glDrawArrays(GL_TRIANGLES, 0, 6 * (uint32)str_printable_length);
 }
 
 
@@ -120,11 +133,7 @@ TextManager::TextManager(
   }
 
   new(this->font_assets.push()) FontAsset(
-    memory,
-    &ft_library,
-    "main-font",
-    "resources/fonts/iosevka-regular.ttf",
-    18
+    memory, &ft_library, "main-font", DEFAULT_FONT, DEFAULT_FONT_SIZE
   );
 
   FT_Done_FreeType(ft_library);
@@ -133,7 +142,10 @@ TextManager::TextManager(
   glGenBuffers(1, &this->vbo);
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+  glBufferData(
+    GL_ARRAY_BUFFER, sizeof(float) * 6 * 4 * N_MAX_CHARACTERS_PER_DRAW,
+    NULL, GL_DYNAMIC_DRAW
+  );
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
