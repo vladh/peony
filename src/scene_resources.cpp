@@ -5,9 +5,7 @@ void scene_init_resources(Memory *memory, State *state) {
   ShaderAsset *depth_shader_asset;
 
   state->standard_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "standard_depth",
-    SHADER_DEPTH,
+    memory, "standard_depth", SHADER_DEPTH,
     SHADER_DIR"standard_depth.vert", SHADER_DIR"standard_depth.frag",
     SHADER_DIR"standard_depth.geom"
   );
@@ -20,9 +18,7 @@ void scene_init_resources(Memory *memory, State *state) {
   {
     real32 axes_vertices[] = AXES_VERTICES;
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "axes",
-      SHADER_STANDARD,
+      memory, "axes", SHADER_STANDARD,
       SHADER_DIR"axes.vert", SHADER_DIR"axes.frag", nullptr
     );
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -58,9 +54,7 @@ void scene_init_resources(Memory *memory, State *state) {
       GL_TRIANGLES
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "water",
-      SHADER_STANDARD,
+      memory, "water", SHADER_STANDARD,
       SHADER_DIR"water.vert", SHADER_DIR"water.frag",
 #if 1
       nullptr
@@ -69,9 +63,7 @@ void scene_init_resources(Memory *memory, State *state) {
 #endif
     );
     depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "water_depth",
-      SHADER_DEPTH,
+      memory, "water_depth", SHADER_DEPTH,
       SHADER_DIR"water_depth.vert", SHADER_DIR"standard_depth.frag",
       nullptr
     );
@@ -123,9 +115,7 @@ void scene_init_resources(Memory *memory, State *state) {
       GL_TRIANGLE_STRIP
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "skysphere",
-      SHADER_STANDARD,
+      memory, "skysphere", SHADER_STANDARD,
       SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag", nullptr
     );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
@@ -142,9 +132,7 @@ void scene_init_resources(Memory *memory, State *state) {
       memory, MODELSOURCE_FILE, "light", "resources/models/", "cube.obj"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "light",
-      SHADER_STANDARD,
+      memory, "light", SHADER_STANDARD,
       SHADER_DIR"simple.vert", SHADER_DIR"simple.frag", nullptr
     );
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
@@ -156,9 +144,7 @@ void scene_init_resources(Memory *memory, State *state) {
       memory, MODELSOURCE_FILE, "rocks", "resources/models/", "Stones_AssetKit.fbx"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "stones",
-      SHADER_STANDARD,
+      memory, "stones", SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -185,9 +171,7 @@ void scene_init_resources(Memory *memory, State *state) {
       memory, MODELSOURCE_FILE, "goose", "resources/models/", "miniGoose.fbx"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "entity",
-      SHADER_STANDARD,
+      memory, "entity", SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -204,9 +188,7 @@ void scene_init_resources(Memory *memory, State *state) {
       memory, MODELSOURCE_FILE, "floor", "resources/models/", "cube.obj"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory,
-      "entity",
-      SHADER_STANDARD,
+      memory, "entity", SHADER_STANDARD,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
     );
     texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -225,9 +207,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
     {
       shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory,
-        "entity",
-        SHADER_STANDARD,
+        memory, "entity", SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -256,9 +236,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
     {
       shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory,
-        "entity",
-        SHADER_STANDARD,
+        memory, "entity", SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -287,9 +265,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
     {
       shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory,
-        "entity",
-        SHADER_STANDARD,
+        memory, "entity", SHADER_STANDARD,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
       );
       texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
@@ -321,9 +297,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
   // Lighting screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "lighting",
-    SHADER_STANDARD,
+    memory, "lighting", SHADER_STANDARD,
     SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -359,9 +333,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
   // Preblur screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "blur",
-    SHADER_STANDARD,
+    memory, "blur", SHADER_STANDARD,
     SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -378,9 +350,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
   // Blur 1 screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "blur",
-    SHADER_STANDARD,
+    memory, "blur", SHADER_STANDARD,
     SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -397,9 +367,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
   // Blur 2 screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "blur",
-    SHADER_STANDARD,
+    memory, "blur", SHADER_STANDARD,
     SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
@@ -416,9 +384,7 @@ void scene_init_resources(Memory *memory, State *state) {
 
   // Postprocessing screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory,
-    "postprocessing",
-    SHADER_STANDARD,
+    memory, "postprocessing", SHADER_STANDARD,
     SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag", nullptr
   );
   model_asset = new(state->model_assets.push()) ModelAsset(
