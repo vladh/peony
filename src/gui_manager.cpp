@@ -1,10 +1,12 @@
 constexpr real32 LINE_HEIGHT_FACTOR = 1.66f;
-constexpr uint32 N_MAX_CHARACTERS_PER_DRAW = 4096;
+constexpr uint32 N_MAX_CHARACTERS_PER_DRAW = 1024;
 constexpr const char *DEFAULT_FONT = "resources/fonts/iosevka-regular.ttf";
 constexpr uint32 DEFAULT_FONT_SIZE = 18;
+constexpr uint32 GUI_VERTEX_LENGTH = 8;
+constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * GUI_VERTEX_LENGTH;
 
 
-void TextManager::draw(
+void GuiManager::draw_text(
   const char* font_name, const char *str,
   real32 start_x, real32 start_y,
   real32 scale, glm::vec4 color
@@ -17,11 +19,10 @@ void TextManager::draw(
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
 
   glUseProgram(this->shader_asset->program);
-  this->shader_asset->set_vec4("text_color", &color);
-
   if (!this->shader_asset->did_set_texture_uniforms) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, font_asset->texture);
+    this->shader_asset->set_int("font_atlas_texture", 0);
     this->shader_asset->did_set_texture_uniforms;
   }
 
@@ -29,9 +30,6 @@ void TextManager::draw(
   real32 curr_y = start_y;
   size_t str_length = strlen(str);
   size_t str_printable_length = 0;
-
-  // TODO: It would be nice to only allocate as much as we need here.
-  real32 vertices[6 * 4 * N_MAX_CHARACTERS_PER_DRAW];
 
   for (uint32 idx = 0; idx < str_length; idx++) {
     char c = str[idx];
@@ -54,8 +52,9 @@ void TextManager::draw(
     real32 char_x = curr_x + character->bearing.x * scale;
     real32 char_y = curr_y - (character->size.y - character->bearing.y) * scale;
 
-    real32 char_texture_w = (real32)character->size.x / font_asset->atlas_width;
-    real32 char_texture_h = (real32)character->size.y / font_asset->atlas_height;
+    real32 tex_x = character->texture_x;
+    real32 tex_w = (real32)character->size.x / font_asset->atlas_width;
+    real32 tex_h = (real32)character->size.y / font_asset->atlas_height;
 
     real32 w = character->size.x * scale;
     real32 h = character->size.y * scale;
@@ -70,29 +69,28 @@ void TextManager::draw(
 
     // NOTE: The correspondence between the y and texture y is the other way
     // around because the characters are upside down.
-    real32 character_vertices[6 * 4] = {
-      char_x,     char_y + h,  character->texture_x,                  0,
-      char_x,     char_y,      character->texture_x,                  char_texture_h,
-      char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h,
-      char_x,     char_y + h,  character->texture_x,                  0,
-      char_x + w, char_y,      character->texture_x + char_texture_w, char_texture_h,
-      char_x + w, char_y + h,  character->texture_x + char_texture_w, 0
+    real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
+      char_x,     char_y + h,  tex_x,         0,     color.r, color.g, color.b, color.a,
+      char_x,     char_y,      tex_x,         tex_h, color.r, color.g, color.b, color.a,
+      char_x + w, char_y,      tex_x + tex_w, tex_h, color.r, color.g, color.b, color.a,
+      char_x,     char_y + h,  tex_x,         0,     color.r, color.g, color.b, color.a,
+      char_x + w, char_y,      tex_x + tex_w, tex_h, color.r, color.g, color.b, color.a,
+      char_x + w, char_y + h,  tex_x + tex_w, 0,     color.r, color.g, color.b, color.a
     };
-    memcpy(
-      vertices + (6 * 4 * str_printable_length),
-      character_vertices,
-      sizeof(character_vertices)
+    glBufferSubData(
+      GL_ARRAY_BUFFER,
+      sizeof(character_vertices) * str_printable_length,
+      sizeof(character_vertices),
+      character_vertices
     );
     str_printable_length += 1;
   }
 
-  size_t vertices_size = sizeof(real32) * 6 * 4 * str_printable_length;
-  glBufferSubData(GL_ARRAY_BUFFER, 0, vertices_size, vertices);
   glDrawArrays(GL_TRIANGLES, 0, 6 * (uint32)str_printable_length);
 }
 
 
-TextManager::TextManager(
+GuiManager::GuiManager(
   Memory *memory, ShaderAsset *shader_asset
 ) :
   font_assets(
@@ -101,14 +99,15 @@ TextManager::TextManager(
     )
   )
 {
+  this->memory = memory;
   this->shader_asset = shader_asset;
 
   // Shaders
   new(this->shader_asset) ShaderAsset(
-    memory,
-    "text",
+    this->memory,
+    "gui_element",
     SHADER_STANDARD,
-    SHADER_DIR"text.vert", SHADER_DIR"text.frag", nullptr
+    SHADER_DIR"gui_element.vert", SHADER_DIR"gui_element.frag", nullptr
   );
 
   // Fonts
@@ -120,7 +119,7 @@ TextManager::TextManager(
   }
 
   new(this->font_assets.push()) FontAsset(
-    memory, &ft_library, "main-font", DEFAULT_FONT, DEFAULT_FONT_SIZE
+    this->memory, &ft_library, "main-font", DEFAULT_FONT, DEFAULT_FONT_SIZE
   );
 
   FT_Done_FreeType(ft_library);
@@ -130,11 +129,30 @@ TextManager::TextManager(
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
   glBufferData(
-    GL_ARRAY_BUFFER, sizeof(float) * 6 * 4 * N_MAX_CHARACTERS_PER_DRAW,
+    GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * 6 * N_MAX_CHARACTERS_PER_DRAW,
     NULL, GL_DYNAMIC_DRAW
   );
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindVertexArray(0);
+
+  uint32 location;
+
+  // position (vec2)
+  location = 0;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(0)
+  );
+
+  // tex_coords (vec2)
+  location = 1;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(2 * sizeof(real32))
+  );
+
+  // color (vec4)
+  location = 2;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, 4, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(4 * sizeof(real32))
+  );
 }
