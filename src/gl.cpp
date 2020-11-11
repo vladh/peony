@@ -735,10 +735,43 @@ void render_scene_ui(
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 
+#if 0
   state->gui_manager.draw_rect(
     10.0f, 10.0f,
     100.0f, 100.0f,
     glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+  );
+
+  state->gui_manager.draw_rect(
+    10.0f, 300.0f,
+    100.0f, 1.0f,
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+  );
+  state->gui_manager.draw_rect(
+    10.0f, 300.0f,
+    1.0f, 10.0f,
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+  );
+  state->gui_manager.draw_rect(
+    10.0f, 310.0f,
+    100.0f, 1.0f,
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+  );
+  state->gui_manager.draw_rect(
+    110.0f, 300.0f,
+    1.0f, 10.0f,
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+  );
+#endif
+
+  state->gui_manager.draw_button(
+    15.0f, 250.0f,
+    150.0f, 40.0f,
+    "Press me!",
+    2.0f,
+    glm::vec4(0.00f, 0.33f, 0.93f, 1.00f),
+    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f),
+    glm::vec4(0.00f, 0.23f, 0.83f, 1.00f)
   );
 }
 
