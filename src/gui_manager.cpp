@@ -142,6 +142,104 @@ void GuiManager::draw_rect(
 }
 
 
+void GuiManager::draw_line(
+  real32 start_x, real32 start_y, real32 end_x, real32 end_y,
+  real32 thickness, glm::vec4 color
+) {
+  glBindVertexArray(this->vao);
+  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+
+  glUseProgram(this->generic_shader_asset->program);
+
+  // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
+  // Flip the y axis before drawing.
+  glm::vec2 delta = glm::normalize(
+    glm::vec2(end_x - start_x, end_y - start_y)
+  ) * thickness;
+  /* log_info("(delta %f %f)", delta.x, delta.y); */
+
+  //    ----------->
+  // 0------------------3
+  // |                  |
+  // 1------------------2
+  real32 x0 = start_x;
+  real32 y0 = this->window_height - start_y;
+  real32 x1 = start_x - delta.y;
+  real32 y1 = this->window_height - start_y - delta.x;
+  real32 x2 = end_x - delta.y;
+  real32 y2 = this->window_height - end_y - delta.x;
+  real32 x3 = end_x;
+  real32 y3 = this->window_height - end_y;
+
+  real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
+    x0, y0, 0, 0, color.r, color.g, color.b, color.a,
+    x1, y1, 0, 0, color.r, color.g, color.b, color.a,
+    x2, y2, 0, 0, color.r, color.g, color.b, color.a,
+    x0, y0, 0, 0, color.r, color.g, color.b, color.a,
+    x2, y2, 0, 0, color.r, color.g, color.b, color.a,
+    x3, y3, 0, 0, color.r, color.g, color.b, color.a
+  };
+  glBufferSubData(
+    GL_ARRAY_BUFFER,
+    0,
+    sizeof(character_vertices),
+    character_vertices
+  );
+
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+}
+
+void GuiManager::draw_frame(
+  real32 x0, real32 y0, real32 x1, real32 y1,
+  real32 thickness, glm::vec4 color
+) {
+  draw_line(
+    x0, y0,
+    x1, y0,
+    thickness,
+    /* border_color */
+    glm::vec4(1.0, 0.0, 0.0, 1.0)
+  );
+  draw_line(
+    x0, y1,
+    x1, y1,
+    thickness,
+    /* border_color */
+    glm::vec4(1.0, 0.0, 0.0, 1.0)
+  );
+  draw_line(
+    x0, y0,
+    x0, y1,
+    thickness,
+    /* border_color */
+    glm::vec4(1.0, 0.0, 0.0, 1.0)
+  );
+  draw_line(
+    x1, y0,
+    x1, y1,
+    thickness,
+    /* border_color */
+    glm::vec4(1.0, 0.0, 0.0, 1.0)
+  );
+}
+
+
+void GuiManager::draw_button(
+  real32 x, real32 y, real32 w, real32 h,
+  const char *text,
+  real32 border_thickness,
+  glm::vec4 color, glm::vec4 text_color, glm::vec4 border_color
+) {
+  draw_frame(
+    x, y,
+    x + w, y + h,
+    border_thickness,
+    border_color
+  );
+  draw_rect(x, y, w, h, color);
+}
+
+
 GuiManager::GuiManager(
   Memory *memory, Array<ShaderAsset> *shader_assets,
   uint32 window_width, uint32 window_height
