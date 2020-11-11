@@ -1,7 +1,7 @@
 Camera::Camera(
   CameraType new_type,
-  real64 window_width,
-  real64 window_height
+  uint32 window_width,
+  uint32 window_height
 ) {
   this->type = new_type;
   this->yaw = -45.0f;
@@ -21,7 +21,7 @@ Camera::Camera(
 }
 
 void Camera::update_matrices_ortho(
-  real64 window_width, real64 window_height
+  uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
     return;
@@ -40,7 +40,7 @@ void Camera::update_matrices_ortho(
 }
 
 void Camera::update_matrices_perspective(
-  real64 window_width, real64 window_height
+  uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
     return;
@@ -68,7 +68,7 @@ void Camera::update_matrices_perspective(
 }
 
 void Camera::update_matrices(
-  real64 window_width, real64 window_height
+  uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
     return;
@@ -82,7 +82,7 @@ void Camera::update_matrices(
 }
 
 void Camera::update_ui_matrices(
-  real64 window_width, real64 window_height
+  uint32 window_width, uint32 window_height
 ) {
   this->ui_projection = glm::ortho(
     0.0f, (real32)window_width, 0.0f, (real32)window_height

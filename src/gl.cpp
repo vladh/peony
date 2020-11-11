@@ -486,6 +486,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   state->camera_active->update_ui_matrices(
     state->window_info.width, state->window_info.height
   );
+  state->gui_manager.update_screen_dimensions(
+    state->window_info.width, state->window_info.height
+  );
 
   // TODO: Only regenerate once we're done resizing, not for every little bit of the resize.
   init_g_buffer(memory, state);
@@ -728,8 +731,14 @@ void render_scene_ui(
   );
   state->gui_manager.draw_text(
     "main-font", debug_text,
-    15.0f, state->window_info.height - 35.0f,
-    1.0f, glm::vec4(0.00f, 0.33f, 0.93f, 0.5f)
+    15.0f, 35.0f,
+    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+  );
+
+  state->gui_manager.draw_rect(
+    10.0f, 10.0f,
+    100.0f, 100.0f,
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
   );
 }
 

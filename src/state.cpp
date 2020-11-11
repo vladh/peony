@@ -51,7 +51,10 @@ State::State(
   drawable_component_manager(&this->drawable_components),
   light_component_manager(&this->light_components),
   spatial_component_manager(&this->spatial_components),
-  gui_manager(memory, this->shader_assets.push()),
+  gui_manager(
+    memory, &this->shader_assets,
+    this->window_info.width, this->window_info.height
+  ),
 
   lights(
     Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "lights")
