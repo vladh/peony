@@ -19,7 +19,7 @@ void GuiManager::set_cursor() {
 
 void GuiManager::draw_text(
   const char* font_name, const char *str,
-  real32 start_x, real32 start_y,
+  glm::vec2 topleft,
   real32 scale, glm::vec4 color
 ) {
   FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
@@ -39,8 +39,8 @@ void GuiManager::draw_text(
     this->text_shader_asset->did_set_texture_uniforms;
   }
 
-  real32 curr_x = start_x;
-  real32 curr_y = start_y;
+  real32 curr_x = topleft.x;
+  real32 curr_y = topleft.y;
   size_t str_length = strlen(str);
   size_t str_printable_length = 0;
 
@@ -49,7 +49,7 @@ void GuiManager::draw_text(
 
     if (c < 32) {
       if (c == '\n') {
-        curr_x = start_x;
+        curr_x = topleft.x;
         curr_y += line_height;
       }
       continue;
@@ -116,7 +116,7 @@ void GuiManager::draw_text(
 
 
 void GuiManager::draw_rect(
-  real32 x, real32 y, real32 w, real32 h, glm::vec4 color
+  glm::vec2 topleft, real32 w, real32 h, glm::vec4 color
 ) {
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
@@ -125,9 +125,9 @@ void GuiManager::draw_rect(
 
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
-  real32 x0 = x;
-  real32 x1 = x + w;
-  real32 y0 = (real32)this->window_height - y;
+  real32 x0 = topleft.x;
+  real32 x1 = x0 + w;
+  real32 y0 = (real32)this->window_height - topleft.y;
   real32 y1 = y0 - h;
 
   real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
@@ -150,7 +150,7 @@ void GuiManager::draw_rect(
 
 
 void GuiManager::draw_line(
-  real32 start_x, real32 start_y, real32 end_x, real32 end_y,
+  glm::vec2 start, glm::vec2 end,
   real32 thickness, glm::vec4 color
 ) {
   glBindVertexArray(this->vao);
@@ -160,22 +160,20 @@ void GuiManager::draw_line(
 
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
-  glm::vec2 delta = glm::normalize(
-    glm::vec2(end_x - start_x, end_y - start_y)
-  ) * thickness;
+  glm::vec2 delta = glm::normalize(end - start) * thickness;
 
   //    ----------->
   // 0------------------3
   // |                  |
   // 1------------------2
-  real32 x0 = start_x + delta.y;
-  real32 y0 = this->window_height - start_y;
-  real32 x1 = start_x;
-  real32 y1 = this->window_height - start_y - delta.x;
-  real32 x2 = end_x;
-  real32 y2 = this->window_height - end_y - delta.x;
-  real32 x3 = end_x + delta.y;
-  real32 y3 = this->window_height - end_y;
+  real32 x0 = start.x + delta.y;
+  real32 y0 = this->window_height - start.y;
+  real32 x1 = start.x;
+  real32 y1 = this->window_height - start.y - delta.x;
+  real32 x2 = end.x;
+  real32 y2 = this->window_height - end.y - delta.x;
+  real32 x3 = end.x + delta.y;
+  real32 y3 = this->window_height - end.y;
 
   real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
     x0, y0, 0, 0, color.r, color.g, color.b, color.a,
@@ -196,30 +194,30 @@ void GuiManager::draw_line(
 }
 
 void GuiManager::draw_frame(
-  real32 x0, real32 y0, real32 x1, real32 y1,
+  glm::vec2 topleft, glm::vec2 bottomright,
   real32 thickness, glm::vec4 color
 ) {
   draw_line(
-    x0 - thickness, y0 - thickness,
-    x1 + thickness, y0 - thickness,
+    glm::vec2(topleft.x - thickness, topleft.y - thickness),
+    glm::vec2(bottomright.x + thickness, topleft.y - thickness),
     thickness,
     color
   );
   draw_line(
-    x0 - thickness, y1,
-    x1 + thickness, y1,
+    glm::vec2(topleft.x - thickness, bottomright.y),
+    glm::vec2(bottomright.x + thickness, bottomright.y),
     thickness,
     color
   );
   draw_line(
-    x0 - thickness, y0 - thickness,
-    x0 - thickness, y1 + thickness,
+    glm::vec2(topleft.x - thickness, topleft.y - thickness),
+    glm::vec2(topleft.x - thickness, bottomright.y + thickness),
     thickness,
     color
   );
   draw_line(
-    x1, y0 - thickness,
-    x1, y1 + thickness,
+    glm::vec2(bottomright.x, topleft.y - thickness),
+    glm::vec2(bottomright.x, bottomright.y + thickness),
     thickness,
     color
   );
@@ -227,15 +225,16 @@ void GuiManager::draw_frame(
 
 
 bool32 GuiManager::draw_button(
-  real32 x, real32 y, real32 w, real32 h,
+  glm::vec2 topleft, real32 w, real32 h,
   const char *text,
   real32 border_thickness
 ) {
   bool32 is_pressed = false;
+  glm::vec2 bottomright = topleft + glm::vec2(w, h);
 
   glm::vec4 color = BUTTON_COLOR;
 
-  if (this->input_manager->is_mouse_in_bb(x, y, x + w, y + h)) {
+  if (this->input_manager->is_mouse_in_bb(topleft, bottomright)) {
     this->request_cursor(this->input_manager->hand_cursor);
     color = BUTTON_HOVER_COLOR;
 
@@ -249,14 +248,16 @@ bool32 GuiManager::draw_button(
   }
 
   draw_frame(
-    x, y,
-    x + w, y + h,
+    topleft,
+    bottomright,
     border_thickness,
     BUTTON_BORDER_COLOR
   );
-  draw_rect(x, y, w, h, color);
+  draw_rect(topleft, w, h, color);
   draw_text(
-    "main-font", text, x + 30.0f, y + 7.0f, 1.0f,
+    "main-font", text,
+    topleft + glm::vec2(30.0f, 7.0f),
+    1.0f,
     BUTTON_TEXT_COLOR
   );
 
