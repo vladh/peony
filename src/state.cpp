@@ -15,7 +15,7 @@ State::State(
     this->window_info.height
   ),
   camera_active(&this->camera_main),
-  control(),
+  input_manager(this->window_info.window),
 
   t(0),
   dt(0),
@@ -53,6 +53,7 @@ State::State(
   spatial_component_manager(&this->spatial_components),
   gui_manager(
     memory, &this->shader_assets,
+    &this->input_manager,
     this->window_info.width, this->window_info.height
   ),
 

@@ -3,6 +3,8 @@ public:
   Memory *memory;
   ShaderAsset *text_shader_asset;
   ShaderAsset *generic_shader_asset;
+  InputManager *input_manager;
+  GLFWcursor *requested_cursor;
   Array<FontAsset> font_assets;
   uint32 vao;
   uint32 vbo;
@@ -12,11 +14,14 @@ public:
 
   GuiManager(
     Memory *memory, Array<ShaderAsset> *shader_assets,
+    InputManager *input_manager,
     uint32 window_width, uint32 window_height
   );
   void update_screen_dimensions(
     uint32 window_width, uint32 window_height
   );
+  void request_cursor(GLFWcursor *cursor);
+  void set_cursor();
   void draw_text(
     const char* font_name, const char *str,
     real32 x, real32 y, real32 scale, glm::vec4 color
@@ -35,7 +40,6 @@ public:
   void draw_button(
     real32 x, real32 y, real32 w, real32 h,
     const char *text,
-    real32 border_thickness,
-    glm::vec4 color, glm::vec4 text_color, glm::vec4 border_color
+    real32 border_thickness
   );
 };
