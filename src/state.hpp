@@ -19,7 +19,7 @@ public:
 
   Camera camera_main;
   Camera *camera_active;
-  Control control;
+  InputManager input_manager;
 
   real64 t;
   real64 dt;

@@ -19,7 +19,7 @@ global_variable uint32 global_oopses = 0;
 #include "texture_set.cpp"
 #include "camera.cpp"
 #include "memory.cpp"
-#include "control.cpp"
+#include "input_manager.cpp"
 #include "entity.cpp"
 #include "entity_manager.cpp"
 #include "drawable_component_manager.cpp"
@@ -390,82 +390,82 @@ void update_light_position(State *state, real32 amount) {
 
 
 void process_input_continuous(GLFWwindow *window, State *state, Memory *memory) {
-  if (state->control.is_key_down(GLFW_KEY_W)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_W)) {
     state->camera_active->move_front_back(1, state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_S)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_S)) {
     state->camera_active->move_front_back(-1, state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_A)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_A)) {
     state->camera_active->move_left_right(-1, state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_D)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_D)) {
     state->camera_active->move_left_right(1, state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_Z)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_Z)) {
     update_light_position(state, 0.10f * (real32)state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_X)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_X)) {
     update_light_position(state, -0.10f * (real32)state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_SPACE)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_SPACE)) {
     state->camera_active->move_up_down(1, state->dt);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
     state->camera_active->move_up_down(-1, state->dt);
   }
 }
 
 
 void process_input_transient(GLFWwindow *window, State *state, Memory *memory) {
-  if (state->control.is_key_now_down(GLFW_KEY_ESCAPE)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_F)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_F)) {
     state->should_limit_fps = !state->should_limit_fps;
     update_drawing_options(state, window);
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_C)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
     update_drawing_options(state, window);
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_Q)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_Q)) {
     state->should_use_wireframe = !state->should_use_wireframe;
     update_drawing_options(state, window);
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_TAB)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_TAB)) {
     state->should_pause = !state->should_pause;
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_BACKSPACE)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_BACKSPACE)) {
     state->should_hide_ui = !state->should_hide_ui;
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
     log_info("Deleting PBO");
     state->persistent_pbo.delete_pbo();
   }
 
-  if (state->control.is_key_now_down(GLFW_KEY_R)) {
+  if (state->input_manager.is_key_now_down(GLFW_KEY_R)) {
     reload_shaders(memory, state);
   }
 
-  if (state->control.is_key_down(GLFW_KEY_P)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_P)) {
     state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
   }
 
-  if (state->control.is_key_down(GLFW_KEY_ENTER)) {
+  if (state->input_manager.is_key_down(GLFW_KEY_ENTER)) {
     state->should_manually_advance_to_next_frame = true;
   }
 }
@@ -545,8 +545,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
-  glm::vec2 mouse_offset = state->control.update_mouse(x, y);
-  state->camera_active->update_mouse(mouse_offset);
+
+  glm::vec2 mouse_pos = glm::vec2(x, y);
+  state->input_manager.update_mouse(mouse_pos);
+
+  if (state->is_cursor_disabled) {
+    state->camera_active->update_mouse(state->input_manager.mouse_3d_offset);
+  }
 }
 
 
@@ -554,7 +559,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
   Memory *memory = memory_and_state->memory;
-  state->control.update_keys(key, scancode, action, mods);
+  state->input_manager.update_keys(key, scancode, action, mods);
   process_input_transient(window, state, memory);
 }
 
@@ -768,11 +773,10 @@ void render_scene_ui(
     15.0f, 230.0f,
     150.0f, 40.0f,
     "Press me!",
-    2.0f,
-    glm::vec4(0.00f, 0.33f, 0.93f, 1.00f),
-    glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-    glm::vec4(0.00f, 0.23f, 0.83f, 1.00f)
+    2.0f
   );
+
+  state->gui_manager.set_cursor();
 }
 
 

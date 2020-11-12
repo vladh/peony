@@ -5,6 +5,30 @@ constexpr uint32 DEFAULT_FONT_SIZE = 18;
 constexpr uint32 GUI_VERTEX_LENGTH = 8;
 constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * GUI_VERTEX_LENGTH;
 
+constexpr glm::vec4 BUTTON_COLOR = glm::vec4(0.00f, 0.33f, 0.93f, 1.00f);
+constexpr glm::vec4 BUTTON_BORDER_COLOR = glm::vec4(0.00f, 0.23f, 0.83f, 1.00f);
+constexpr glm::vec4 BUTTON_HOVER_COLOR = glm::vec4(0.00f, 0.03f, 0.63f, 1.00f);
+constexpr glm::vec4 BUTTON_TEXT_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+
+void GuiManager::update_screen_dimensions(
+  uint32 new_window_width, uint32 new_window_height
+) {
+  this->window_width = new_window_width;
+  this->window_height = new_window_height;
+}
+
+
+void GuiManager::request_cursor(GLFWcursor *cursor) {
+  this->requested_cursor = cursor;
+}
+
+
+void GuiManager::set_cursor() {
+  this->input_manager->set_cursor(this->requested_cursor);
+  this->requested_cursor = nullptr;
+}
+
 
 void GuiManager::draw_text(
   const char* font_name, const char *str,
@@ -218,32 +242,32 @@ void GuiManager::draw_frame(
 void GuiManager::draw_button(
   real32 x, real32 y, real32 w, real32 h,
   const char *text,
-  real32 border_thickness,
-  glm::vec4 color, glm::vec4 text_color, glm::vec4 border_color
+  real32 border_thickness
 ) {
+  glm::vec4 color = BUTTON_COLOR;
+
+  if (this->input_manager->is_mouse_in_bb(x, y, x + w, y + h)) {
+    this->request_cursor(this->input_manager->hand_cursor);
+    color = BUTTON_HOVER_COLOR;
+  }
+
   draw_frame(
     x, y,
     x + w, y + h,
     border_thickness,
-    border_color
+    BUTTON_BORDER_COLOR
   );
   draw_rect(x, y, w, h, color);
   draw_text(
-    "main-font", text, x + 30.0f, y + 7.0f, 1.0f, text_color
+    "main-font", text, x + 30.0f, y + 7.0f, 1.0f,
+    BUTTON_TEXT_COLOR
   );
-}
-
-
-void GuiManager::update_screen_dimensions(
-  uint32 new_window_width, uint32 new_window_height
-) {
-  this->window_width = new_window_width;
-  this->window_height = new_window_height;
 }
 
 
 GuiManager::GuiManager(
   Memory *memory, Array<ShaderAsset> *shader_assets,
+  InputManager *input_manager,
   uint32 window_width, uint32 window_height
 ) :
   font_assets(
@@ -252,6 +276,7 @@ GuiManager::GuiManager(
     )
   ),
   memory(memory),
+  input_manager(input_manager),
   window_width(window_width),
   window_height(window_height)
 {
