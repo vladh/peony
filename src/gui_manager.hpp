@@ -37,21 +37,22 @@ public:
   void set_cursor();
   void draw_text(
     const char* font_name, const char *str,
-    real32 x, real32 y, real32 scale, glm::vec4 color
+    glm::vec2 topleft,
+    real32 scale, glm::vec4 color
   );
   void draw_rect(
-    real32 x, real32 y, real32 width, real32 height, glm::vec4 color
+    glm::vec2 topleft, real32 w, real32 h, glm::vec4 color
   );
   void draw_line(
-    real32 start_x, real32 start_y, real32 end_x, real32 end_y,
+    glm::vec2 start, glm::vec2 end,
     real32 thickness, glm::vec4 color
   );
   void draw_frame(
-    real32 x0, real32 y0, real32 x1, real32 y1,
+    glm::vec2 topleft, glm::vec2 bottomright,
     real32 thickness, glm::vec4 color
   );
   bool32 draw_button(
-    real32 x, real32 y, real32 w, real32 h,
+    glm::vec2 topleft, real32 w, real32 h,
     const char *text,
     real32 border_thickness
   );

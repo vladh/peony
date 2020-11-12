@@ -99,10 +99,12 @@ bool32 InputManager::is_key_now_up(int key) {
 
 
 bool32 InputManager::is_mouse_in_bb(
-  real32 x0, real32 y0, real32 x1, real32 y1
+  glm::vec2 topleft, glm::vec2 bottomright
 ) {
-  return this->mouse_pos.x > x0 && this->mouse_pos.x < x1 &&
-    this->mouse_pos.y > y0 && this->mouse_pos.y < y1;
+  return this->mouse_pos.x > topleft.x &&
+    this->mouse_pos.x < bottomright.x &&
+    this->mouse_pos.y > topleft.y &&
+    this->mouse_pos.y < bottomright.y;
 }
 
 

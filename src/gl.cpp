@@ -742,7 +742,7 @@ void render_scene_ui(
   );
   state->gui_manager.draw_text(
     "main-font", debug_text,
-    15.0f, 15.0f,
+    glm::vec2(15.0f, 15.0f),
     1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 
@@ -776,7 +776,7 @@ void render_scene_ui(
 #endif
 
   if (state->gui_manager.draw_button(
-    15.0f, 230.0f,
+    glm::vec2(15.0f, 230.0f),
     150.0f, 40.0f,
     "Press me!",
     2.0f

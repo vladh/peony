@@ -26,9 +26,7 @@ struct InputManager {
   bool32 is_key_up(int key);
   bool32 is_key_now_down(int key);
   bool32 is_key_now_up(int key);
-  bool32 is_mouse_in_bb(
-    real32 x0, real32 y0, real32 x1, real32 y1
-  );
+  bool32 is_mouse_in_bb(glm::vec2 topleft, glm::vec2 bottomright);
   void set_cursor(GLFWcursor *new_cursor);
   void reset_n_mouse_button_state_changes_this_frame();
   void reset_n_key_state_changes_this_frame();
