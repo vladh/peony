@@ -1,3 +1,16 @@
+real32 FontAsset::frac_px_to_px(uint32 n) {
+  return (real32)(n >> 6);
+}
+
+real32 FontAsset::font_unit_to_px(uint32 n) {
+  // TODO: We should be dividing by this->units_per_em here...probably?
+  // This is because we expect height etc. to be in "font units".
+  // But treating these metrics as "fractional pixels" seems to work,
+  // whereas division by units_per_em doesn't.
+  // Check this in more detail.
+  return (real32)(n >> 6);
+}
+
 void FontAsset::load_glyphs(FT_Face face) {
   FT_GlyphSlot glyph = face->glyph;
 
@@ -73,6 +86,13 @@ FontAsset::FontAsset(
     log_error("Could not load font at %s", path);
   }
   FT_Set_Pixel_Sizes(face, 0, this->font_size);
+  if (!FT_IS_SCALABLE(face)) {
+    log_fatal("Font face not scalable, don't know what to do.");
+  }
+  this->units_per_em = face->units_per_EM;
+  this->ascender = face->ascender;
+  this->descender = face->descender;
+  this->height = face->height;
   load_glyphs(face);
   FT_Done_Face(face);
 }

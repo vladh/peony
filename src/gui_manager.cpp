@@ -1,4 +1,4 @@
-constexpr real32 LINE_HEIGHT_FACTOR = 1.66f;
+constexpr real32 LINE_HEIGHT_FACTOR = 1.5f;
 constexpr uint32 N_MAX_CHARACTERS_PER_DRAW = 1024;
 constexpr const char *DEFAULT_FONT = "resources/fonts/iosevka-regular.ttf";
 constexpr uint32 DEFAULT_FONT_SIZE = 18;
@@ -13,7 +13,9 @@ void GuiManager::draw_text(
 ) {
   FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
 
-  uint16 line_height = (uint16)((real32)font_asset->font_size * LINE_HEIGHT_FACTOR);
+  uint16 line_height = (uint16)(
+    (real32)font_asset->font_unit_to_px(font_asset->height) * LINE_HEIGHT_FACTOR
+  );
 
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
@@ -50,7 +52,9 @@ void GuiManager::draw_text(
     }
 
     real32 char_x = curr_x + character->bearing.x * scale;
-    real32 char_y = curr_y - character->bearing.y * scale;
+    real32 char_y = curr_y + (
+      font_asset->font_unit_to_px(font_asset->height) - character->bearing.y
+    ) * scale;
 
     real32 tex_x = character->texture_x;
     real32 tex_w = (real32)character->size.x / font_asset->atlas_width;
@@ -59,8 +63,8 @@ void GuiManager::draw_text(
     real32 w = character->size.x * scale;
     real32 h = character->size.y * scale;
 
-    curr_x += (character->advance.x >> 6) * scale;
-    curr_y += (character->advance.y >> 6) * scale;
+    curr_x += font_asset->frac_px_to_px(character->advance.x) * scale;
+    curr_y += font_asset->frac_px_to_px(character->advance.y) * scale;
 
     // Skip glyphs with no pixels, like spaces.
     if (w <= 0 || h <= 0) {
@@ -97,14 +101,6 @@ void GuiManager::draw_text(
   }
 
   glDrawArrays(GL_TRIANGLES, 0, 6 * (uint32)str_printable_length);
-}
-
-
-void GuiManager::update_screen_dimensions(
-  uint32 new_window_width, uint32 new_window_height
-) {
-  this->window_width = new_window_width;
-  this->window_height = new_window_height;
 }
 
 
@@ -156,19 +152,18 @@ void GuiManager::draw_line(
   glm::vec2 delta = glm::normalize(
     glm::vec2(end_x - start_x, end_y - start_y)
   ) * thickness;
-  /* log_info("(delta %f %f)", delta.x, delta.y); */
 
   //    ----------->
   // 0------------------3
   // |                  |
   // 1------------------2
-  real32 x0 = start_x;
+  real32 x0 = start_x + delta.y;
   real32 y0 = this->window_height - start_y;
-  real32 x1 = start_x - delta.y;
+  real32 x1 = start_x;
   real32 y1 = this->window_height - start_y - delta.x;
-  real32 x2 = end_x - delta.y;
+  real32 x2 = end_x;
   real32 y2 = this->window_height - end_y - delta.x;
-  real32 x3 = end_x;
+  real32 x3 = end_x + delta.y;
   real32 y3 = this->window_height - end_y;
 
   real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
@@ -194,32 +189,28 @@ void GuiManager::draw_frame(
   real32 thickness, glm::vec4 color
 ) {
   draw_line(
-    x0, y0,
-    x1, y0,
+    x0 - thickness, y0 - thickness,
+    x1 + thickness, y0 - thickness,
     thickness,
-    /* border_color */
-    glm::vec4(1.0, 0.0, 0.0, 1.0)
+    color
   );
   draw_line(
-    x0, y1,
-    x1, y1,
+    x0 - thickness, y1,
+    x1 + thickness, y1,
     thickness,
-    /* border_color */
-    glm::vec4(1.0, 0.0, 0.0, 1.0)
+    color
   );
   draw_line(
-    x0, y0,
-    x0, y1,
+    x0 - thickness, y0 - thickness,
+    x0 - thickness, y1 + thickness,
     thickness,
-    /* border_color */
-    glm::vec4(1.0, 0.0, 0.0, 1.0)
+    color
   );
   draw_line(
-    x1, y0,
-    x1, y1,
+    x1, y0 - thickness,
+    x1, y1 + thickness,
     thickness,
-    /* border_color */
-    glm::vec4(1.0, 0.0, 0.0, 1.0)
+    color
   );
 }
 
@@ -237,6 +228,17 @@ void GuiManager::draw_button(
     border_color
   );
   draw_rect(x, y, w, h, color);
+  draw_text(
+    "main-font", text, x + 30.0f, y + 7.0f, 1.0f, text_color
+  );
+}
+
+
+void GuiManager::update_screen_dimensions(
+  uint32 new_window_width, uint32 new_window_height
+) {
+  this->window_width = new_window_width;
+  this->window_height = new_window_height;
 }
 
 
