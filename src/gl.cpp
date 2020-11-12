@@ -389,7 +389,8 @@ void update_light_position(State *state, real32 amount) {
 }
 
 
-void process_input_continuous(GLFWwindow *window, State *state, Memory *memory) {
+void process_input(GLFWwindow *window, State *state, Memory *memory) {
+  // Continuous
   if (state->input_manager.is_key_down(GLFW_KEY_W)) {
     state->camera_active->move_front_back(1, state->dt);
   }
@@ -421,10 +422,8 @@ void process_input_continuous(GLFWwindow *window, State *state, Memory *memory) 
   if (state->input_manager.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
     state->camera_active->move_up_down(-1, state->dt);
   }
-}
 
-
-void process_input_transient(GLFWwindow *window, State *state, Memory *memory) {
+  // Transient
   if (state->input_manager.is_key_now_down(GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
@@ -542,6 +541,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+
+  state->input_manager.update_mouse_button(button, action, mods);
+}
+
+
 void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
@@ -558,9 +565,7 @@ void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
-  Memory *memory = memory_and_state->memory;
   state->input_manager.update_keys(key, scancode, action, mods);
-  process_input_transient(window, state, memory);
 }
 
 
@@ -647,6 +652,7 @@ void init_window(WindowInfo *window_info) {
   glViewport(0, 0, window_info->width, window_info->height);
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetKeyCallback(window, key_callback);
 }
 
@@ -769,12 +775,14 @@ void render_scene_ui(
   );
 #endif
 
-  state->gui_manager.draw_button(
+  if (state->gui_manager.draw_button(
     15.0f, 230.0f,
     150.0f, 40.0f,
     "Press me!",
     2.0f
-  );
+  )) {
+    log_info("HELLO!");
+  }
 
   state->gui_manager.set_cursor();
 }
@@ -1037,7 +1045,7 @@ void run_main_loop(Memory *memory, State *state) {
 
   while (!state->should_stop) {
     glfwPollEvents();
-    process_input_continuous(state->window_info.window, state, memory);
+    process_input(state->window_info.window, state, memory);
 
     if (
       !state->is_manual_frame_advance_enabled ||
@@ -1076,6 +1084,8 @@ void run_main_loop(Memory *memory, State *state) {
       if (state->is_manual_frame_advance_enabled) {
         state->should_manually_advance_to_next_frame = false;
       }
+      state->input_manager.reset_n_mouse_button_state_changes_this_frame();
+      state->input_manager.reset_n_key_state_changes_this_frame();
 
       if (state->should_limit_fps) {
         std::this_thread::sleep_until(time_frame_should_end);
