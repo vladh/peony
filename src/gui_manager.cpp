@@ -17,16 +17,61 @@ void GuiManager::set_cursor() {
 }
 
 
+glm::vec2 GuiManager::get_text_dimensions(
+  const char* font_name, const char *str
+) {
+  // NOTE: This returns the dimensions around the main body of the text.
+  // This does not include descenders.
+  FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
+
+  real32 line_height = font_asset->font_unit_to_px(font_asset->height);
+  real32 line_spacing = line_height * LINE_SPACING_FACTOR;
+  real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
+
+  real32 start_x = 0.0f;
+  real32 start_y = 0.0f - (line_height - ascender);
+  real32 curr_x = start_x;
+  real32 curr_y = start_y;
+  size_t str_length = strlen(str);
+
+  for (uint32 idx = 0; idx < str_length; idx++) {
+    char c = str[idx];
+
+    if (c < 32) {
+      if (c == '\n') {
+        curr_x = curr_x;
+        curr_y += line_spacing;
+      }
+      continue;
+    }
+
+    Character *character = font_asset->characters.get(c);
+
+    if (!character) {
+      log_warning("Could not get character: %c", c);
+      continue;
+    }
+
+    curr_x += font_asset->frac_px_to_px(character->advance.x);
+    curr_y += font_asset->frac_px_to_px(character->advance.y);
+  }
+
+  curr_y += line_height;
+
+  return glm::vec2(curr_x, curr_y);
+}
+
+
 void GuiManager::draw_text(
   const char* font_name, const char *str,
   glm::vec2 topleft,
-  real32 scale, glm::vec4 color
+  glm::vec4 color
 ) {
   FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
 
-  uint16 line_height = (uint16)(
-    (real32)font_asset->font_unit_to_px(font_asset->height) * LINE_HEIGHT_FACTOR
-  );
+  real32 line_height = font_asset->font_unit_to_px(font_asset->height);
+  real32 line_spacing = line_height * LINE_SPACING_FACTOR;
+  real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
 
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
@@ -39,8 +84,12 @@ void GuiManager::draw_text(
     this->text_shader_asset->did_set_texture_uniforms;
   }
 
-  real32 curr_x = topleft.x;
-  real32 curr_y = topleft.y;
+  // NOTE: When changing this code, remember that the text positioning logic
+  // needs to be replicated in `get_text_dimensions()`!
+  real32 start_x = topleft.x;
+  real32 start_y = topleft.y - (line_height - ascender);
+  real32 curr_x = start_x;
+  real32 curr_y = start_y;
   size_t str_length = strlen(str);
   size_t str_printable_length = 0;
 
@@ -49,8 +98,8 @@ void GuiManager::draw_text(
 
     if (c < 32) {
       if (c == '\n') {
-        curr_x = topleft.x;
-        curr_y += line_height;
+        curr_x = start_x;
+        curr_y += line_spacing;
       }
       continue;
     }
@@ -62,20 +111,20 @@ void GuiManager::draw_text(
       continue;
     }
 
-    real32 char_x = curr_x + character->bearing.x * scale;
+    real32 char_x = curr_x + character->bearing.x;
     real32 char_y = curr_y + (
       font_asset->font_unit_to_px(font_asset->height) - character->bearing.y
-    ) * scale;
+    );
 
     real32 tex_x = character->texture_x;
     real32 tex_w = (real32)character->size.x / font_asset->atlas_width;
     real32 tex_h = (real32)character->size.y / font_asset->atlas_height;
 
-    real32 w = character->size.x * scale;
-    real32 h = character->size.y * scale;
+    real32 w = (real32)character->size.x;
+    real32 h = (real32)character->size.y;
 
-    curr_x += font_asset->frac_px_to_px(character->advance.x) * scale;
-    curr_y += font_asset->frac_px_to_px(character->advance.y) * scale;
+    curr_x += font_asset->frac_px_to_px(character->advance.x);
+    curr_y += font_asset->frac_px_to_px(character->advance.y);
 
     // Skip glyphs with no pixels, like spaces.
     if (w <= 0 || h <= 0) {
@@ -193,6 +242,7 @@ void GuiManager::draw_line(
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
+
 void GuiManager::draw_frame(
   glm::vec2 topleft, glm::vec2 bottomright,
   real32 thickness, glm::vec4 color
@@ -230,7 +280,17 @@ bool32 GuiManager::draw_button(
   real32 border_thickness
 ) {
   bool32 is_pressed = false;
-  glm::vec2 bottomright = topleft + glm::vec2(w, h);
+  glm::vec2 button_dimensions = glm::vec2(w, h);
+  glm::vec2 text_dimensions = get_text_dimensions("main-font", text);
+
+  if (w <= 0.0f || h <= 0.0f) {
+    button_dimensions = text_dimensions + BUTTON_AUTOSIZE_PADDING;
+  }
+
+  glm::vec2 bottomright = topleft + button_dimensions;
+  glm::vec2 text_topleft = glm::ceil(
+    topleft + (button_dimensions / 2.0f) - (text_dimensions / 2.0f)
+  );
 
   glm::vec4 color = BUTTON_COLOR;
 
@@ -253,11 +313,10 @@ bool32 GuiManager::draw_button(
     border_thickness,
     BUTTON_BORDER_COLOR
   );
-  draw_rect(topleft, w, h, color);
+  draw_rect(topleft, button_dimensions.x, button_dimensions.y, color);
   draw_text(
     "main-font", text,
-    topleft + glm::vec2(30.0f, 7.0f),
-    1.0f,
+    text_topleft,
     BUTTON_TEXT_COLOR
   );
 
