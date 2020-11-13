@@ -1,7 +1,7 @@
 #ifndef FONTS_H
 #define FONTS_H
 
-#define N_CHARS_TO_LOAD 128
+constexpr uint32 N_CHARS_TO_LOAD = 128;
 
 struct Character {
   glm::ivec2 size;

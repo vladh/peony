@@ -743,42 +743,13 @@ void render_scene_ui(
   state->gui_manager.draw_text(
     "main-font", debug_text,
     glm::vec2(15.0f, 15.0f),
-    1.0f, glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
+    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
-
-#if 0
-  state->gui_manager.draw_rect(
-    10.0f, 10.0f,
-    100.0f, 100.0f,
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
-  );
-
-  state->gui_manager.draw_rect(
-    10.0f, 300.0f,
-    100.0f, 1.0f,
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
-  );
-  state->gui_manager.draw_rect(
-    10.0f, 300.0f,
-    1.0f, 10.0f,
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
-  );
-  state->gui_manager.draw_rect(
-    10.0f, 310.0f,
-    100.0f, 1.0f,
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
-  );
-  state->gui_manager.draw_rect(
-    110.0f, 300.0f,
-    1.0f, 10.0f,
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
-  );
-#endif
 
   if (state->gui_manager.draw_button(
     glm::vec2(15.0f, 230.0f),
-    150.0f, 40.0f,
-    "Press me!",
+    0.0f, 0.0f,
+    "Press here to activate the cat picture dispenser",
     2.0f
   )) {
     log_info("HELLO!");
