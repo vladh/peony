@@ -758,16 +758,48 @@ void render_scene_ui(
     }
   }
 
-  if (state->gui_manager.draw_button(
-    glm::vec2(15.0f, 230.0f),
-    -1.0f, -1.0f,
-    "Press here to activate the cat picture dispenser",
-    2.0f
-  )) {
-    state->heading_text = "Good job!";
-    state->heading_opacity = 1.0f;
-    state->heading_fadeout_duration = 1.0f;
-    state->heading_fadeout_delay = 1.0f;
+  {
+    GuiContainer container = state->gui_manager.make_container(
+      "hello!", glm::vec2(0.0f, 400.0f)
+    );
+
+    if (state->gui_manager.draw_button(
+      &container, "Press here to activate the cat picture dispenser"
+    )) {
+      state->heading_text = "Good job!";
+      state->heading_opacity = 1.0f;
+      state->heading_fadeout_duration = 1.0f;
+      state->heading_fadeout_delay = 1.0f;
+    }
+
+    if (state->gui_manager.draw_button(
+      &container, "Dog picture dispenser"
+    )) {
+      state->heading_text = "Good job!";
+      state->heading_opacity = 1.0f;
+      state->heading_fadeout_duration = 1.0f;
+      state->heading_fadeout_delay = 1.0f;
+    }
+
+    if (state->gui_manager.draw_button(
+      &container, "Press me"
+    )) {
+      state->heading_text = "Good job!";
+      state->heading_opacity = 1.0f;
+      state->heading_fadeout_duration = 1.0f;
+      state->heading_fadeout_delay = 1.0f;
+    }
+
+    if (state->gui_manager.draw_button(
+      &container, "Push the button simulator"
+    )) {
+      state->heading_text = "Good job!";
+      state->heading_opacity = 1.0f;
+      state->heading_fadeout_duration = 1.0f;
+      state->heading_fadeout_delay = 1.0f;
+    }
+
+    state->gui_manager.draw_container(&container);
   }
 
   state->gui_manager.set_cursor();
