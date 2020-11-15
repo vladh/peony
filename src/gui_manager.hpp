@@ -9,7 +9,22 @@ constexpr glm::vec4 GUI_BUTTON_HOVER_COLOR = glm::vec4(0.00f, 0.43f, 1.00f, 1.00
 constexpr glm::vec4 GUI_BUTTON_ACTIVE_COLOR = glm::vec4(0.00f, 0.03f, 0.63f, 1.00f);
 constexpr glm::vec4 GUI_BUTTON_TEXT_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 constexpr glm::vec2 GUI_BUTTON_AUTOSIZE_PADDING = glm::vec2(20.0f, 20.0f);
-constexpr real32 GUI_CENTER = -10000.0f;
+constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(4.0f);
+
+struct GuiContainer {
+  const char *title;
+  glm::vec2 position;
+  // Dimensions include padding.
+  glm::vec2 dimensions;
+  glm::vec2 next_element_position;
+  // The direction defines the main and orthogonal axes.
+  // The main axis is the one elements are successively positioned on.
+  // The main axis has a 1.0f, while the orthogonal axis has a 0.0f.
+  glm::vec2 direction;
+  glm::vec2 padding;
+  uint32 n_elements;
+  real32 element_margin;
+};
 
 class GuiManager {
 public:
@@ -38,11 +53,20 @@ public:
     const char* font_name, const char *str
   );
   glm::vec2 center_bb(
-    glm::vec2 topleft, glm::vec2 container_dimensions, glm::vec2 element_dimensions
+    glm::vec2 container_position,
+    glm::vec2 container_dimensions,
+    glm::vec2 element_dimensions
   );
+  glm::vec2 add_element_to_container(
+    GuiContainer *container, glm::vec2 element_dimensions
+  );
+  GuiContainer make_container(
+    const char *title, glm::vec2 position
+  );
+  void draw_container(GuiContainer *container);
   void draw_text(
     const char* font_name, const char *str,
-    glm::vec2 topleft,
+    glm::vec2 position,
     glm::vec4 color
   );
   void draw_heading(
@@ -50,19 +74,18 @@ public:
     glm::vec4 color
   );
   void draw_rect(
-    glm::vec2 topleft, real32 w, real32 h, glm::vec4 color
+    glm::vec2 position, glm::vec2 dimensions, glm::vec4 color
   );
   void draw_line(
     glm::vec2 start, glm::vec2 end,
     real32 thickness, glm::vec4 color
   );
   void draw_frame(
-    glm::vec2 topleft, glm::vec2 bottomright,
-    real32 thickness, glm::vec4 color
+    glm::vec2 position, glm::vec2 bottomright,
+    glm::vec2 thickness, glm::vec4 color
   );
   bool32 draw_button(
-    glm::vec2 topleft, real32 w, real32 h,
-    const char *text,
-    real32 border_thickness
+    GuiContainer *container,
+    const char *text
   );
 };
