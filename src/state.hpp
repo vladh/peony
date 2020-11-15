@@ -45,6 +45,11 @@ public:
   SpatialComponentManager spatial_component_manager;
   GuiManager gui_manager;
 
+  real32 heading_opacity;
+  const char *heading_text;
+  real32 heading_fadeout_duration;
+  real32 heading_fadeout_delay;
+
   Array<EntityHandle> lights;
   Array<EntityHandle> geese;
   EntityHandle skysphere;

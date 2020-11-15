@@ -1,8 +1,7 @@
 void GuiManager::update_screen_dimensions(
   uint32 new_window_width, uint32 new_window_height
 ) {
-  this->window_width = new_window_width;
-  this->window_height = new_window_height;
+  this->window_dimensions = glm::vec2(new_window_width, new_window_height);
 }
 
 
@@ -25,7 +24,7 @@ glm::vec2 GuiManager::get_text_dimensions(
   FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
 
   real32 line_height = font_asset->font_unit_to_px(font_asset->height);
-  real32 line_spacing = line_height * LINE_SPACING_FACTOR;
+  real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
   real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
 
   real32 start_x = 0.0f;
@@ -62,6 +61,15 @@ glm::vec2 GuiManager::get_text_dimensions(
 }
 
 
+glm::vec2 GuiManager::center_bb(
+  glm::vec2 topleft, glm::vec2 container_dimensions, glm::vec2 element_dimensions
+) {
+  return glm::ceil(
+    topleft + (container_dimensions / 2.0f) - (element_dimensions / 2.0f)
+  );
+}
+
+
 void GuiManager::draw_text(
   const char* font_name, const char *str,
   glm::vec2 topleft,
@@ -70,7 +78,7 @@ void GuiManager::draw_text(
   FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
 
   real32 line_height = font_asset->font_unit_to_px(font_asset->height);
-  real32 line_spacing = line_height * LINE_SPACING_FACTOR;
+  real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
   real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
 
   glBindVertexArray(this->vao);
@@ -135,7 +143,7 @@ void GuiManager::draw_text(
     // Flip the y axis before drawing.
     real32 x0 = char_x;
     real32 x1 = x0 + w;
-    real32 y0 = (real32)this->window_height - char_y;
+    real32 y0 = (real32)this->window_dimensions.y - char_y;
     real32 y1 = y0 - h;
 
     real32 tex_x0 = tex_x;
@@ -164,6 +172,22 @@ void GuiManager::draw_text(
 }
 
 
+void GuiManager::draw_heading(
+  const char* font_name, const char *str,
+  glm::vec4 color
+) {
+  glm::vec2 topleft = glm::vec2(
+    center_bb(
+      glm::vec2(0.0f, 0.0f),
+      window_dimensions,
+      get_text_dimensions(font_name, str)
+    ).x,
+    90.0f
+  );
+  draw_text(font_name, str, topleft, color);
+}
+
+
 void GuiManager::draw_rect(
   glm::vec2 topleft, real32 w, real32 h, glm::vec4 color
 ) {
@@ -176,7 +200,7 @@ void GuiManager::draw_rect(
   // Flip the y axis before drawing.
   real32 x0 = topleft.x;
   real32 x1 = x0 + w;
-  real32 y0 = (real32)this->window_height - topleft.y;
+  real32 y0 = (real32)this->window_dimensions.y - topleft.y;
   real32 y1 = y0 - h;
 
   real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
@@ -216,13 +240,13 @@ void GuiManager::draw_line(
   // |                  |
   // 1------------------2
   real32 x0 = start.x + delta.y;
-  real32 y0 = this->window_height - start.y;
+  real32 y0 = this->window_dimensions.y - start.y;
   real32 x1 = start.x;
-  real32 y1 = this->window_height - start.y - delta.x;
+  real32 y1 = this->window_dimensions.y - start.y - delta.x;
   real32 x2 = end.x;
-  real32 y2 = this->window_height - end.y - delta.x;
+  real32 y2 = this->window_dimensions.y - end.y - delta.x;
   real32 x3 = end.x + delta.y;
-  real32 y3 = this->window_height - end.y;
+  real32 y3 = this->window_dimensions.y - end.y;
 
   real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
     x0, y0, 0, 0, color.r, color.g, color.b, color.a,
@@ -279,31 +303,30 @@ bool32 GuiManager::draw_button(
   const char *text,
   real32 border_thickness
 ) {
+  const char *font = "body";
   bool32 is_pressed = false;
   glm::vec2 button_dimensions = glm::vec2(w, h);
-  glm::vec2 text_dimensions = get_text_dimensions("main-font", text);
+  glm::vec2 text_dimensions = get_text_dimensions(font, text);
 
-  if (w <= 0.0f || h <= 0.0f) {
-    button_dimensions = text_dimensions + BUTTON_AUTOSIZE_PADDING;
+  if (w < 0.0f || h < 0.0f) {
+    button_dimensions = text_dimensions + GUI_BUTTON_AUTOSIZE_PADDING;
   }
 
   glm::vec2 bottomright = topleft + button_dimensions;
-  glm::vec2 text_topleft = glm::ceil(
-    topleft + (button_dimensions / 2.0f) - (text_dimensions / 2.0f)
-  );
+  glm::vec2 text_topleft = center_bb(topleft, button_dimensions, text_dimensions);
 
-  glm::vec4 color = BUTTON_COLOR;
+  glm::vec4 color = GUI_BUTTON_COLOR;
 
   if (this->input_manager->is_mouse_in_bb(topleft, bottomright)) {
     this->request_cursor(this->input_manager->hand_cursor);
-    color = BUTTON_HOVER_COLOR;
+    color = GUI_BUTTON_HOVER_COLOR;
 
     if (this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
     if (this->input_manager->is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
-      color = BUTTON_ACTIVE_COLOR;
+      color = GUI_BUTTON_ACTIVE_COLOR;
     }
   }
 
@@ -311,13 +334,13 @@ bool32 GuiManager::draw_button(
     topleft,
     bottomright,
     border_thickness,
-    BUTTON_BORDER_COLOR
+    GUI_BUTTON_BORDER_COLOR
   );
   draw_rect(topleft, button_dimensions.x, button_dimensions.y, color);
   draw_text(
-    "main-font", text,
+    font, text,
     text_topleft,
-    BUTTON_TEXT_COLOR
+    GUI_BUTTON_TEXT_COLOR
   );
 
   return is_pressed;
@@ -336,8 +359,7 @@ GuiManager::GuiManager(
   ),
   memory(memory),
   input_manager(input_manager),
-  window_width(window_width),
-  window_height(window_height)
+  window_dimensions(window_width, window_height)
 {
   // Shaders
   {
@@ -362,7 +384,11 @@ GuiManager::GuiManager(
     }
 
     new(this->font_assets.push()) FontAsset(
-      this->memory, &ft_library, "main-font", DEFAULT_FONT, DEFAULT_FONT_SIZE
+      this->memory, &ft_library, "body", GUI_DEFAULT_FONT, 18
+    );
+
+    new(this->font_assets.push()) FontAsset(
+      this->memory, &ft_library, "heading", GUI_DEFAULT_FONT, 42
     );
 
     FT_Done_FreeType(ft_library);
@@ -376,7 +402,7 @@ GuiManager::GuiManager(
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
     glBufferData(
-      GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * 6 * N_MAX_CHARACTERS_PER_DRAW,
+      GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * 6 * GUI_N_MAX_CHARACTERS_PER_DRAW,
       NULL, GL_DYNAMIC_DRAW
     );
 

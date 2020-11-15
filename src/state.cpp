@@ -57,6 +57,11 @@ State::State(
     this->window_info.width, this->window_info.height
   ),
 
+  heading_opacity(0.0f),
+  heading_text(""),
+  heading_fadeout_duration(1.0f),
+  heading_fadeout_delay(2.0f),
+
   lights(
     Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "lights")
   ),
