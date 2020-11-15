@@ -594,7 +594,7 @@ void init_window(WindowInfo *window_info) {
 
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[1];
+  GLFWmonitor *target_monitor = monitors[2];
 
   const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
   glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
@@ -741,18 +741,33 @@ void render_scene_ui(
     global_oopses
   );
   state->gui_manager.draw_text(
-    "main-font", debug_text,
+    "body", debug_text,
     glm::vec2(15.0f, 15.0f),
     glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
   );
 
+  if (state->heading_opacity > 0.0f) {
+    state->gui_manager.draw_heading(
+      "heading", state->heading_text,
+      glm::vec4(0.0f, 0.33f, 0.93f, state->heading_opacity)
+    );
+    if (state->heading_fadeout_delay > 0.0f) {
+      state->heading_fadeout_delay -= (real32)state->dt;
+    } else {
+      state->heading_opacity -= state->heading_fadeout_duration * (real32)state->dt;
+    }
+  }
+
   if (state->gui_manager.draw_button(
     glm::vec2(15.0f, 230.0f),
-    0.0f, 0.0f,
+    -1.0f, -1.0f,
     "Press here to activate the cat picture dispenser",
     2.0f
   )) {
-    log_info("HELLO!");
+    state->heading_text = "Good job!";
+    state->heading_opacity = 1.0f;
+    state->heading_fadeout_duration = 1.0f;
+    state->heading_fadeout_delay = 1.0f;
   }
 
   state->gui_manager.set_cursor();
