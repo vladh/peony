@@ -17,6 +17,7 @@ global_variable uint32 global_oopses = 0;
 #include "shader_asset.cpp"
 #include "persistent_pbo.cpp"
 #include "texture_set.cpp"
+#include "texture_atlas.cpp"
 #include "camera.cpp"
 #include "memory.cpp"
 #include "input_manager.cpp"
@@ -748,7 +749,7 @@ void render_scene_ui(
 
   if (state->heading_opacity > 0.0f) {
     state->gui_manager.draw_heading(
-      "heading", state->heading_text,
+      "title", state->heading_text,
       glm::vec4(0.0f, 0.33f, 0.93f, state->heading_opacity)
     );
     if (state->heading_fadeout_delay > 0.0f) {
@@ -802,7 +803,7 @@ void render_scene_ui(
     state->gui_manager.draw_container(&container);
   }
 
-  state->gui_manager.set_cursor();
+  state->gui_manager.render();
 }
 
 

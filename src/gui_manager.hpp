@@ -1,5 +1,5 @@
 constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
-constexpr uint32 GUI_N_MAX_CHARACTERS_PER_DRAW = 1024;
+constexpr uint32 GUI_N_MAX_VERTICES = 16384;
 constexpr const char *GUI_DEFAULT_FONT = "resources/fonts/SofiaProRegular.otf";
 constexpr uint32 GUI_VERTEX_LENGTH = 8;
 constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * GUI_VERTEX_LENGTH;
@@ -29,15 +29,16 @@ struct GuiContainer {
 class GuiManager {
 public:
   Memory *memory;
-  ShaderAsset *text_shader_asset;
-  ShaderAsset *generic_shader_asset;
+  ShaderAsset *shader_asset;
   InputManager *input_manager;
   GLFWcursor *requested_cursor;
   Array<FontAsset> font_assets;
+  TextureAtlas texture_atlas;
   uint32 vao;
   uint32 vbo;
   glm::mat4 text_projection;
   glm::vec2 window_dimensions;
+  uint32 n_vertices_pushed;
 
   GuiManager(
     Memory *memory, Array<ShaderAsset> *shader_assets,
@@ -49,6 +50,8 @@ public:
   );
   void request_cursor(GLFWcursor *cursor);
   void set_cursor();
+  void push_vertices(real32 *vertices, uint32 n_vertices);
+  void render();
   glm::vec2 get_text_dimensions(
     const char* font_name, const char *str
   );
