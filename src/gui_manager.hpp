@@ -11,11 +11,13 @@ constexpr glm::vec4 GUI_BUTTON_TEXT_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 constexpr glm::vec2 GUI_BUTTON_AUTOSIZE_PADDING = glm::vec2(20.0f, 20.0f);
 constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(4.0f);
 
+
 struct GuiContainer {
   const char *title;
   glm::vec2 position;
   // Dimensions include padding.
   glm::vec2 dimensions;
+  glm::vec2 content_dimensions;
   glm::vec2 next_element_position;
   // The direction defines the main and orthogonal axes.
   // The main axis is the one elements are successively positioned on.
@@ -26,6 +28,7 @@ struct GuiContainer {
   real32 element_margin;
 };
 
+
 class GuiManager {
 public:
   Memory *memory;
@@ -34,6 +37,7 @@ public:
   GLFWcursor *requested_cursor;
   Array<FontAsset> font_assets;
   TextureAtlas texture_atlas;
+  Array<GuiContainer> containers;
   uint32 vao;
   uint32 vbo;
   glm::mat4 text_projection;
@@ -63,10 +67,10 @@ public:
   glm::vec2 add_element_to_container(
     GuiContainer *container, glm::vec2 element_dimensions
   );
-  GuiContainer make_container(
+  void draw_container(GuiContainer *container);
+  GuiContainer* make_container(
     const char *title, glm::vec2 position
   );
-  void draw_container(GuiContainer *container);
   void draw_text(
     const char* font_name, const char *str,
     glm::vec2 position,

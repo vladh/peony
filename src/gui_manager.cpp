@@ -134,14 +134,12 @@ glm::vec2 GuiManager::add_element_to_container(
     required_space += (container->element_margin * container->direction);
   }
 
-  container->dimensions = (
-    (container->dimensions + required_space) * container->direction
+  container->content_dimensions = (
+    (container->content_dimensions + required_space) * container->direction
   ) + (
-    glm::max(
-      container->dimensions,
-      required_space + (container->padding * 2.0f)
-    ) * orthogonal_direction
+    glm::max(container->content_dimensions, required_space) * orthogonal_direction
   );
+  container->dimensions = container->content_dimensions + (container->padding * 2.0f);
 
   container->next_element_position = container->position +
     (
@@ -156,33 +154,56 @@ glm::vec2 GuiManager::add_element_to_container(
 }
 
 
-GuiContainer GuiManager::make_container(
-  const char *title, glm::vec2 position
-) {
-  GuiContainer container;
-  container.title = title;
-  container.position = position;
-  container.direction = glm::vec2(0.0f, 1.0f);
-  container.padding = glm::vec2(20.0f);
-  container.n_elements = 0;
-  container.element_margin = 20.0f;
-  container.dimensions = container.padding * 2.0f;
-  container.next_element_position = position + container.padding;
-  return container;
-}
-
-
 void GuiManager::draw_container(GuiContainer *container) {
   draw_rect(
     container->position,
     container->dimensions,
-    glm::vec4(1.0f, 0.0f, 0.0f, 0.2f)
+    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
   );
   draw_rect(
     container->position + container->padding,
     container->dimensions - (container->padding * 2.0f),
-    glm::vec4(1.0f, 0.0f, 1.0f, 0.2f)
+    glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
   );
+}
+
+
+GuiContainer* GuiManager::make_container(
+  const char *title, glm::vec2 position
+) {
+  GuiContainer *container = nullptr;
+  for (uint32 idx = 0; idx < this->containers.size; idx++) {
+    GuiContainer *container_candidate = this->containers.get(idx);
+    if (strcmp(container_candidate->title, title) == 0) {
+      container = container_candidate;
+      break;
+    }
+  }
+
+  // If the container doesn't exist, create it.
+  if (container == nullptr) {
+    container = this->containers.push();
+    container->title = title;
+    container->position = position;
+    container->direction = glm::vec2(0.0f, 1.0f);
+    container->padding = glm::vec2(20.0f);
+    container->element_margin = 20.0f;
+  }
+
+  // Draw the container with the information from the previous frame
+  // if there is anything in it.
+
+  if (container->content_dimensions != glm::vec2(0.0f, 0.0f)) {
+    draw_container(container);
+  }
+
+  // In all cases, clear this container.
+  container->n_elements = 0;
+  container->dimensions = container->padding * 2.0f;
+  container->content_dimensions = glm::vec2(0.0f, 0.0f);
+  container->next_element_position = position + container->padding;
+
+  return container;
 }
 
 
@@ -432,6 +453,11 @@ GuiManager::GuiManager(
   font_assets(
     Array<FontAsset>(
       &memory->asset_memory_pool, 8, "font_assets"
+    )
+  ),
+  containers(
+    Array<GuiContainer>(
+      &memory->asset_memory_pool, 32, "gui_containers"
     )
   ),
   memory(memory),

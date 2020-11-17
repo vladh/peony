@@ -760,12 +760,12 @@ void render_scene_ui(
   }
 
   {
-    GuiContainer container = state->gui_manager.make_container(
+    GuiContainer *container = state->gui_manager.make_container(
       "hello!", glm::vec2(0.0f, 400.0f)
     );
 
     if (state->gui_manager.draw_button(
-      &container, "Press here to activate the cat picture dispenser"
+      container, "Press here to activate the cat picture dispenser"
     )) {
       state->heading_text = "Good job!";
       state->heading_opacity = 1.0f;
@@ -774,7 +774,7 @@ void render_scene_ui(
     }
 
     if (state->gui_manager.draw_button(
-      &container, "Dog picture dispenser"
+      container, "Dog picture dispenser"
     )) {
       state->heading_text = "Good job!";
       state->heading_opacity = 1.0f;
@@ -783,7 +783,7 @@ void render_scene_ui(
     }
 
     if (state->gui_manager.draw_button(
-      &container, "Press me"
+      container, "Press me"
     )) {
       state->heading_text = "Good job!";
       state->heading_opacity = 1.0f;
@@ -792,15 +792,13 @@ void render_scene_ui(
     }
 
     if (state->gui_manager.draw_button(
-      &container, "Push the button simulator"
+      container, "Push the button simulator"
     )) {
       state->heading_text = "Good job!";
       state->heading_opacity = 1.0f;
       state->heading_fadeout_duration = 1.0f;
       state->heading_fadeout_delay = 1.0f;
     }
-
-    state->gui_manager.draw_container(&container);
   }
 
   state->gui_manager.render();
