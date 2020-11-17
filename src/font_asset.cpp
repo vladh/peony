@@ -11,11 +11,10 @@ real32 FontAsset::font_unit_to_px(uint32 n) {
   return (real32)(n >> 6);
 }
 
-void FontAsset::load_glyphs(FT_Face face) {
+void FontAsset::load_glyphs(
+  FT_Face face, TextureAtlas *texture_atlas
+) {
   FT_GlyphSlot glyph = face->glyph;
-
-  this->atlas_width = 0;
-  this->atlas_height = 0;
 
   // TODO: Can we avoid loading all characters twice here?
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
@@ -29,29 +28,14 @@ void FontAsset::load_glyphs(FT_Face face) {
     character->size = glm::ivec2(glyph->bitmap.width, glyph->bitmap.rows);
     character->bearing = glm::ivec2(glyph->bitmap_left, glyph->bitmap_top);
     character->advance = glm::ivec2(glyph->advance.x, glyph->advance.y);
-
-    this->atlas_width += glyph->bitmap.width;
-    this->atlas_height = MAX(this->atlas_height, glyph->bitmap.rows);
   }
 
-  glActiveTexture(GL_TEXTURE0);
-  glGenTextures(1, &this->texture);
-  glBindTexture(GL_TEXTURE_2D, this->texture);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RED,
-    this->atlas_width, this->atlas_height,
-    0, GL_RED, GL_UNSIGNED_BYTE, 0
-  );
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  uint32 texture_x = 0;
+  glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
 
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
     Character *character = this->characters.get(c);
+
+    glm::ivec2 tex_coords = texture_atlas->push_space(character->size);
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -59,13 +43,12 @@ void FontAsset::load_glyphs(FT_Face face) {
     }
 
     glTexSubImage2D(
-      GL_TEXTURE_2D, 0, texture_x, 0,
-      glyph->bitmap.width, glyph->bitmap.rows,
+      GL_TEXTURE_2D, 0, tex_coords.x, tex_coords.y,
+      character->size.x, character->size.y,
       GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer
     );
 
-    character->texture_x = (real32)texture_x / this->atlas_width;
-    texture_x += glyph->bitmap.width;
+    character->tex_coords = tex_coords;
   }
 
   glBindTexture(GL_TEXTURE_2D, 0);
@@ -73,8 +56,11 @@ void FontAsset::load_glyphs(FT_Face face) {
 
 
 FontAsset::FontAsset(
-  Memory *memory, FT_Library *ft_library,
-  const char *name, const char *path,
+  Memory *memory,
+  TextureAtlas *texture_atlas,
+  FT_Library *ft_library,
+  const char *name,
+  const char *path,
   uint16 font_size
 ) :
   characters(&memory->asset_memory_pool, N_CHARS_TO_LOAD, "characters")
@@ -93,7 +79,7 @@ FontAsset::FontAsset(
   this->ascender = face->ascender;
   this->descender = face->descender;
   this->height = face->height;
-  load_glyphs(face);
+  load_glyphs(face, texture_atlas);
   FT_Done_Face(face);
 }
 

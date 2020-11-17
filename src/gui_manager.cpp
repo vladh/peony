@@ -16,6 +16,40 @@ void GuiManager::set_cursor() {
 }
 
 
+void GuiManager::push_vertices(real32 *vertices, uint32 n_vertices) {
+  glBindVertexArray(this->vao);
+  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+
+  glBufferSubData(
+    GL_ARRAY_BUFFER,
+    GUI_VERTEX_SIZE * this->n_vertices_pushed,
+    GUI_VERTEX_SIZE * n_vertices,
+    vertices
+  );
+
+  this->n_vertices_pushed += n_vertices;
+}
+
+
+void GuiManager::render() {
+  glBindVertexArray(this->vao);
+  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+
+  glUseProgram(this->shader_asset->program);
+  if (!this->shader_asset->did_set_texture_uniforms) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_atlas.texture_name);
+    this->shader_asset->set_int("atlas_texture", 0);
+    this->shader_asset->did_set_texture_uniforms;
+  }
+
+  glDrawArrays(GL_TRIANGLES, 0, this->n_vertices_pushed);
+  this->n_vertices_pushed = 0;
+
+  set_cursor();
+}
+
+
 glm::vec2 GuiManager::get_text_dimensions(
   const char* font_name, const char *str
 ) {
@@ -163,17 +197,6 @@ void GuiManager::draw_text(
   real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
   real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
 
-  glBindVertexArray(this->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-
-  glUseProgram(this->text_shader_asset->program);
-  if (!this->text_shader_asset->did_set_texture_uniforms) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, font_asset->texture);
-    this->text_shader_asset->set_int("font_atlas_texture", 0);
-    this->text_shader_asset->did_set_texture_uniforms;
-  }
-
   // NOTE: When changing this code, remember that the text positioning logic
   // needs to be replicated in `get_text_dimensions()`!
   real32 start_x = position.x;
@@ -181,7 +204,6 @@ void GuiManager::draw_text(
   real32 curr_x = start_x;
   real32 curr_y = start_y;
   size_t str_length = strlen(str);
-  size_t str_printable_length = 0;
 
   for (uint32 idx = 0; idx < str_length; idx++) {
     char c = str[idx];
@@ -206,9 +228,10 @@ void GuiManager::draw_text(
       font_asset->font_unit_to_px(font_asset->height) - character->bearing.y
     );
 
-    real32 tex_x = character->texture_x;
-    real32 tex_w = (real32)character->size.x / font_asset->atlas_width;
-    real32 tex_h = (real32)character->size.y / font_asset->atlas_height;
+    real32 tex_x = (real32)character->tex_coords.x / this->texture_atlas.size.x;
+    real32 tex_y = (real32)character->tex_coords.y / this->texture_atlas.size.y;
+    real32 tex_w = (real32)character->size.x / this->texture_atlas.size.x;
+    real32 tex_h = (real32)character->size.y / this->texture_atlas.size.y;
 
     real32 w = (real32)character->size.x;
     real32 h = (real32)character->size.y;
@@ -228,9 +251,9 @@ void GuiManager::draw_text(
     real32 y0 = (real32)this->window_dimensions.y - char_y;
     real32 y1 = y0 - h;
 
-    real32 tex_x0 = tex_x;
+    real32 tex_x0 = (real32)tex_x;
     real32 tex_x1 = tex_x0 + tex_w;
-    real32 tex_y0 = 0;
+    real32 tex_y0 = (real32)tex_y;
     real32 tex_y1 = tex_y0 + tex_h;
 
     real32 vertices[GUI_VERTEX_LENGTH * 6] = {
@@ -241,16 +264,8 @@ void GuiManager::draw_text(
       x1, y1, tex_x1, tex_y1, color.r, color.g, color.b, color.a,
       x1, y0, tex_x1, tex_y0, color.r, color.g, color.b, color.a
     };
-    glBufferSubData(
-      GL_ARRAY_BUFFER,
-      sizeof(vertices) * str_printable_length,
-      sizeof(vertices),
-      vertices
-    );
-    str_printable_length += 1;
+    push_vertices(vertices, 6);
   }
-
-  glDrawArrays(GL_TRIANGLES, 0, 6 * (uint32)str_printable_length);
 }
 
 
@@ -273,11 +288,6 @@ void GuiManager::draw_heading(
 void GuiManager::draw_rect(
   glm::vec2 position, glm::vec2 dimensions, glm::vec4 color
 ) {
-  glBindVertexArray(this->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-
-  glUseProgram(this->generic_shader_asset->program);
-
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
   real32 x0 = position.x;
@@ -286,16 +296,14 @@ void GuiManager::draw_rect(
   real32 y1 = y0 - dimensions.y;
 
   real32 vertices[GUI_VERTEX_LENGTH * 6] = {
-    x0, y0, 0, 0, color.r, color.g, color.b, color.a,
-    x0, y1, 0, 0, color.r, color.g, color.b, color.a,
-    x1, y1, 0, 0, color.r, color.g, color.b, color.a,
-    x0, y0, 0, 0, color.r, color.g, color.b, color.a,
-    x1, y1, 0, 0, color.r, color.g, color.b, color.a,
-    x1, y0, 0, 0, color.r, color.g, color.b, color.a
+    x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x0, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x1, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a
   };
-  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  push_vertices(vertices, 6);
 }
 
 
@@ -303,11 +311,6 @@ void GuiManager::draw_line(
   glm::vec2 start, glm::vec2 end,
   real32 thickness, glm::vec4 color
 ) {
-  glBindVertexArray(this->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-
-  glUseProgram(this->generic_shader_asset->program);
-
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
   glm::vec2 delta = glm::normalize(end - start) * thickness;
@@ -326,16 +329,14 @@ void GuiManager::draw_line(
   real32 y3 = this->window_dimensions.y - end.y;
 
   real32 vertices[GUI_VERTEX_LENGTH * 6] = {
-    x0, y0, 0, 0, color.r, color.g, color.b, color.a,
-    x1, y1, 0, 0, color.r, color.g, color.b, color.a,
-    x2, y2, 0, 0, color.r, color.g, color.b, color.a,
-    x0, y0, 0, 0, color.r, color.g, color.b, color.a,
-    x2, y2, 0, 0, color.r, color.g, color.b, color.a,
-    x3, y3, 0, 0, color.r, color.g, color.b, color.a
+    x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+    x3, y3, -1.0f, -1.0f, color.r, color.g, color.b, color.a
   };
-  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  push_vertices(vertices, 6);
 }
 
 
@@ -435,16 +436,13 @@ GuiManager::GuiManager(
   ),
   memory(memory),
   input_manager(input_manager),
-  window_dimensions(window_width, window_height)
+  window_dimensions(window_width, window_height),
+  n_vertices_pushed(0),
+  texture_atlas(glm::ivec2(2000, 2000))
 {
   // Shaders
   {
-    this->text_shader_asset = new(shader_assets->push()) ShaderAsset(
-      this->memory, "gui_text", SHADER_STANDARD,
-      SHADER_DIR"gui_text.vert", SHADER_DIR"gui_text.frag", nullptr
-    );
-
-    this->generic_shader_asset = new(shader_assets->push()) ShaderAsset(
+    this->shader_asset = new(shader_assets->push()) ShaderAsset(
       this->memory, "gui_generic", SHADER_STANDARD,
       SHADER_DIR"gui_generic.vert", SHADER_DIR"gui_generic.frag", nullptr
     );
@@ -460,11 +458,18 @@ GuiManager::GuiManager(
     }
 
     new(this->font_assets.push()) FontAsset(
-      this->memory, &ft_library, "body", GUI_DEFAULT_FONT, 18
+      this->memory, &this->texture_atlas,
+      &ft_library, "body", GUI_DEFAULT_FONT, 18
     );
 
     new(this->font_assets.push()) FontAsset(
-      this->memory, &ft_library, "heading", GUI_DEFAULT_FONT, 42
+      this->memory, &this->texture_atlas,
+      &ft_library, "heading", GUI_DEFAULT_FONT, 42
+    );
+
+    new(this->font_assets.push()) FontAsset(
+      this->memory, &this->texture_atlas,
+      &ft_library, "title", GUI_DEFAULT_FONT, 64
     );
 
     FT_Done_FreeType(ft_library);
@@ -472,13 +477,12 @@ GuiManager::GuiManager(
 
   // VAO
   {
-
     glGenVertexArrays(1, &this->vao);
     glGenBuffers(1, &this->vbo);
     glBindVertexArray(this->vao);
     glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
     glBufferData(
-      GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * 6 * GUI_N_MAX_CHARACTERS_PER_DRAW,
+      GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * 6 * GUI_N_MAX_VERTICES,
       NULL, GL_DYNAMIC_DRAW
     );
 

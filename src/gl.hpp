@@ -48,6 +48,7 @@
 #include "array.hpp"
 #include "resource_manager.hpp"
 #include "texture_name_pool.hpp"
+#include "texture_atlas.hpp"
 #include "font_asset.hpp"
 #include "shader_asset.hpp"
 #include "persistent_pbo.hpp"
