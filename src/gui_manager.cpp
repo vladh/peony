@@ -233,7 +233,7 @@ void GuiManager::draw_text(
     real32 tex_y0 = 0;
     real32 tex_y1 = tex_y0 + tex_h;
 
-    real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
+    real32 vertices[GUI_VERTEX_LENGTH * 6] = {
       x0, y0, tex_x0, tex_y0, color.r, color.g, color.b, color.a,
       x0, y1, tex_x0, tex_y1, color.r, color.g, color.b, color.a,
       x1, y1, tex_x1, tex_y1, color.r, color.g, color.b, color.a,
@@ -243,9 +243,9 @@ void GuiManager::draw_text(
     };
     glBufferSubData(
       GL_ARRAY_BUFFER,
-      sizeof(character_vertices) * str_printable_length,
-      sizeof(character_vertices),
-      character_vertices
+      sizeof(vertices) * str_printable_length,
+      sizeof(vertices),
+      vertices
     );
     str_printable_length += 1;
   }
@@ -285,7 +285,7 @@ void GuiManager::draw_rect(
   real32 y0 = (real32)this->window_dimensions.y - position.y;
   real32 y1 = y0 - dimensions.y;
 
-  real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
+  real32 vertices[GUI_VERTEX_LENGTH * 6] = {
     x0, y0, 0, 0, color.r, color.g, color.b, color.a,
     x0, y1, 0, 0, color.r, color.g, color.b, color.a,
     x1, y1, 0, 0, color.r, color.g, color.b, color.a,
@@ -293,12 +293,7 @@ void GuiManager::draw_rect(
     x1, y1, 0, 0, color.r, color.g, color.b, color.a,
     x1, y0, 0, 0, color.r, color.g, color.b, color.a
   };
-  glBufferSubData(
-    GL_ARRAY_BUFFER,
-    0,
-    sizeof(character_vertices),
-    character_vertices
-  );
+  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -330,7 +325,7 @@ void GuiManager::draw_line(
   real32 x3 = end.x + delta.y;
   real32 y3 = this->window_dimensions.y - end.y;
 
-  real32 character_vertices[GUI_VERTEX_LENGTH * 6] = {
+  real32 vertices[GUI_VERTEX_LENGTH * 6] = {
     x0, y0, 0, 0, color.r, color.g, color.b, color.a,
     x1, y1, 0, 0, color.r, color.g, color.b, color.a,
     x2, y2, 0, 0, color.r, color.g, color.b, color.a,
@@ -338,12 +333,7 @@ void GuiManager::draw_line(
     x2, y2, 0, 0, color.r, color.g, color.b, color.a,
     x3, y3, 0, 0, color.r, color.g, color.b, color.a
   };
-  glBufferSubData(
-    GL_ARRAY_BUFFER,
-    0,
-    sizeof(character_vertices),
-    character_vertices
-  );
+  glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
