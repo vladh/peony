@@ -7,6 +7,8 @@ constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * GUI_VERTEX_LENGTH;
 
 constexpr const char *GUI_BUTTON_FONT_NAME = "body";
 
+constexpr glm::vec2 GUI_TEXT_SHADOW_OFFSET = glm::vec2(1.0f);
+
 constexpr glm::vec4 GUI_WINDOW_BG_COLOR = glm::vec4(0.20f, 0.20f, 0.20f, 1.00f);
 constexpr glm::vec4 GUI_MAIN_COLOR = glm::vec4(0.00f, 0.33f, 0.93f, 1.00f);
 constexpr glm::vec4 GUI_MAIN_DARKEN_COLOR = glm::vec4(0.00f, 0.23f, 0.83f, 1.00f);
@@ -15,7 +17,7 @@ constexpr glm::vec4 GUI_MAIN_ACTIVE_COLOR = glm::vec4(0.00f, 0.03f, 0.63f, 1.00f
 constexpr glm::vec4 GUI_LIGHT_TEXT_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 
 constexpr glm::vec2 GUI_BUTTON_AUTOSIZE_PADDING = glm::vec2(20.0f, 20.0f);
-constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(4.0f);
+constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(0.0f);
 
 
 struct GuiContainer {
@@ -79,6 +81,11 @@ public:
     const char *title, glm::vec2 position
   );
   void draw_text(
+    const char* font_name, const char *str,
+    glm::vec2 position,
+    glm::vec4 color
+  );
+  void draw_text_shadow(
     const char* font_name, const char *str,
     glm::vec2 position,
     glm::vec4 color
