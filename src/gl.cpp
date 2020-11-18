@@ -761,7 +761,7 @@ void render_scene_ui(
 
   {
     GuiContainer *container = state->gui_manager.make_container(
-      "hello!", glm::vec2(0.0f, 400.0f)
+      "Super secret debug window", glm::vec2(50.0f, 400.0f)
     );
 
     if (state->gui_manager.draw_button(
