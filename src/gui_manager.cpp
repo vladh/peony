@@ -181,6 +181,12 @@ void GuiManager::draw_container(GuiContainer *container) {
     container->position.x + container->padding.x,
     centered_text_position.y
   );
+  draw_text_shadow(
+    GUI_BUTTON_FONT_NAME,
+    container->title,
+    text_position,
+    GUI_LIGHT_TEXT_COLOR
+  );
   draw_text(
     GUI_BUTTON_FONT_NAME,
     container->title,
@@ -321,6 +327,18 @@ void GuiManager::draw_text(
 }
 
 
+void GuiManager::draw_text_shadow(
+  const char* font_name, const char *str,
+  glm::vec2 position,
+  glm::vec4 color
+) {
+  draw_text(
+    font_name, str, position + GUI_TEXT_SHADOW_OFFSET,
+    glm::vec4(0.0f, 0.0f, 0.0f, color.a * 0.2f)
+  );
+}
+
+
 void GuiManager::draw_heading(
   const char* font_name, const char *str,
   glm::vec4 color
@@ -333,6 +351,7 @@ void GuiManager::draw_heading(
     ).x,
     90.0f
   );
+  draw_text_shadow(font_name, str, position, color);
   draw_text(font_name, str, position, color);
 }
 

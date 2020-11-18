@@ -595,7 +595,7 @@ void init_window(WindowInfo *window_info) {
 
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[2];
+  GLFWmonitor *target_monitor = monitors[1];
 
   const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
   glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
