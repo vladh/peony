@@ -139,14 +139,19 @@ glm::vec2 GuiManager::add_element_to_container(
   ) + (
     glm::max(container->content_dimensions, required_space) * orthogonal_direction
   );
-  container->dimensions = container->content_dimensions + (container->padding * 2.0f);
+  container->dimensions = container->content_dimensions +
+    (container->padding * 2.0f) +
+    glm::vec2(0.0f, container->title_bar_height);
 
   container->next_element_position = container->position +
     (
       (container->dimensions - container->padding + container->element_margin) *
       container->direction
     ) +
-    (container->padding * orthogonal_direction);
+    (
+      (container->padding + glm::vec2(0.0f, container->title_bar_height)) *
+      orthogonal_direction
+    );
 
   container->n_elements++;
 
@@ -157,13 +162,36 @@ glm::vec2 GuiManager::add_element_to_container(
 void GuiManager::draw_container(GuiContainer *container) {
   draw_rect(
     container->position,
-    container->dimensions,
-    glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+    glm::vec2(
+      container->dimensions.x, container->title_bar_height
+    ),
+    GUI_MAIN_DARKEN_COLOR
   );
+
+  glm::vec2 text_dimensions = get_text_dimensions(
+    GUI_BUTTON_FONT_NAME,
+    container->title
+  );
+  glm::vec2 centered_text_position = center_bb(
+    container->position,
+    glm::vec2(container->dimensions.x, container->title_bar_height),
+    text_dimensions
+  );
+  glm::vec2 text_position = glm::vec2(
+    container->position.x + container->padding.x,
+    centered_text_position.y
+  );
+  draw_text(
+    GUI_BUTTON_FONT_NAME,
+    container->title,
+    text_position,
+    GUI_LIGHT_TEXT_COLOR
+  );
+
   draw_rect(
-    container->position + container->padding,
-    container->dimensions - (container->padding * 2.0f),
-    glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
+    container->position + glm::vec2(0.0, container->title_bar_height),
+    container->dimensions - glm::vec2(0.0, container->title_bar_height),
+    GUI_WINDOW_BG_COLOR
   );
 }
 
@@ -187,6 +215,7 @@ GuiContainer* GuiManager::make_container(
     container->position = position;
     container->direction = glm::vec2(0.0f, 1.0f);
     container->padding = glm::vec2(20.0f);
+    container->title_bar_height = 40.0f;
     container->element_margin = 20.0f;
   }
 
@@ -201,7 +230,9 @@ GuiContainer* GuiManager::make_container(
   container->n_elements = 0;
   container->dimensions = container->padding * 2.0f;
   container->content_dimensions = glm::vec2(0.0f, 0.0f);
-  container->next_element_position = position + container->padding;
+  container->next_element_position = position +
+    container->padding +
+    glm::vec2(0.0f, container->title_bar_height);
 
   return container;
 }
@@ -396,10 +427,9 @@ bool32 GuiManager::draw_button(
   GuiContainer *container,
   const char *text
 ) {
-  const char *font = "body";
   bool32 is_pressed = false;
 
-  glm::vec2 text_dimensions = get_text_dimensions(font, text);
+  glm::vec2 text_dimensions = get_text_dimensions(GUI_BUTTON_FONT_NAME, text);
   glm::vec2 button_dimensions = text_dimensions +
     GUI_BUTTON_AUTOSIZE_PADDING +
     GUI_BUTTON_DEFAULT_BORDER * 2.0f;
@@ -409,18 +439,18 @@ bool32 GuiManager::draw_button(
   glm::vec2 bottomright = position + button_dimensions;
   glm::vec2 text_position = center_bb(position, button_dimensions, text_dimensions);
 
-  glm::vec4 color = GUI_BUTTON_COLOR;
+  glm::vec4 color = GUI_MAIN_COLOR;
 
   if (this->input_manager->is_mouse_in_bb(position, bottomright)) {
     this->request_cursor(this->input_manager->hand_cursor);
-    color = GUI_BUTTON_HOVER_COLOR;
+    color = GUI_MAIN_HOVER_COLOR;
 
     if (this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
     if (this->input_manager->is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
-      color = GUI_BUTTON_ACTIVE_COLOR;
+      color = GUI_MAIN_ACTIVE_COLOR;
     }
   }
 
@@ -428,7 +458,7 @@ bool32 GuiManager::draw_button(
     position,
     bottomright,
     GUI_BUTTON_DEFAULT_BORDER,
-    GUI_BUTTON_BORDER_COLOR
+    GUI_MAIN_DARKEN_COLOR
   );
   draw_rect(
     position + GUI_BUTTON_DEFAULT_BORDER,
@@ -436,9 +466,9 @@ bool32 GuiManager::draw_button(
     color
   );
   draw_text(
-    font, text,
+    GUI_BUTTON_FONT_NAME, text,
     text_position,
-    GUI_BUTTON_TEXT_COLOR
+    GUI_LIGHT_TEXT_COLOR
   );
 
   return is_pressed;

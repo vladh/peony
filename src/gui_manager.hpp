@@ -1,13 +1,19 @@
-constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
-constexpr uint32 GUI_N_MAX_VERTICES = 16384;
 constexpr const char *GUI_DEFAULT_FONT = "resources/fonts/SofiaProRegular.otf";
+constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
+
+constexpr uint32 GUI_N_MAX_VERTICES = 16384;
 constexpr uint32 GUI_VERTEX_LENGTH = 8;
 constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * GUI_VERTEX_LENGTH;
-constexpr glm::vec4 GUI_BUTTON_COLOR = glm::vec4(0.00f, 0.33f, 0.93f, 1.00f);
-constexpr glm::vec4 GUI_BUTTON_BORDER_COLOR = glm::vec4(0.00f, 0.23f, 0.83f, 1.00f);
-constexpr glm::vec4 GUI_BUTTON_HOVER_COLOR = glm::vec4(0.00f, 0.43f, 1.00f, 1.00f);
-constexpr glm::vec4 GUI_BUTTON_ACTIVE_COLOR = glm::vec4(0.00f, 0.03f, 0.63f, 1.00f);
-constexpr glm::vec4 GUI_BUTTON_TEXT_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+constexpr const char *GUI_BUTTON_FONT_NAME = "body";
+
+constexpr glm::vec4 GUI_WINDOW_BG_COLOR = glm::vec4(0.20f, 0.20f, 0.20f, 1.00f);
+constexpr glm::vec4 GUI_MAIN_COLOR = glm::vec4(0.00f, 0.33f, 0.93f, 1.00f);
+constexpr glm::vec4 GUI_MAIN_DARKEN_COLOR = glm::vec4(0.00f, 0.23f, 0.83f, 1.00f);
+constexpr glm::vec4 GUI_MAIN_HOVER_COLOR = glm::vec4(0.00f, 0.43f, 1.00f, 1.00f);
+constexpr glm::vec4 GUI_MAIN_ACTIVE_COLOR = glm::vec4(0.00f, 0.03f, 0.63f, 1.00f);
+constexpr glm::vec4 GUI_LIGHT_TEXT_COLOR = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
 constexpr glm::vec2 GUI_BUTTON_AUTOSIZE_PADDING = glm::vec2(20.0f, 20.0f);
 constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(4.0f);
 
@@ -15,7 +21,7 @@ constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(4.0f);
 struct GuiContainer {
   const char *title;
   glm::vec2 position;
-  // Dimensions include padding.
+  // Dimensions include padding, title bar etc.
   glm::vec2 dimensions;
   glm::vec2 content_dimensions;
   glm::vec2 next_element_position;
@@ -24,6 +30,7 @@ struct GuiContainer {
   // The main axis has a 1.0f, while the orthogonal axis has a 0.0f.
   glm::vec2 direction;
   glm::vec2 padding;
+  real32 title_bar_height;
   uint32 n_elements;
   real32 element_margin;
 };
