@@ -183,7 +183,7 @@ void GuiManager::draw_container(GuiContainer *container) {
   );
 
   glm::vec2 text_dimensions = get_text_dimensions(
-    GUI_BUTTON_FONT_NAME,
+    "body",
     container->title
   );
   glm::vec2 centered_text_position = center_bb(
@@ -196,13 +196,13 @@ void GuiManager::draw_container(GuiContainer *container) {
     centered_text_position.y
   );
   draw_text_shadow(
-    GUI_BUTTON_FONT_NAME,
+    "body",
     container->title,
     text_position,
     GUI_LIGHT_TEXT_COLOR
   );
   draw_text(
-    GUI_BUTTON_FONT_NAME,
+    "body",
     container->title,
     text_position,
     GUI_LIGHT_TEXT_COLOR
@@ -365,19 +365,19 @@ void GuiManager::draw_text_shadow(
 
 
 void GuiManager::draw_heading(
-  const char* font_name, const char *str,
+  const char *str,
   glm::vec4 color
 ) {
   glm::vec2 position = glm::vec2(
     center_bb(
       glm::vec2(0.0f, 0.0f),
       window_dimensions,
-      get_text_dimensions(font_name, str)
+      get_text_dimensions("heading", str)
     ).x,
     90.0f
   );
-  draw_text_shadow(font_name, str, position, color);
-  draw_text(font_name, str, position, color);
+  draw_text_shadow("heading", str, position, color);
+  draw_text("heading", str, position, color);
 }
 
 
@@ -467,13 +467,124 @@ void GuiManager::draw_frame(
 }
 
 
+bool32 GuiManager::draw_toggle(
+  GuiContainer *container,
+  const char *text,
+  bool32 *toggle_state
+) {
+  bool32 is_pressed = false;
+
+  glm::vec2 text_dimensions = get_text_dimensions("body", text);
+  glm::vec2 button_dimensions = GUI_TOGGLE_BUTTON_SIZE +
+    GUI_BUTTON_DEFAULT_BORDER * 2.0f;
+  glm::vec2 dimensions = glm::vec2(
+    button_dimensions.x + GUI_TOGGLE_SPACING + text_dimensions.x,
+    glm::max(button_dimensions.y, text_dimensions.y)
+  );
+
+  glm::vec2 position = add_element_to_container(container, dimensions);
+
+  glm::vec2 button_bottomright = position + button_dimensions;
+  glm::vec2 text_centered_position = center_bb(
+    position, button_dimensions, text_dimensions
+  );
+  glm::vec2 text_position = glm::vec2(
+    position.x + button_dimensions.x + GUI_TOGGLE_SPACING,
+    text_centered_position.y
+  );
+
+  glm::vec4 button_color;
+  if (*toggle_state) {
+    button_color = GUI_MAIN_COLOR;
+  } else {
+    button_color = GUI_LIGHT_COLOR;
+  }
+
+  if (this->input_manager->is_mouse_in_bb(position, button_bottomright)) {
+    this->request_cursor(this->input_manager->hand_cursor);
+    if (*toggle_state) {
+      button_color = GUI_MAIN_HOVER_COLOR;
+    } else {
+      button_color = GUI_LIGHT_HOVER_COLOR;
+    }
+
+    if (this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
+      is_pressed = true;
+    }
+
+    if (this->input_manager->is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
+      if (*toggle_state) {
+        button_color = GUI_MAIN_ACTIVE_COLOR;
+      } else {
+        button_color = GUI_LIGHT_ACTIVE_COLOR;
+      }
+    }
+  }
+
+  draw_frame(
+    position,
+    button_bottomright,
+    GUI_TOGGLE_BUTTON_DEFAULT_BORDER,
+    GUI_LIGHT_DARKEN_COLOR
+  );
+  draw_rect(
+    position + GUI_TOGGLE_BUTTON_DEFAULT_BORDER,
+    button_dimensions - (GUI_TOGGLE_BUTTON_DEFAULT_BORDER * 2.0f),
+    button_color
+  );
+  draw_text(
+    "body", text,
+    text_position,
+    GUI_LIGHT_TEXT_COLOR
+  );
+
+  return is_pressed;
+}
+
+
+void GuiManager::draw_named_value(
+  GuiContainer *container,
+  const char *name_text,
+  const char *value_text
+) {
+  glm::vec2 name_text_dimensions = get_text_dimensions("body-bold", name_text);
+  glm::vec2 value_text_dimensions = get_text_dimensions("body", value_text);
+  // Sometimes we draw a value which is a rapidly changing number.
+  // We don't want to container to wobble in size back and forth, so we round
+  // the size of the value text to the next multiple of 50.
+  value_text_dimensions.x = Util::round_to_nearest_multiple(
+    value_text_dimensions.x, 50.0f
+  );
+  glm::vec2 dimensions = glm::vec2(
+    name_text_dimensions.x + value_text_dimensions.x + GUI_NAMED_VALUE_SPACING,
+    glm::max(name_text_dimensions.y, value_text_dimensions.y)
+  );
+
+  glm::vec2 position = add_element_to_container(container, dimensions);
+
+  draw_text(
+    "body-bold", name_text,
+    position,
+    GUI_LIGHT_TEXT_COLOR
+  );
+
+  glm::vec2 value_text_position = position +
+    glm::vec2(GUI_NAMED_VALUE_SPACING, 0.0f);
+  draw_text(
+    "body", value_text,
+    value_text_position,
+    GUI_LIGHT_TEXT_COLOR
+  );
+}
+
+
 bool32 GuiManager::draw_button(
   GuiContainer *container,
   const char *text
 ) {
   bool32 is_pressed = false;
 
-  glm::vec2 text_dimensions = get_text_dimensions(GUI_BUTTON_FONT_NAME, text);
+  glm::vec2 text_dimensions = get_text_dimensions("body", text);
   glm::vec2 button_dimensions = text_dimensions +
     GUI_BUTTON_AUTOSIZE_PADDING +
     GUI_BUTTON_DEFAULT_BORDER * 2.0f;
@@ -483,18 +594,18 @@ bool32 GuiManager::draw_button(
   glm::vec2 bottomright = position + button_dimensions;
   glm::vec2 text_position = center_bb(position, button_dimensions, text_dimensions);
 
-  glm::vec4 color = GUI_MAIN_COLOR;
+  glm::vec4 button_color = GUI_MAIN_COLOR;
 
   if (this->input_manager->is_mouse_in_bb(position, bottomright)) {
     this->request_cursor(this->input_manager->hand_cursor);
-    color = GUI_MAIN_HOVER_COLOR;
+    button_color = GUI_MAIN_HOVER_COLOR;
 
     if (this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
     if (this->input_manager->is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
-      color = GUI_MAIN_ACTIVE_COLOR;
+      button_color = GUI_MAIN_ACTIVE_COLOR;
     }
   }
 
@@ -507,10 +618,10 @@ bool32 GuiManager::draw_button(
   draw_rect(
     position + GUI_BUTTON_DEFAULT_BORDER,
     button_dimensions - (GUI_BUTTON_DEFAULT_BORDER * 2.0f),
-    color
+    button_color
   );
   draw_text(
-    GUI_BUTTON_FONT_NAME, text,
+    "body", text,
     text_position,
     GUI_LIGHT_TEXT_COLOR
   );
@@ -560,17 +671,22 @@ GuiManager::GuiManager(
 
     new(this->font_assets.push()) FontAsset(
       this->memory, &this->texture_atlas,
-      &ft_library, "body", GUI_DEFAULT_FONT, 18
+      &ft_library, "body", GUI_MAIN_FONT_REGULAR, 18
     );
 
     new(this->font_assets.push()) FontAsset(
       this->memory, &this->texture_atlas,
-      &ft_library, "heading", GUI_DEFAULT_FONT, 42
+      &ft_library, "body-bold", GUI_MAIN_FONT_BOLD, 18
     );
 
     new(this->font_assets.push()) FontAsset(
       this->memory, &this->texture_atlas,
-      &ft_library, "title", GUI_DEFAULT_FONT, 64
+      &ft_library, "heading", GUI_MAIN_FONT_REGULAR, 42
+    );
+
+    new(this->font_assets.push()) FontAsset(
+      this->memory, &this->texture_atlas,
+      &ft_library, "title", GUI_MAIN_FONT_REGULAR, 64
     );
 
     FT_Done_FreeType(ft_library);

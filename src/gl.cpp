@@ -429,18 +429,8 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (state->input_manager.is_key_now_down(GLFW_KEY_F)) {
-    state->should_limit_fps = !state->should_limit_fps;
-    update_drawing_options(state, window);
-  }
-
   if (state->input_manager.is_key_now_down(GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
-    update_drawing_options(state, window);
-  }
-
-  if (state->input_manager.is_key_now_down(GLFW_KEY_Q)) {
-    state->should_use_wireframe = !state->should_use_wireframe;
     update_drawing_options(state, window);
   }
 
@@ -450,19 +440,6 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
 
   if (state->input_manager.is_key_now_down(GLFW_KEY_BACKSPACE)) {
     state->should_hide_ui = !state->should_hide_ui;
-  }
-
-  if (state->input_manager.is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
-    log_info("Deleting PBO");
-    state->persistent_pbo.delete_pbo();
-  }
-
-  if (state->input_manager.is_key_now_down(GLFW_KEY_R)) {
-    reload_shaders(memory, state);
-  }
-
-  if (state->input_manager.is_key_down(GLFW_KEY_P)) {
-    state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_ENTER)) {
@@ -598,7 +575,7 @@ void init_window(WindowInfo *window_info) {
 
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[1];
+  GLFWmonitor *target_monitor = monitors[0];
 
   const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
   glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
@@ -607,21 +584,21 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
-  /* window_info->width = 800; */
-  /* window_info->height = 600; */
+  window_info->width = 1920;
+  window_info->height = 1080;
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
-    target_monitor, nullptr
-    /* nullptr, nullptr */
+    /* target_monitor, nullptr */
+    nullptr, nullptr
   );
   if (!window) {
     log_fatal("Failed to create GLFW window");
     return;
   }
   window_info->window = window;
-  glfwSetWindowPos(window, 0, 0);
-  /* glfwSetWindowPos(window, 200, 200); */
+  /* glfwSetWindowPos(window, 0, 0); */
+  glfwSetWindowPos(window, 200, 200);
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
@@ -723,36 +700,26 @@ void render_scene(
 }
 
 
+void set_heading(
+  State *state,
+  const char *text, real32 opacity,
+  real32 fadeout_duration, real32 fadeout_delay
+) {
+  state->heading_text = text;
+  state->heading_opacity = opacity;
+  state->heading_fadeout_duration = fadeout_duration;
+  state->heading_fadeout_delay = fadeout_delay;
+}
+
+
 void render_scene_ui(
   Memory *memory, State *state
 ){
   char debug_text[256];
-  sprintf(
-    debug_text,
-    "(fps %.2f)\n"
-    "(t %f)\n"
-    "(dt %f)\n"
-    "(frame %d)\n"
-    "(should_limit_fps %d)\n"
-    "(pitch %f)\n"
-    "(oopses %d)",
-    state->last_fps,
-    state->t,
-    state->dt,
-    state->n_frames_since_start,
-    state->should_limit_fps,
-    state->camera_active->pitch,
-    global_oopses
-  );
-  state->gui_manager.draw_text(
-    "body", debug_text,
-    glm::vec2(15.0f, 15.0f),
-    glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-  );
 
   if (state->heading_opacity > 0.0f) {
     state->gui_manager.draw_heading(
-      "title", state->heading_text,
+      state->heading_text,
       glm::vec4(0.0f, 0.33f, 0.93f, state->heading_opacity)
     );
     if (state->heading_fadeout_delay > 0.0f) {
@@ -764,43 +731,75 @@ void render_scene_ui(
 
   {
     GuiContainer *container = state->gui_manager.make_container(
-      "Super secret debug window", glm::vec2(50.0f, 400.0f)
+      "Debug information", glm::vec2(25.0f, 25.0f)
     );
 
-    if (state->gui_manager.draw_button(
-      container, "Press here to activate the cat picture dispenser"
+    sprintf(debug_text, "%.2f", state->last_fps);
+    state->gui_manager.draw_named_value(
+      container, "fps", debug_text
+    );
+
+    sprintf(debug_text, "%.6f", state->dt);
+    state->gui_manager.draw_named_value(
+      container, "dt", debug_text
+    );
+
+    if (state->gui_manager.draw_toggle(
+      container, "Wireframe mode", &state->should_use_wireframe
     )) {
-      state->heading_text = "Good job!";
-      state->heading_opacity = 1.0f;
-      state->heading_fadeout_duration = 1.0f;
-      state->heading_fadeout_delay = 1.0f;
+      state->should_use_wireframe = !state->should_use_wireframe;
+      if (state->should_use_wireframe) {
+        set_heading(state, "Wireframe mode on.", 1.0f, 1.0f, 1.0f);
+      } else {
+        set_heading(state, "Wireframe mode off.", 1.0f, 1.0f, 1.0f);
+      }
+    }
+
+    if (state->gui_manager.draw_toggle(
+      container, "FPS limit", &state->should_limit_fps
+    )) {
+      state->should_limit_fps = !state->should_limit_fps;
+      if (state->should_limit_fps) {
+        set_heading(state, "FPS limit enabled.", 1.0f, 1.0f, 1.0f);
+      } else {
+        set_heading(state, "FPS limit disabled.", 1.0f, 1.0f, 1.0f);
+      }
+    }
+
+    if (state->gui_manager.draw_toggle(
+      container, "Manual frame advance", &state->is_manual_frame_advance_enabled
+    )) {
+      state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
+      if (state->is_manual_frame_advance_enabled) {
+        set_heading(state, "Manual frame advance enabled.", 1.0f, 1.0f, 1.0f);
+      } else {
+        set_heading(state, "Manual frame advance disabled.", 1.0f, 1.0f, 1.0f);
+      }
+    }
+
+    if (state->gui_manager.draw_toggle(
+      container, "Pause", &state->should_pause
+    )) {
+      state->should_pause = !state->should_pause;
+      if (state->should_pause) {
+        set_heading(state, "Pause enabled.", 1.0f, 1.0f, 1.0f);
+      } else {
+        set_heading(state, "Pause disabled.", 1.0f, 1.0f, 1.0f);
+      }
     }
 
     if (state->gui_manager.draw_button(
-      container, "Dog picture dispenser"
+      container, "Reload shaders"
     )) {
-      state->heading_text = "Good job!";
-      state->heading_opacity = 1.0f;
-      state->heading_fadeout_duration = 1.0f;
-      state->heading_fadeout_delay = 1.0f;
+      reload_shaders(memory, state);
+      set_heading(state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (state->gui_manager.draw_button(
-      container, "Press me"
+      container, "Delete PBO"
     )) {
-      state->heading_text = "Good job!";
-      state->heading_opacity = 1.0f;
-      state->heading_fadeout_duration = 1.0f;
-      state->heading_fadeout_delay = 1.0f;
-    }
-
-    if (state->gui_manager.draw_button(
-      container, "Push the button simulator"
-    )) {
-      state->heading_text = "Good job!";
-      state->heading_opacity = 1.0f;
-      state->heading_fadeout_duration = 1.0f;
-      state->heading_fadeout_delay = 1.0f;
+      state->persistent_pbo.delete_pbo();
+      set_heading(state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }
 
