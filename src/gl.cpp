@@ -547,6 +547,7 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
   State *state = memory_and_state->state;
 
   state->input_manager.update_mouse_button(button, action, mods);
+  state->gui_manager.update_mouse_button();
 }
 
 
@@ -559,6 +560,8 @@ void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 
   if (state->is_cursor_disabled) {
     state->camera_active->update_mouse(state->input_manager.mouse_3d_offset);
+  } else {
+    state->gui_manager.update_mouse();
   }
 }
 

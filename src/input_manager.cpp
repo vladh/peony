@@ -6,7 +6,12 @@ InputManager::InputManager(
   this->mouse_pos = glm::vec2(0.0f, 0.0f);
   this->mouse_3d_sensitivity = 0.1f;
   this->current_cursor = nullptr;
+  this->arrow_cursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+  this->ibeam_cursor = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
+  this->crosshair_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
   this->hand_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
+  this->hresize_cursor = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
+  this->vresize_cursor = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
   this->have_ever_gotten_mouse_pos = false;
 
   memset(this->mouse_button_states, 0, sizeof(this->mouse_button_states));
@@ -61,8 +66,8 @@ void InputManager::update_mouse(glm::vec2 new_mouse_pos) {
     this->have_ever_gotten_mouse_pos = true;
   }
 
-  this->mouse_3d_offset = (new_mouse_pos - this->mouse_pos) *
-    (real32)this->mouse_3d_sensitivity;
+  this->mouse_offset = new_mouse_pos - this->mouse_pos;
+  this->mouse_3d_offset = this->mouse_offset * (real32)this->mouse_3d_sensitivity;
   this->mouse_pos = new_mouse_pos;
 }
 
