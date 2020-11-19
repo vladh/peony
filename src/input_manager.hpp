@@ -4,6 +4,7 @@
 struct InputManager {
   GLFWwindow *window;
   glm::vec2 mouse_pos;
+  glm::vec2 mouse_offset;
   glm::vec2 mouse_3d_offset;
   real64 mouse_3d_sensitivity;
   bool32 mouse_button_states[GLFW_MOUSE_BUTTON_LAST];
@@ -11,7 +12,12 @@ struct InputManager {
   bool32 key_states[GLFW_KEY_LAST];
   uint32 n_key_state_changes_this_frame[GLFW_KEY_LAST];
   GLFWcursor *current_cursor;
+  GLFWcursor *arrow_cursor;
+  GLFWcursor *ibeam_cursor;
+  GLFWcursor *crosshair_cursor;
   GLFWcursor *hand_cursor;
+  GLFWcursor *hresize_cursor;
+  GLFWcursor *vresize_cursor;
   bool32 have_ever_gotten_mouse_pos;
 
   InputManager(GLFWwindow *window);

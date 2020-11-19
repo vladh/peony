@@ -47,6 +47,7 @@ public:
   Array<FontAsset> font_assets;
   TextureAtlas texture_atlas;
   Array<GuiContainer> containers;
+  GuiContainer *container_being_moved;
   uint32 vao;
   uint32 vbo;
   glm::mat4 text_projection;
@@ -61,6 +62,8 @@ public:
   void update_screen_dimensions(
     uint32 window_width, uint32 window_height
   );
+  void update_mouse_button();
+  void update_mouse();
   void request_cursor(GLFWcursor *cursor);
   void set_cursor();
   void push_vertices(real32 *vertices, uint32 n_vertices);

@@ -5,6 +5,20 @@ void GuiManager::update_screen_dimensions(
 }
 
 
+void GuiManager::update_mouse_button() {
+  if (this->input_manager->is_mouse_button_now_up(GLFW_MOUSE_BUTTON_LEFT)) {
+    this->container_being_moved = nullptr;
+  }
+}
+
+
+void GuiManager::update_mouse() {
+  if (this->container_being_moved) {
+    this->container_being_moved->position += this->input_manager->mouse_offset;
+  }
+}
+
+
 void GuiManager::request_cursor(GLFWcursor *cursor) {
   this->requested_cursor = cursor;
 }
@@ -214,8 +228,26 @@ GuiContainer* GuiManager::make_container(
     }
   }
 
-  // If the container doesn't exist, create it.
-  if (container == nullptr) {
+  if (container) {
+    // Check if we need to set this container as being moved.
+    if (
+      this->input_manager->is_mouse_in_bb(
+        container->position,
+        container->position + glm::vec2(
+          container->dimensions.x, container->title_bar_height
+        )
+      ) &&
+      this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)
+    ) {
+      this->container_being_moved = container;
+    }
+
+    // Draw the container with the information from the previous frame
+    // if there is anything in it.
+    if (container->content_dimensions != glm::vec2(0.0f, 0.0f)) {
+      draw_container(container);
+    }
+  } else {
     container = this->containers.push();
     container->title = title;
     container->position = position;
@@ -225,18 +257,11 @@ GuiContainer* GuiManager::make_container(
     container->element_margin = 20.0f;
   }
 
-  // Draw the container with the information from the previous frame
-  // if there is anything in it.
-
-  if (container->content_dimensions != glm::vec2(0.0f, 0.0f)) {
-    draw_container(container);
-  }
-
   // In all cases, clear this container.
   container->n_elements = 0;
   container->dimensions = container->padding * 2.0f;
   container->content_dimensions = glm::vec2(0.0f, 0.0f);
-  container->next_element_position = position +
+  container->next_element_position = container->position +
     container->padding +
     glm::vec2(0.0f, container->title_bar_height);
 
@@ -509,6 +534,7 @@ GuiManager::GuiManager(
       &memory->asset_memory_pool, 32, "gui_containers"
     )
   ),
+  container_being_moved(nullptr),
   memory(memory),
   input_manager(input_manager),
   window_dimensions(window_width, window_height),
