@@ -409,3 +409,8 @@ void APIENTRY Util::debug_message_callback(
 
   log_newline();
 }
+
+
+real32 Util::round_to_nearest_multiple(real32 n, real32 multiple_of) {
+  return (floor((n) / multiple_of) * multiple_of) + multiple_of;
+}

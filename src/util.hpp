@@ -35,6 +35,7 @@ public:
     GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
     const char *message, const void *userParam
   );
+  static real32 round_to_nearest_multiple(real32 n, real32 multiple_of);
 };
 
 #endif
