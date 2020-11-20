@@ -734,12 +734,12 @@ void render_scene_ui(
       "Debug information", glm::vec2(25.0f, 25.0f)
     );
 
-    sprintf(debug_text, "%.2f", state->last_fps);
+    sprintf(debug_text, "%d fps", state->last_fps);
     state->gui_manager.draw_named_value(
       container, "fps", debug_text
     );
 
-    sprintf(debug_text, "%.6f", state->dt);
+    sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
     state->gui_manager.draw_named_value(
       container, "dt", debug_text
     );
@@ -1080,6 +1080,18 @@ void run_main_loop(Memory *memory, State *state) {
         state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(
           frame_start - last_frame_start
         ).count();
+
+        state->dt_hist[state->dt_hist_idx] = state->dt;
+        state->dt_hist_idx++;
+        if (state->dt_hist_idx >= DT_HIST_LENGTH) {
+          state->dt_hist_idx = 0;
+        }
+        real64 dt_hist_sum = 0.0f;
+        for (uint32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
+          dt_hist_sum += state->dt_hist[idx];
+        }
+        state->dt_average = dt_hist_sum / DT_HIST_LENGTH;
+
         state->t += state->dt;
       }
 
@@ -1091,7 +1103,7 @@ void run_main_loop(Memory *memory, State *state) {
         state->last_fps = n_frames_this_second;
         n_frames_this_second = 0;
         if (state->should_hide_ui) {
-          log_info("%.2f FPS", state->last_fps);
+          log_info("%d fps", state->last_fps);
         }
       }
 

@@ -1,6 +1,8 @@
 #ifndef STATE_H
 #define STATE_H
 
+constexpr uint32 DT_HIST_LENGTH = 512;
+
 struct WindowInfo {
   GLFWwindow *window;
   uint32 width;
@@ -23,7 +25,10 @@ public:
 
   real64 t;
   real64 dt;
-  real64 last_fps;
+  real64 dt_average;
+  real64 dt_hist[DT_HIST_LENGTH];
+  uint32 dt_hist_idx;
+  uint32 last_fps;
   uint32 n_frames_since_start;
 
   bool32 is_cursor_disabled;

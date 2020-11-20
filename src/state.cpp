@@ -19,6 +19,7 @@ State::State(
 
   t(0),
   dt(0),
+  dt_hist_idx(0),
   last_fps(0),
   n_frames_since_start(0),
 
