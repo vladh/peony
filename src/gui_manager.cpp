@@ -655,7 +655,7 @@ GuiManager::GuiManager(
   // Shaders
   {
     this->shader_asset = new(shader_assets->push()) ShaderAsset(
-      this->memory, "gui_generic", SHADER_STANDARD,
+      this->memory, "gui_generic", ShaderType::standard,
       SHADER_DIR"gui_generic.vert", SHADER_DIR"gui_generic.frag", nullptr
     );
   }

@@ -64,7 +64,7 @@ void DrawableComponentManager::draw_all(
       model_normal_matrix = glm::mat3(glm::transpose(glm::inverse(model_matrix)));
     }
 
-    if (render_mode == RENDERMODE_DEPTH) {
+    if (render_mode == RenderMode::depth) {
       drawable->model_asset->draw_in_depth_mode(
         memory,
         persistent_pbo,

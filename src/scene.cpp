@@ -10,7 +10,7 @@ void scene_init_objects(Memory *memory, State *state) {
   /* state->drawable_component_manager.add( */
   /*   entity->handle, */
   /*   ModelAsset::get_by_name(&state->model_assets, "light"), */
-  /*   RENDERPASS_FORWARD_NODEPTH */
+  /*   RenderPass::forward_nodepth */
   /* ); */
   state->light_component_manager.add(
     entity->handle,
@@ -39,7 +39,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "light"),
-    RENDERPASS_FORWARD_NODEPTH
+    RenderPass::forward_nodepth
   );
   state->light_component_manager.add(
     entity->handle,
@@ -63,7 +63,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "ocean"),
-    RENDERPASS_FORWARD_DEPTH
+    RenderPass::forward_depth
   );
   state->ocean = entity->handle;
 #endif
@@ -80,7 +80,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "temple"),
-    RENDERPASS_DEFERRED
+    RenderPass::deferred
   );
 #endif
 
@@ -96,7 +96,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "goose"),
-    RENDERPASS_DEFERRED
+    RenderPass::deferred
   );
   state->geese.push(entity->handle);
 #endif
@@ -113,7 +113,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "floor"),
-    RENDERPASS_DEFERRED
+    RenderPass::deferred
   );
 #endif
 
@@ -129,7 +129,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "rocks"),
-    RENDERPASS_DEFERRED
+    RenderPass::deferred
   );
 #endif
 
@@ -145,7 +145,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "skysphere"),
-    RENDERPASS_FORWARD_SKYBOX
+    RenderPass::forward_skybox
   );
   state->skysphere = entity->handle;
 #endif
@@ -162,7 +162,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "axes"),
-    RENDERPASS_FORWARD_NODEPTH
+    RenderPass::forward_nodepth
   );
 #endif
 
@@ -171,7 +171,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad_lighting"),
-    RENDERPASS_LIGHTING
+    RenderPass::lighting
   );
 
   // Preblur screenquad
@@ -179,7 +179,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad_preblur"),
-    RENDERPASS_PREBLUR
+    RenderPass::preblur
   );
 
   // Blur 1 screenquad
@@ -187,7 +187,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad_blur1"),
-    RENDERPASS_BLUR1
+    RenderPass::blur1
   );
 
   // Blur 2 screenquad
@@ -195,7 +195,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad_blur2"),
-    RENDERPASS_BLUR2
+    RenderPass::blur2
   );
 
   // Postprocessing screenquad
@@ -203,6 +203,6 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "screenquad_postprocessing"),
-    RENDERPASS_POSTPROCESSING
+    RenderPass::postprocessing
   );
 }

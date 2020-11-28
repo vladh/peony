@@ -74,9 +74,9 @@ void Camera::update_matrices(
     return;
   }
 
-  if (this->type == CAMERA_PERSPECTIVE) {
+  if (this->type == CameraType::perspective) {
     this->update_matrices_perspective(window_width, window_height);
-  } else if (this->type == CAMERA_ORTHO) {
+  } else if (this->type == CameraType::ortho) {
     this->update_matrices_ortho(window_width, window_height);
   }
 }

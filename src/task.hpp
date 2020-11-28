@@ -5,10 +5,7 @@ class ModelAsset;
 class PersistentPbo;
 class Memory;
 
-enum TaskType {
-  TASKTYPE_LOAD_MODEL,
-  TASKTYPE_COPY_TEXTURES_TO_PBO
-};
+enum class TaskType {load_model, copy_textures_to_pbo};
 
 class Task {
 public:

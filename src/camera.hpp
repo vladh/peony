@@ -1,9 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-enum CameraType {
-  CAMERA_PERSPECTIVE, CAMERA_ORTHO
-};
+enum class CameraType {perspective, ortho};
 
 class Camera {
 public:

@@ -6,11 +6,9 @@ constexpr uint8 MAX_N_TEXTURE_SETS = 8;
 constexpr uint8 MAX_N_MESH_TEMPLATES = 128;
 
 // NOTE:
-// * MODELSOURCE_DATA: Loaded on initialisation, from given vertex data.
-// * MODELSOURCE_FILE: Loaded on demand, from file.
-enum ModelSource {
-  MODELSOURCE_FILE, MODELSOURCE_DATA
-};
+// * ModelSource::data: Loaded on initialisation, from given vertex data.
+// * ModelSource::file: Loaded on demand, from file.
+enum class ModelSource {file, data};
 
 struct MeshShaderTextureTemplate {
   ShaderAsset *shader_asset;
