@@ -33,7 +33,7 @@ void TextureSet::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   this->mutex.lock();
 
   for (uint32 idx = 0; idx < this->textures.size; idx++) {
-    Texture *texture = this->textures.get(idx);
+    Texture *texture = this->textures[idx];
     if (texture->texture_name) {
       continue;
     }
@@ -65,7 +65,7 @@ void TextureSet::generate_textures_from_pbo(
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
 
   for (uint32 idx = 0; idx < this->textures.size; idx++) {
-    Texture *texture = this->textures.get(idx);
+    Texture *texture = this->textures[idx];
     if (texture->texture_name != 0) {
       continue;
     }

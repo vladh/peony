@@ -251,7 +251,7 @@ void ModelAsset::load(Memory *memory) {
 
 void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-    MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+    MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
 
     if (mesh_template->texture_set) {
       mesh_template->texture_set->copy_textures_to_pbo(persistent_pbo);
@@ -346,8 +346,8 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     shader_asset->reset_texture_units();
 
     for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
-      Texture *texture = texture_set->textures.get(idx);
-      const char *uniform_name = *texture_set->texture_uniform_names.get(idx);
+      Texture *texture = texture_set->textures[idx];
+      const char *uniform_name = *texture_set->texture_uniform_names[idx];
       log_info(
         "Setting uniforms: (model %s) (uniform_name %s) "
         "(texture->texture_name %d)",
@@ -367,7 +367,7 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 void ModelAsset::set_shader_for_mesh(
   uint32 idx_mesh, ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
 ) {
-  Mesh *mesh = this->meshes.get(idx_mesh);
+  Mesh *mesh = this->meshes[idx_mesh];
   mesh->shader_asset = shader_asset;
   mesh->depth_shader_asset = depth_shader_asset;
 }
@@ -387,7 +387,7 @@ void ModelAsset::set_shader_for_node_idx(
   uint8 node_depth, uint8 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-    Mesh *mesh = this->meshes.get(idx_mesh);
+    Mesh *mesh = this->meshes[idx_mesh];
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
     }
@@ -398,7 +398,7 @@ void ModelAsset::set_shader_for_node_idx(
 void ModelAsset::bind_texture_to_mesh(
   uint32 idx_mesh, TextureSet *texture_set
 ) {
-  Mesh *mesh = this->meshes.get(idx_mesh);
+  Mesh *mesh = this->meshes[idx_mesh];
   mesh->texture_set = texture_set;
   if (!mesh->shader_asset->did_set_texture_uniforms) {
     bind_texture_uniforms_for_mesh(mesh);
@@ -419,7 +419,7 @@ void ModelAsset::bind_texture_for_node_idx(
   TextureSet *texture_set, uint8 node_depth, uint8 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-    Mesh *mesh = this->meshes.get(idx_mesh);
+    Mesh *mesh = this->meshes[idx_mesh];
     if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
       bind_texture_to_mesh(idx_mesh, texture_set);
     }
@@ -442,7 +442,7 @@ void ModelAsset::prepare_for_draw(
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
   if (this->is_mesh_data_loading_done && !this->is_vertex_buffer_setup_done) {
     for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-      Mesh *mesh = this->meshes.get(idx);
+      Mesh *mesh = this->meshes[idx];
       setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
     }
     this->is_vertex_buffer_setup_done = true;
@@ -452,7 +452,7 @@ void ModelAsset::prepare_for_draw(
     // Step 3: Once the mesh data is loaded, bind shaders for their respective meshes.
     if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
 
         if (mesh_template->apply_to_all_meshes) {
           set_shader(mesh_template->shader_asset, mesh_template->depth_shader_asset);
@@ -478,14 +478,14 @@ void ModelAsset::prepare_for_draw(
       // that have one or more textures that do not have names yet.
       bool32 should_try_to_copy_textures = false;
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
         if (mesh_template->texture_set) {
           for (
             uint32 texture_idx = 0;
             texture_idx < mesh_template->texture_set->textures.size;
             texture_idx++
           ) {
-            Texture *texture = mesh_template->texture_set->textures.get(texture_idx);
+            Texture *texture = mesh_template->texture_set->textures[texture_idx];
             if (!texture->texture_name) {
               should_try_to_copy_textures = true;
               break;
@@ -517,7 +517,7 @@ void ModelAsset::prepare_for_draw(
       bool32 did_have_to_generate_texture = false;
 
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
 
         if (
           mesh_template->texture_set &&
@@ -542,7 +542,7 @@ void ModelAsset::prepare_for_draw(
     // check whether or not we need to set any uniforms every time.
     if (this->is_texture_creation_done) {
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates.get(idx);
+        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
 
         if (
           mesh_template->texture_set &&
@@ -589,7 +589,7 @@ void ModelAsset::draw(
   ShaderAsset *shader_asset;
 
   for (uint32 mesh_idx = 0; mesh_idx < this->meshes.size; mesh_idx++) {
-    Mesh *mesh = this->meshes.get(mesh_idx);
+    Mesh *mesh = this->meshes[mesh_idx];
     shader_asset = mesh->shader_asset;
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
@@ -664,7 +664,7 @@ void ModelAsset::draw_in_depth_mode(
   ShaderAsset *shader_asset = standard_depth_shader_asset;
 
   for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-    Mesh *mesh = this->meshes.get(idx);
+    Mesh *mesh = this->meshes[idx];
     if (mesh->depth_shader_asset) {
       shader_asset = mesh->depth_shader_asset;
     }

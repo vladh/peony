@@ -352,7 +352,7 @@ void init_blur_buffers(Memory *memory, State *state) {
 
 void reload_shaders(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
-    ShaderAsset *shader_asset = state->shader_assets.get(idx);
+    ShaderAsset *shader_asset = state->shader_assets[idx];
     shader_asset->load(memory);
   }
 }
@@ -375,7 +375,7 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 
 void update_light_position(State *state, real32 amount) {
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    EntityHandle *handle = state->lights.get(idx);
+    EntityHandle *handle = state->lights[idx];
 
     if (handle) {
       LightComponent *light_component = state->light_component_manager.get(*handle);
@@ -485,13 +485,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     for (
       uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
     ) {
-      Mesh *mesh = model_asset->meshes.get(idx_mesh);
+      Mesh *mesh = model_asset->meshes[idx_mesh];
       if (mesh->texture_set && mesh->texture_set->is_screensize_dependent) {
         log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
         for(
           uint32 idx_texture = 0; idx_texture < mesh->texture_set->textures.size; idx_texture++
         ) {
-          Texture *texture = mesh->texture_set->textures.get(idx_texture);
+          Texture *texture = mesh->texture_set->textures[idx_texture];
           if (texture->type == TEXTURE_G_POSITION) {
             mesh->texture_set->textures.set(idx_texture, state->g_position_texture);
           } else if (texture->type == TEXTURE_G_NORMAL) {
@@ -666,7 +666,7 @@ void copy_scene_data_to_ubo(
   shader_common->window_height = state->window_info.height;
 
   for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    EntityHandle handle = *state->lights.get(idx);
+    EntityHandle handle = *state->lights[idx];
     SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
     LightComponent *light_component = state->light_component_manager.get(handle);
     shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
@@ -816,7 +816,7 @@ void scene_update(Memory *memory, State *state) {
   {
 #if 1
     for (uint32 idx = 0; idx < state->lights.size; idx++) {
-      EntityHandle *handle = state->lights.get(idx);
+      EntityHandle *handle = state->lights[idx];
 
       if (handle) {
         SpatialComponent *spatial_component = state->spatial_component_manager.get(*handle);
@@ -858,7 +858,7 @@ void scene_update(Memory *memory, State *state) {
   {
     real32 spin_deg_per_t = 90.0f;
     for (uint32 idx = 0; idx < state->geese.size; idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese.get(idx));
+      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese[idx]);
       spatial->rotation *= glm::angleAxis(
         glm::radians(spin_deg_per_t * (real32)state->dt),
         glm::vec3(0.0f, 1.0f, 0.0f)
@@ -909,7 +909,7 @@ void update_and_render(Memory *memory, State *state) {
     );
 
     for (uint32 idx = 0; idx < state->lights.size; idx++) {
-      EntityHandle handle = *state->lights.get(idx);
+      EntityHandle handle = *state->lights[idx];
       LightComponent *light_component = state->light_component_manager.get(handle);
 
       // TODO: Keep separate indices into the two framebuffers to avoid wasting space.

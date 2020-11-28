@@ -33,10 +33,14 @@ public:
   }
 
   T* get(uint32 idx) {
-    if (idx >= this->size) {
+    if (idx >= this->size || idx < 0) {
       return nullptr;
     }
     return &this->items[idx];
+  }
+
+  T* operator[](uint32 idx) {
+    return get(idx);
   }
 
   void set(uint32 idx, T *new_item) {
