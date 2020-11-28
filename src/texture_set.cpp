@@ -80,7 +80,7 @@ void TextureSet::generate_textures_from_pbo(
     );
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    if (texture->type == TEXTURE_NORMAL) {
+    if (texture->type == TextureType::normal) {
       this->should_use_normal_map = true;
     }
   }

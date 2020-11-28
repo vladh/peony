@@ -1,25 +1,25 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-enum TextureType {
-  TEXTURE_ALBEDO,
-  TEXTURE_METALLIC,
-  TEXTURE_ROUGHNESS,
-  TEXTURE_AO,
-  TEXTURE_NORMAL,
-  TEXTURE_SHADOWMAP,
-  TEXTURE_OTHER,
+enum class TextureType {
+  albedo,
+  metallic,
+  roughness,
+  ao,
+  normal,
+  shadowmap,
+  other,
 
   // Screensize-dependent textures
-  TEXTURE_G_POSITION,
-  TEXTURE_G_NORMAL,
-  TEXTURE_G_ALBEDO,
-  TEXTURE_G_PBR,
-  TEXTURE_L_COLOR,
-  TEXTURE_L_BRIGHT_COLOR,
-  TEXTURE_L_DEPTH,
-  TEXTURE_BLUR1,
-  TEXTURE_BLUR2
+  g_position,
+  g_normal,
+  g_albedo,
+  g_pbr,
+  l_color,
+  l_bright_color,
+  l_depth,
+  blur1,
+  blur2
 };
 
 class Texture {
@@ -36,15 +36,15 @@ public:
 
   static bool32 is_type_screensize_dependent(TextureType type) {
     return (
-      type == TEXTURE_G_POSITION ||
-      type == TEXTURE_G_NORMAL ||
-      type == TEXTURE_G_ALBEDO ||
-      type == TEXTURE_G_PBR ||
-      type == TEXTURE_L_COLOR ||
-      type == TEXTURE_L_BRIGHT_COLOR ||
-      type == TEXTURE_L_DEPTH ||
-      type == TEXTURE_BLUR1 ||
-      type == TEXTURE_BLUR2
+      type == TextureType::g_position ||
+      type == TextureType::g_normal ||
+      type == TextureType::g_albedo ||
+      type == TextureType::g_pbr ||
+      type == TextureType::l_color ||
+      type == TextureType::l_bright_color ||
+      type == TextureType::l_depth ||
+      type == TextureType::blur1 ||
+      type == TextureType::blur2
     );
   }
 

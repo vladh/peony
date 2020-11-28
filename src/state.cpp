@@ -10,7 +10,7 @@ State::State(
   window_info(window_info),
 
   camera_main(
-    CAMERA_PERSPECTIVE,
+    CameraType::perspective,
     this->window_info.width,
     this->window_info.height
   ),

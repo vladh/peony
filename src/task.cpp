@@ -13,7 +13,7 @@ Task::Task(
 
 void Task::run() {
   START_TIMER(task_run);
-  if (this->type == TASKTYPE_LOAD_MODEL) {
+  if (this->type == TaskType::load_model) {
 #if 1
     log_info(
       "(task start) `.load()` for model %s",
@@ -27,7 +27,7 @@ void Task::run() {
       this->model_asset->name
     );
 #endif
-  } else if (this->type ==  TASKTYPE_COPY_TEXTURES_TO_PBO) {
+  } else if (this->type ==  TaskType::copy_textures_to_pbo) {
 #if 1
     log_info(
       "(task start) `.copy_textures_to_pbo()` for model %s",

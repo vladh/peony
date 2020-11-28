@@ -105,25 +105,25 @@ void init_g_buffer(Memory *memory, State *state) {
   state->g_position_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_position_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_G_POSITION, g_position_texture_name,
+    GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_normal_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_normal_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_G_NORMAL, g_normal_texture_name,
+    GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_albedo_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_albedo_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_G_ALBEDO, g_albedo_texture_name,
+    GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_pbr_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_pbr_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_G_PBR, g_pbr_texture_name,
+    GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
@@ -211,7 +211,7 @@ void init_l_buffer(Memory *memory, State *state) {
   state->l_color_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_color_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_L_COLOR, l_color_texture_name,
+    GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->l_color_texture->texture_name);
@@ -234,7 +234,7 @@ void init_l_buffer(Memory *memory, State *state) {
   state->l_bright_color_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_bright_color_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_L_BRIGHT_COLOR, l_bright_color_texture_name,
+    GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->l_bright_color_texture->texture_name);
@@ -272,7 +272,7 @@ void init_l_buffer(Memory *memory, State *state) {
   state->l_depth_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_depth_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_L_DEPTH, l_depth_texture_name,
+    GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
     state->window_info.width, state->window_info.height, 1
   );
   glBindTexture(GL_TEXTURE_2D, state->l_depth_texture->texture_name);
@@ -305,7 +305,7 @@ void init_blur_buffers(Memory *memory, State *state) {
   state->blur1_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur1_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_BLUR1, blur1_texture_name,
+    GL_TEXTURE_2D, TextureType::blur1, blur1_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->blur1_texture->texture_name);
@@ -330,7 +330,7 @@ void init_blur_buffers(Memory *memory, State *state) {
   state->blur2_texture = new(
     (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur2_texture")
   ) Texture(
-    GL_TEXTURE_2D, TEXTURE_BLUR2, blur2_texture_name,
+    GL_TEXTURE_2D, TextureType::blur2, blur2_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->blur2_texture->texture_name);
@@ -492,23 +492,23 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
           uint32 idx_texture = 0; idx_texture < mesh->texture_set->textures.size; idx_texture++
         ) {
           Texture *texture = mesh->texture_set->textures[idx_texture];
-          if (texture->type == TEXTURE_G_POSITION) {
+          if (texture->type == TextureType::g_position) {
             mesh->texture_set->textures.set(idx_texture, state->g_position_texture);
-          } else if (texture->type == TEXTURE_G_NORMAL) {
+          } else if (texture->type == TextureType::g_normal) {
             mesh->texture_set->textures.set(idx_texture, state->g_normal_texture);
-          } else if (texture->type == TEXTURE_G_ALBEDO) {
+          } else if (texture->type == TextureType::g_albedo) {
             mesh->texture_set->textures.set(idx_texture, state->g_albedo_texture);
-          } else if (texture->type == TEXTURE_G_PBR) {
+          } else if (texture->type == TextureType::g_pbr) {
             mesh->texture_set->textures.set(idx_texture, state->g_pbr_texture);
-          } else if (texture->type == TEXTURE_L_COLOR) {
+          } else if (texture->type == TextureType::l_color) {
             mesh->texture_set->textures.set(idx_texture, state->l_color_texture);
-          } else if (texture->type == TEXTURE_L_BRIGHT_COLOR) {
+          } else if (texture->type == TextureType::l_bright_color) {
             mesh->texture_set->textures.set(idx_texture, state->l_bright_color_texture);
-          } else if (texture->type == TEXTURE_L_DEPTH) {
+          } else if (texture->type == TextureType::l_depth) {
             mesh->texture_set->textures.set(idx_texture, state->l_depth_texture);
-          } else if (texture->type == TEXTURE_BLUR1) {
+          } else if (texture->type == TextureType::blur1) {
             mesh->texture_set->textures.set(idx_texture, state->blur1_texture);
-          } else if (texture->type == TEXTURE_BLUR2) {
+          } else if (texture->type == TextureType::blur2) {
             mesh->texture_set->textures.set(idx_texture, state->blur2_texture);
           }
         }
@@ -928,10 +928,10 @@ void update_and_render(Memory *memory, State *state) {
 
       copy_scene_data_to_ubo(memory, state, idx, false);
       render_scene(
-        memory, state, RENDERPASS_DEFERRED, RENDERMODE_DEPTH
+        memory, state, RenderPass::deferred, RenderMode::depth
       );
       render_scene(
-        memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_DEPTH
+        memory, state, RenderPass::forward_depth, RenderMode::depth
       );
     }
 
@@ -946,7 +946,7 @@ void update_and_render(Memory *memory, State *state) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-    render_scene(memory, state, RENDERPASS_DEFERRED, RENDERMODE_REGULAR);
+    render_scene(memory, state, RenderPass::deferred, RenderMode::regular);
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -968,7 +968,7 @@ void update_and_render(Memory *memory, State *state) {
   // Lighting pass
   {
     glDisable(GL_DEPTH_TEST);
-    render_scene(memory, state, RENDERPASS_LIGHTING, RENDERMODE_REGULAR);
+    render_scene(memory, state, RenderPass::lighting, RenderMode::regular);
     glEnable(GL_DEPTH_TEST);
   }
 
@@ -984,7 +984,7 @@ void update_and_render(Memory *memory, State *state) {
       // Draw at the very back of our depth range, so as to be behind everything.
       glDepthRange(0.9999f, 1.0f);
 
-      render_scene(memory, state, RENDERPASS_FORWARD_SKYBOX, RENDERMODE_REGULAR);
+      render_scene(memory, state, RenderPass::forward_skybox, RenderMode::regular);
 
       glDepthRange(0.0f, 1.0f);
       glDepthMask(GL_TRUE);
@@ -997,10 +997,10 @@ void update_and_render(Memory *memory, State *state) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       }
 
-      render_scene(memory, state, RENDERPASS_FORWARD_DEPTH, RENDERMODE_REGULAR);
+      render_scene(memory, state, RenderPass::forward_depth, RenderMode::regular);
 
       glDisable(GL_DEPTH_TEST);
-      render_scene(memory, state, RENDERPASS_FORWARD_NODEPTH, RENDERMODE_REGULAR);
+      render_scene(memory, state, RenderPass::forward_nodepth, RenderMode::regular);
       glEnable(GL_DEPTH_TEST);
 
       if (state->should_use_wireframe) {
@@ -1015,20 +1015,20 @@ void update_and_render(Memory *memory, State *state) {
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
     copy_scene_data_to_ubo(memory, state, 0, true);
-    render_scene(memory, state, RENDERPASS_PREBLUR, RENDERMODE_REGULAR);
+    render_scene(memory, state, RenderPass::preblur, RenderMode::regular);
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
     copy_scene_data_to_ubo(memory, state, 0, false);
-    render_scene(memory, state, RENDERPASS_BLUR2, RENDERMODE_REGULAR);
+    render_scene(memory, state, RenderPass::blur2, RenderMode::regular);
 
     for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
       copy_scene_data_to_ubo(memory, state, 0, true);
-      render_scene(memory, state, RENDERPASS_BLUR1, RENDERMODE_REGULAR);
+      render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
       copy_scene_data_to_ubo(memory, state, 0, false);
-      render_scene(memory, state, RENDERPASS_BLUR1, RENDERMODE_REGULAR);
+      render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
     }
   }
 
@@ -1036,7 +1036,7 @@ void update_and_render(Memory *memory, State *state) {
 
   // Postprocessing pass
   {
-    render_scene(memory, state, RENDERPASS_POSTPROCESSING, RENDERMODE_REGULAR);
+    render_scene(memory, state, RenderPass::postprocessing, RenderMode::regular);
   }
 
   // UI pass

@@ -10,23 +10,22 @@ constexpr glm::vec3 DIRECTIONAL_LIGHT_DISTANCE = glm::vec3(
   75.0f, 15.0f, 75.0f
 );
 
-enum RenderMode {
-  RENDERMODE_REGULAR,
-  RENDERMODE_DEPTH
+enum class RenderMode {regular, depth};
+
+enum class RenderPass {
+  deferred,
+  forward_depth,
+  forward_nodepth,
+  forward_skybox,
+  lighting,
+  postprocessing,
+  preblur,
+  blur1,
+  blur2
 };
 
-enum RenderPass {
-  RENDERPASS_DEFERRED,
-  RENDERPASS_FORWARD_DEPTH,
-  RENDERPASS_FORWARD_NODEPTH,
-  RENDERPASS_FORWARD_SKYBOX,
-  RENDERPASS_LIGHTING,
-  RENDERPASS_POSTPROCESSING,
-  RENDERPASS_PREBLUR,
-  RENDERPASS_BLUR1,
-  RENDERPASS_BLUR2
-};
-
+// We're keeping this an enum instead of an enum class so that we can easily
+// pass it to GLSL.
 enum LightType {
   LIGHT_POINT,
   LIGHT_DIRECTIONAL
