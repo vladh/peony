@@ -584,21 +584,21 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
-  window_info->width = 1920;
-  window_info->height = 1080;
+  /* window_info->width = 1920; */
+  /* window_info->height = 1080; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
-    /* target_monitor, nullptr */
-    nullptr, nullptr
+    target_monitor, nullptr
+    /* nullptr, nullptr */
   );
   if (!window) {
     log_fatal("Failed to create GLFW window");
     return;
   }
   window_info->window = window;
-  /* glfwSetWindowPos(window, 0, 0); */
-  glfwSetWindowPos(window, 200, 200);
+  glfwSetWindowPos(window, 0, 0);
+  /* glfwSetWindowPos(window, 200, 200); */
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
