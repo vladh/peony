@@ -33,7 +33,7 @@ void FontAsset::load_glyphs(
   glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
 
   for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
-    Character *character = this->characters.get(c);
+    Character *character = this->characters[c];
 
     glm::ivec2 tex_coords = texture_atlas->push_space(character->size);
 

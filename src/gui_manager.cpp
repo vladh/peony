@@ -92,7 +92,7 @@ glm::vec2 GuiManager::get_text_dimensions(
       continue;
     }
 
-    Character *character = font_asset->characters.get(c);
+    Character *character = font_asset->characters[c];
 
     if (!character) {
       log_warning("Could not get character: %c", c);
@@ -221,7 +221,7 @@ GuiContainer* GuiManager::make_container(
 ) {
   GuiContainer *container = nullptr;
   for (uint32 idx = 0; idx < this->containers.size; idx++) {
-    GuiContainer *container_candidate = this->containers.get(idx);
+    GuiContainer *container_candidate = this->containers[idx];
     if (strcmp(container_candidate->title, title) == 0) {
       container = container_candidate;
       break;
@@ -299,7 +299,7 @@ void GuiManager::draw_text(
       continue;
     }
 
-    Character *character = font_asset->characters.get(c);
+    Character *character = font_asset->characters[c];
 
     if (!character) {
       log_warning("Could not get character: %c", c);
