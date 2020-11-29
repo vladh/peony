@@ -7,11 +7,11 @@ void scene_init_objects(Memory *memory, State *state) {
     sin(state->dir_light_angle), -sin(state->dir_light_angle), 0.0f
   );
   entity = state->entity_manager.add("directional_light");
-  /* state->drawable_component_manager.add( */
-  /*   entity->handle, */
-  /*   ModelAsset::get_by_name(&state->model_assets, "light"), */
-  /*   RenderPass::forward_nodepth */
-  /* ); */
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "light"),
+    RenderPass::forward_nodepth
+  );
   state->light_component_manager.add(
     entity->handle,
     LIGHT_DIRECTIONAL,
