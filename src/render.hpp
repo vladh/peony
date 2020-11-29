@@ -1,6 +1,4 @@
 constexpr uint16 MAX_N_LIGHTS = 8;
-constexpr real32 SHADOWMAP_ORTHO_PROJECTION_SIZE_FACTOR = 100.0f;
-constexpr real32 TEXTURE_SHADOWMAP_SCREEN_SIZE_FACTOR = 3.0f;
 
 // The position is used in positioning the shadow map, but not
 // in the light calculations. We need to scale the position
