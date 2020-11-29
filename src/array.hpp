@@ -43,6 +43,14 @@ public:
     return get(idx);
   }
 
+  T* begin() {
+    return this->items;
+  }
+
+  T* end() {
+    return &this->items[this->size];
+  }
+
   void set(uint32 idx, T *new_item) {
     *(this->items + idx) = *new_item;
   }
