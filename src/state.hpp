@@ -55,7 +55,8 @@ public:
   real32 heading_fadeout_duration;
   real32 heading_fadeout_delay;
 
-  Array<EntityHandle> lights;
+  Array<EntityHandle> point_lights;
+  Array<EntityHandle> directional_lights;
   Array<EntityHandle> geese;
   EntityHandle skysphere;
   EntityHandle ocean;
@@ -77,7 +78,8 @@ public:
   uint32 cube_shadowmaps;
   uint32 texture_shadowmaps_framebuffer;
   uint32 texture_shadowmaps;
-  glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
+  glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
+  glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
 
   ShaderAsset *standard_depth_shader_asset;
 

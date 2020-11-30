@@ -27,5 +27,18 @@ void main() {
   color = add_tone_mapping(color);
   color = correct_gamma(color);
 
+#if 1
+  float aspect_ratio = window_width / window_height;
+  vec2 preview_size = vec2(0.3, 0.3 / aspect_ratio);
+  if (
+    fs_in.tex_coords.x < preview_size.x &&
+    fs_in.tex_coords.y < preview_size.y
+  ) {
+    vec2 preview_tex_coords = fs_in.tex_coords / preview_size;
+    vec3 sample_p = vec3(vec2(1.0) - preview_tex_coords, 0.0);
+    color = texture(texture_shadowmaps, sample_p).rrr;
+  }
+#endif
+
   frag_color = vec4(color, 1.0);
 }

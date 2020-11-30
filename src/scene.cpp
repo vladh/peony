@@ -14,7 +14,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->light_component_manager.add(
     entity->handle,
-    LIGHT_DIRECTIONAL,
+    LightType::directional,
     light_direction,
     glm::vec4(4.0f, 4.0f, 4.0f, 1.0f),
     glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
@@ -25,10 +25,10 @@ void scene_init_objects(Memory *memory, State *state) {
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
-  state->lights.push(entity->handle);
+  state->directional_lights.push(entity->handle);
 #endif
 
-#if 0
+#if 1
   entity = state->entity_manager.add("point_light");
   state->spatial_component_manager.add(
     entity->handle,
@@ -43,12 +43,12 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->light_component_manager.add(
     entity->handle,
-    LIGHT_POINT,
+    LightType::point,
     glm::vec3(0.0f, 0.0f, 0.0f),
     glm::vec4(5.0f, 5.0f, 5.0f, 1.0f),
     glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
   );
-  state->lights.push(entity->handle);
+  state->point_lights.push(entity->handle);
 #endif
 
   // Ocean

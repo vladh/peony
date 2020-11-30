@@ -4,8 +4,11 @@
 #define SHOULD_USE_SHADOWS 1
 #define SHOULD_USE_FOG 0
 
-// TODO: Send this light separately?
-vec3 SUN_DIRECTION = normalize(vec3(light_direction[0]));
+uniform samplerCubeArray cube_shadowmaps;
+uniform sampler2DArray texture_shadowmaps;
+
+// NOTE: First directional light is the sun.
+vec3 SUN_DIRECTION = normalize(vec3(directional_light_direction[0]));
 vec3 SUN_DIRECTION_AT_SUNSET = normalize(vec3(SUN_DIRECTION.x, 0.0, SUN_DIRECTION.z));
 float SUN_DOT = dot(SUN_DIRECTION, SUN_DIRECTION_AT_SUNSET);
 float SUN_ANGLE = acos(SUN_DOT);
@@ -53,9 +56,6 @@ vec2 TEXTURE_SAMPLING_OFFSETS[9] = vec2[] (
   vec2(-1.0,  1.0), vec2(1.0,  1.0)
 );
 
-uniform samplerCubeArray cube_shadowmaps;
-uniform sampler2DArray texture_shadowmaps;
-
 
 vec3 get_sky_color(float angle) {
   return mix(
@@ -67,51 +67,79 @@ vec3 get_sky_color(float angle) {
 }
 
 
-float calculate_shadows(vec3 world_position, vec3 N, int idx_light) {
+float calculate_point_shadows(
+  vec3 world_position,
+  vec3 N,
+  vec4 current_light_position,
+  int idx_light
+) {
+#if !SHOULD_USE_SHADOWS
+  return 0.0;
+#endif
+
   float shadow = 0.0;
   float bias = 0.20 / shadow_far_clip_dist;
 
-  vec3 light_to_frag = world_position - vec3(light_position[idx_light]);
+  vec3 light_to_frag = world_position - vec3(current_light_position);
   float view_distance = length(camera_position - world_position);
 
-  if (light_type[idx_light].x == LIGHT_POINT) {
-    // TODO: Improve this.
-    float sample_radius = (1.0 + (view_distance / shadow_far_clip_dist)) / 25.0;
-    float current_depth = length(light_to_frag) / shadow_far_clip_dist;
+  // TODO: Improve this.
+  float sample_radius = (1.0 + (view_distance / shadow_far_clip_dist)) / 25.0;
+  float current_depth = length(light_to_frag) / shadow_far_clip_dist;
 
-    for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
-      vec4 sample_p = vec4(
-        light_to_frag + SHADOW_GRID_SAMPLING_OFFSETS[i] * sample_radius, idx_light
-      );
-      float closest_depth = texture(cube_shadowmaps, sample_p).r;
-      if (current_depth - bias > closest_depth) {
-        shadow += 1.0;
-      }
+  for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
+    vec4 sample_p = vec4(
+      light_to_frag + SHADOW_GRID_SAMPLING_OFFSETS[i] * sample_radius, idx_light
+    );
+    float closest_depth = texture(cube_shadowmaps, sample_p).r;
+    if (current_depth - bias > closest_depth) {
+      shadow += 1.0;
     }
-
-    shadow /= float(N_SHADOW_SAMPLES);
-  } else if (light_type[idx_light].x == LIGHT_DIRECTIONAL) {
-    // TODO: Improve this.
-    float sample_radius = (1.0 + (view_distance / shadow_far_clip_dist)) / 1250.0;
-    float depth_sign = sign(dot(light_to_frag, vec3(light_direction[idx_light])));
-    float current_depth = length(light_to_frag) * depth_sign / shadow_far_clip_dist;
-
-    vec3 light_space_position = vec3(
-      shadow_transforms[idx_light * 6] * vec4(world_position, 1.0)
-    ) * 0.5 + 0.5;
-
-    for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
-      vec3 sample_p = vec3(
-        light_space_position.xy + SHADOW_GRID_SAMPLING_OFFSETS[i].xy * sample_radius, idx_light
-      );
-      float closest_depth = texture(texture_shadowmaps, sample_p).r;
-      if (current_depth - bias > closest_depth) {
-        shadow += 1.0;
-      }
-    }
-
-    shadow /= float(N_SHADOW_SAMPLES);
   }
+
+  shadow /= float(N_SHADOW_SAMPLES);
+
+  return shadow;
+}
+
+
+float calculate_directional_shadows(
+  vec3 world_position,
+  vec3 N,
+  vec4 current_light_position,
+  vec4 current_light_direction,
+  int idx_light
+) {
+#if !SHOULD_USE_SHADOWS
+  return 0.0;
+#endif
+
+  float shadow = 0.0;
+  float bias = 0.20 / shadow_far_clip_dist;
+
+  vec3 light_to_frag = world_position - vec3(current_light_position);
+  float view_distance = length(camera_position - world_position);
+
+  // TODO: Improve this.
+  float sample_radius = (1.0 + (view_distance / shadow_far_clip_dist)) / 1250.0;
+  float depth_sign = sign(dot(light_to_frag, vec3(current_light_direction)));
+  float current_depth = length(light_to_frag) * depth_sign / shadow_far_clip_dist;
+
+  vec3 light_space_position = vec3(
+    texture_shadowmap_transforms[idx_light] * vec4(world_position, 1.0)
+  ) * 0.5 + 0.5;
+
+  for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
+    vec3 sample_p = vec3(
+      light_space_position.xy + SHADOW_GRID_SAMPLING_OFFSETS[i].xy * sample_radius, idx_light
+    );
+    float closest_depth = texture(texture_shadowmaps, sample_p).r;
+    if (current_depth - bias > closest_depth) {
+      shadow += 1.0;
+    }
+  }
+
+  shadow /= float(N_SHADOW_SAMPLES);
 
   return shadow;
 }
@@ -308,30 +336,41 @@ vec3 compute_pbr_light(
   vec3 F0 = mix(vec3(0.04), albedo, metallic);
   vec3 Lo = vec3(0.0);
 
-  for (int idx_light = 0; idx_light < n_lights; idx_light++) {
-    float shadow = 0;
+  for (int idx_light = 0; idx_light < n_point_lights; idx_light++) {
+    float shadow = calculate_point_shadows(
+      world_position,
+      N,
+      point_light_position[idx_light],
+      idx_light
+    );
 
-#if SHOULD_USE_SHADOWS
-      shadow = calculate_shadows(world_position, N, idx_light);
-#endif
+    Lo += compute_point_light(
+      world_position,
+      vec3(point_light_position[idx_light]),
+      vec3(point_light_color[idx_light]),
+      point_light_attenuation[idx_light],
+      albedo, metallic, roughness,
+      N, V,
+      n_dot_v, F0
+    ) * (1.0 - shadow);
+  }
 
-    if (light_type[idx_light].x == LIGHT_POINT) {
-      Lo += compute_point_light(
-        world_position, vec3(light_position[idx_light]), vec3(light_color[idx_light]),
-        light_attenuation[idx_light],
-        albedo, metallic, roughness,
-        N, V,
-        n_dot_v, F0
-      ) * (1.0 - shadow);
-    } else if (light_type[idx_light].x == LIGHT_DIRECTIONAL) {
-      Lo += compute_directional_light(
-        world_position, vec3(light_color[idx_light]),
-        light_direction[idx_light],
-        albedo, metallic, roughness,
-        N, V,
-        n_dot_v, F0
-      ) * (1.0 - shadow);
-    }
+  for (int idx_light = 0; idx_light < n_directional_lights; idx_light++) {
+    float shadow = calculate_directional_shadows(
+      world_position,
+      N,
+      directional_light_position[idx_light],
+      directional_light_direction[idx_light],
+      idx_light
+    );
+
+    Lo += compute_directional_light(
+      world_position, vec3(directional_light_color[idx_light]),
+      directional_light_direction[idx_light],
+      albedo, metallic, roughness,
+      N, V,
+      n_dot_v, F0
+    ) * (1.0 - shadow);
   }
 
   // TODO: Add better ambient term.

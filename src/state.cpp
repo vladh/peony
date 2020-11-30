@@ -63,8 +63,11 @@ State::State(
   heading_fadeout_duration(1.0f),
   heading_fadeout_delay(2.0f),
 
-  lights(
-    Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "lights")
+  point_lights(
+    Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "point_lights")
+  ),
+  directional_lights(
+    Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "directional_lights")
   ),
   geese(
     Array<EntityHandle>(&memory->entity_memory_pool, 512, "geese")

@@ -374,17 +374,14 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 
 
 void update_light_position(State *state, real32 amount) {
-  for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    EntityHandle *handle = state->lights[idx];
-
-    if (handle) {
-      LightComponent *light_component = state->light_component_manager.get(*handle);
-      if (light_component->type == LIGHT_DIRECTIONAL) {
-        state->dir_light_angle += amount;
-        light_component->direction = glm::vec3(
-          sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
-        );
-      }
+  if (state->directional_lights.size > 0) {
+    EntityHandle *handle = state->directional_lights[0];
+    LightComponent *light_component = state->light_component_manager.get(*handle);
+    if (light_component) {
+      state->dir_light_angle += amount;
+      light_component->direction = glm::vec3(
+        sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
+      );
     }
   }
 }
@@ -639,14 +636,27 @@ void init_window(WindowInfo *window_info) {
 
 
 void copy_scene_data_to_ubo(
-  Memory *memory, State *state, uint32 shadow_light_idx, bool32 is_blur_horizontal
+  Memory *memory, State *state,
+  uint32 current_shadow_light_idx,
+  uint32 current_shadow_light_type,
+  bool32 is_blur_horizontal
 ) {
   ShaderCommon *shader_common = &state->shader_common;
 
   shader_common->view = state->camera_active->view;
   shader_common->projection = state->camera_active->projection;
   shader_common->ui_projection = state->camera_active->ui_projection;
-  memcpy(shader_common->shadow_transforms, state->shadow_transforms, sizeof(state->shadow_transforms));
+  memcpy(
+    shader_common->cube_shadowmap_transforms,
+    state->cube_shadowmap_transforms,
+    sizeof(state->cube_shadowmap_transforms)
+  );
+  memcpy(
+    shader_common->texture_shadowmap_transforms,
+    state->texture_shadowmap_transforms,
+    sizeof(state->texture_shadowmap_transforms)
+  );
+
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
   shader_common->camera_pitch = (float)state->camera_active->pitch;
 
@@ -655,8 +665,11 @@ void copy_scene_data_to_ubo(
   shader_common->camera_near_clip_dist = state->camera_active->near_clip_dist;
   shader_common->camera_far_clip_dist = state->camera_active->far_clip_dist;
 
-  shader_common->n_lights = state->lights.size;
-  shader_common->shadow_light_idx = shadow_light_idx;
+  shader_common->n_point_lights = state->point_lights.size;
+  shader_common->n_directional_lights = state->directional_lights.size;
+  shader_common->current_shadow_light_idx = current_shadow_light_idx;
+  shader_common->current_shadow_light_type = current_shadow_light_type;
+
   shader_common->shadow_far_clip_dist = state->shadowmap_far_clip_dist;
   shader_common->is_blur_horizontal = is_blur_horizontal;
 
@@ -665,15 +678,38 @@ void copy_scene_data_to_ubo(
   shader_common->window_width = state->window_info.width;
   shader_common->window_height = state->window_info.height;
 
-  for (uint32 idx = 0; idx < state->lights.size; idx++) {
-    EntityHandle handle = *state->lights[idx];
+  for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
+    EntityHandle handle = *state->point_lights[idx];
     SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
     LightComponent *light_component = state->light_component_manager.get(handle);
-    shader_common->light_position[idx] = glm::vec4(spatial_component->position, 1.0f);
-    shader_common->light_type[idx] = glm::vec4(light_component->type, 0.0f, 0.0f, 0.0f);
-    shader_common->light_direction[idx] = glm::vec4(light_component->direction, 1.0f);
-    shader_common->light_color[idx] = light_component->color;
-    shader_common->light_attenuation[idx] = light_component->attenuation;
+    if (spatial_component) {
+      shader_common->point_light_position[idx] = glm::vec4(
+        spatial_component->position, 1.0f
+      );
+    }
+    if (light_component) {
+      shader_common->point_light_color[idx] = light_component->color;
+      shader_common->point_light_attenuation[idx] = light_component->attenuation;
+    }
+  }
+
+  for (uint32 idx = 0; idx < state->directional_lights.size; idx++) {
+    EntityHandle handle = *state->directional_lights[idx];
+    SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
+    LightComponent *light_component = state->light_component_manager.get(handle);
+    if (spatial_component) {
+      shader_common->directional_light_position[idx] = glm::vec4(
+        spatial_component->position, 1.0f
+      );
+    }
+    if (light_component) {
+      shader_common->directional_light_direction[idx] = glm::vec4(
+        light_component->direction, 1.0f
+      );
+
+      shader_common->directional_light_color[idx] = light_component->color;
+      shader_common->directional_light_attenuation[idx] = light_component->attenuation;
+    }
   }
 
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
@@ -682,7 +718,7 @@ void copy_scene_data_to_ubo(
 
 
 void copy_scene_data_to_ubo(Memory *memory, State *state) {
-  copy_scene_data_to_ubo(memory, state, 0, false);
+  copy_scene_data_to_ubo(memory, state, 0, 0, false);
 }
 
 
@@ -742,6 +778,32 @@ void render_scene_ui(
     sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
     state->gui_manager.draw_named_value(
       container, "dt", debug_text
+    );
+
+    EntityHandle handle = *state->directional_lights[0];
+    SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
+    LightComponent *light_component = state->light_component_manager.get(handle);
+
+    sprintf(
+      debug_text,
+      "(%.2f, %.2f, %.2f)",
+      spatial_component->position.x,
+      spatial_component->position.y,
+      spatial_component->position.z
+    );
+    state->gui_manager.draw_named_value(
+      container, "dirlight.pos", debug_text
+    );
+
+    sprintf(
+      debug_text,
+      "(%.2f, %.2f, %.2f)",
+      light_component->direction.x,
+      light_component->direction.y,
+      light_component->direction.z
+    );
+    state->gui_manager.draw_named_value(
+      container, "dirlight.dir", debug_text
     );
 
     if (state->gui_manager.draw_toggle(
@@ -815,25 +877,32 @@ void scene_update(Memory *memory, State *state) {
   // Lights
   {
 #if 1
-    for (uint32 idx = 0; idx < state->lights.size; idx++) {
-      EntityHandle *handle = state->lights[idx];
+    for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
+      EntityHandle *handle = state->point_lights[idx];
+      SpatialComponent *spatial_component = state->spatial_component_manager.get(
+        *handle
+      );
+      if (spatial_component) {
+        real64 time_term =
+          (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+        real64 x_term = 0.0f + cos(time_term) * 8.0f;
+        real64 z_term = 0.0f + sin(time_term) * 8.0f;
+        spatial_component->position.x = (real32)x_term;
+        spatial_component->position.z = (real32)z_term;
+      }
+    }
 
-      if (handle) {
-        SpatialComponent *spatial_component = state->spatial_component_manager.get(*handle);
-        LightComponent *light_component = state->light_component_manager.get(*handle);
-
-        if (spatial_component && light_component->type == LIGHT_POINT) {
-          real64 time_term =
-            (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-          real64 x_term = 0.0f + cos(time_term) * 8.0f;
-          real64 z_term = 0.0f + sin(time_term) * 8.0f;
-
-          spatial_component->position.x = (real32)x_term;
-          spatial_component->position.z = (real32)z_term;
-        } else if (spatial_component && light_component->type == LIGHT_DIRECTIONAL) {
-          spatial_component->position = state->camera_active->position +
-            -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
-        }
+    for (uint32 idx = 0; idx < state->directional_lights.size; idx++) {
+      EntityHandle *handle = state->directional_lights[idx];
+      SpatialComponent *spatial_component = state->spatial_component_manager.get(
+        *handle
+      );
+      LightComponent *light_component = state->light_component_manager.get(
+        *handle
+      );
+      if (spatial_component) {
+        spatial_component->position = state->camera_active->position +
+          -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
       }
     }
 #endif
@@ -897,41 +966,56 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
   {
-    Camera::create_shadow_transforms(
-      state->shadow_transforms,
-      &state->spatial_component_manager,
-      &state->light_component_manager,
-      &state->lights,
-      state->cube_shadowmap_width, state->cube_shadowmap_height,
-      state->texture_shadowmap_width, state->texture_shadowmap_height,
-      state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
-    );
+    if (state->point_lights.size > 0) {
+      Camera::create_cube_shadowmap_transforms(
+        state->cube_shadowmap_transforms,
+        &state->spatial_component_manager,
+        &state->light_component_manager,
+        &state->point_lights,
+        state->cube_shadowmap_width, state->cube_shadowmap_height,
+        state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
+      );
 
-    for (uint32 idx = 0; idx < state->lights.size; idx++) {
-      EntityHandle handle = *state->lights[idx];
-      LightComponent *light_component = state->light_component_manager.get(handle);
+      for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
+        EntityHandle handle = *state->point_lights[idx];
+        LightComponent *light_component = state->light_component_manager.get(handle);
 
-      // TODO: Keep separate indices into the two framebuffers to avoid wasting space.
-      if (light_component->type == LIGHT_POINT) {
-        glViewport(
-          0, 0, state->cube_shadowmap_width, state->cube_shadowmap_height
-        );
+        glViewport(0, 0, state->cube_shadowmap_width, state->cube_shadowmap_height);
         glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
-      } else if (light_component->type == LIGHT_DIRECTIONAL) {
-        glViewport(
-          0, 0, state->texture_shadowmap_width, state->texture_shadowmap_height
-        );
-        glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
-      }
-      glClear(GL_DEPTH_BUFFER_BIT);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
-      copy_scene_data_to_ubo(memory, state, idx, false);
-      render_scene(
-        memory, state, RenderPass::deferred, RenderMode::depth
+        copy_scene_data_to_ubo(
+          memory, state, idx, light_type_to_int(light_component->type), false
+        );
+        render_scene(memory, state, RenderPass::deferred, RenderMode::depth);
+        render_scene(memory, state, RenderPass::forward_depth, RenderMode::depth);
+      }
+    }
+
+    if (state->directional_lights.size > 0) {
+      Camera::create_texture_shadowmap_transforms(
+        state->texture_shadowmap_transforms,
+        &state->spatial_component_manager,
+        &state->light_component_manager,
+        &state->directional_lights,
+        state->texture_shadowmap_width, state->texture_shadowmap_height,
+        state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
       );
-      render_scene(
-        memory, state, RenderPass::forward_depth, RenderMode::depth
-      );
+
+      for (uint32 idx = 0; idx < state->directional_lights.size; idx++) {
+        EntityHandle handle = *state->directional_lights[idx];
+        LightComponent *light_component = state->light_component_manager.get(handle);
+
+        glViewport(0, 0, state->texture_shadowmap_width, state->texture_shadowmap_height);
+        glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        copy_scene_data_to_ubo(
+          memory, state, idx, light_type_to_int(light_component->type), false
+        );
+        render_scene(memory, state, RenderPass::deferred, RenderMode::depth);
+        render_scene(memory, state, RenderPass::forward_depth, RenderMode::depth);
+      }
     }
 
     glViewport(
@@ -1013,20 +1097,20 @@ void update_and_render(Memory *memory, State *state) {
   // Blur pass
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-    copy_scene_data_to_ubo(memory, state, 0, true);
+    copy_scene_data_to_ubo(memory, state, 0, 0, true);
     render_scene(memory, state, RenderPass::preblur, RenderMode::regular);
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-    copy_scene_data_to_ubo(memory, state, 0, false);
+    copy_scene_data_to_ubo(memory, state, 0, 0, false);
     render_scene(memory, state, RenderPass::blur2, RenderMode::regular);
 
     for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-      copy_scene_data_to_ubo(memory, state, 0, true);
+      copy_scene_data_to_ubo(memory, state, 0, 0, true);
       render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-      copy_scene_data_to_ubo(memory, state, 0, false);
+      copy_scene_data_to_ubo(memory, state, 0, 0, false);
       render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
     }
   }
@@ -1106,7 +1190,7 @@ void run_main_loop(Memory *memory, State *state) {
         }
       }
 
-      // TODO: Don't render on the very first frame. This avoids flashing that happens in
+      // NOTE: Don't render on the very first frame. This avoids flashing that happens in
       // fullscreen. There is a better way to handle this, but whatever, figure it out later.
       if (state->n_frames_since_start > 1) {
         update_and_render(memory, state);

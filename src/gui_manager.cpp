@@ -77,6 +77,7 @@ glm::vec2 GuiManager::get_text_dimensions(
 
   real32 start_x = 0.0f;
   real32 start_y = 0.0f - (line_height - ascender);
+  real32 max_x = 0.0f;
   real32 curr_x = start_x;
   real32 curr_y = start_y;
   size_t str_length = strlen(str);
@@ -86,7 +87,8 @@ glm::vec2 GuiManager::get_text_dimensions(
 
     if (c < 32) {
       if (c == '\n') {
-        curr_x = curr_x;
+        max_x = glm::max(max_x, curr_x);
+        curr_x = 0.0f;
         curr_y += line_spacing;
       }
       continue;
@@ -103,9 +105,10 @@ glm::vec2 GuiManager::get_text_dimensions(
     curr_y += font_asset->frac_px_to_px(character->advance.y);
   }
 
+  max_x = glm::max(max_x, curr_x);
   curr_y += line_height;
 
-  return glm::vec2(curr_x, curr_y);
+  return glm::vec2(max_x, curr_y);
 }
 
 
@@ -556,7 +559,7 @@ void GuiManager::draw_named_value(
     value_text_dimensions.x, 50.0f
   );
   glm::vec2 dimensions = glm::vec2(
-    name_text_dimensions.x + value_text_dimensions.x + GUI_NAMED_VALUE_SPACING,
+    value_text_dimensions.x + GUI_NAMED_VALUE_NAME_WIDTH,
     glm::max(name_text_dimensions.y, value_text_dimensions.y)
   );
 
@@ -569,7 +572,7 @@ void GuiManager::draw_named_value(
   );
 
   glm::vec2 value_text_position = position +
-    glm::vec2(GUI_NAMED_VALUE_SPACING, 0.0f);
+    glm::vec2(GUI_NAMED_VALUE_NAME_WIDTH, 0.0f);
   draw_text(
     "body", value_text,
     value_text_position,

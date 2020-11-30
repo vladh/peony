@@ -6,16 +6,28 @@ out BLOCK {
 } gs_out;
 
 void main() {
-  // NOTE: Should only be used with point lights!
-  int n_faces_for_this_light = 6;
+  int n_faces_for_this_light;
+  if (current_shadow_light_type == LIGHT_POINT) {
+    n_faces_for_this_light = 6;
+  } else if (current_shadow_light_type == LIGHT_DIRECTIONAL) {
+    n_faces_for_this_light = 1;
+  }
 
   for (int face = 0; face < n_faces_for_this_light; face++) {
-    int layer_face = (shadow_light_idx * 6) + face;
+    int layer_face = (current_shadow_light_idx * n_faces_for_this_light) + face;
     gl_Layer = layer_face;
 
     for (int idx = 0; idx < 3; idx++) {
       gs_out.world_position = gl_in[idx].gl_Position;
-      gl_Position = shadow_transforms[layer_face] * gs_out.world_position;
+
+      mat4 shadow_transform;
+      if (current_shadow_light_type == LIGHT_POINT) {
+        shadow_transform = cube_shadowmap_transforms[layer_face];
+      } else if (current_shadow_light_type == LIGHT_DIRECTIONAL) {
+        shadow_transform = texture_shadowmap_transforms[layer_face];
+      }
+
+      gl_Position = shadow_transform * gs_out.world_position;
       EmitVertex();
     }
 

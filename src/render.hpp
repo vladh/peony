@@ -22,18 +22,23 @@ enum class RenderPass {
   blur2
 };
 
-// We're keeping this an enum instead of an enum class so that we can easily
-// pass it to GLSL.
-enum LightType {
-  LIGHT_POINT,
-  LIGHT_DIRECTIONAL
-};
+enum class LightType {point, directional};
+
+uint32 light_type_to_int(LightType light_type) {
+  if (light_type == LightType::point) {
+    return 1;
+  } else if (light_type == LightType::directional) {
+    return 2;
+  }
+  return 0;
+}
 
 struct ShaderCommon {
   glm::mat4 view;
   glm::mat4 projection;
   glm::mat4 ui_projection;
-  glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS];
+  glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
+  glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
 
   glm::vec3 camera_position;
   float camera_pitch;
@@ -43,19 +48,27 @@ struct ShaderCommon {
   float camera_near_clip_dist;
   float camera_far_clip_dist;
 
-  int n_lights;
-  int shadow_light_idx;
+  int n_point_lights;
+  int n_directional_lights;
+  int current_shadow_light_idx;
+  int current_shadow_light_type;
+
   float shadow_far_clip_dist;
   bool is_blur_horizontal;
+  float pad_1;
+  float pad_2;
 
   float exposure;
   float t;
   int window_width;
   int window_height;
 
-  glm::vec4 light_position[MAX_N_LIGHTS];
-  glm::vec4 light_type[MAX_N_LIGHTS];
-  glm::vec4 light_direction[MAX_N_LIGHTS];
-  glm::vec4 light_color[MAX_N_LIGHTS];
-  glm::vec4 light_attenuation[MAX_N_LIGHTS];
+  glm::vec4 point_light_position[MAX_N_LIGHTS];
+  glm::vec4 point_light_color[MAX_N_LIGHTS];
+  glm::vec4 point_light_attenuation[MAX_N_LIGHTS];
+
+  glm::vec4 directional_light_position[MAX_N_LIGHTS];
+  glm::vec4 directional_light_direction[MAX_N_LIGHTS];
+  glm::vec4 directional_light_color[MAX_N_LIGHTS];
+  glm::vec4 directional_light_attenuation[MAX_N_LIGHTS];
 };
