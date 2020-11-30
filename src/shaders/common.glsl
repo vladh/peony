@@ -5,14 +5,15 @@
 #define MAX_N_LIGHTS 8
 #define SHOULD_CALCULATE_TANGENT_IN_VERTEX_SHADER 0
 
-#define LIGHT_POINT 0
-#define LIGHT_DIRECTIONAL 1
+#define LIGHT_POINT 1
+#define LIGHT_DIRECTIONAL 2
 
 layout (std140) uniform shader_common {
   mat4 view;
   mat4 projection;
   mat4 ui_projection;
-  mat4 shadow_transforms[6 * MAX_N_LIGHTS];
+  mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
+  mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
 
   vec3 camera_position;
   float camera_pitch;
@@ -22,21 +23,29 @@ layout (std140) uniform shader_common {
   float camera_near_clip_dist;
   float camera_far_clip_dist;
 
-  int n_lights;
-  int shadow_light_idx;
+  int n_point_lights;
+  int n_directional_lights;
+  int current_shadow_light_idx;
+  int current_shadow_light_type;
+
   float shadow_far_clip_dist;
   bool is_blur_horizontal;
+  int pad_1;
+  int pad_2;
 
   float exposure;
   float t;
   int window_width;
   int window_height;
 
-  vec4 light_position[MAX_N_LIGHTS];
-  vec4 light_type[MAX_N_LIGHTS];
-  vec4 light_direction[MAX_N_LIGHTS];
-  vec4 light_color[MAX_N_LIGHTS];
-  vec4 light_attenuation[MAX_N_LIGHTS];
+  vec4 point_light_position[MAX_N_LIGHTS];
+  vec4 point_light_color[MAX_N_LIGHTS];
+  vec4 point_light_attenuation[MAX_N_LIGHTS];
+
+  vec4 directional_light_position[MAX_N_LIGHTS];
+  vec4 directional_light_direction[MAX_N_LIGHTS];
+  vec4 directional_light_color[MAX_N_LIGHTS];
+  vec4 directional_light_attenuation[MAX_N_LIGHTS];
 };
 
 /* uniform float BLUR_WEIGHTS[5] = float[] ( */

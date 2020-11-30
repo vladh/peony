@@ -20,6 +20,7 @@ Camera::Camera(
   update_ui_matrices(window_width, window_height);
 }
 
+
 void Camera::update_matrices_ortho(
   uint32 window_width, uint32 window_height
 ) {
@@ -38,6 +39,7 @@ void Camera::update_matrices_ortho(
     this->near_clip_dist, this->far_clip_dist
   );
 }
+
 
 void Camera::update_matrices_perspective(
   uint32 window_width, uint32 window_height
@@ -67,6 +69,7 @@ void Camera::update_matrices_perspective(
   ));
 }
 
+
 void Camera::update_matrices(
   uint32 window_width, uint32 window_height
 ) {
@@ -81,6 +84,7 @@ void Camera::update_matrices(
   }
 }
 
+
 void Camera::update_ui_matrices(
   uint32 window_width, uint32 window_height
 ) {
@@ -89,9 +93,11 @@ void Camera::update_ui_matrices(
   );
 }
 
+
 void Camera::move_front_back(real32 sign, real64 dt) {
   this->position += (sign * this->speed * (real32)dt) * this->front;
 }
+
 
 void Camera::move_left_right(real32 sign, real64 dt) {
   glm::vec3 direction = glm::normalize(glm::cross(
@@ -100,9 +106,11 @@ void Camera::move_left_right(real32 sign, real64 dt) {
   this->position += (sign * this->speed * (real32)dt) * direction;
 }
 
+
 void Camera::move_up_down(real32 sign, real64 dt) {
   this->position += (sign * this->speed * (real32)dt) * this->up;
 }
+
 
 void Camera::update_mouse(glm::vec2 mouse_offset) {
   this->yaw += mouse_offset.x;
@@ -117,25 +125,71 @@ void Camera::update_mouse(glm::vec2 mouse_offset) {
   }
 }
 
-void Camera::create_shadow_transforms(
-  glm::mat4 shadow_transforms[6 * MAX_N_LIGHTS],
+
+void Camera::create_cube_shadowmap_transforms(
+  glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS],
   SpatialComponentManager *spatial_component_manager,
   LightComponentManager *light_component_manager,
-  Array<EntityHandle> *lights,
+  Array<EntityHandle> *point_lights,
   uint32 cube_shadowmap_width, uint32 cube_shadowmap_height,
-  uint32 texture_shadowmap_width, uint32 texture_shadowmap_height,
   real32 near_clip_dist, real32 far_clip_dist
 ) {
-  // TODO: Store these more efficiently. We're storing 2D and 3D shadow
-  // transforms in the same place, wasting 5 times the space
-  // required for the 2D ones.
-
   glm::mat4 perspective_projection = glm::perspective(
     glm::radians(90.0f),
     (real32)cube_shadowmap_width / (real32)cube_shadowmap_height,
     near_clip_dist, far_clip_dist
   );
 
+  for (uint32 idx = 0; idx < point_lights->size; idx++) {
+    EntityHandle light = *point_lights->get(idx);
+    SpatialComponent *spatial_component = spatial_component_manager->get(light);
+    LightComponent *light_component = light_component_manager->get(light);
+
+    if (spatial_component && light_component) {
+      glm::vec3 position = spatial_component->position;
+      cube_shadowmap_transforms[(idx * 6) + 0] = perspective_projection * glm::lookAt(
+        position,
+        position + glm::vec3(1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+      cube_shadowmap_transforms[(idx * 6) + 1] = perspective_projection * glm::lookAt(
+        position,
+        position + glm::vec3(-1.0f, 0.0f, 0.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+      cube_shadowmap_transforms[(idx * 6) + 2] = perspective_projection * glm::lookAt(
+        position,
+        position + glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
+      );
+      cube_shadowmap_transforms[(idx * 6) + 3] = perspective_projection * glm::lookAt(
+        position,
+        position + glm::vec3(0.0f, -1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, -1.0f)
+      );
+      cube_shadowmap_transforms[(idx * 6) + 4] = perspective_projection * glm::lookAt(
+        position,
+        position + glm::vec3(0.0f, 0.0f, 1.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+      cube_shadowmap_transforms[(idx * 6) + 5] = perspective_projection * glm::lookAt(
+        position,
+        position + glm::vec3(0.0f, 0.0f, -1.0f),
+        glm::vec3(0.0f, -1.0f, 0.0f)
+      );
+    }
+  }
+}
+
+
+void Camera::create_texture_shadowmap_transforms(
+  glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS],
+  SpatialComponentManager *spatial_component_manager,
+  LightComponentManager *light_component_manager,
+  Array<EntityHandle> *directional_lights,
+  uint32 texture_shadowmap_width, uint32 texture_shadowmap_height,
+  real32 near_clip_dist, real32 far_clip_dist
+) {
   real32 ortho_ratio = (real32)texture_shadowmap_width / (real32)texture_shadowmap_height;
   real32 ortho_width = 100.0f;
   real32 ortho_height = ortho_width / ortho_ratio;
@@ -145,45 +199,14 @@ void Camera::create_shadow_transforms(
     near_clip_dist, far_clip_dist
   );
 
-  for (uint32 idx = 0; idx < lights->size; idx++) {
-    EntityHandle light = *lights->get(idx);
+  for (uint32 idx = 0; idx < directional_lights->size; idx++) {
+    EntityHandle light = *directional_lights->get(idx);
     SpatialComponent *spatial_component = spatial_component_manager->get(light);
     LightComponent *light_component = light_component_manager->get(light);
-    glm::vec3 position = spatial_component->position;
 
-    if (light_component->type == LIGHT_POINT) {
-      shadow_transforms[(idx * 6) + 0] = perspective_projection * glm::lookAt(
-        position,
-        position + glm::vec3(1.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, -1.0f, 0.0f)
-      );
-      shadow_transforms[(idx * 6) + 1] = perspective_projection * glm::lookAt(
-        position,
-        position + glm::vec3(-1.0f, 0.0f, 0.0f),
-        glm::vec3(0.0f, -1.0f, 0.0f)
-      );
-      shadow_transforms[(idx * 6) + 2] = perspective_projection * glm::lookAt(
-        position,
-        position + glm::vec3(0.0f, 1.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f)
-      );
-      shadow_transforms[(idx * 6) + 3] = perspective_projection * glm::lookAt(
-        position,
-        position + glm::vec3(0.0f, -1.0f, 0.0f),
-        glm::vec3(0.0f, 0.0f, -1.0f)
-      );
-      shadow_transforms[(idx * 6) + 4] = perspective_projection * glm::lookAt(
-        position,
-        position + glm::vec3(0.0f, 0.0f, 1.0f),
-        glm::vec3(0.0f, -1.0f, 0.0f)
-      );
-      shadow_transforms[(idx * 6) + 5] = perspective_projection * glm::lookAt(
-        position,
-        position + glm::vec3(0.0f, 0.0f, -1.0f),
-        glm::vec3(0.0f, -1.0f, 0.0f)
-      );
-    } else if (light_component->type == LIGHT_DIRECTIONAL) {
-      shadow_transforms[(idx * 6) + 0] = ortho_projection * glm::lookAt(
+    if (light_component && spatial_component) {
+      glm::vec3 position = spatial_component->position;
+      texture_shadowmap_transforms[idx] = ortho_projection * glm::lookAt(
         position,
         position + light_component->direction,
         glm::vec3(0.0f, -1.0f, 0.0f)

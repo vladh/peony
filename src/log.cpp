@@ -55,6 +55,10 @@ void log_mat4(glm::mat4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0][3], (*t)[1][3], (*t)[2][3], (*t)[3][3]);
 }
 
+void log_vec3(glm::vec3 *t) {
+  log_info("(%f, %f, %f)", (*t)[0], (*t)[1], (*t)[2]);
+}
+
 void log_vec4(glm::vec4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0], (*t)[1], (*t)[2], (*t)[3]);
 }

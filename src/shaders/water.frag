@@ -193,16 +193,20 @@ void main() {
     foam_color +
     vec3(0.0);
 
-#if SHOULD_USE_SHADOWS
-  // TODO: Send this light separately?
-  float shadow = calculate_shadows(fs_in.world_position, N, 0);
-  // Take out the very lightest shadows a little bit.
-  shadow = pow(shadow, 1.5);
-  color = color * (1.0 - (shadow * WATER_SHADOW_FACTOR));
-#endif
-
-  // color = N;
-  // color = vec3(underwater_position);
+  // Calculate shadows.
+  {
+    // NOTE: First directional light is the sun.
+    float shadow = calculate_directional_shadows(
+      fs_in.world_position,
+      N,
+      directional_light_position[0],
+      directional_light_direction[0],
+      0
+    );
+    // Take out the very lightest shadows a little bit.
+    shadow = pow(shadow, 1.5);
+    color = color * (1.0 - (shadow * WATER_SHADOW_FACTOR));
+  }
 
   l_color = vec4(color, 1.0);
   float brightness = dot(l_color.rgb, vec3(0.2126, 0.7152, 0.0722));
