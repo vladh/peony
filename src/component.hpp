@@ -7,7 +7,7 @@ struct Component {
 
 struct DrawableComponent : public Component {
   ModelAsset *model_asset;
-  RenderPass target_render_pass;
+  RenderPass::Flag target_render_pass;
 };
 
 struct LightComponent : public Component {

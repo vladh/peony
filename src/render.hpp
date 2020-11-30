@@ -10,16 +10,31 @@ constexpr glm::vec3 DIRECTIONAL_LIGHT_DISTANCE = glm::vec3(
 
 enum class RenderMode {regular, depth};
 
-enum class RenderPass {
-  deferred,
-  forward_depth,
-  forward_nodepth,
-  forward_skybox,
-  lighting,
-  postprocessing,
-  preblur,
-  blur1,
-  blur2
+/* enum class RenderPass { */
+/*   deferred, */
+/*   forward_depth, */
+/*   forward_nodepth, */
+/*   forward_skybox, */
+/*   lighting, */
+/*   postprocessing, */
+/*   preblur, */
+/*   blur1, */
+/*   blur2 */
+/* }; */
+
+namespace RenderPass {
+  typedef uint32 Flag;
+  Flag none = 0;
+  Flag shadowcaster = (1 << 0);
+  Flag deferred = (1 << 1);
+  Flag forward_depth = (1 << 2);
+  Flag forward_nodepth = (1 << 3);
+  Flag forward_skybox = (1 << 4);
+  Flag lighting = (1 << 5);
+  Flag postprocessing = (1 << 6);
+  Flag preblur = (1 << 7);
+  Flag blur1 = (1 << 8);
+  Flag blur2 = (1 << 9);
 };
 
 enum class LightType {point, directional};
