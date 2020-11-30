@@ -897,7 +897,6 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
   {
-
     Camera::create_shadow_transforms(
       state->shadow_transforms,
       &state->spatial_component_manager,
