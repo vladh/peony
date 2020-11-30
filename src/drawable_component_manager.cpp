@@ -8,7 +8,7 @@ DrawableComponentManager::DrawableComponentManager(
 DrawableComponent* DrawableComponentManager::add(
   EntityHandle entity_handle,
   ModelAsset *model_asset,
-  RenderPass target_render_pass
+  RenderPass::Flag target_render_pass
 ) {
   if (!model_asset) {
     log_fatal("Invalid model_asset when creating DrawableComponent.");
@@ -40,14 +40,14 @@ void DrawableComponentManager::draw_all(
   TextureNamePool *texture_name_pool,
   SpatialComponentManager *spatial_component_manager,
   Queue<Task> *task_queue,
-  RenderPass render_pass, RenderMode render_mode,
+  RenderPass::Flag render_pass, RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset
 ) {
   for (uint32 idx = 0; idx < this->components->size; idx++) {
     DrawableComponent *drawable = this->components->get(idx);
     SpatialComponent *spatial = spatial_component_manager->get(drawable->entity_handle);
 
-    if (render_pass != drawable->target_render_pass) {
+    if (!(render_pass & drawable->target_render_pass)) {
       continue;
     }
 

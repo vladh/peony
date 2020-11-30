@@ -38,6 +38,8 @@ vec3 SUN_ALBEDO = mix(
   SUNSET_FACTOR
 ) * SUN_BRIGHTNESS;
 
+vec3 BLOOM_BRIGHTNESS_THRESHOLD = vec3(0.2126, 0.7152, 0.0722);
+
 vec3 FOG_ALBEDO = vec3(0.4, 0.4, 0.8);
 
 vec3 SHADOW_GRID_SAMPLING_OFFSETS[20] = vec3[] (
@@ -260,11 +262,13 @@ float neumann_visibility(float n_dot_v, float n_dot_l) {
 
 
 vec3 compute_directional_light(
-  vec3 world_position, vec3 light_color,
+  vec3 world_position,
+  vec3 light_color,
   vec4 light_direction,
   vec3 albedo, float metallic, float roughness,
   vec3 N, vec3 V,
-  float n_dot_v, vec3 F0
+  float n_dot_v,
+  vec3 F0
 ) {
   vec3 L = normalize(vec3(-light_direction));
   vec3 H = normalize(V + L);
@@ -291,11 +295,14 @@ vec3 compute_directional_light(
 
 
 vec3 compute_point_light(
-  vec3 world_position, vec3 curr_light_position, vec3 light_color,
+  vec3 world_position,
+  vec3 curr_light_position,
+  vec3 light_color,
   vec4 light_attenuation,
   vec3 albedo, float metallic, float roughness,
   vec3 N, vec3 V,
-  float n_dot_v, vec3 F0
+  float n_dot_v,
+  vec3 F0
 ) {
   vec3 L = normalize(curr_light_position - world_position);
   vec3 H = normalize(V + L);
@@ -351,7 +358,8 @@ vec3 compute_pbr_light(
       point_light_attenuation[idx_light],
       albedo, metallic, roughness,
       N, V,
-      n_dot_v, F0
+      n_dot_v,
+      F0
     ) * (1.0 - shadow);
   }
 
@@ -369,7 +377,8 @@ vec3 compute_pbr_light(
       directional_light_direction[idx_light],
       albedo, metallic, roughness,
       N, V,
-      n_dot_v, F0
+      n_dot_v,
+      F0
     ) * (1.0 - shadow);
   }
 

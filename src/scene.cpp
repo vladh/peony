@@ -28,7 +28,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->directional_lights.push(entity->handle);
 #endif
 
-#if 1
+#if 0
   entity = state->entity_manager.add("point_light");
   state->spatial_component_manager.add(
     entity->handle,
@@ -45,8 +45,9 @@ void scene_init_objects(Memory *memory, State *state) {
     entity->handle,
     LightType::point,
     glm::vec3(0.0f, 0.0f, 0.0f),
-    glm::vec4(5.0f, 5.0f, 5.0f, 1.0f),
-    glm::vec4(1.0f, 0.09f, 0.032f, 0.0f)
+    glm::vec4(200.0f, 0.0f, 0.0f, 1.0f),
+    /* glm::vec4(1.0f, 0.09f, 0.032f, 0.0f) */
+    glm::vec4(1.0f, 0.09f, 0.032f, 0.0f) * 2.0f
   );
   state->point_lights.push(entity->handle);
 #endif
@@ -129,7 +130,7 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "rocks"),
-    RenderPass::deferred
+    RenderPass::deferred | RenderPass::shadowcaster
   );
 #endif
 

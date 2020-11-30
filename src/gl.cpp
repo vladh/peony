@@ -586,8 +586,8 @@ void init_window(WindowInfo *window_info) {
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
-    target_monitor, nullptr
-    /* nullptr, nullptr */
+    /* target_monitor, nullptr */
+    nullptr, nullptr
   );
   if (!window) {
     log_fatal("Failed to create GLFW window");
@@ -723,7 +723,10 @@ void copy_scene_data_to_ubo(Memory *memory, State *state) {
 
 
 void render_scene(
-  Memory *memory, State *state, RenderPass render_pass, RenderMode render_mode
+  Memory *memory,
+  State *state,
+  RenderPass::Flag render_pass,
+  RenderMode render_mode
 ) {
   state->drawable_component_manager.draw_all(
     memory,
@@ -778,32 +781,6 @@ void render_scene_ui(
     sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
     state->gui_manager.draw_named_value(
       container, "dt", debug_text
-    );
-
-    EntityHandle handle = *state->directional_lights[0];
-    SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
-    LightComponent *light_component = state->light_component_manager.get(handle);
-
-    sprintf(
-      debug_text,
-      "(%.2f, %.2f, %.2f)",
-      spatial_component->position.x,
-      spatial_component->position.y,
-      spatial_component->position.z
-    );
-    state->gui_manager.draw_named_value(
-      container, "dirlight.pos", debug_text
-    );
-
-    sprintf(
-      debug_text,
-      "(%.2f, %.2f, %.2f)",
-      light_component->direction.x,
-      light_component->direction.y,
-      light_component->direction.z
-    );
-    state->gui_manager.draw_named_value(
-      container, "dirlight.dir", debug_text
     );
 
     if (state->gui_manager.draw_toggle(
@@ -987,8 +964,7 @@ void update_and_render(Memory *memory, State *state) {
         copy_scene_data_to_ubo(
           memory, state, idx, light_type_to_int(light_component->type), false
         );
-        render_scene(memory, state, RenderPass::deferred, RenderMode::depth);
-        render_scene(memory, state, RenderPass::forward_depth, RenderMode::depth);
+        render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
       }
     }
 
@@ -1013,8 +989,7 @@ void update_and_render(Memory *memory, State *state) {
         copy_scene_data_to_ubo(
           memory, state, idx, light_type_to_int(light_component->type), false
         );
-        render_scene(memory, state, RenderPass::deferred, RenderMode::depth);
-        render_scene(memory, state, RenderPass::forward_depth, RenderMode::depth);
+        render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
       }
     }
 

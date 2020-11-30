@@ -80,10 +80,10 @@ State::State(
   cube_shadowmap_width(this->window_info.width),
   cube_shadowmap_height(this->window_info.width),
   texture_shadowmap_width(
-    (uint32)(2560.0f * 1.0f)
+    (uint32)(2560.0f * 4.0f)
   ),
   texture_shadowmap_height(
-    (uint32)(1440.0f * 1.0f)
+    (uint32)(1440.0f * 4.0f)
   ),
   shadowmap_near_clip_dist(0.05f),
   shadowmap_far_clip_dist(200.0f),

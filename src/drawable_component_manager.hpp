@@ -14,7 +14,7 @@ public:
   DrawableComponent* add(
     EntityHandle entity_handle,
     ModelAsset *model_asset,
-    RenderPass target_render_pass
+    RenderPass::Flag target_render_pass
   );
 
   DrawableComponent* get(EntityHandle handle);
@@ -25,7 +25,7 @@ public:
     TextureNamePool *texture_name_pool,
     SpatialComponentManager *spatial_component_manager,
     Queue<Task> *task_queue,
-    RenderPass render_pass, RenderMode render_mode,
+    RenderPass::Flag render_pass, RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset
   );
 
