@@ -45,12 +45,5 @@ glm::ivec2 TextureAtlas::push_space(glm::ivec2 space_size) {
     this->max_allocated_position_per_axis, new_space_end
   );
   this->next_position = new_space_position + glm::ivec2(space_size.x, 0);
-  log_info(
-    "requested (%d, %d) size (%d, %d) got (%d, %d) next (%d, %d)",
-    space_size.x, space_size.y,
-    this->size.x, this->size.y,
-    new_space_position.x, new_space_position.y,
-    this->next_position.x, this->next_position.y
-  );
   return new_space_position;
 }
