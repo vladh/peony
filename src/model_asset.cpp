@@ -104,7 +104,7 @@ void ModelAsset::load_mesh(
 ) {
   mesh->transform = transform;
   glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(transform)));
-  mesh->texture_set = nullptr;
+  mesh->material = nullptr;
   mesh->mode = GL_TRIANGLES;
 
   mesh->indices_pack = indices_pack;
@@ -194,8 +194,8 @@ void ModelAsset::load_node(
   for (uint32 idx = 0; idx < node->mNumChildren; idx++) {
     Pack new_indices_pack = indices_pack;
     // NOTE: We can only store 4 bits per pack element. Our indices can be way bigger than
-    // that, but that's fine. We don't need that much precision. Just smash the number up
-    // if it's bigger.
+    // that, but that's fine. We don't need that much precision. Just smash the number down
+    // to a uint8.
     pack_push(&new_indices_pack, (uint8)idx);
     load_node(
       memory, node->mChildren[idx], scene, transform, new_indices_pack
@@ -211,6 +211,7 @@ void ModelAsset::load(Memory *memory) {
   this->mutex.lock();
 
   if (this->model_source == ModelSource::file) {
+    START_TIMER(assimp_import);
     const aiScene *scene = aiImportFile(
       this->path,
       aiProcess_Triangulate
@@ -224,6 +225,7 @@ void ModelAsset::load(Memory *memory) {
       /* aiProcess_OptimizeGraph */
       /* | aiProcess_CalcTangentSpace */
     );
+    END_TIMER(assimp_import);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
       log_fatal("assimp error: %s", aiGetErrorString());
@@ -245,11 +247,11 @@ void ModelAsset::load(Memory *memory) {
 
 
 void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
-  for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-    MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
+  for (uint32 idx = 0; idx < this->materials.size; idx++) {
+    Material *material = this->materials[idx];
 
-    if (mesh_template->texture_set) {
-      mesh_template->texture_set->copy_textures_to_pbo(persistent_pbo);
+    if (material->textures.size > 0) {
+      material->copy_textures_to_pbo(persistent_pbo);
     }
   }
 
@@ -259,10 +261,10 @@ void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 
 
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
-  TextureSet *texture_set = mesh->texture_set;
-  ShaderAsset *shader_asset = mesh->shader_asset;
+  Material *material = mesh->material;
+  ShaderAsset *shader_asset = material->shader_asset;
 
-  if (!texture_set) {
+  if (material->textures.size == 0) {
     return;
   }
 
@@ -276,23 +278,23 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     ) {
       const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
       if (strcmp(uniform_name, "should_use_normal_map") == 0) {
-        shader_asset->set_bool("should_use_normal_map", texture_set->should_use_normal_map);
+        shader_asset->set_bool("should_use_normal_map", material->should_use_normal_map);
       } else if (strcmp(uniform_name, "albedo_static") == 0) {
-        shader_asset->set_vec4("albedo_static", &texture_set->albedo_static);
+        shader_asset->set_vec4("albedo_static", &material->albedo_static);
       } else if (strcmp(uniform_name, "metallic_static") == 0) {
-        shader_asset->set_float("metallic_static", texture_set->metallic_static);
+        shader_asset->set_float("metallic_static", material->metallic_static);
       } else if (strcmp(uniform_name, "roughness_static") == 0) {
-        shader_asset->set_float("roughness_static", texture_set->roughness_static);
+        shader_asset->set_float("roughness_static", material->roughness_static);
       } else if (strcmp(uniform_name, "ao_static") == 0) {
-        shader_asset->set_float("ao_static", texture_set->ao_static);
+        shader_asset->set_float("ao_static", material->ao_static);
       }
     }
 
     shader_asset->reset_texture_units();
 
-    for (uint32 idx = 0; idx < texture_set->textures.size; idx++) {
-      Texture *texture = texture_set->textures[idx];
-      const char *uniform_name = *texture_set->texture_uniform_names[idx];
+    for (uint32 idx = 0; idx < material->textures.size; idx++) {
+      Texture *texture = material->textures[idx];
+      const char *uniform_name = *material->texture_uniform_names[idx];
       log_info(
         "Setting uniforms: (model %s) (uniform_name %s) "
         "(texture->texture_name %d)",
@@ -306,41 +308,6 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
   }
 
   shader_asset->did_set_texture_uniforms = true;
-}
-
-
-void ModelAsset::set_shader(
-  ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
-  int16 node_depth, int16 node_idx
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-    Mesh *mesh = this->meshes[idx_mesh];
-    if (
-      (node_depth == -1 || node_idx == -1) ||
-      pack_get(&mesh->indices_pack, (uint8)node_depth) == node_idx
-    ) {
-      mesh->shader_asset = shader_asset;
-      mesh->depth_shader_asset = depth_shader_asset;
-    }
-  }
-}
-
-
-void ModelAsset::bind_texture(
-  TextureSet *texture_set, int16 node_depth, int16 node_idx
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-    Mesh *mesh = this->meshes[idx_mesh];
-    if (
-      (node_depth == -1 || node_idx == -1) ||
-      pack_get(&mesh->indices_pack, (uint8)node_depth) == node_idx
-    ) {
-      mesh->texture_set = texture_set;
-      if (!mesh->shader_asset->did_set_texture_uniforms) {
-        bind_texture_uniforms_for_mesh(mesh);
-      }
-    }
-  }
 }
 
 
@@ -365,16 +332,27 @@ void ModelAsset::prepare_for_draw(
     this->is_vertex_buffer_setup_done = true;
   }
 
-  if (this->mesh_templates.size > 0) {
-    // Step 3: Once the mesh data is loaded, bind shaders for their respective meshes.
+  if (this->materials.size > 0) {
+    // Step 3: Once the mesh data is loaded, bind shaders and texture sets
+    // for their respective meshes.
     if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
-      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
-        set_shader(
-          mesh_template->shader_asset,
-          mesh_template->depth_shader_asset,
-          mesh_template->node_depth, mesh_template->node_idx
-        );
+      for (uint32 idx_material = 0; idx_material < this->materials.size; idx_material++) {
+        Material *material = this->materials[idx_material];
+        for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
+          Mesh *mesh = this->meshes[idx_mesh];
+          uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
+          // For our model's mesh number `mesh_number`, we want to choose
+          // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
+          // we choose the 4th material for mesh number 4.
+          // However, if we have more meshes than materials, the extra
+          // meshes all get material number 0.
+          if (
+            mesh_number == idx_material ||
+            mesh_number >= this->materials.size && idx_material == 0
+          ) {
+            mesh->material = material;
+          }
+        }
       }
       this->is_shader_setting_done = true;
     }
@@ -389,15 +367,15 @@ void ModelAsset::prepare_for_draw(
       // useless work for threads! This means only copying textures for meshes
       // that have one or more textures that do not have names yet.
       bool32 should_try_to_copy_textures = false;
-      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
-        if (mesh_template->texture_set) {
+      for (uint32 idx = 0; idx < this->materials.size; idx++) {
+        Material *material = this->materials[idx];
+        if (material->textures.size > 0) {
           for (
             uint32 texture_idx = 0;
-            texture_idx < mesh_template->texture_set->textures.size;
+            texture_idx < material->textures.size;
             texture_idx++
           ) {
-            Texture *texture = mesh_template->texture_set->textures[texture_idx];
+            Texture *texture = material->textures[texture_idx];
             if (!texture->texture_name) {
               should_try_to_copy_textures = true;
               break;
@@ -428,14 +406,14 @@ void ModelAsset::prepare_for_draw(
 
       bool32 did_have_to_generate_texture = false;
 
-      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
+      for (uint32 idx = 0; idx < this->materials.size; idx++) {
+        Material *material = this->materials[idx];
 
         if (
-          mesh_template->texture_set &&
-          !mesh_template->texture_set->have_textures_been_generated
+          material->textures.size > 0 &&
+          !material->have_textures_been_generated
         ) {
-          mesh_template->texture_set->generate_textures_from_pbo(
+          material->generate_textures_from_pbo(
             persistent_pbo, texture_name_pool
           );
           did_have_to_generate_texture = true;
@@ -453,17 +431,19 @@ void ModelAsset::prepare_for_draw(
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
     if (this->is_texture_creation_done) {
-      for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
-        MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
+      for (uint32 idx = 0; idx < this->materials.size; idx++) {
+        Material *material = this->materials[idx];
 
         if (
-          mesh_template->texture_set &&
-          !mesh_template->shader_asset->did_set_texture_uniforms
+          material->textures.size > 0 &&
+          !material->shader_asset->did_set_texture_uniforms
         ) {
-          bind_texture(
-            mesh_template->texture_set,
-            mesh_template->node_depth, mesh_template->node_idx
-          );
+          for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
+            Mesh *mesh = this->meshes[idx_mesh];
+            if (!mesh->material->shader_asset->did_set_texture_uniforms) {
+              bind_texture_uniforms_for_mesh(mesh);
+            }
+          }
         }
       }
     }
@@ -496,7 +476,7 @@ void ModelAsset::draw(
 
   for (uint32 mesh_idx = 0; mesh_idx < this->meshes.size; mesh_idx++) {
     Mesh *mesh = this->meshes[mesh_idx];
-    shader_asset = mesh->shader_asset;
+    shader_asset = mesh->material->shader_asset;
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
     bool32 has_shader_changed = false;
@@ -571,8 +551,8 @@ void ModelAsset::draw_in_depth_mode(
 
   for (uint32 idx = 0; idx < this->meshes.size; idx++) {
     Mesh *mesh = this->meshes[idx];
-    if (mesh->depth_shader_asset) {
-      shader_asset = mesh->depth_shader_asset;
+    if (mesh->material->depth_shader_asset) {
+      shader_asset = mesh->material->depth_shader_asset;
     }
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
@@ -628,8 +608,7 @@ ModelAsset::ModelAsset(
   model_source(model_source),
   path(path),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
-  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
+  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials")
 {
   // NOTE: We do not load ModelSource::file models here.
   // They are loaded on-demand in `::draw()`.
@@ -647,15 +626,15 @@ ModelAsset::ModelAsset(
   model_source(model_source),
   path(""),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
-  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
+  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials")
 {
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);
-  mesh->texture_set = nullptr;
+  mesh->material = nullptr;
   mesh->mode = mode;
   mesh->n_vertices = n_vertices;
   mesh->n_indices = n_indices;
+  mesh->indices_pack = 0UL;
 
   setup_mesh_vertex_buffers_for_data_source(
     mesh, vertex_data, n_vertices, index_data, n_indices

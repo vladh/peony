@@ -1,4 +1,4 @@
-void TextureSet::add(
+void Material::add(
   Texture texture, const char *uniform_name
 ) {
   if (texture.is_screensize_dependent) {
@@ -9,27 +9,27 @@ void TextureSet::add(
 }
 
 
-void TextureSet::set_albedo_static(glm::vec4 new_albedo_static) {
+void Material::set_albedo_static(glm::vec4 new_albedo_static) {
   this->albedo_static = new_albedo_static;
 }
 
 
-void TextureSet::set_metallic_static(real32 new_metallic_static) {
+void Material::set_metallic_static(real32 new_metallic_static) {
   this->metallic_static = new_metallic_static;
 }
 
 
-void TextureSet::set_roughness_static(real32 new_roughness_static) {
+void Material::set_roughness_static(real32 new_roughness_static) {
   this->roughness_static = new_roughness_static;
 }
 
 
-void TextureSet::set_ao_static(real32 new_ao_static) {
+void Material::set_ao_static(real32 new_ao_static) {
   this->ao_static = new_ao_static;
 }
 
 
-void TextureSet::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
+void Material::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
   this->mutex.lock();
 
   for (uint32 idx = 0; idx < this->textures.size; idx++) {
@@ -54,7 +54,7 @@ void TextureSet::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 }
 
 
-void TextureSet::generate_textures_from_pbo(
+void Material::generate_textures_from_pbo(
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool
 ) {
