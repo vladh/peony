@@ -8,13 +8,18 @@ Memory::Memory(
   this->state_memory = (State*)malloc(this->state_memory_size);
   memset(this->state_memory, 0, this->state_memory_size);
 
+#if USE_MEMORY_DEBUG_LOGS
   log_info(
     "Allocating memory for state: %.2fMB (%dB)",
     B_TO_MB((real64)this->state_memory_size), this->state_memory_size
   );
+#endif
 }
 
 
 Memory::~Memory() {
+#if USE_MEMORY_DEBUG_LOGS
+  log_info("~Memory()");
+#endif
   free(this->state_memory);
 }

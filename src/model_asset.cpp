@@ -258,51 +258,6 @@ void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 }
 
 
-ModelAsset::ModelAsset(
-  Memory *memory, ModelSource model_source,
-  const char *name, const char *path
-) :
-  name(name),
-  model_source(model_source),
-  path(path),
-  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
-  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
-{
-  // NOTE: We do not load ModelSource::file models here.
-  // They are loaded on-demand in `::draw()`.
-}
-
-
-ModelAsset::ModelAsset(
-  Memory *memory, ModelSource model_source,
-  real32 *vertex_data, uint32 n_vertices,
-  uint32 *index_data, uint32 n_indices,
-  const char *name,
-  GLenum mode
-) :
-  name(name),
-  model_source(model_source),
-  path(""),
-  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
-  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
-{
-  Mesh *mesh = this->meshes.push();
-  mesh->transform = glm::mat4(1.0f);
-  mesh->texture_set = nullptr;
-  mesh->mode = mode;
-  mesh->n_vertices = n_vertices;
-  mesh->n_indices = n_indices;
-
-  setup_mesh_vertex_buffers_for_data_source(
-    mesh, vertex_data, n_vertices, index_data, n_indices
-  );
-  this->is_mesh_data_loading_done = true;
-  this->is_vertex_buffer_setup_done = true;
-}
-
-
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
   TextureSet *texture_set = mesh->texture_set;
   ShaderAsset *shader_asset = mesh->shader_asset;
@@ -662,4 +617,49 @@ ModelAsset* ModelAsset::get_by_name(
   }
   log_warning("Could not find ModelAsset with name %s", name);
   return nullptr;
+}
+
+
+ModelAsset::ModelAsset(
+  Memory *memory, ModelSource model_source,
+  const char *name, const char *path
+) :
+  name(name),
+  model_source(model_source),
+  path(path),
+  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
+  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
+{
+  // NOTE: We do not load ModelSource::file models here.
+  // They are loaded on-demand in `::draw()`.
+}
+
+
+ModelAsset::ModelAsset(
+  Memory *memory, ModelSource model_source,
+  real32 *vertex_data, uint32 n_vertices,
+  uint32 *index_data, uint32 n_indices,
+  const char *name,
+  GLenum mode
+) :
+  name(name),
+  model_source(model_source),
+  path(""),
+  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
+  texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
+  mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
+{
+  Mesh *mesh = this->meshes.push();
+  mesh->transform = glm::mat4(1.0f);
+  mesh->texture_set = nullptr;
+  mesh->mode = mode;
+  mesh->n_vertices = n_vertices;
+  mesh->n_indices = n_indices;
+
+  setup_mesh_vertex_buffers_for_data_source(
+    mesh, vertex_data, n_vertices, index_data, n_indices
+  );
+  this->is_mesh_data_loading_done = true;
+  this->is_vertex_buffer_setup_done = true;
 }
