@@ -70,7 +70,7 @@ void scene_init_objects(Memory *memory, State *state) {
 #endif
 
   // Temple
-#if 0
+#if 1
   entity = state->entity_manager.add("temple");
   state->spatial_component_manager.add(
     entity->handle,
@@ -81,39 +81,6 @@ void scene_init_objects(Memory *memory, State *state) {
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "temple"),
-    RenderPass::deferred
-  );
-#endif
-
-  // Geese
-#if 0
-  entity = state->entity_manager.add("goose");
-  state->spatial_component_manager.add(
-    entity->handle,
-    glm::vec3(-4.6f, 0.00f, -1.5f),
-    glm::angleAxis(glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-    glm::vec3(0.2f)
-  );
-  state->drawable_component_manager.add(
-    entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "goose"),
-    RenderPass::deferred
-  );
-  state->geese.push(entity->handle);
-#endif
-
-  // Floor
-#if 0
-  entity = state->entity_manager.add("floor");
-  state->spatial_component_manager.add(
-    entity->handle,
-    glm::vec3(0.0f),
-    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-    glm::vec3(150.0f, 0.1f, 150.0f)
-  );
-  state->drawable_component_manager.add(
-    entity->handle,
-    ModelAsset::get_by_name(&state->model_assets, "floor"),
     RenderPass::deferred
   );
 #endif
@@ -207,3 +174,34 @@ void scene_init_objects(Memory *memory, State *state) {
     RenderPass::postprocessing
   );
 }
+
+#if 0
+  // Geese
+  entity = state->entity_manager.add("goose");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(-4.6f, 0.00f, -1.5f),
+    glm::angleAxis(glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+    glm::vec3(0.2f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "goose"),
+    RenderPass::deferred
+  );
+  state->geese.push(entity->handle);
+
+  // Floor
+  entity = state->entity_manager.add("floor");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+    glm::vec3(150.0f, 0.1f, 150.0f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "floor"),
+    RenderPass::deferred
+  );
+#endif

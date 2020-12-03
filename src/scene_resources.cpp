@@ -165,40 +165,6 @@ void scene_init_resources(Memory *memory, State *state) {
     *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
   }
 
-  // Goose
-  {
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "goose", "resources/models/miniGoose.fbx"
-    );
-    shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "entity", ShaderType::standard,
-      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
-    );
-    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-    texture_set->set_albedo_static(glm::vec4(0.6f, 0.1f, 0.1f, 1.0f));
-    texture_set->set_metallic_static(0.0f);
-    texture_set->set_roughness_static(1.0f);
-    texture_set->set_ao_static(1.0f);
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
-  }
-
-  // Floor
-  {
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "floor", "resources/models/cube.obj"
-    );
-    shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "entity", ShaderType::standard,
-      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
-    );
-    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
-    texture_set->set_albedo_static(glm::vec4(0.9f, 0.8f, 0.7f, 1.0f));
-    texture_set->set_metallic_static(0.0f);
-    texture_set->set_roughness_static(1.0f);
-    texture_set->set_ao_static(1.0f);
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
-  }
-
   // Temple
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -401,3 +367,39 @@ void scene_init_resources(Memory *memory, State *state) {
   texture_set->add(*state->blur2_texture, "bloom_texture");
   *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
 }
+
+#if 0
+  // Goose
+  {
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory, ModelSource::file, "goose", "resources/models/miniGoose.fbx"
+    );
+    shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "entity", ShaderType::standard,
+      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
+    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->set_albedo_static(glm::vec4(0.6f, 0.1f, 0.1f, 1.0f));
+    texture_set->set_metallic_static(0.0f);
+    texture_set->set_roughness_static(1.0f);
+    texture_set->set_ao_static(1.0f);
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
+  }
+
+  // Floor
+  {
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory, ModelSource::file, "floor", "resources/models/cube.obj"
+    );
+    shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "entity", ShaderType::standard,
+      SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
+    );
+    texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
+    texture_set->set_albedo_static(glm::vec4(0.9f, 0.8f, 0.7f, 1.0f));
+    texture_set->set_metallic_static(0.0f);
+    texture_set->set_roughness_static(1.0f);
+    texture_set->set_ao_static(1.0f);
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
+  }
+#endif

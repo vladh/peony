@@ -1,7 +1,9 @@
 #ifndef MEMORY_POOL_H
 #define MEMORY_POOL_H
 
-constexpr uint32 N_MAX_MEMORYPOOL_ITEMS = 1024;
+#if USE_MEMORYPOOL_ITEM_DEBUG
+constexpr uint32 N_MAX_MEMORYPOOL_ITEMS = 8192;
+#endif
 
 class MemoryPool {
 public:
@@ -10,8 +12,10 @@ public:
   size_t size;
   size_t used;
   uint32 n_items;
-  const char **item_debug_names;
-  size_t *item_debug_sizes;
+#if USE_MEMORYPOOL_ITEM_DEBUG
+  const char *item_debug_names[N_MAX_MEMORYPOOL_ITEMS];
+  size_t item_debug_sizes[N_MAX_MEMORYPOOL_ITEMS];
+#endif
 
   MemoryPool(const char *name, size_t size);
   ~MemoryPool();

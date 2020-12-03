@@ -1,6 +1,8 @@
 void MemoryPool::reset() {
   this->mutex.lock();
+#if USE_MEMORY_DEBUG_LOGS
   log_info("Resetting memory pool \"%s\"", this->name);
+#endif
   this->used = 0;
   this->n_items = 0;
   this->mutex.unlock();
@@ -19,18 +21,25 @@ void MemoryPool::zero_out() {
 void* MemoryPool::push(size_t item_size, const char *item_debug_name) {
   this->mutex.lock();
   assert(this->used + item_size <= this->size);
-  void *new_memory = this->memory + this->used;
-  this->used += item_size;
+
+#if USE_MEMORYPOOL_ITEM_DEBUG
+  assert(this->n_items < N_MAX_MEMORYPOOL_ITEMS);
   this->item_debug_names[this->n_items] = item_debug_name;
   this->item_debug_sizes[this->n_items] = item_size;
+#endif
+
+  void *new_memory = this->memory + this->used;
+  this->used += item_size;
   this->n_items++;
-#if 1
+
+#if USE_MEMORY_DEBUG_LOGS
   log_info(
     "Pusing to memory pool \"%s\": %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
     this->name, B_TO_MB((real64)item_size), item_size, item_debug_name,
     B_TO_MB((real64)this->used), this->used
   );
 #endif
+
   this->mutex.unlock();
   return new_memory;
 }
@@ -45,6 +54,7 @@ void MemoryPool::print() {
   if (this->n_items == 0) {
     log_info("    (none)");
   }
+#if USE_MEMORYPOOL_ITEM_DEBUG
   for (uint32 idx = 0; idx < this->n_items; idx++) {
     log_info(
       "    %02d. %s, %.2fMB (%dB)",
@@ -54,41 +64,34 @@ void MemoryPool::print() {
       this->item_debug_sizes[idx]
     );
   }
+#endif
   this->mutex.unlock();
 }
 
 
-MemoryPool::MemoryPool(const char *new_name, size_t new_size) {
+MemoryPool::MemoryPool(
+  const char *name, size_t size
+) :
+  name(name),
+  size(size),
+  used(0),
+  n_items(0)
+{
+#if USE_MEMORY_DEBUG_LOGS
   log_info(
     "Allocating memory pool \"%s\": %.2fMB (%dB)",
-    new_name, B_TO_MB((real64)new_size), new_size
+    this->name, B_TO_MB((real64)this->size), this->size
   );
+#endif
 
-  this->name = new_name;
-  this->size = new_size;
-  this->used = 0;
-  this->n_items = 0;
   this->memory = (uint8*)malloc(this->size);
   memset(this->memory, 0, this->size);
-
-  // NOTE: The item_debug_names and item_debug_sizes for each MemoryPool
-  // is allocated memory that we won't be "keeping track of" (e.g. printing
-  // for debugging purposes) in the application. We should remember it's there.
-  size_t item_debug_names_size = sizeof(char*) * N_MAX_MEMORYPOOL_ITEMS;
-  this->item_debug_names = (const char**)malloc(item_debug_names_size);
-  size_t item_debug_sizes_size = sizeof(uint32) * N_MAX_MEMORYPOOL_ITEMS;
-  this->item_debug_sizes = (size_t*)malloc(item_debug_sizes_size);
-
-  log_info(
-    "Allocating named debugging info: names %.2fMB (%dB), sizes %.2fMB (%dB)",
-    B_TO_MB((real64)item_debug_names_size), item_debug_names_size,
-    B_TO_MB((real64)item_debug_sizes_size), item_debug_sizes_size
-  );
 }
 
 
 MemoryPool::~MemoryPool() {
+#if USE_MEMORY_DEBUG_LOGS
+  log_info("%s ~MemoryPool()", this->name);
+#endif
   free(this->memory);
-  free(this->item_debug_names);
-  free(this->item_debug_sizes);
 }
