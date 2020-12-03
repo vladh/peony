@@ -115,7 +115,7 @@ public:
     glm::vec2 position, glm::vec2 bottomright,
     glm::vec2 thickness, glm::vec4 color
   );
-  bool32 GuiManager::draw_toggle(
+  bool32 draw_toggle(
     GuiContainer *container,
     const char *text,
     bool32 *toggle_state
