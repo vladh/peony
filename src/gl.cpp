@@ -2,7 +2,7 @@
 
 #define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
-#define USE_VLD true
+#define USE_VLD false
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 
@@ -19,7 +19,7 @@ global_variable uint32 global_oopses = 0;
 #include "font_asset.cpp"
 #include "shader_asset.cpp"
 #include "persistent_pbo.cpp"
-#include "texture_set.cpp"
+#include "material.cpp"
 #include "texture_atlas.cpp"
 #include "camera.cpp"
 #include "memory_pool.cpp"
@@ -487,30 +487,34 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
       uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
     ) {
       Mesh *mesh = model_asset->meshes[idx_mesh];
-      if (mesh->texture_set && mesh->texture_set->is_screensize_dependent) {
+      if (
+        mesh->material->textures.size > 0 &&
+        mesh->material->is_screensize_dependent
+      ) {
+        Material *material = mesh->material;
         log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
         for(
-          uint32 idx_texture = 0; idx_texture < mesh->texture_set->textures.size; idx_texture++
+          uint32 idx_texture = 0; idx_texture < material->textures.size; idx_texture++
         ) {
-          Texture *texture = mesh->texture_set->textures[idx_texture];
+          Texture *texture = material->textures[idx_texture];
           if (texture->type == TextureType::g_position) {
-            mesh->texture_set->textures.set(idx_texture, state->g_position_texture);
+            material->textures.set(idx_texture, state->g_position_texture);
           } else if (texture->type == TextureType::g_normal) {
-            mesh->texture_set->textures.set(idx_texture, state->g_normal_texture);
+            material->textures.set(idx_texture, state->g_normal_texture);
           } else if (texture->type == TextureType::g_albedo) {
-            mesh->texture_set->textures.set(idx_texture, state->g_albedo_texture);
+            material->textures.set(idx_texture, state->g_albedo_texture);
           } else if (texture->type == TextureType::g_pbr) {
-            mesh->texture_set->textures.set(idx_texture, state->g_pbr_texture);
+            material->textures.set(idx_texture, state->g_pbr_texture);
           } else if (texture->type == TextureType::l_color) {
-            mesh->texture_set->textures.set(idx_texture, state->l_color_texture);
+            material->textures.set(idx_texture, state->l_color_texture);
           } else if (texture->type == TextureType::l_bright_color) {
-            mesh->texture_set->textures.set(idx_texture, state->l_bright_color_texture);
+            material->textures.set(idx_texture, state->l_bright_color_texture);
           } else if (texture->type == TextureType::l_depth) {
-            mesh->texture_set->textures.set(idx_texture, state->l_depth_texture);
+            material->textures.set(idx_texture, state->l_depth_texture);
           } else if (texture->type == TextureType::blur1) {
-            mesh->texture_set->textures.set(idx_texture, state->blur1_texture);
+            material->textures.set(idx_texture, state->blur1_texture);
           } else if (texture->type == TextureType::blur2) {
-            mesh->texture_set->textures.set(idx_texture, state->blur2_texture);
+            material->textures.set(idx_texture, state->blur2_texture);
           }
         }
         model_asset->bind_texture_uniforms_for_mesh(mesh);
@@ -583,10 +587,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  /* window_info->width = video_mode->width; */
-  /* window_info->height = video_mode->height; */
-  window_info->width = 1920;
-  window_info->height = 1080;
+  window_info->width = video_mode->width;
+  window_info->height = video_mode->height;
+  /* window_info->width = 1920; */
+  /* window_info->height = 1080; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -598,8 +602,8 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  /* glfwSetWindowPos(window, 0, 0); */
-  glfwSetWindowPos(window, 200, 200);
+  glfwSetWindowPos(window, 1, 1);
+  /* glfwSetWindowPos(window, 200, 200); */
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
@@ -1201,7 +1205,9 @@ void destroy_window() {
 }
 
 
-void run_loading_loop(std::mutex *mutex, Memory *memory, State *state) {
+void run_loading_loop(
+  std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
+) {
   while (!state->should_stop) {
     Task *task = nullptr;
 
@@ -1212,7 +1218,19 @@ void run_loading_loop(std::mutex *mutex, Memory *memory, State *state) {
     mutex->unlock();
 
     if (task) {
+      log_info(
+        "[Thread #%d] Running task %s for model %s",
+        idx_thread,
+        Task::task_type_to_str(task->type),
+        task->model_asset->name
+      );
       task->run();
+      log_info(
+        "[Thread #%d] Finished task %s for model %s",
+        idx_thread,
+        Task::task_type_to_str(task->type),
+        task->model_asset->name
+      );
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
@@ -1244,11 +1262,11 @@ int main() {
   State *state = new((State*)memory.state_memory) State(&memory, window_info);
 
   std::mutex loading_thread_mutex;
-  std::thread loading_thread_1 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
-  std::thread loading_thread_2 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
-  std::thread loading_thread_3 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
-  std::thread loading_thread_4 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
-  std::thread loading_thread_5 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state);
+  std::thread loading_thread_1 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 1);
+  std::thread loading_thread_2 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 2);
+  std::thread loading_thread_3 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 3);
+  std::thread loading_thread_4 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 4);
+  std::thread loading_thread_5 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 5);
 
 #if 0
   Util::print_texture_internalformat_info(GL_RGB8);

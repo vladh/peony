@@ -2,21 +2,12 @@
 #define MODELS_H
 
 constexpr uint32 MAX_N_MESHES = 2048;
-constexpr uint8 MAX_N_TEXTURE_SETS = 8;
-constexpr uint8 MAX_N_MESH_TEMPLATES = 128;
+constexpr uint8 MAX_N_MATERIALS = 128;
 
 // NOTE:
 // * ModelSource::data: Loaded on initialisation, from given vertex data.
 // * ModelSource::file: Loaded on demand, from file.
 enum class ModelSource {file, data};
-
-struct MeshShaderTextureTemplate {
-  ShaderAsset *shader_asset;
-  ShaderAsset *depth_shader_asset;
-  TextureSet *texture_set;
-  int16 node_depth;
-  int16 node_idx;
-};
 
 struct Vertex {
   glm::vec3 position;
@@ -26,10 +17,8 @@ struct Vertex {
 
 struct Mesh {
   glm::mat4 transform;
-  TextureSet *texture_set;
-  ShaderAsset *shader_asset;
-  ShaderAsset *depth_shader_asset;
-  uint64 indices_pack;
+  Material *material;
+  Pack indices_pack;
   uint32 n_vertices;
   uint32 n_indices;
   uint32 vao;
@@ -46,8 +35,7 @@ public:
   ModelSource model_source;
   const char *path;
   Array<Mesh> meshes;
-  Array<TextureSet> texture_sets;
-  Array<MeshShaderTextureTemplate> mesh_templates;
+  Array<Material> materials;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
   bool32 is_texture_copying_to_pbo_in_progress = false;
@@ -67,13 +55,6 @@ public:
     uint32 *index_data, uint32 n_indices,
     const char *name,
     GLenum mode
-  );
-  void set_shader(
-    ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
-    int16 node_depth, int16 node_idx
-  );
-  void bind_texture(
-    TextureSet *texture_set, int16 node_depth, int16 node_idx
   );
   void draw(
     Memory *memory,
@@ -98,7 +79,6 @@ public:
   void copy_textures_to_pbo(
     PersistentPbo *persistent_pbo
   );
-  void load_templates();
   static ModelAsset* get_by_name(
     Array<ModelAsset> *assets, const char *name
   );
@@ -121,7 +101,8 @@ private:
   );
   void load_node(
     Memory *memory, aiNode *node, const aiScene *scene,
-    glm::mat4 accumulated_transform, Pack indices_pack
+    glm::mat4 accumulated_transform,
+    Pack indices_pack
   );
   void prepare_for_draw(
     Memory *memory,

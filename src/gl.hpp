@@ -57,7 +57,7 @@
 #include "shader_asset.hpp"
 #include "persistent_pbo.hpp"
 #include "texture.hpp"
-#include "texture_set.hpp"
+#include "material.hpp"
 #include "model_asset.hpp"
 #include "entity.hpp"
 #include "component.hpp"
