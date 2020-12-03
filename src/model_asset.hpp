@@ -14,9 +14,8 @@ struct MeshShaderTextureTemplate {
   ShaderAsset *shader_asset;
   ShaderAsset *depth_shader_asset;
   TextureSet *texture_set;
-  bool32 apply_to_all_meshes;
-  uint8 node_depth;
-  uint8 node_idx;
+  int16 node_depth;
+  int16 node_idx;
 };
 
 struct Vertex {
@@ -45,8 +44,7 @@ class ModelAsset {
 public:
   const char *name;
   ModelSource model_source;
-  const char *directory;
-  const char *filename;
+  const char *path;
   Array<Mesh> meshes;
   Array<TextureSet> texture_sets;
   Array<MeshShaderTextureTemplate> mesh_templates;
@@ -61,7 +59,7 @@ public:
 
   ModelAsset(
     Memory *memory, ModelSource model_source,
-    const char *name, const char *directory, const char *filename
+    const char *name, const char *path
   );
   ModelAsset(
     Memory *memory, ModelSource model_source,
@@ -70,24 +68,12 @@ public:
     const char *name,
     GLenum mode
   );
-  void set_shader_for_mesh(
-    uint32 idx_mesh, ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
-  );
   void set_shader(
-    ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
-  );
-  void set_shader_for_node_idx(
     ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
-    uint8 node_depth, uint8 node_idx
-  );
-  void bind_texture_to_mesh(
-    uint32 idx_mesh, TextureSet *texture_set
+    int16 node_depth, int16 node_idx
   );
   void bind_texture(
-    TextureSet *texture_set
-  );
-  void bind_texture_for_node_idx(
-    TextureSet *texture_set, uint8 node_depth, uint8 node_idx
+    TextureSet *texture_set, int16 node_depth, int16 node_idx
   );
   void draw(
     Memory *memory,

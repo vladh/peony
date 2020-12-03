@@ -24,12 +24,12 @@ void scene_init_resources(Memory *memory, State *state) {
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      axes_vertices, 6,
+      axes_vertices, LEN(axes_vertices),
       nullptr, 0,
       "axes",
       GL_LINES
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, -1, -1};
   }
 
   // Ocean
@@ -89,7 +89,7 @@ void scene_init_resources(Memory *memory, State *state) {
       "texture_shadowmaps"
     );
     *model_asset->mesh_templates.push() = {
-      shader_asset, depth_shader_asset, texture_set, true, 0, 0
+      shader_asset, depth_shader_asset, texture_set, -1, -1
     };
     memory->temp_memory_pool.reset();
   }
@@ -118,7 +118,7 @@ void scene_init_resources(Memory *memory, State *state) {
       memory, "skysphere", ShaderType::standard,
       SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag", nullptr
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, -1, -1};
     memory->temp_memory_pool.reset();
   }
 
@@ -129,19 +129,19 @@ void scene_init_resources(Memory *memory, State *state) {
   // Light
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "light", "resources/models/", "cube.obj"
+      memory, ModelSource::file, "light", "resources/models/cube.obj"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "light", ShaderType::standard,
       SHADER_DIR"simple.vert", SHADER_DIR"simple.frag", nullptr
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, nullptr, -1, -1};
   }
 
   // Rocks
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "rocks", "resources/models/", "Stones_AssetKit.fbx"
+      memory, ModelSource::file, "rocks", "resources/models/Stones_AssetKit.fbx"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "stones", ShaderType::standard,
@@ -162,13 +162,13 @@ void scene_init_resources(Memory *memory, State *state) {
       Texture(TextureType::normal, "resources/textures/rocks/2k/Stones_Normal.jpg"),
       "normal_texture"
     );
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
   }
 
   // Goose
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "goose", "resources/models/", "miniGoose.fbx"
+      memory, ModelSource::file, "goose", "resources/models/miniGoose.fbx"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "entity", ShaderType::standard,
@@ -179,13 +179,13 @@ void scene_init_resources(Memory *memory, State *state) {
     texture_set->set_metallic_static(0.0f);
     texture_set->set_roughness_static(1.0f);
     texture_set->set_ao_static(1.0f);
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
   }
 
   // Floor
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "floor", "resources/models/", "cube.obj"
+      memory, ModelSource::file, "floor", "resources/models/cube.obj"
     );
     shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "entity", ShaderType::standard,
@@ -196,13 +196,13 @@ void scene_init_resources(Memory *memory, State *state) {
     texture_set->set_metallic_static(0.0f);
     texture_set->set_roughness_static(1.0f);
     texture_set->set_ao_static(1.0f);
-    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+    *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
   }
 
   // Temple
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "temple", "resources/models/", "shop.fbx"
+      memory, ModelSource::file, "temple", "resources/models/shop.fbx"
     );
 
     {
@@ -231,7 +231,7 @@ void scene_init_resources(Memory *memory, State *state) {
         Texture(TextureType::normal, "resources/textures/shop/03_-_Default_Normal.tga.png"),
         "normal_texture"
       );
-      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 0};
+      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, 0, 0};
     }
 
     {
@@ -260,7 +260,7 @@ void scene_init_resources(Memory *memory, State *state) {
         Texture(TextureType::normal, "resources/textures/shop/01_-_Default_Normal.tga.png"),
         "normal_texture"
       );
-      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 1};
+      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, 0, 1};
     }
 
     {
@@ -289,7 +289,7 @@ void scene_init_resources(Memory *memory, State *state) {
         Texture(TextureType::normal, "resources/textures/shop/02_-_Default_Normal.tga.png"),
         "normal_texture"
       );
-      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, false, 0, 2};
+      *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, 0, 2};
     }
   }
 
@@ -329,7 +329,7 @@ void scene_init_resources(Memory *memory, State *state) {
     ),
     "texture_shadowmaps"
   );
-  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
 
   // Preblur screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -346,7 +346,7 @@ void scene_init_resources(Memory *memory, State *state) {
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
   texture_set->add(*state->l_bright_color_texture, "source_texture");
-  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
 
   // Blur 1 screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -363,7 +363,7 @@ void scene_init_resources(Memory *memory, State *state) {
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
   texture_set->add(*state->blur2_texture, "source_texture");
-  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
 
   // Blur 2 screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -380,7 +380,7 @@ void scene_init_resources(Memory *memory, State *state) {
   );
   texture_set = new(model_asset->texture_sets.push()) TextureSet(memory);
   texture_set->add(*state->blur1_texture, "source_texture");
-  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
 
   // Postprocessing screenquad
   shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -399,5 +399,5 @@ void scene_init_resources(Memory *memory, State *state) {
   texture_set->add(*state->l_color_texture, "l_color_texture");
   texture_set->add(*state->l_depth_texture, "l_depth_texture");
   texture_set->add(*state->blur2_texture, "bloom_texture");
-  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, true, 0, 0};
+  *model_asset->mesh_templates.push() = {shader_asset, nullptr, texture_set, -1, -1};
 }

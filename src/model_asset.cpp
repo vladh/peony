@@ -211,13 +211,8 @@ void ModelAsset::load(Memory *memory) {
   this->mutex.lock();
 
   if (this->model_source == ModelSource::file) {
-    char path[256];
-    strcpy(path, this->directory);
-    strcat(path, "/");
-    strcat(path, this->filename);
-
     const aiScene *scene = aiImportFile(
-      path,
+      this->path,
       aiProcess_Triangulate
       | aiProcess_JoinIdenticalVertices
       | aiProcess_SortByPType
@@ -264,40 +259,35 @@ void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 
 
 ModelAsset::ModelAsset(
-  Memory *memory, ModelSource new_model_source,
-  const char *new_name, const char *new_directory,
-  const char *new_filename
+  Memory *memory, ModelSource model_source,
+  const char *name, const char *path
 ) :
+  name(name),
+  model_source(model_source),
+  path(path),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
   mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
-  this->name = new_name;
-  this->model_source = new_model_source;
-  this->directory = new_directory;
-  this->filename = new_filename;
-
   // NOTE: We do not load ModelSource::file models here.
   // They are loaded on-demand in `::draw()`.
 }
 
 
 ModelAsset::ModelAsset(
-  Memory *memory, ModelSource new_model_source,
+  Memory *memory, ModelSource model_source,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
-  const char *new_name,
+  const char *name,
   GLenum mode
 ) :
+  name(name),
+  model_source(model_source),
+  path(""),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   texture_sets(&memory->asset_memory_pool, MAX_N_TEXTURE_SETS, "texture_sets"),
   mesh_templates(&memory->asset_memory_pool, MAX_N_MESH_TEMPLATES, "mesh_templates")
 {
-  this->name = new_name;
-  this->model_source = new_model_source;
-  this->directory = "";
-  this->filename = "";
-
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);
   mesh->texture_set = nullptr;
@@ -364,64 +354,36 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 }
 
 
-void ModelAsset::set_shader_for_mesh(
-  uint32 idx_mesh, ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
-) {
-  Mesh *mesh = this->meshes[idx_mesh];
-  mesh->shader_asset = shader_asset;
-  mesh->depth_shader_asset = depth_shader_asset;
-}
-
-
 void ModelAsset::set_shader(
-  ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-    set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
-  }
-}
-
-
-void ModelAsset::set_shader_for_node_idx(
   ShaderAsset *shader_asset, ShaderAsset *depth_shader_asset,
-  uint8 node_depth, uint8 node_idx
+  int16 node_depth, int16 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
     Mesh *mesh = this->meshes[idx_mesh];
-    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      set_shader_for_mesh(idx_mesh, shader_asset, depth_shader_asset);
+    if (
+      (node_depth == -1 || node_idx == -1) ||
+      pack_get(&mesh->indices_pack, (uint8)node_depth) == node_idx
+    ) {
+      mesh->shader_asset = shader_asset;
+      mesh->depth_shader_asset = depth_shader_asset;
     }
   }
 }
 
 
-void ModelAsset::bind_texture_to_mesh(
-  uint32 idx_mesh, TextureSet *texture_set
-) {
-  Mesh *mesh = this->meshes[idx_mesh];
-  mesh->texture_set = texture_set;
-  if (!mesh->shader_asset->did_set_texture_uniforms) {
-    bind_texture_uniforms_for_mesh(mesh);
-  }
-}
-
-
 void ModelAsset::bind_texture(
-  TextureSet *texture_set
-) {
-  for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-    bind_texture_to_mesh(idx_mesh, texture_set);
-  }
-}
-
-
-void ModelAsset::bind_texture_for_node_idx(
-  TextureSet *texture_set, uint8 node_depth, uint8 node_idx
+  TextureSet *texture_set, int16 node_depth, int16 node_idx
 ) {
   for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
     Mesh *mesh = this->meshes[idx_mesh];
-    if (pack_get(&mesh->indices_pack, node_depth) == node_idx) {
-      bind_texture_to_mesh(idx_mesh, texture_set);
+    if (
+      (node_depth == -1 || node_idx == -1) ||
+      pack_get(&mesh->indices_pack, (uint8)node_depth) == node_idx
+    ) {
+      mesh->texture_set = texture_set;
+      if (!mesh->shader_asset->did_set_texture_uniforms) {
+        bind_texture_uniforms_for_mesh(mesh);
+      }
     }
   }
 }
@@ -453,16 +415,11 @@ void ModelAsset::prepare_for_draw(
     if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
       for (uint32 idx = 0; idx < this->mesh_templates.size; idx++) {
         MeshShaderTextureTemplate *mesh_template = this->mesh_templates[idx];
-
-        if (mesh_template->apply_to_all_meshes) {
-          set_shader(mesh_template->shader_asset, mesh_template->depth_shader_asset);
-        } else {
-          set_shader_for_node_idx(
-            mesh_template->shader_asset,
-            mesh_template->depth_shader_asset,
-            mesh_template->node_depth, mesh_template->node_idx
-          );
-        }
+        set_shader(
+          mesh_template->shader_asset,
+          mesh_template->depth_shader_asset,
+          mesh_template->node_depth, mesh_template->node_idx
+        );
       }
       this->is_shader_setting_done = true;
     }
@@ -548,16 +505,10 @@ void ModelAsset::prepare_for_draw(
           mesh_template->texture_set &&
           !mesh_template->shader_asset->did_set_texture_uniforms
         ) {
-          if (mesh_template->apply_to_all_meshes) {
-            bind_texture(
-              mesh_template->texture_set
-            );
-          } else {
-            bind_texture_for_node_idx(
-              mesh_template->texture_set,
-              mesh_template->node_depth, mesh_template->node_idx
-            );
-          }
+          bind_texture(
+            mesh_template->texture_set,
+            mesh_template->node_depth, mesh_template->node_idx
+          );
         }
       }
     }
