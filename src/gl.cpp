@@ -2,6 +2,7 @@
 
 #define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
+#define USE_VLD true
 
 #include "gl.hpp"
 
@@ -19,6 +20,7 @@ global_variable uint32 global_oopses = 0;
 #include "texture_set.cpp"
 #include "texture_atlas.cpp"
 #include "camera.cpp"
+#include "memory_pool.cpp"
 #include "memory.cpp"
 #include "input_manager.cpp"
 #include "entity.cpp"
@@ -1215,6 +1217,12 @@ void run_loading_loop(std::mutex *mutex, Memory *memory, State *state) {
 }
 
 
+void handle_sigsegv(int signal) {
+  log_error("Signal %d", signal);
+  exit(1);
+}
+
+
 int main() {
   START_TIMER(init);
 
@@ -1280,5 +1288,6 @@ int main() {
   loading_thread_5.join();
 
   destroy_window();
+
   return 0;
 }
