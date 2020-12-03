@@ -1,8 +1,11 @@
 #ifndef GL_H
 #define GL_H
 
+#if USE_VLD
+#include <vld.h>
+#endif
+
 // TODO: Decide which ones we should actually be including.
-// Add assert.h?
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
@@ -39,6 +42,7 @@
 #include "math.hpp"
 #include "debug.hpp"
 #include "log.hpp"
+#include "memory_pool.hpp"
 #include "memory.hpp"
 #include "util.hpp"
 #include "task.hpp"
