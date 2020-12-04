@@ -1,0 +1,9 @@
+[goose]
+shader_asset = {
+  vert_path = standard.vert
+  frag_path = standard.frag
+}
+albedo_static = vec4(0.6, 0.1, 0.1, 1.0)
+metallic_static = 0.0
+roughness_static = 1.0
+ao_static = 1.0

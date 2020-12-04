@@ -1,0 +1,17 @@
+[ocean]
+shader_asset = {
+  vert_path = water.vert
+  frag_path = water.frag
+}
+depth_shader_asset = {
+  vert_path = water_depth.vert
+  frag_path = standard_depth.frag
+}
+textures = {
+  g_position_texture = g_position_texture
+  g_albedo_texture = g_albedo_texture
+  cube_shadowmaps = cube_shadowmaps
+  texture_shadowmaps = texture_shadowmaps
+  normal_texture = resources/textures/vlachos.jpg
+  foam_texture = resources/textures/water_foam.png
+}

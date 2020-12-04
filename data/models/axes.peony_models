@@ -1,0 +1,4 @@
+[axes]
+vertices = axes
+mode = GL_LINES
+materials = [axes]

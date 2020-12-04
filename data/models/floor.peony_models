@@ -1,0 +1,3 @@
+[floor]
+model_path = cube.obj
+materials = [floor]

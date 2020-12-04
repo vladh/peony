@@ -1,0 +1,4 @@
+[ocean]
+vertices = ocean
+mode = GL_TRIANGLES
+materials = [ocean]

@@ -1,0 +1,40 @@
+[skysphere]
+drawable_component = {
+  model_asset = skysphere
+  render_passes = [forward_skybox]
+}
+spatial_component = {
+  position = vec3(0.0, 0.0, 0.0)
+  rotation = vec4(0.0, 1.0, 0.0, 0.0)
+  scale = vec3(75.0, 75.0, 75.0)
+}
+
+[screenquad_lighting]
+drawable_component = {
+  model_asset = screenquad_lighting
+  render_passes = [lighting]
+}
+
+[screenquad_preblur]
+drawable_component = {
+  model_asset = screenquad_preblur
+  render_passes = [preblur]
+}
+
+[screenquad_blur1]
+drawable_component = {
+  model_asset = screenquad_blur1
+  render_passes = [blur1]
+}
+
+[screenquad_blur2]
+drawable_component = {
+  model_asset = screenquad_blur2
+  render_passes = [blur2]
+}
+
+[screenquad_postprocessing]
+drawable_component = {
+  model_asset = screenquad_postprocessing
+  render_passes = [postprocessing]
+}

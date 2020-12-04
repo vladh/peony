@@ -1,0 +1,5 @@
+[light]
+shader_asset = {
+  vert_path = simple.vert
+  frag_path = simple.frag
+}

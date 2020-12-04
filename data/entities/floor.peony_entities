@@ -1,0 +1,10 @@
+[floor]
+drawable_component = {
+  model_asset = floor
+  render_pass = [deferred]
+}
+spatial_component = {
+  position = vec3(0.0, 0.0, 0.0)
+  rotation = vec4(0.0, 1.0, 0.0, 0.0)
+  scale = vec3(150.0, 0.1, 150.0)
+}

@@ -1,0 +1,10 @@
+[axes]
+drawable_component = {
+  model_asset = axes
+  render_passes = [forward_nodepth]
+}
+spatial_component = {
+  position = vec3(0.0, 0.1, 0.0)
+  rotation = vec4(0.0, 1.0, 0.0, 0.0)
+  scale = vec3(1.0, 1.0, 1.0)
+}

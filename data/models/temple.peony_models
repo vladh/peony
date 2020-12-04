@@ -1,0 +1,3 @@
+[temple]
+model_path = shop.fbx
+materials = [temple_1, temple_2, temple_3]
