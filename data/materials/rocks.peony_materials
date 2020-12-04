@@ -1,0 +1,12 @@
+[rocks]
+metallic_static = 0.0
+ao_static = 1.0
+shader_asset = {
+  vert_path = standard.vert
+  frag_path = standard.frag
+}
+textures = {
+  albedo_texture = resources/textures/rocks/2k/Stones_Color.jpg
+  roughness_texture = resources/textures/rocks/2k/Stones_Roughness.jpg
+  normal_texture = resources/textures/rocks/2k/Stones_Normal.jpg
+}

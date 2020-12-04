@@ -1,0 +1,3 @@
+[goose]
+model_path = miniGoose.fbx
+materials = [goose]

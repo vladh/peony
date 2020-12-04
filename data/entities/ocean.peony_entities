@@ -1,0 +1,10 @@
+[ocean]
+drawable_component = {
+  model_asset = ocean
+  render_passes = [forward_depth]
+}
+spatial_component = {
+  position = vec3(0.0, 0.0, 0.0)
+  rotation = vec4(0.0, 1.0, 0.0, 0.0)
+  scale = vec3(1.0, 1.0, 1.0)
+}

@@ -1,0 +1,29 @@
+[skysphere]
+vertices = skysphere
+mode = GL_TRIANGLE_STRIP
+materials = [skysphere]
+
+[screenquad_lighting]
+vertices = screenquad
+mode = GL_TRIANGLES
+materials = [screenquad_lighting]
+
+[screenquad_preblur]
+vertices = screenquad
+mode = GL_TRIANGLES
+materials = [screenquad_preblur]
+
+[screenquad_blur1]
+vertices = screenquad
+mode = GL_TRIANGLES
+materials = [screenquad_blur1]
+
+[screenquad_blur2]
+vertices = screenquad
+mode = GL_TRIANGLES
+materials = [screenquad_blur2]
+
+[screenquad_postprocessing]
+vertices = screenquad
+mode = GL_TRIANGLES
+materials = [screenquad_postprocessing]
