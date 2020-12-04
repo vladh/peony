@@ -6,7 +6,7 @@ void scene_init_objects(Memory *memory, State *state) {
   glm::vec3 light_direction = glm::vec3(
     sin(state->dir_light_angle), -sin(state->dir_light_angle), 0.0f
   );
-  entity = state->entity_manager.add("directional_light");
+  entity = state->entity_manager.add("sun");
   state->drawable_component_manager.add(
     entity->handle,
     ModelAsset::get_by_name(&state->model_assets, "light"),
@@ -83,6 +83,21 @@ void scene_init_objects(Memory *memory, State *state) {
     RenderPass::deferred
   );
 #endif
+
+  // Test
+  entity = state->entity_manager.add("test");
+  state->spatial_component_manager.add(
+    entity->handle,
+    glm::vec3(0.0f),
+    glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
+    glm::vec3(1.0f)
+  );
+  state->drawable_component_manager.add(
+    entity->handle,
+    ModelAsset::get_by_name(&state->model_assets, "light"),
+    RenderPass::forward_depth | RenderPass::shadowcaster
+  );
+  state->behavior_component_manager.add(entity->handle, Behavior::test);
 
   // Rocks
 #if 1

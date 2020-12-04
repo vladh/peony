@@ -43,11 +43,13 @@ public:
   Array<DrawableComponent> drawable_components;
   Array<LightComponent> light_components;
   Array<SpatialComponent> spatial_components;
+  Array<BehaviorComponent> behavior_components;
 
   EntityManager entity_manager;
   DrawableComponentManager drawable_component_manager;
   LightComponentManager light_component_manager;
   SpatialComponentManager spatial_component_manager;
+  BehaviorComponentManager behavior_component_manager;
   GuiManager gui_manager;
 
   real32 heading_opacity;

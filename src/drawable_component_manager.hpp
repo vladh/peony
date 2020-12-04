@@ -28,8 +28,6 @@ public:
     RenderPass::Flag render_pass, RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset
   );
-
-private:
 };
 
 #endif

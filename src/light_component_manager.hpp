@@ -3,6 +3,8 @@
 
 class LightComponentManager {
 public:
+  Array<LightComponent> *components;
+
   LightComponentManager(
     Array<LightComponent> *components
   );
@@ -16,9 +18,6 @@ public:
   );
 
   LightComponent* get(EntityHandle handle);
-
-private:
-  Array<LightComponent> *components;
 };
 
 #endif

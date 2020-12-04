@@ -3,6 +3,8 @@
 
 class SpatialComponentManager {
 public:
+  Array<SpatialComponent> *components;
+
   SpatialComponentManager(
     Array<SpatialComponent> *components
   );
@@ -15,9 +17,6 @@ public:
   );
 
   SpatialComponent* get(EntityHandle handle);
-
-private:
-  Array<SpatialComponent> *components;
 };
 
 #endif

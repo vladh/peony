@@ -47,11 +47,15 @@ State::State(
   spatial_components(
     Array<SpatialComponent>(&memory->entity_memory_pool, 512, "spatial_components")
   ),
+  behavior_components(
+    Array<BehaviorComponent>(&memory->entity_memory_pool, 512, "behavior_components")
+  ),
 
   entity_manager(&this->entities),
   drawable_component_manager(&this->drawable_components),
   light_component_manager(&this->light_components),
   spatial_component_manager(&this->spatial_components),
+  behavior_component_manager(&this->behavior_components),
   gui_manager(
     memory, &this->shader_assets,
     &this->input_manager,

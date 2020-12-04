@@ -65,6 +65,7 @@
 #include "drawable_component_manager.hpp"
 #include "light_component_manager.hpp"
 #include "spatial_component_manager.hpp"
+#include "behavior_component_manager.hpp"
 #include "input_manager.hpp"
 #include "gui_manager.hpp"
 #include "data.hpp"
