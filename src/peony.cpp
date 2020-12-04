@@ -6,7 +6,7 @@
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 
-#include "gl.hpp"
+#include "peony.hpp"
 
 global_variable uint32 global_oopses = 0;
 
@@ -778,7 +778,7 @@ void render_scene_ui(
 
   {
     GuiContainer *container = state->gui_manager.make_container(
-      "Debug information", glm::vec2(25.0f, 25.0f)
+      "Peony debug info", glm::vec2(25.0f, 25.0f)
     );
 
     sprintf(debug_text, "%d fps", state->last_fps);

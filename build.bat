@@ -58,6 +58,6 @@ freetype.lib opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib sh
 
 pushd build
 
-cl %CommonCompilerFlags% ..\src\gl.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:gl.exe
+cl %CommonCompilerFlags% ..\src\peony.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:peony.exe
 
 popd
