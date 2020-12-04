@@ -21,7 +21,7 @@ void scene_init_objects(Memory *memory, State *state) {
   );
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec4(-light_direction * DIRECTIONAL_LIGHT_DISTANCE, 1.0f),
+    glm::vec3(-light_direction * DIRECTIONAL_LIGHT_DISTANCE),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
@@ -32,7 +32,7 @@ void scene_init_objects(Memory *memory, State *state) {
   entity = state->entity_manager.add("point_light");
   state->spatial_component_manager.add(
     entity->handle,
-    glm::vec4(-7.0f, 3.0f, 0.0f, 1.0f),
+    glm::vec3(-7.0f, 3.0f, 0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
     glm::vec3(0.3f)
   );
@@ -66,7 +66,6 @@ void scene_init_objects(Memory *memory, State *state) {
     ModelAsset::get_by_name(&state->model_assets, "ocean"),
     RenderPass::forward_depth
   );
-  state->ocean = entity->handle;
 #endif
 
   // Temple
@@ -115,7 +114,6 @@ void scene_init_objects(Memory *memory, State *state) {
     ModelAsset::get_by_name(&state->model_assets, "skysphere"),
     RenderPass::forward_skybox
   );
-  state->skysphere = entity->handle;
 #endif
 
   // Axes
@@ -189,7 +187,6 @@ void scene_init_objects(Memory *memory, State *state) {
     ModelAsset::get_by_name(&state->model_assets, "goose"),
     RenderPass::deferred
   );
-  state->geese.push(entity->handle);
 
   // Floor
   entity = state->entity_manager.add("floor");

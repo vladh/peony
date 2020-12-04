@@ -120,7 +120,7 @@ void scene_init_resources(Memory *memory, State *state) {
   // Light
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "light", "resources/models/cube.obj"
+      memory, ModelSource::file, "light", MODEL_DIR"cube.obj"
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -132,7 +132,7 @@ void scene_init_resources(Memory *memory, State *state) {
   // Rocks
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "rocks", "resources/models/Stones_AssetKit.fbx"
+      memory, ModelSource::file, "rocks", MODEL_DIR"Stones_AssetKit.fbx"
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -158,7 +158,7 @@ void scene_init_resources(Memory *memory, State *state) {
   // Temple
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "temple", "resources/models/shop.fbx"
+      memory, ModelSource::file, "temple", MODEL_DIR"shop.fbx"
     );
 
     {
@@ -354,7 +354,7 @@ void scene_init_resources(Memory *memory, State *state) {
   // Goose
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "goose", "resources/models/miniGoose.fbx"
+      memory, ModelSource::file, "goose", MODEL_DIR"miniGoose.fbx"
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -370,7 +370,7 @@ void scene_init_resources(Memory *memory, State *state) {
   // Floor
   {
     model_asset = new(state->model_assets.push()) ModelAsset(
-      memory, ModelSource::file, "floor", "resources/models/cube.obj"
+      memory, ModelSource::file, "floor", MODEL_DIR"cube.obj"
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(

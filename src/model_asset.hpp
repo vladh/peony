@@ -1,6 +1,7 @@
 #ifndef MODELS_H
 #define MODELS_H
 
+#define MODEL_DIR "resources/models/"
 constexpr uint32 MAX_N_MESHES = 2048;
 constexpr uint8 MAX_N_MATERIALS = 128;
 

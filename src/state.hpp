@@ -57,9 +57,6 @@ public:
 
   Array<EntityHandle> point_lights;
   Array<EntityHandle> directional_lights;
-  Array<EntityHandle> geese;
-  EntityHandle skysphere;
-  EntityHandle ocean;
 
   PersistentPbo persistent_pbo;
   TextureNamePool texture_name_pool;
