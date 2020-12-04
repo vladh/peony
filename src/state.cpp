@@ -69,9 +69,6 @@ State::State(
   directional_lights(
     Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "directional_lights")
   ),
-  geese(
-    Array<EntityHandle>(&memory->entity_memory_pool, 512, "geese")
-  ),
   persistent_pbo(25, 2048, 2048, 4),
   texture_name_pool(memory, 64, 4),
   task_queue(
