@@ -125,6 +125,10 @@ public:
     const char *name_text,
     const char *value_text
   );
+  void draw_body_text(
+    GuiContainer *container,
+    const char *text
+  );
   bool32 draw_button(
     GuiContainer *container,
     const char *text

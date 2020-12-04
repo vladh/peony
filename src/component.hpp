@@ -1,6 +1,10 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
+enum class Behavior {
+  test
+};
+
 struct Component {
   EntityHandle entity_handle;
 };
@@ -21,6 +25,10 @@ struct SpatialComponent : public Component {
   glm::vec3 position;
   glm::quat rotation;
   glm::vec3 scale;
+};
+
+struct BehaviorComponent : public Component {
+  Behavior behavior;
 };
 
 #endif

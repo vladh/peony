@@ -581,6 +581,16 @@ void GuiManager::draw_named_value(
 }
 
 
+void GuiManager::draw_body_text(
+  GuiContainer *container,
+  const char *text
+) {
+  glm::vec2 dimensions = get_text_dimensions("body", text);
+  glm::vec2 position = add_element_to_container(container, dimensions);
+  draw_text("body", text, position, GUI_LIGHT_TEXT_COLOR);
+}
+
+
 bool32 GuiManager::draw_button(
   GuiContainer *container,
   const char *text

@@ -7,7 +7,6 @@ class Entity {
 public:
   EntityHandle handle;
   const char *debug_name;
-  void print();
 };
 
 #endif

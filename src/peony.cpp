@@ -30,6 +30,7 @@ global_variable uint32 global_oopses = 0;
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
+#include "behavior_component_manager.cpp"
 #include "gui_manager.cpp"
 #include "model_asset.cpp"
 #include "scene.cpp"
@@ -587,10 +588,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  window_info->width = video_mode->width;
-  window_info->height = video_mode->height;
-  /* window_info->width = 1920; */
-  /* window_info->height = 1080; */
+  /* window_info->width = video_mode->width; */
+  /* window_info->height = video_mode->height; */
+  window_info->width = 1920;
+  window_info->height = 1080;
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -602,8 +603,8 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  glfwSetWindowPos(window, 1, 1);
-  /* glfwSetWindowPos(window, 200, 200); */
+  /* glfwSetWindowPos(window, 1, 1); */
+  glfwSetWindowPos(window, 200, 200);
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
@@ -850,18 +851,60 @@ void render_scene_ui(
     }
   }
 
+  {
+    GuiContainer *container = state->gui_manager.make_container(
+      "Entities", glm::vec2(state->window_info.width - 300.0f, 25.0f)
+    );
+    strcpy(debug_text, "");
+    for (uint32 idx = 0; idx < state->entities.size; idx++) {
+      Entity *entity = state->entities[idx];
+      strcat(debug_text, entity->debug_name);
+      if (idx < state->entities.size - 1) {
+        strcat(debug_text, "\n");
+      }
+    }
+    state->gui_manager.draw_body_text(container, debug_text);
+  }
+
   state->gui_manager.render();
 }
 
 
 void scene_update(Memory *memory, State *state) {
-  // TODO: Eventually move this to some kind of ActorComponent system.
-  // We should rather be iterating through all SpatialComponents rather
-  // than looking everything up.
+  for (
+    uint32 idx = 0;
+    idx < state->behavior_component_manager.components->size;
+    idx++
+  ) {
+    BehaviorComponent *behavior_component =
+      state->behavior_component_manager.components->get(idx);
+    EntityHandle entity_handle = behavior_component->entity_handle;
 
-  // Lights
+    SpatialComponent *spatial_component =
+      state->spatial_component_manager.get(entity_handle);
+    if (!spatial_component) {
+      log_error("Could not get SpatialComponent for BehaviorComponent");
+      continue;
+    }
+
+    Entity *entity = state->entities.get(entity_handle);
+    if (!entity) {
+      log_error("Could not get Entity for BehaviorComponent");
+      continue;
+    }
+
+    if (behavior_component->behavior == Behavior::test) {
+      spatial_component->position = glm::vec3(
+        (real32)sin(state->t) * 15.0f,
+        (real32)((sin(state->t * 2.0f) + 1.5) * 3.0f),
+        (real32)cos(state->t) * 15.0f
+      );
+    }
+  }
+
+  // Lights are handled separately
+  // TODO: Make lights not be handled separately!
   {
-#if 1
     for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
       EntityHandle *handle = state->point_lights[idx];
       SpatialComponent *spatial_component = state->spatial_component_manager.get(
@@ -890,36 +933,7 @@ void scene_update(Memory *memory, State *state) {
           -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
       }
     }
-#endif
   }
-
-  // Water
-  {
-#if 0
-    if (state->ocean) {
-      SpatialComponent *spatial_component = state->spatial_component_manager.get(state->ocean);
-      spatial_component->position = glm::vec3(
-        state->camera_active->position.x,
-        0,
-        state->camera_active->position.z
-      );
-    }
-#endif
-  }
-
-  // Geese
-#if 0
-  {
-    real32 spin_deg_per_t = 90.0f;
-    for (uint32 idx = 0; idx < state->geese.size; idx++) {
-      SpatialComponent *spatial = state->spatial_component_manager.get(*state->geese[idx]);
-      spatial->rotation *= glm::angleAxis(
-        glm::radians(spin_deg_per_t * (real32)state->dt),
-        glm::vec3(0.0f, 1.0f, 0.0f)
-      );
-    }
-  }
-#endif
 }
 
 
@@ -1169,7 +1183,7 @@ void run_main_loop(Memory *memory, State *state) {
         state->last_fps = n_frames_this_second;
         n_frames_this_second = 0;
         if (state->should_hide_ui) {
-          log_info("%d fps", state->last_fps);
+          log_info("%.2f ms", state->dt_average * 1000.0f);
         }
       }
 
