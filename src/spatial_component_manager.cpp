@@ -9,6 +9,23 @@ SpatialComponent* SpatialComponentManager::add(
   EntityHandle entity_handle,
   glm::vec3 position,
   glm::quat rotation,
+  glm::vec3 scale,
+  SpatialComponent *parent
+) {
+  SpatialComponent *new_component = this->components->push();
+  new_component->entity_handle = entity_handle;
+  new_component->position = position;
+  new_component->rotation = rotation;
+  new_component->scale = scale;
+  new_component->parent = parent;
+  return new_component;
+}
+
+
+SpatialComponent* SpatialComponentManager::add(
+  EntityHandle entity_handle,
+  glm::vec3 position,
+  glm::quat rotation,
   glm::vec3 scale
 ) {
   SpatialComponent *new_component = this->components->push();
@@ -16,6 +33,7 @@ SpatialComponent* SpatialComponentManager::add(
   new_component->position = position;
   new_component->rotation = rotation;
   new_component->scale = scale;
+  new_component->parent = nullptr;
   return new_component;
 }
 
