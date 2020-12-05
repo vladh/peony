@@ -27,6 +27,7 @@ global_variable uint32 global_oopses = 0;
 #include "input_manager.cpp"
 #include "entity.cpp"
 #include "entity_manager.cpp"
+#include "spatial_component.cpp"
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
@@ -588,10 +589,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  /* window_info->width = video_mode->width; */
-  /* window_info->height = video_mode->height; */
-  window_info->width = 1920;
-  window_info->height = 1080;
+  window_info->width = video_mode->width;
+  window_info->height = video_mode->height;
+  /* window_info->width = 1920; */
+  /* window_info->height = 1080; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -603,8 +604,8 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  /* glfwSetWindowPos(window, 1, 1); */
-  glfwSetWindowPos(window, 200, 200);
+  glfwSetWindowPos(window, 0, 0);
+  /* glfwSetWindowPos(window, 200, 200); */
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);

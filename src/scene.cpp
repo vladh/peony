@@ -86,7 +86,7 @@ void scene_init_objects(Memory *memory, State *state) {
 
   // Test
   entity = state->entity_manager.add("test");
-  state->spatial_component_manager.add(
+  SpatialComponent *test_spatial_component = state->spatial_component_manager.add(
     entity->handle,
     glm::vec3(0.0f),
     glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
@@ -106,7 +106,8 @@ void scene_init_objects(Memory *memory, State *state) {
     entity->handle,
     glm::vec3(0.0f, -3.5f, 0.0f),
     glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-    glm::vec3(0.05f)
+    glm::vec3(0.05f),
+    test_spatial_component
   );
   state->drawable_component_manager.add(
     entity->handle,

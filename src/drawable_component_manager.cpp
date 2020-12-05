@@ -55,12 +55,7 @@ void DrawableComponentManager::draw_all(
     glm::mat3 model_normal_matrix = glm::mat4(1.0f);
 
     if (spatial) {
-      // TODO: This is somehow really #slow, the multiplication in particular.
-      // Is there a better way?
-      model_matrix = glm::translate(model_matrix, spatial->position);
-      model_matrix = glm::scale(model_matrix, spatial->scale);
-      model_matrix = model_matrix * glm::toMat4(spatial->rotation);
-
+      model_matrix = spatial->make_model_matrix();
       model_normal_matrix = glm::mat3(glm::transpose(glm::inverse(model_matrix)));
     }
 
