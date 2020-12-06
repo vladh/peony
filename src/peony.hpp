@@ -1,6 +1,8 @@
 #ifndef GL_H
 #define GL_H
 
+#define _HAS_EXCEPTIONS 0
+
 #if USE_VLD
 #include <vld.h>
 #endif
@@ -29,6 +31,11 @@
 #include <assimp/postprocess.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+#if 0
+#define TSL_NO_EXCEPTIONS
+#include <tsl/robin_map.h>
+#include <tsl/robin_set.h>
+#endif
 
 #define NOMINMAX
 #include "../include/glad.cpp"
@@ -36,7 +43,9 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#if USE_CACHELINE_SIZE_DISPLAY
 #include "../include/cacheline.hpp"
+#endif
 
 #include "types.hpp"
 #include "math.hpp"
@@ -58,7 +67,6 @@
 #include "persistent_pbo.hpp"
 #include "texture.hpp"
 #include "material.hpp"
-#include "model_asset.hpp"
 #include "entity.hpp"
 #include "component.hpp"
 #include "spatial_component.hpp"
@@ -70,6 +78,7 @@
 #include "light_component_manager.hpp"
 #include "spatial_component_manager.hpp"
 #include "behavior_component_manager.hpp"
+#include "model_asset.hpp"
 #include "input_manager.hpp"
 #include "gui_manager.hpp"
 #include "data.hpp"

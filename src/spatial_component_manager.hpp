@@ -5,10 +5,6 @@ class SpatialComponentManager {
 public:
   Array<SpatialComponent> *components;
 
-  SpatialComponentManager(
-    Array<SpatialComponent> *components
-  );
-
   SpatialComponent* add(
     EntityHandle entity_handle,
     glm::vec3 position,
@@ -25,6 +21,12 @@ public:
   );
 
   SpatialComponent* get(EntityHandle handle);
+
+  glm::mat4 make_model_matrix(SpatialComponent *spatial_component);
+
+  SpatialComponentManager(
+    Array<SpatialComponent> *components
+  );
 };
 
 #endif

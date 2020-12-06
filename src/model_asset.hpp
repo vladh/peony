@@ -37,6 +37,8 @@ public:
   const char *path;
   Array<Mesh> meshes;
   Array<Material> materials;
+  SpatialComponent *parent_spatial_component;
+  RenderPass::Flag render_pass;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
   bool32 is_texture_copying_to_pbo_in_progress = false;
@@ -44,36 +46,15 @@ public:
   bool32 is_shader_setting_done = false;
   bool32 is_texture_creation_done = false;
   bool32 is_vertex_buffer_setup_done = false;
+  bool32 is_entity_creation_done = false;
+  bool32 is_loaded = false;
   std::mutex mutex;
+  bool32 should_create_spatial_components;
+  static EntityManager *entity_manager;
+  static DrawableComponentManager *drawable_component_manager;
+  static SpatialComponentManager *spatial_component_manager;
+  static BehaviorComponentManager *behavior_component_manager;
 
-  ModelAsset(
-    Memory *memory, ModelSource model_source,
-    const char *name, const char *path
-  );
-  ModelAsset(
-    Memory *memory, ModelSource model_source,
-    real32 *vertex_data, uint32 n_vertices,
-    uint32 *index_data, uint32 n_indices,
-    const char *name,
-    GLenum mode
-  );
-  void draw(
-    Memory *memory,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
-    Queue<Task> *task_queue,
-    glm::mat4 *model_matrix,
-    glm::mat3 *model_normal_matrix
-  );
-  void draw_in_depth_mode(
-    Memory *memory,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
-    Queue<Task> *task_queue,
-    glm::mat4 *model_matrix,
-    glm::mat3 *model_normal_matrix,
-    ShaderAsset *standard_depth_shader_asset
-  );
   void load(
     Memory *memory
   );
@@ -87,7 +68,6 @@ public:
     Mesh *mesh
   );
 
-private:
   void setup_mesh_vertex_buffers_for_file_source(
     Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
   );
@@ -105,11 +85,32 @@ private:
     glm::mat4 accumulated_transform,
     Pack indices_pack
   );
+  void create_entities();
   void prepare_for_draw(
     Memory *memory,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue
+  );
+  ModelAsset(
+    Memory *memory,
+    ModelSource model_source,
+    const char *name,
+    const char *path,
+    SpatialComponent *parent_spatial_component,
+    RenderPass::Flag render_pass,
+    bool32 should_create_spatial_components
+  );
+  ModelAsset(
+    Memory *memory,
+    ModelSource model_source,
+    real32 *vertex_data, uint32 n_vertices,
+    uint32 *index_data, uint32 n_indices,
+    const char *name,
+    GLenum mode,
+    SpatialComponent *parent_spatial_component,
+    RenderPass::Flag render_pass,
+    bool32 should_create_spatial_components
   );
 };
 

@@ -10,7 +10,8 @@ public:
   Entity* get(EntityHandle handle);
 
 private:
-  EntityHandle last_handle = 0;
+  // NOTE: 0 is an invalid handle.
+  EntityHandle last_handle = 1;
 
   Array<Entity> *entities;
 

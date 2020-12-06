@@ -5,6 +5,7 @@
 #define USE_VLD false
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
+#define USE_CACHELINE_SIZE_DISPLAY false
 
 #include "peony.hpp"
 
@@ -27,7 +28,6 @@ global_variable uint32 global_oopses = 0;
 #include "input_manager.cpp"
 #include "entity.cpp"
 #include "entity_manager.cpp"
-#include "spatial_component.cpp"
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
@@ -35,7 +35,6 @@ global_variable uint32 global_oopses = 0;
 #include "gui_manager.cpp"
 #include "model_asset.cpp"
 #include "scene.cpp"
-#include "scene_resources.cpp"
 #include "state.cpp"
 
 
@@ -476,15 +475,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   init_blur_buffers(memory, state);
 
   // TODO: I hate this.
-  for (
-    uint32 idx_component = 0;
-    idx_component < state->drawable_component_manager.components->size;
-    idx_component++
-  ) {
-    DrawableComponent *component = state->drawable_component_manager.components->get(
-      idx_component
-    );
-    ModelAsset *model_asset = component->model_asset;
+  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
+    ModelAsset *model_asset = state->model_assets[idx];
     for (
       uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
     ) {
@@ -739,12 +731,10 @@ void render_scene(
   RenderMode render_mode
 ) {
   state->drawable_component_manager.draw_all(
-    memory,
-    &state->persistent_pbo,
-    &state->texture_name_pool,
     &state->spatial_component_manager,
-    &state->task_queue,
-    render_pass, render_mode, state->standard_depth_shader_asset
+    render_pass,
+    render_mode,
+    state->standard_depth_shader_asset
   );
 }
 
@@ -764,7 +754,7 @@ void set_heading(
 void render_scene_ui(
   Memory *memory, State *state
 ){
-  char debug_text[256];
+  char debug_text[4096];
 
   if (state->heading_opacity > 0.0f) {
     state->gui_manager.draw_heading(
@@ -791,6 +781,11 @@ void render_scene_ui(
     sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
     state->gui_manager.draw_named_value(
       container, "dt", debug_text
+    );
+
+    sprintf(debug_text, "%d", state->entities.size);
+    state->gui_manager.draw_named_value(
+      container, "entities.size", debug_text
     );
 
     if (state->gui_manager.draw_toggle(
@@ -853,6 +848,7 @@ void render_scene_ui(
   }
 
   {
+#if 0
     GuiContainer *container = state->gui_manager.make_container(
       "Entities", glm::vec2(state->window_info.width - 300.0f, 25.0f)
     );
@@ -860,11 +856,16 @@ void render_scene_ui(
     for (uint32 idx = 0; idx < state->entities.size; idx++) {
       Entity *entity = state->entities[idx];
       strcat(debug_text, entity->debug_name);
+      strcat(debug_text, " (");
+      assert(entity->handle < 2048); // Because NUM_TO_STR only has 2048 entries
+      strcat(debug_text, NUM_TO_STR[entity->handle]);
+      strcat(debug_text, ")");
       if (idx < state->entities.size - 1) {
         strcat(debug_text, "\n");
       }
     }
     state->gui_manager.draw_body_text(container, debug_text);
+#endif
   }
 
   state->gui_manager.render();
@@ -938,11 +939,25 @@ void scene_update(Memory *memory, State *state) {
 }
 
 
+void check_all_model_assets_loaded(Memory *memory, State *state) {
+  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
+    ModelAsset *model_asset = state->model_assets[idx];
+    model_asset->prepare_for_draw(
+      memory,
+      &state->persistent_pbo,
+      &state->texture_name_pool,
+      &state->task_queue
+    );
+  }
+}
+
+
 void update_and_render(Memory *memory, State *state) {
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   state->camera_active->update_matrices(
     state->window_info.width, state->window_info.height
   );
+  check_all_model_assets_loaded(memory, state);
   scene_update(memory, state);
   copy_scene_data_to_ubo(memory, state);
 
@@ -1276,6 +1291,11 @@ int main() {
 
   State *state = new((State*)memory.state_memory) State(&memory, window_info);
 
+  ModelAsset::entity_manager = &state->entity_manager;
+  ModelAsset::drawable_component_manager = &state->drawable_component_manager;
+  ModelAsset::spatial_component_manager = &state->spatial_component_manager;
+  ModelAsset::behavior_component_manager = &state->behavior_component_manager;
+
   std::mutex loading_thread_mutex;
   std::thread loading_thread_1 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 1);
   std::thread loading_thread_2 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 2);
@@ -1300,8 +1320,7 @@ int main() {
   init_blur_buffers(&memory, state);
   init_shadowmaps(&memory, state);
   init_ubo(&memory, state);
-  scene_init_resources(&memory, state);
-  scene_init_objects(&memory, state);
+  scene_init(&memory, state);
   state->persistent_pbo.allocate_pbo();
 
 #if 0
@@ -1310,7 +1329,9 @@ int main() {
   memory.temp_memory_pool.print();
 #endif
 
+#if USE_CACHELINE_SIZE_DISPLAY
   log_info("Cache line size: %dB", cacheline_get_size());
+#endif
 
   END_TIMER(init);
 

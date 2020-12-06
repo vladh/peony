@@ -1,3 +1,8 @@
+EntityManager *ModelAsset::entity_manager;
+DrawableComponentManager *ModelAsset::drawable_component_manager;
+SpatialComponentManager *ModelAsset::spatial_component_manager;
+BehaviorComponentManager *ModelAsset::behavior_component_manager;
+
 void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
   Mesh *mesh,
   real32 *vertex_data, uint32 n_vertices,
@@ -311,6 +316,28 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 }
 
 
+void ModelAsset::create_entities() {
+  for (uint32 idx = 0; idx < this->meshes.size; idx++) {
+    Mesh *mesh = this->meshes[idx];
+    Entity *entity = this->entity_manager->add("child");
+    if (this->should_create_spatial_components) {
+      this->spatial_component_manager->add(
+        entity->handle,
+        glm::vec3(0.0f),
+        glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
+        glm::vec3(0.0f),
+        this->parent_spatial_component
+      );
+    }
+    this->drawable_component_manager->add(
+      entity->handle,
+      mesh,
+      this->render_pass
+    );
+  }
+}
+
+
 void ModelAsset::prepare_for_draw(
   Memory *memory,
   PersistentPbo *persistent_pbo,
@@ -421,12 +448,22 @@ void ModelAsset::prepare_for_draw(
 
       if (!did_have_to_generate_texture) {
         this->is_texture_creation_done = true;
+        this->is_loaded = true;
       }
 
       END_TIMER_MIN(copy_pbo_to_texture, 5);
     }
 
-    // Step 6: Bind the texture uniforms.
+    // Step 6: Create the entities.
+    if (
+      this->is_texture_creation_done &&
+      !this->is_entity_creation_done
+    ) {
+      create_entities();
+      this->is_entity_creation_done = true;
+    }
+
+    // Step 7: Bind the texture uniforms.
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
     if (this->is_texture_creation_done) {
@@ -450,141 +487,6 @@ void ModelAsset::prepare_for_draw(
 }
 
 
-void ModelAsset::draw(
-  Memory *memory,
-  PersistentPbo *persistent_pbo,
-  TextureNamePool *texture_name_pool,
-  Queue<Task> *task_queue,
-  glm::mat4 *model_matrix,
-  glm::mat3 *model_normal_matrix
-) {
-  prepare_for_draw(
-    memory, persistent_pbo, texture_name_pool, task_queue
-  );
-
-  if (
-    !this->is_mesh_data_loading_done ||
-    !this->is_shader_setting_done ||
-    !this->is_texture_creation_done
-  ) {
-    return;
-  }
-
-  uint32 last_used_shader_program = 0;
-  ShaderAsset *shader_asset;
-
-  for (uint32 mesh_idx = 0; mesh_idx < this->meshes.size; mesh_idx++) {
-    Mesh *mesh = this->meshes[mesh_idx];
-    shader_asset = mesh->material->shader_asset;
-
-    // If our shader program has changed since our last mesh, tell OpenGL about it.
-    bool32 has_shader_changed = false;
-    if (shader_asset->program != last_used_shader_program) {
-      has_shader_changed = true;
-      glUseProgram(shader_asset->program);
-      last_used_shader_program = shader_asset->program;
-
-      for (
-        uint32 texture_idx = 1;
-        texture_idx < shader_asset->n_texture_units + 1; texture_idx++
-      ) {
-        if (shader_asset->texture_units[texture_idx] != 0) {
-          glActiveTexture(GL_TEXTURE0 + texture_idx);
-          glBindTexture(
-            shader_asset->texture_unit_types[texture_idx],
-            shader_asset->texture_units[texture_idx]
-          );
-        }
-      }
-
-      for (
-        uint32 uniform_idx = 0;
-        uniform_idx < shader_asset->n_intrinsic_uniforms;
-        uniform_idx++
-      ) {
-        const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-        if (strcmp(uniform_name, "model_matrix") == 0) {
-          shader_asset->set_mat4("model_matrix", model_matrix);
-        } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-          shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
-        }
-      }
-    }
-
-#if 0
-    if (strcmp(this->name, "ocean") == 0) {
-      return;
-    }
-#endif
-
-    glBindVertexArray(mesh->vao);
-    if (mesh->n_indices > 0) {
-      glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
-    } else {
-      glDrawArrays(mesh->mode, 0, mesh->n_vertices);
-    }
-  }
-}
-
-
-void ModelAsset::draw_in_depth_mode(
-  Memory *memory,
-  PersistentPbo *persistent_pbo,
-  TextureNamePool *texture_name_pool,
-  Queue<Task> *task_queue,
-  glm::mat4 *model_matrix,
-  glm::mat3 *model_normal_matrix,
-  ShaderAsset *standard_depth_shader_asset
-) {
-  // TODO: We can probably merge this into the normal `draw()` above.
-  prepare_for_draw(
-    memory, persistent_pbo, texture_name_pool, task_queue
-  );
-
-  if (!this->is_mesh_data_loading_done || !this->is_shader_setting_done) {
-    return;
-  }
-
-  uint32 last_used_shader_program = 0;
-  ShaderAsset *shader_asset = standard_depth_shader_asset;
-
-  for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-    Mesh *mesh = this->meshes[idx];
-    if (mesh->material->depth_shader_asset) {
-      shader_asset = mesh->material->depth_shader_asset;
-    }
-
-    // If our shader program has changed since our last mesh, tell OpenGL about it.
-    bool32 has_shader_changed = false;
-    if (shader_asset->program != last_used_shader_program) {
-      glUseProgram(shader_asset->program);
-      last_used_shader_program = shader_asset->program;
-      has_shader_changed = true;
-
-      for (
-        uint32 uniform_idx = 0;
-        uniform_idx < shader_asset->n_intrinsic_uniforms;
-        uniform_idx++
-      ) {
-        const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-        if (strcmp(uniform_name, "model_matrix") == 0) {
-          shader_asset->set_mat4("model_matrix", model_matrix);
-        } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-          shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
-        }
-      }
-    }
-
-    glBindVertexArray(mesh->vao);
-    if (mesh->n_indices > 0) {
-      glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
-    } else {
-      glDrawArrays(mesh->mode, 0, mesh->n_vertices);
-    }
-  }
-}
-
-
 ModelAsset* ModelAsset::get_by_name(
   Array<ModelAsset> *assets, const char *name
 ) {
@@ -600,32 +502,47 @@ ModelAsset* ModelAsset::get_by_name(
 
 
 ModelAsset::ModelAsset(
-  Memory *memory, ModelSource model_source,
-  const char *name, const char *path
+  Memory *memory,
+  ModelSource model_source,
+  const char *name,
+  const char *path,
+  SpatialComponent *parent_spatial_component,
+  RenderPass::Flag render_pass,
+  bool32 should_create_spatial_components
 ) :
   name(name),
   model_source(model_source),
   path(path),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials")
+  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
+  parent_spatial_component(parent_spatial_component),
+  render_pass(render_pass),
+  should_create_spatial_components(should_create_spatial_components)
 {
   // NOTE: We do not load ModelSource::file models here.
-  // They are loaded on-demand in `::draw()`.
+  // They will be loaded gradually in `::prepare_for_draw()`.
 }
 
 
 ModelAsset::ModelAsset(
-  Memory *memory, ModelSource model_source,
+  Memory *memory,
+  ModelSource model_source,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *name,
-  GLenum mode
+  GLenum mode,
+  SpatialComponent *parent_spatial_component,
+  RenderPass::Flag render_pass,
+  bool32 should_create_spatial_components
 ) :
   name(name),
   model_source(model_source),
   path(""),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials")
+  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
+  parent_spatial_component(parent_spatial_component),
+  render_pass(render_pass),
+  should_create_spatial_components(should_create_spatial_components)
 {
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);
@@ -640,4 +557,7 @@ ModelAsset::ModelAsset(
   );
   this->is_mesh_data_loading_done = true;
   this->is_vertex_buffer_setup_done = true;
+
+  create_entities();
+  this->is_entity_creation_done = true;
 }
