@@ -319,7 +319,7 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 void ModelAsset::create_entities() {
   for (uint32 idx = 0; idx < this->meshes.size; idx++) {
     Mesh *mesh = this->meshes[idx];
-    Entity *entity = this->entity_manager->add("child");
+    Entity *entity = this->entity_manager->add(this->name);
     if (this->should_create_spatial_components) {
       this->spatial_component_manager->add(
         entity->handle,

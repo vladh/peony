@@ -10,6 +10,7 @@ DrawableComponent* DrawableComponentManager::add(
   Mesh *mesh,
   RenderPass::Flag target_render_pass
 ) {
+  assert(entity_handle > 0);
   if (!mesh) {
     log_fatal("Invalid mesh when creating DrawableComponent.");
   }
@@ -22,6 +23,7 @@ DrawableComponent* DrawableComponentManager::add(
 
 
 DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
+  assert(handle > 0);
   return this->components->get(handle);
 }
 
@@ -33,6 +35,12 @@ void DrawableComponentManager::draw_all(
 ) {
   for (uint32 idx = 0; idx < this->components->size; idx++) {
     DrawableComponent *drawable = this->components->get(idx);
+
+    // TODO: Check if this exists in the first place!
+    if (!drawable->mesh) {
+      continue;
+    }
+
     SpatialComponent *spatial = spatial_component_manager->get(drawable->entity_handle);
 
     if (!(render_pass & drawable->target_render_pass)) {

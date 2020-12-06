@@ -27,7 +27,7 @@ void main() {
   color = add_tone_mapping(color);
   color = correct_gamma(color);
 
-#if 0
+#if 1
   float aspect_ratio = window_width / window_height;
   vec2 preview_size = vec2(0.3, 0.3 / aspect_ratio);
   if (

@@ -5,7 +5,8 @@ SpatialComponent* SpatialComponentManager::add(
   glm::vec3 scale,
   SpatialComponent *parent
 ) {
-  SpatialComponent *new_component = this->components->push();
+  assert(entity_handle > 0);
+  SpatialComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->position = position;
   new_component->rotation = rotation;
@@ -21,6 +22,7 @@ SpatialComponent* SpatialComponentManager::add(
   glm::quat rotation,
   glm::vec3 scale
 ) {
+  assert(entity_handle > 0);
   SpatialComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->position = position;
@@ -32,6 +34,7 @@ SpatialComponent* SpatialComponentManager::add(
 
 
 SpatialComponent* SpatialComponentManager::get(EntityHandle handle) {
+  assert(handle > 0);
   return this->components->get(handle);
 }
 
