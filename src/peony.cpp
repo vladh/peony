@@ -848,18 +848,63 @@ void render_scene_ui(
   }
 
   {
-#if 0
+#if 1
     GuiContainer *container = state->gui_manager.make_container(
-      "Entities", glm::vec2(state->window_info.width - 300.0f, 25.0f)
+      "Entities", glm::vec2(state->window_info.width - 400.0f, 25.0f)
     );
+
     strcpy(debug_text, "");
-    for (uint32 idx = 0; idx < state->entities.size; idx++) {
+
+    for (uint32 idx = 1; idx < state->entities.size; idx++) {
       Entity *entity = state->entities[idx];
-      strcat(debug_text, entity->debug_name);
-      strcat(debug_text, " (");
-      assert(entity->handle < 2048); // Because NUM_TO_STR only has 2048 entries
-      strcat(debug_text, NUM_TO_STR[entity->handle]);
-      strcat(debug_text, ")");
+      EntityHandle handle = entity->handle;
+      SpatialComponent *spatial_component =
+        state->spatial_component_manager.get(handle);
+
+      if (spatial_component) {
+        if (spatial_component->parent) {
+          continue;
+        }
+
+        strcat(debug_text, "- ");
+        strcat(debug_text, entity->debug_name);
+
+        strcat(debug_text, " [");
+        // Because NUM_TO_STR only has 2048 entries
+        assert(entity->handle < 2048);
+        strcat(debug_text, NUM_TO_STR[entity->handle]);
+        strcat(debug_text, "]");
+
+        // NOTE: This is super slow lol.
+        for (
+          uint32 child_idx = 1;
+          child_idx < state->spatial_component_manager.components->size;
+          child_idx++
+        ) {
+          SpatialComponent *child_spatial_component =
+            state->spatial_component_manager.components->get(child_idx);
+          if (
+            child_spatial_component->parent &&
+            child_spatial_component->parent->entity_handle ==
+              spatial_component->entity_handle
+          ) {
+            EntityHandle child_handle = child_spatial_component->entity_handle;
+            Entity *child_entity = state->entities.get(child_handle);
+
+            strcat(debug_text, "\n  -> ");
+            strcat(debug_text, child_entity->debug_name);
+            strcat(debug_text, " [");
+            // Because NUM_TO_STR only has 2048 entries
+            assert(child_entity->handle < 2048);
+            strcat(debug_text, NUM_TO_STR[child_entity->handle]);
+            strcat(debug_text, "]");
+          }
+        }
+      } else {
+        strcat(debug_text, ". ");
+        strcat(debug_text, entity->debug_name);
+      }
+
       if (idx < state->entities.size - 1) {
         strcat(debug_text, "\n");
       }
@@ -874,12 +919,21 @@ void render_scene_ui(
 
 void scene_update(Memory *memory, State *state) {
   for (
-    uint32 idx = 0;
+    uint32 idx = 1;
     idx < state->behavior_component_manager.components->size;
     idx++
   ) {
     BehaviorComponent *behavior_component =
       state->behavior_component_manager.components->get(idx);
+    if (!behavior_component) {
+      continue;
+    }
+
+    // TODO: Check if this exists in the first place!
+    if (behavior_component->behavior == Behavior::none) {
+      continue;
+    }
+
     EntityHandle entity_handle = behavior_component->entity_handle;
 
     SpatialComponent *spatial_component =

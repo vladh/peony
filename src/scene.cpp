@@ -182,7 +182,7 @@ void scene_init(Memory *memory, State *state) {
 
   // Temple
   {
-#if 1
+#if 0
     Entity *entity = state->entity_manager.add("temple");
     SpatialComponent *spatial_component = state->spatial_component_manager.add(
       entity->handle,
@@ -197,7 +197,7 @@ void scene_init(Memory *memory, State *state) {
       "temple",
       MODEL_DIR"shop.fbx",
       spatial_component,
-      RenderPass::deferred,
+      RenderPass::deferred | RenderPass::shadowcaster,
       true
     );
 

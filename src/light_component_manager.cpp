@@ -12,6 +12,7 @@ LightComponent* LightComponentManager::add(
   glm::vec4 color,
   glm::vec4 attenuation
 ) {
+  assert(entity_handle > 0);
   LightComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->type = type;
@@ -23,5 +24,6 @@ LightComponent* LightComponentManager::add(
 
 
 LightComponent* LightComponentManager::get(EntityHandle handle) {
+  assert(handle > 0);
   return this->components->get(handle);
 }

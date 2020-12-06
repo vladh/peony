@@ -2,7 +2,7 @@
 #define BEHAVIOR_COMPONENT_H
 
 enum class Behavior {
-  test
+  none, test
 };
 
 struct BehaviorComponent : public Component {
