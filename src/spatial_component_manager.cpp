@@ -1,10 +1,3 @@
-SpatialComponentManager::SpatialComponentManager(
-  Array<SpatialComponent> *new_components
-) {
-  this->components = new_components;
-}
-
-
 SpatialComponent* SpatialComponentManager::add(
   EntityHandle entity_handle,
   glm::vec3 position,
@@ -28,7 +21,7 @@ SpatialComponent* SpatialComponentManager::add(
   glm::quat rotation,
   glm::vec3 scale
 ) {
-  SpatialComponent *new_component = this->components->push();
+  SpatialComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->position = position;
   new_component->rotation = rotation;
@@ -39,13 +32,31 @@ SpatialComponent* SpatialComponentManager::add(
 
 
 SpatialComponent* SpatialComponentManager::get(EntityHandle handle) {
-  // NOTE: Normally we'd use a hash-map or something here, but
-  // std::unordered_map is slow as heck. This nice ol' array is faster.
-  // Let's look for something else if this starts showing up in the profiler.
-  for (uint32 idx = 0; idx < this->components->size; idx++) {
-    if (this->components->get(idx)->entity_handle == handle) {
-      return this->components->get(idx);
-    }
+  return this->components->get(handle);
+}
+
+
+glm::mat4 SpatialComponentManager::make_model_matrix(SpatialComponent *spatial_component) {
+  glm::mat4 model_matrix = glm::mat4(1.0f);
+
+  if (spatial_component->parent) {
+    model_matrix = make_model_matrix(spatial_component->parent);
   }
-  return nullptr;
+
+  if (spatial_component->scale.x > 0.0f) {
+    // TODO: This is somehow really #slow, the multiplication in particular.
+    // Is there a better way?
+    model_matrix = glm::translate(model_matrix, spatial_component->position);
+    model_matrix = glm::scale(model_matrix, spatial_component->scale);
+    model_matrix = model_matrix * glm::toMat4(spatial_component->rotation);
+  }
+
+  return model_matrix;
+}
+
+
+SpatialComponentManager::SpatialComponentManager(
+  Array<SpatialComponent> *new_components
+) {
+  this->components = new_components;
 }

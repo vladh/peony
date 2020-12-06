@@ -36,19 +36,29 @@ State::State(
   ),
 
   entities(
-    Array<Entity>(&memory->entity_memory_pool, 512, "entities")
+    Array<Entity>(
+      &memory->entity_memory_pool, 4096, "entities", true
+    )
   ),
   drawable_components(
-    Array<DrawableComponent>(&memory->entity_memory_pool, 512, "drawable_components")
+    Array<DrawableComponent>(
+      &memory->entity_memory_pool, 4096, "drawable_components", true
+    )
   ),
   light_components(
-    Array<LightComponent>(&memory->entity_memory_pool, 512, "light_components")
+    Array<LightComponent>(
+      &memory->entity_memory_pool, 4096, "light_components", true
+    )
   ),
   spatial_components(
-    Array<SpatialComponent>(&memory->entity_memory_pool, 512, "spatial_components")
+    Array<SpatialComponent>(
+      &memory->entity_memory_pool, 4096, "spatial_components", true
+    )
   ),
   behavior_components(
-    Array<BehaviorComponent>(&memory->entity_memory_pool, 512, "behavior_components")
+    Array<BehaviorComponent>(
+      &memory->entity_memory_pool, 4096, "behavior_components", true
+    )
   ),
 
   entity_manager(&this->entities),
