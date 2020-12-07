@@ -6,7 +6,7 @@ class SpatialComponentManager;
 class DrawableComponentManager {
 public:
   Array<DrawableComponent> *components;
-  uint32 last_drawn_shader_program = 0;
+  static uint32 last_drawn_shader_program;
 
   DrawableComponentManager(
     Array<DrawableComponent> *components

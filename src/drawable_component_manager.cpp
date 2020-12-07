@@ -1,3 +1,5 @@
+uint32 DrawableComponentManager::last_drawn_shader_program = 0;
+
 DrawableComponentManager::DrawableComponentManager(
   Array<DrawableComponent> *new_components
 ) {
@@ -89,10 +91,9 @@ void DrawableComponentManager::draw(
   ShaderAsset *shader_asset = mesh->material->shader_asset;
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
-  // TODO: Add some smart condition here.
-  if (true) {
+  if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
     glUseProgram(shader_asset->program);
-    this->last_drawn_shader_program = shader_asset->program;
+    DrawableComponentManager::last_drawn_shader_program = shader_asset->program;
 
     for (
       uint32 texture_idx = 1;
@@ -143,10 +144,9 @@ void DrawableComponentManager::draw_in_depth_mode(
   }
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
-  // TODO: Add some smart condition here.
-  if (true) {
+  if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
     glUseProgram(shader_asset->program);
-    this->last_drawn_shader_program = shader_asset->program;
+    DrawableComponentManager::last_drawn_shader_program = shader_asset->program;
 
     for (
       uint32 uniform_idx = 0;

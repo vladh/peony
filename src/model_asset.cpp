@@ -317,21 +317,44 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
 
 void ModelAsset::create_entities() {
-  for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-    Mesh *mesh = this->meshes[idx];
-    Entity *entity = this->entity_manager->add(this->name);
+  if (this->meshes.size > 1) {
+    for (uint32 idx = 0; idx < this->meshes.size; idx++) {
+      Mesh *mesh = this->meshes[idx];
+
+      Entity *entity = this->entity_manager->add(this->name);
+
+      if (this->should_create_spatial_components) {
+        // TODO: Change SpatialComponent to take the parent's EntityHandle
+        // instead of a pointer?
+        SpatialComponent *parent_spatial_component =
+          this->spatial_component_manager->get(this->parent_entity_handle);
+        this->spatial_component_manager->add(
+          entity->handle,
+          glm::vec3(0.0f),
+          glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
+          glm::vec3(0.0f),
+          parent_spatial_component
+        );
+      }
+
+      this->drawable_component_manager->add(
+        entity->handle,
+        mesh,
+        this->render_pass
+      );
+    }
+  } else {
     if (this->should_create_spatial_components) {
       this->spatial_component_manager->add(
-        entity->handle,
+        this->parent_entity_handle,
         glm::vec3(0.0f),
         glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
-        glm::vec3(0.0f),
-        this->parent_spatial_component
+        glm::vec3(1.0f)
       );
     }
     this->drawable_component_manager->add(
-      entity->handle,
-      mesh,
+      this->parent_entity_handle,
+      this->meshes[0],
       this->render_pass
     );
   }
@@ -506,7 +529,7 @@ ModelAsset::ModelAsset(
   ModelSource model_source,
   const char *name,
   const char *path,
-  SpatialComponent *parent_spatial_component,
+  EntityHandle parent_entity_handle,
   RenderPass::Flag render_pass,
   bool32 should_create_spatial_components
 ) :
@@ -515,7 +538,7 @@ ModelAsset::ModelAsset(
   path(path),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
-  parent_spatial_component(parent_spatial_component),
+  parent_entity_handle(parent_entity_handle),
   render_pass(render_pass),
   should_create_spatial_components(should_create_spatial_components)
 {
@@ -531,7 +554,7 @@ ModelAsset::ModelAsset(
   uint32 *index_data, uint32 n_indices,
   const char *name,
   GLenum mode,
-  SpatialComponent *parent_spatial_component,
+  EntityHandle parent_entity_handle,
   RenderPass::Flag render_pass,
   bool32 should_create_spatial_components
 ) :
@@ -540,7 +563,7 @@ ModelAsset::ModelAsset(
   path(""),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
-  parent_spatial_component(parent_spatial_component),
+  parent_entity_handle(parent_entity_handle),
   render_pass(render_pass),
   should_create_spatial_components(should_create_spatial_components)
 {

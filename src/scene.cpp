@@ -27,7 +27,7 @@ void scene_init(Memory *memory, State *state) {
       nullptr, 0,
       "axes",
       GL_LINES,
-      spatial_component,
+      entity->handle,
       RenderPass::forward_nodepth,
       true
     );
@@ -53,7 +53,7 @@ void scene_init(Memory *memory, State *state) {
       glm::vec4(4.0f, 4.0f, 4.0f, 1.0f),
       glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
     );
-    SpatialComponent *spatial_component = state->spatial_component_manager.add(
+    state->spatial_component_manager.add(
       entity->handle,
       glm::vec3(-light_direction * DIRECTIONAL_LIGHT_DISTANCE),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
@@ -67,7 +67,7 @@ void scene_init(Memory *memory, State *state) {
       ModelSource::file,
       "light",
       MODEL_DIR"cube.obj",
-      spatial_component,
+      entity->handle,
       RenderPass::forward_nodepth,
       true
     );
@@ -100,7 +100,7 @@ void scene_init(Memory *memory, State *state) {
       ModelSource::file,
       "light",
       MODEL_DIR"cube.obj",
-      spatial_component,
+      entity->handle,
       RenderPass::forward_nodepth,
       true
     );
@@ -116,7 +116,7 @@ void scene_init(Memory *memory, State *state) {
   {
 #if 1
     Entity *entity = state->entity_manager.add("ocean");
-    SpatialComponent *spatial_component = state->spatial_component_manager.add(
+    state->spatial_component_manager.add(
       entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
@@ -141,7 +141,7 @@ void scene_init(Memory *memory, State *state) {
       index_data, n_indices,
       "ocean",
       GL_TRIANGLES,
-      spatial_component,
+      entity->handle,
       RenderPass::forward_depth,
       true
     );
@@ -182,9 +182,9 @@ void scene_init(Memory *memory, State *state) {
 
   // Temple
   {
-#if 0
+#if 1
     Entity *entity = state->entity_manager.add("temple");
-    SpatialComponent *spatial_component = state->spatial_component_manager.add(
+    state->spatial_component_manager.add(
       entity->handle,
       glm::vec3(0.0f, 0.1f, 0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
@@ -196,7 +196,7 @@ void scene_init(Memory *memory, State *state) {
       ModelSource::file,
       "temple",
       MODEL_DIR"shop.fbx",
-      spatial_component,
+      entity->handle,
       RenderPass::deferred | RenderPass::shadowcaster,
       true
     );
@@ -290,7 +290,7 @@ void scene_init(Memory *memory, State *state) {
   // Test
   {
     Entity *entity = state->entity_manager.add("test");
-    SpatialComponent *spatial_component = state->spatial_component_manager.add(
+    state->spatial_component_manager.add(
       entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
@@ -303,7 +303,7 @@ void scene_init(Memory *memory, State *state) {
       ModelSource::file,
       "light",
       MODEL_DIR"cube.obj",
-      spatial_component,
+      entity->handle,
       RenderPass::forward_depth | RenderPass::shadowcaster,
       true
     );
@@ -317,7 +317,7 @@ void scene_init(Memory *memory, State *state) {
   // Rocks
   {
     Entity *entity = state->entity_manager.add("rocks");
-    SpatialComponent *spatial_component = state->spatial_component_manager.add(
+    state->spatial_component_manager.add(
       entity->handle,
       glm::vec3(0.0f, -3.5f, 0.0f),
       glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
@@ -329,7 +329,7 @@ void scene_init(Memory *memory, State *state) {
       ModelSource::file,
       "rocks",
       MODEL_DIR"Stones_AssetKit.fbx",
-      spatial_component,
+      entity->handle,
       RenderPass::deferred | RenderPass::shadowcaster,
       true
     );
@@ -358,7 +358,7 @@ void scene_init(Memory *memory, State *state) {
   {
 #if 1
     Entity *entity = state->entity_manager.add("skysphere");
-    SpatialComponent *spatial_component = state->spatial_component_manager.add(
+    state->spatial_component_manager.add(
       entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
@@ -382,7 +382,7 @@ void scene_init(Memory *memory, State *state) {
       index_data, n_indices,
       "skysphere",
       GL_TRIANGLE_STRIP,
-      spatial_component,
+      entity->handle,
       RenderPass::forward_skybox,
       true
     );
@@ -411,7 +411,7 @@ void scene_init(Memory *memory, State *state) {
       ModelSource::file,
       "goose",
       MODEL_DIR"miniGoose.fbx",
-      spatial_component,
+      entity->handle,
       RenderPass::deferred,
       true
     );
@@ -441,7 +441,7 @@ void scene_init(Memory *memory, State *state) {
       nullptr, 0,
       "screenquad_lighting",
       GL_TRIANGLES,
-      nullptr,
+      entity->handle,
       RenderPass::lighting,
       false
     );
@@ -480,7 +480,7 @@ void scene_init(Memory *memory, State *state) {
       nullptr, 0,
       "screenquad_preblur",
       GL_TRIANGLES,
-      nullptr,
+      entity->handle,
       RenderPass::preblur,
       false
     );
@@ -500,7 +500,7 @@ void scene_init(Memory *memory, State *state) {
       nullptr, 0,
       "screenquad_blur1",
       GL_TRIANGLES,
-      nullptr,
+      entity->handle,
       RenderPass::blur1,
       false
     );
@@ -520,7 +520,7 @@ void scene_init(Memory *memory, State *state) {
       nullptr, 0,
       "screenquad_blur2",
       GL_TRIANGLES,
-      nullptr,
+      entity->handle,
       RenderPass::blur2,
       false
     );
@@ -540,7 +540,7 @@ void scene_init(Memory *memory, State *state) {
       nullptr, 0,
       "screenquad_postprocessing",
       GL_TRIANGLES,
-      nullptr,
+      entity->handle,
       RenderPass::postprocessing,
       false
     );

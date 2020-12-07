@@ -580,10 +580,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  /* window_info->width = video_mode->width; */
-  /* window_info->height = video_mode->height; */
-  window_info->width = 1920;
-  window_info->height = 1080;
+  window_info->width = video_mode->width;
+  window_info->height = video_mode->height;
+  /* window_info->width = 1920; */
+  /* window_info->height = 1080; */
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -595,8 +595,8 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  /* glfwSetWindowPos(window, 0, 0); */
-  glfwSetWindowPos(window, 200, 200);
+  glfwSetWindowPos(window, 0, 0);
+  /* glfwSetWindowPos(window, 200, 200); */
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
@@ -753,7 +753,7 @@ void set_heading(
 void render_scene_ui(
   Memory *memory, State *state
 ){
-  char debug_text[4096];
+  char debug_text[1 << 14];
 
   if (state->heading_opacity > 0.0f) {
     state->gui_manager.draw_heading(
@@ -860,21 +860,21 @@ void render_scene_ui(
       SpatialComponent *spatial_component =
         state->spatial_component_manager.get(handle);
 
-      if (spatial_component) {
+      if (spatial_component->scale.x > 0.0f || spatial_component->parent) {
         if (spatial_component->parent) {
           continue;
         }
 
-        strcat(debug_text, "- ");
+        strcat(debug_text, "+ ");
         strcat(debug_text, entity->debug_name);
 
-        strcat(debug_text, " [");
+        strcat(debug_text, "@");
         // Because NUM_TO_STR only has 2048 entries
         assert(entity->handle < 2048);
         strcat(debug_text, NUM_TO_STR[entity->handle]);
-        strcat(debug_text, "]");
 
         // NOTE: This is super slow lol.
+        uint32 n_children_found = 0;
         for (
           uint32 child_idx = 1;
           child_idx < state->spatial_component_manager.components->size;
@@ -887,27 +887,41 @@ void render_scene_ui(
             child_spatial_component->parent->entity_handle ==
               spatial_component->entity_handle
           ) {
+            n_children_found++;
+            if (n_children_found > 5) {
+              continue;
+            }
             EntityHandle child_handle = child_spatial_component->entity_handle;
             Entity *child_entity = state->entities.get(child_handle);
 
-            strcat(debug_text, "\n  -> ");
+            strcat(debug_text, "\n  - ");
             strcat(debug_text, child_entity->debug_name);
-            strcat(debug_text, " [");
+            strcat(debug_text, "@");
             // Because NUM_TO_STR only has 2048 entries
             assert(child_entity->handle < 2048);
             strcat(debug_text, NUM_TO_STR[child_entity->handle]);
-            strcat(debug_text, "]");
           }
+        }
+        if (n_children_found > 5) {
+          strcat(debug_text, "\n  (and ");
+          strcat(debug_text, NUM_TO_STR[n_children_found - 5]);
+          strcat(debug_text, " more)");
         }
       } else {
         strcat(debug_text, ". ");
         strcat(debug_text, entity->debug_name);
+        strcat(debug_text, "@");
+        // Because NUM_TO_STR only has 2048 entries
+        assert(entity->handle < 2048);
+        strcat(debug_text, NUM_TO_STR[entity->handle]);
       }
 
-      if (idx < state->entities.size - 1) {
-        strcat(debug_text, "\n");
-      }
+      strcat(debug_text, "\n");
     }
+
+    // Delete the last newline.
+    debug_text[strlen(debug_text) - 1] = 0;
+
     state->gui_manager.draw_body_text(container, debug_text);
 #endif
   }
