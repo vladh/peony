@@ -474,7 +474,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   init_l_buffer(memory, state);
   init_blur_buffers(memory, state);
 
-  // TODO: I hate this.
   for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
     ModelAsset *model_asset = state->model_assets[idx];
     for (
@@ -929,7 +928,6 @@ void scene_update(Memory *memory, State *state) {
       continue;
     }
 
-    // TODO: Check if this exists in the first place!
     if (behavior_component->behavior == Behavior::none) {
       continue;
     }

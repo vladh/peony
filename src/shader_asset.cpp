@@ -102,7 +102,6 @@ uint32 ShaderAsset::add_texture_unit(
 void ShaderAsset::load_uniforms() {
   this->did_set_texture_uniforms = false;
 
-  // TODO: Is there a better way to do this?
   for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
     intrinsic_uniform_locations[idx] = -1;
   }

@@ -39,7 +39,6 @@ void main() {
 
   vec3 albedo;
   if (albedo_static.x < 0) {
-    // TODO: Swizzle this differently.
     vec4 g_albedo_rgb = texture(albedo_texture, fs_in.tex_coords);
     g_albedo = vec4(g_albedo_rgb.z, g_albedo_rgb.y, g_albedo_rgb.x, g_albedo_rgb.a);
   } else {
