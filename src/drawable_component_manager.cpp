@@ -36,7 +36,6 @@ void DrawableComponentManager::draw_all(
   for (uint32 idx = 0; idx < this->components->size; idx++) {
     DrawableComponent *drawable = this->components->get(idx);
 
-    // TODO: Check if this exists in the first place!
     if (!drawable->mesh) {
       continue;
     }

@@ -3,7 +3,6 @@
 
 #if USE_TIMERS
 
-// TODO: I'm sure there's a better way to do this, but this works.
 #define START_TIMER(name) \
   std::chrono::steady_clock::time_point debug_timerstart_##name = std::chrono::steady_clock::now();
 

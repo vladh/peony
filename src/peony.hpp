@@ -7,7 +7,6 @@
 #include <vld.h>
 #endif
 
-// TODO: Decide which ones we should actually be including.
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>

@@ -3,7 +3,7 @@ real32 FontAsset::frac_px_to_px(uint32 n) {
 }
 
 real32 FontAsset::font_unit_to_px(uint32 n) {
-  // TODO: We should be dividing by this->units_per_em here...probably?
+  // NOTE: We should be dividing by this->units_per_em here...probably?
   // This is because we expect height etc. to be in "font units".
   // But treating these metrics as "fractional pixels" seems to work,
   // whereas division by units_per_em doesn't.

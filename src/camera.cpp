@@ -116,8 +116,6 @@ void Camera::update_mouse(glm::vec2 mouse_offset) {
   this->yaw += mouse_offset.x;
   this->pitch += mouse_offset.y;
 
-  // TODO: Do this in a better way.
-  // Do we still need this now that we're using quaternions?
   if (this->pitch > 89.0f) {
     this->pitch = 89.0f;
   } else if (this->pitch < -89.0f) {
