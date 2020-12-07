@@ -359,7 +359,7 @@ void ModelAsset::prepare_for_draw(
     this->is_vertex_buffer_setup_done = true;
   }
 
-  if (this->materials.size > 0) {
+  if (this->is_mesh_data_loading_done && this->materials.size > 0) {
     // Step 3: Once the mesh data is loaded, bind materials for their respective meshes.
     if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
       for (uint32 idx_material = 0; idx_material < this->materials.size; idx_material++) {
