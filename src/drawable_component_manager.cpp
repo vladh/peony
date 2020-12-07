@@ -91,7 +91,7 @@ void DrawableComponentManager::draw(
   ShaderAsset *shader_asset = mesh->material->shader_asset;
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
-  if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
+  if (true) {
     glUseProgram(shader_asset->program);
     DrawableComponentManager::last_drawn_shader_program = shader_asset->program;
 
@@ -144,7 +144,7 @@ void DrawableComponentManager::draw_in_depth_mode(
   }
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
-  if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
+  if (true) {
     glUseProgram(shader_asset->program);
     DrawableComponentManager::last_drawn_shader_program = shader_asset->program;
 
