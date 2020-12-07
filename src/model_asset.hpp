@@ -37,7 +37,7 @@ public:
   const char *path;
   Array<Mesh> meshes;
   Array<Material> materials;
-  SpatialComponent *parent_spatial_component;
+  EntityHandle parent_entity_handle;
   RenderPass::Flag render_pass;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
@@ -97,7 +97,7 @@ public:
     ModelSource model_source,
     const char *name,
     const char *path,
-    SpatialComponent *parent_spatial_component,
+    EntityHandle parent_entity_handle,
     RenderPass::Flag render_pass,
     bool32 should_create_spatial_components
   );
@@ -108,7 +108,7 @@ public:
     uint32 *index_data, uint32 n_indices,
     const char *name,
     GLenum mode,
-    SpatialComponent *parent_spatial_component,
+    EntityHandle parent_entity_handle,
     RenderPass::Flag render_pass,
     bool32 should_create_spatial_components
   );
