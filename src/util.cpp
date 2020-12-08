@@ -407,12 +407,6 @@ void APIENTRY Util::debug_message_callback(
       break;
   }
 
-#if 0
-  if (severity == GL_DEBUG_SEVERITY_HIGH) {
-    __debugbreak();
-  }
-#endif
-
   log_newline();
 }
 

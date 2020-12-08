@@ -70,6 +70,10 @@ void init_shadowmaps(Memory *memory, State *state) {
     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->cube_shadowmaps, 0
   );
 
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_fatal("Framebuffer not complete!");
+  }
+
   // Texture
   glGenFramebuffers(1, &state->texture_shadowmaps_framebuffer);
   glGenTextures(1, &state->texture_shadowmaps);
@@ -91,6 +95,10 @@ void init_shadowmaps(Memory *memory, State *state) {
   glFramebufferTexture(
     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->texture_shadowmaps, 0
   );
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_fatal("Framebuffer not complete!");
+  }
 }
 
 
@@ -203,7 +211,7 @@ void init_g_buffer(Memory *memory, State *state) {
   );
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_error("Framebuffer not complete!");
+    log_fatal("Framebuffer not complete!");
   }
 }
 
@@ -298,7 +306,7 @@ void init_l_buffer(Memory *memory, State *state) {
 #endif
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_error("Framebuffer not complete!");
+    log_fatal("Framebuffer not complete!");
   }
 }
 
@@ -353,6 +361,10 @@ void init_blur_buffers(Memory *memory, State *state) {
     GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
     state->blur2_texture->texture_name, 0
   );
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+    log_fatal("Framebuffer not complete!");
+  }
 }
 
 
@@ -1338,12 +1350,6 @@ void run_loading_loop(
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
-}
-
-
-void handle_sigsegv(int signal) {
-  log_error("Signal %d", signal);
-  exit(1);
 }
 
 
