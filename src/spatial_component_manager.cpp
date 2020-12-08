@@ -1,3 +1,8 @@
+glm::mat4 SpatialComponentManager::last_model_matrix = glm::mat4(1.0f);
+SpatialComponent *SpatialComponentManager::last_model_matrix_spatial_component =
+  nullptr;
+
+
 SpatialComponent* SpatialComponentManager::add(
   EntityHandle entity_handle,
   glm::vec3 position,
@@ -49,9 +54,19 @@ glm::mat4 SpatialComponentManager::make_model_matrix(SpatialComponent *spatial_c
   if (spatial_component->scale.x > 0.0f) {
     // TODO: This is somehow really #slow, the multiplication in particular.
     // Is there a better way?
-    model_matrix = glm::translate(model_matrix, spatial_component->position);
-    model_matrix = glm::scale(model_matrix, spatial_component->scale);
-    model_matrix = model_matrix * glm::toMat4(spatial_component->rotation);
+    if (
+      spatial_component ==
+      SpatialComponentManager::last_model_matrix_spatial_component
+    ) {
+      model_matrix = SpatialComponentManager::last_model_matrix;
+    } else {
+      model_matrix = glm::translate(model_matrix, spatial_component->position);
+      model_matrix = glm::scale(model_matrix, spatial_component->scale);
+      model_matrix = model_matrix * glm::toMat4(spatial_component->rotation);
+      SpatialComponentManager::last_model_matrix = model_matrix;
+      SpatialComponentManager::last_model_matrix_spatial_component =
+        spatial_component;
+    }
   }
 
   return model_matrix;

@@ -55,6 +55,12 @@ void DrawableComponentManager::draw_all(
       // We only need to calculate the normal matrix if we have non-uniform
       // scaling.
       model_matrix = spatial_component_manager->make_model_matrix(spatial);
+
+      // TODO: Even though we have a uniform scaling in the transformation for
+      // our spatial component itself, when accumulating it with the parent
+      // spatial components, we might (possibly) get non-uniform scaling,
+      // in which case we want to calculate the model normal matrix!
+      // Oops! We should be looking at the model_matrix and not at spatial->scale.
       if (
         spatial->scale.x == spatial->scale.y &&
         spatial->scale.y == spatial->scale.z
