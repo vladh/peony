@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_OPENGL_DEBUG true
+#define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
 #define USE_VLD false
 #define USE_MEMORY_DEBUG_LOGS false
@@ -1039,7 +1039,6 @@ void check_all_model_assets_loaded(Memory *memory, State *state) {
 
 
 void update_and_render(Memory *memory, State *state) {
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   state->camera_active->update_matrices(
     state->window_info.width, state->window_info.height
   );
@@ -1402,6 +1401,7 @@ int main() {
   init_ubo(&memory, state);
   scene_init(&memory, state);
   state->persistent_pbo.allocate_pbo();
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
 #if 0
   memory.asset_memory_pool.print();

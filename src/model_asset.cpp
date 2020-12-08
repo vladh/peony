@@ -300,11 +300,13 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     for (uint32 idx = 0; idx < material->textures.size; idx++) {
       Texture *texture = material->textures[idx];
       const char *uniform_name = *material->texture_uniform_names[idx];
+#if 0
       log_info(
         "Setting uniforms: (model %s) (uniform_name %s) "
         "(texture->texture_name %d)",
         this->name, uniform_name, texture->texture_name
       );
+#endif
       shader_asset->set_int(
         uniform_name,
         shader_asset->add_texture_unit(texture->texture_name, texture->target)
@@ -453,8 +455,6 @@ void ModelAsset::prepare_for_draw(
     ) {
       START_TIMER(copy_pbo_to_texture);
 
-      bool32 did_have_to_generate_texture = false;
-
       for (uint32 idx = 0; idx < this->materials.size; idx++) {
         Material *material = this->materials[idx];
 
@@ -465,28 +465,14 @@ void ModelAsset::prepare_for_draw(
           material->generate_textures_from_pbo(
             persistent_pbo, texture_name_pool
           );
-          did_have_to_generate_texture = true;
         }
       }
 
-      if (!did_have_to_generate_texture) {
-        this->is_texture_creation_done = true;
-        this->is_loaded = true;
-      }
-
+      this->is_texture_creation_done = true;
       END_TIMER_MIN(copy_pbo_to_texture, 5);
     }
 
-    // Step 6: Create the entities.
-    if (
-      this->is_texture_creation_done &&
-      !this->is_entity_creation_done
-    ) {
-      create_entities();
-      this->is_entity_creation_done = true;
-    }
-
-    // Step 7: Bind the texture uniforms.
+    // Step 6: Bind the texture uniforms.
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
     if (this->is_texture_creation_done) {
@@ -506,6 +492,16 @@ void ModelAsset::prepare_for_draw(
         }
       }
     }
+
+    // Step 7: Create the entities.
+    if (
+      this->is_texture_creation_done &&
+      !this->is_entity_creation_done
+    ) {
+      create_entities();
+      this->is_entity_creation_done = true;
+    }
+
   }
 }
 
@@ -580,7 +576,4 @@ ModelAsset::ModelAsset(
   );
   this->is_mesh_data_loading_done = true;
   this->is_vertex_buffer_setup_done = true;
-
-  create_entities();
-  this->is_entity_creation_done = true;
 }

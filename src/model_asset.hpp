@@ -47,7 +47,6 @@ public:
   bool32 is_texture_creation_done = false;
   bool32 is_vertex_buffer_setup_done = false;
   bool32 is_entity_creation_done = false;
-  bool32 is_loaded = false;
   std::mutex mutex;
   bool32 should_create_spatial_components;
   static EntityManager *entity_manager;
