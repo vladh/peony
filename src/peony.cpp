@@ -755,6 +755,8 @@ void render_scene_ui(
 ){
   char debug_text[1 << 14];
 
+  state->gui_manager.start_drawing();
+
   if (state->heading_opacity > 0.0f) {
     state->gui_manager.draw_heading(
       state->heading_text,

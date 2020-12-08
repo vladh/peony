@@ -30,10 +30,14 @@ void GuiManager::set_cursor() {
 }
 
 
-void GuiManager::push_vertices(real32 *vertices, uint32 n_vertices) {
+void GuiManager::start_drawing() {
   glBindVertexArray(this->vao);
   glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
+}
 
+
+void GuiManager::push_vertices(real32 *vertices, uint32 n_vertices) {
+  // VAO/VBO must have been bound by start_drawing()
   glBufferSubData(
     GL_ARRAY_BUFFER,
     GUI_VERTEX_SIZE * this->n_vertices_pushed,
