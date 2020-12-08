@@ -74,6 +74,7 @@ public:
   void update_mouse();
   void request_cursor(GLFWcursor *cursor);
   void set_cursor();
+  void start_drawing();
   void push_vertices(real32 *vertices, uint32 n_vertices);
   void render();
   glm::vec2 get_text_dimensions(
