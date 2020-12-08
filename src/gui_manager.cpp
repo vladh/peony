@@ -50,9 +50,6 @@ void GuiManager::push_vertices(real32 *vertices, uint32 n_vertices) {
 
 
 void GuiManager::render() {
-  glBindVertexArray(this->vao);
-  glBindBuffer(GL_ARRAY_BUFFER, this->vbo);
-
   glUseProgram(this->shader_asset->program);
   if (!this->shader_asset->did_set_texture_uniforms) {
     glActiveTexture(GL_TEXTURE0);

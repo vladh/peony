@@ -97,7 +97,7 @@ void DrawableComponentManager::draw(
   ShaderAsset *shader_asset = mesh->material->shader_asset;
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
-  if (true) {
+  if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
     glUseProgram(shader_asset->program);
     DrawableComponentManager::last_drawn_shader_program = shader_asset->program;
 
@@ -113,18 +113,18 @@ void DrawableComponentManager::draw(
         );
       }
     }
+  }
 
-    for (
-      uint32 uniform_idx = 0;
-      uniform_idx < shader_asset->n_intrinsic_uniforms;
-      uniform_idx++
-    ) {
-      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-      if (strcmp(uniform_name, "model_matrix") == 0) {
-        shader_asset->set_mat4("model_matrix", model_matrix);
-      } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-        shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
-      }
+  for (
+    uint32 uniform_idx = 0;
+    uniform_idx < shader_asset->n_intrinsic_uniforms;
+    uniform_idx++
+  ) {
+    const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+    if (strcmp(uniform_name, "model_matrix") == 0) {
+      shader_asset->set_mat4("model_matrix", model_matrix);
+    } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+      shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
     }
   }
 
@@ -150,21 +150,21 @@ void DrawableComponentManager::draw_in_depth_mode(
   }
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
-  if (true) {
+  if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
     glUseProgram(shader_asset->program);
     DrawableComponentManager::last_drawn_shader_program = shader_asset->program;
+  }
 
-    for (
-      uint32 uniform_idx = 0;
-      uniform_idx < shader_asset->n_intrinsic_uniforms;
-      uniform_idx++
-    ) {
-      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-      if (strcmp(uniform_name, "model_matrix") == 0) {
-        shader_asset->set_mat4("model_matrix", model_matrix);
-      } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-        shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
-      }
+  for (
+    uint32 uniform_idx = 0;
+    uniform_idx < shader_asset->n_intrinsic_uniforms;
+    uniform_idx++
+  ) {
+    const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+    if (strcmp(uniform_name, "model_matrix") == 0) {
+      shader_asset->set_mat4("model_matrix", model_matrix);
+    } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+      shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
     }
   }
 

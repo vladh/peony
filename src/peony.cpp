@@ -1,11 +1,12 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_OPENGL_DEBUG false
+#define USE_OPENGL_DEBUG true
 #define USE_TIMERS true
 #define USE_VLD false
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 #define USE_CACHELINE_SIZE_DISPLAY false
+#define USE_FULLSCREEN true
 
 #include "peony.hpp"
 
@@ -580,10 +581,13 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  /* window_info->width = video_mode->width; */
-  /* window_info->height = video_mode->height; */
+#if USE_FULLSCREEN
+  window_info->width = video_mode->width;
+  window_info->height = video_mode->height;
+#else
   window_info->width = 1920;
   window_info->height = 1080;
+#endif
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -595,8 +599,11 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  /* glfwSetWindowPos(window, 0, 0); */
+#if USE_FULLSCREEN
+  glfwSetWindowPos(window, 0, 0);
+#else
   glfwSetWindowPos(window, 200, 200);
+#endif
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
@@ -713,7 +720,6 @@ void copy_scene_data_to_ubo(
     }
   }
 
-  glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
 }
 
