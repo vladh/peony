@@ -2,7 +2,6 @@
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20
 #define SHOULD_USE_SHADOWS 1
-#define SHOULD_USE_FOG 0
 
 uniform samplerCubeArray cube_shadowmaps;
 uniform sampler2DArray texture_shadowmaps;

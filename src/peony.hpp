@@ -15,9 +15,7 @@
 #include <stdio.h>
 #include <signal.h>
 
-#if 0
 #include <intrin.h>
-#endif
 
 #include <chrono>
 #include <thread>

@@ -550,7 +550,8 @@ void scene_init(Memory *memory, State *state) {
       SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag", nullptr
     );
     material->add(*state->l_color_texture, "l_color_texture");
-    material->add(*state->l_depth_texture, "l_depth_texture");
+    // Uncomment to use fog.
+    /* material->add(*state->l_depth_texture, "l_depth_texture"); */
     material->add(*state->blur2_texture, "bloom_texture");
   }
 }
