@@ -8,6 +8,134 @@ void scene_init(Memory *memory, State *state) {
     SHADER_DIR"standard_depth.geom"
   );
 
+  // Internal
+  {
+    Entity *entity;
+    real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
+
+    // Lighting screenquad
+    entity = state->entity_manager.add("screenquad_lighting");
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      ModelSource::data,
+      screenquad_vertices, 6,
+      nullptr, 0,
+      "screenquad_lighting",
+      GL_TRIANGLES,
+      entity->handle,
+      RenderPass::lighting,
+      false
+    );
+    material = new(model_asset->materials.push()) Material(memory);
+    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "lighting", ShaderType::standard,
+      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag", nullptr
+    );
+    material->add(*state->g_position_texture, "g_position_texture");
+    material->add(*state->g_normal_texture, "g_normal_texture");
+    material->add(*state->g_albedo_texture, "g_albedo_texture");
+    material->add(*state->g_pbr_texture, "g_pbr_texture");
+    material->add(
+      Texture(
+        GL_TEXTURE_CUBE_MAP_ARRAY,
+        TextureType::shadowmap, state->cube_shadowmaps,
+        state->cube_shadowmap_width, state->cube_shadowmap_height, 1
+      ),
+      "cube_shadowmaps"
+    );
+    material->add(
+      Texture(
+        GL_TEXTURE_2D_ARRAY,
+        TextureType::shadowmap, state->texture_shadowmaps,
+        state->texture_shadowmap_width, state->texture_shadowmap_height, 1
+      ),
+      "texture_shadowmaps"
+    );
+
+    // Preblur screenquad
+    entity = state->entity_manager.add("screenquad_preblur");
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      ModelSource::data,
+      screenquad_vertices, 6,
+      nullptr, 0,
+      "screenquad_preblur",
+      GL_TRIANGLES,
+      entity->handle,
+      RenderPass::preblur,
+      false
+    );
+    material = new(model_asset->materials.push()) Material(memory);
+    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "blur", ShaderType::standard,
+      SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
+    );
+    material->add(*state->l_bright_color_texture, "source_texture");
+
+    // Blur 1 screenquad
+    entity = state->entity_manager.add("screenquad_blur1");
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      ModelSource::data,
+      screenquad_vertices, 6,
+      nullptr, 0,
+      "screenquad_blur1",
+      GL_TRIANGLES,
+      entity->handle,
+      RenderPass::blur1,
+      false
+    );
+    material = new(model_asset->materials.push()) Material(memory);
+    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "blur", ShaderType::standard,
+      SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
+    );
+    material->add(*state->blur2_texture, "source_texture");
+
+    // Blur 2 screenquad
+    entity = state->entity_manager.add("screenquad_blur2");
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      ModelSource::data,
+      screenquad_vertices, 6,
+      nullptr, 0,
+      "screenquad_blur2",
+      GL_TRIANGLES,
+      entity->handle,
+      RenderPass::blur2,
+      false
+    );
+    material = new(model_asset->materials.push()) Material(memory);
+    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "blur", ShaderType::standard,
+      SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
+    );
+    material->add(*state->blur1_texture, "source_texture");
+
+    // Postprocessing screenquad
+    entity = state->entity_manager.add("screenquad_postprocessing");
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      ModelSource::data,
+      screenquad_vertices, 6,
+      nullptr, 0,
+      "screenquad_postprocessing",
+      GL_TRIANGLES,
+      entity->handle,
+      RenderPass::postprocessing,
+      false
+    );
+    material = new(model_asset->materials.push()) Material(memory);
+    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "postprocessing", ShaderType::standard,
+      SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag", nullptr
+    );
+    material->add(*state->l_color_texture, "l_color_texture");
+    // Uncomment to use fog.
+    /* material->add(*state->l_depth_texture, "l_depth_texture"); */
+    material->add(*state->blur2_texture, "bloom_texture");
+  }
+
   // Axes
   {
 #if 0
@@ -425,133 +553,5 @@ void scene_init(Memory *memory, State *state) {
     material->set_roughness_static(1.0f);
     material->set_ao_static(1.0f);
 #endif
-  }
-
-  // Internal
-  {
-    Entity *entity;
-    real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-
-    // Lighting screenquad
-    entity = state->entity_manager.add("screenquad_lighting");
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      screenquad_vertices, 6,
-      nullptr, 0,
-      "screenquad_lighting",
-      GL_TRIANGLES,
-      entity->handle,
-      RenderPass::lighting,
-      false
-    );
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "lighting", ShaderType::standard,
-      SHADER_DIR"lighting.vert", SHADER_DIR"lighting.frag", nullptr
-    );
-    material->add(*state->g_position_texture, "g_position_texture");
-    material->add(*state->g_normal_texture, "g_normal_texture");
-    material->add(*state->g_albedo_texture, "g_albedo_texture");
-    material->add(*state->g_pbr_texture, "g_pbr_texture");
-    material->add(
-      Texture(
-        GL_TEXTURE_CUBE_MAP_ARRAY,
-        TextureType::shadowmap, state->cube_shadowmaps,
-        state->cube_shadowmap_width, state->cube_shadowmap_height, 1
-      ),
-      "cube_shadowmaps"
-    );
-    material->add(
-      Texture(
-        GL_TEXTURE_2D_ARRAY,
-        TextureType::shadowmap, state->texture_shadowmaps,
-        state->texture_shadowmap_width, state->texture_shadowmap_height, 1
-      ),
-      "texture_shadowmaps"
-    );
-
-    // Preblur screenquad
-    entity = state->entity_manager.add("screenquad_preblur");
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      screenquad_vertices, 6,
-      nullptr, 0,
-      "screenquad_preblur",
-      GL_TRIANGLES,
-      entity->handle,
-      RenderPass::preblur,
-      false
-    );
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "blur", ShaderType::standard,
-      SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
-    );
-    material->add(*state->l_bright_color_texture, "source_texture");
-
-    // Blur 1 screenquad
-    entity = state->entity_manager.add("screenquad_blur1");
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      screenquad_vertices, 6,
-      nullptr, 0,
-      "screenquad_blur1",
-      GL_TRIANGLES,
-      entity->handle,
-      RenderPass::blur1,
-      false
-    );
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "blur", ShaderType::standard,
-      SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
-    );
-    material->add(*state->blur2_texture, "source_texture");
-
-    // Blur 2 screenquad
-    entity = state->entity_manager.add("screenquad_blur2");
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      screenquad_vertices, 6,
-      nullptr, 0,
-      "screenquad_blur2",
-      GL_TRIANGLES,
-      entity->handle,
-      RenderPass::blur2,
-      false
-    );
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "blur", ShaderType::standard,
-      SHADER_DIR"blur.vert", SHADER_DIR"blur.frag", nullptr
-    );
-    material->add(*state->blur1_texture, "source_texture");
-
-    // Postprocessing screenquad
-    entity = state->entity_manager.add("screenquad_postprocessing");
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      screenquad_vertices, 6,
-      nullptr, 0,
-      "screenquad_postprocessing",
-      GL_TRIANGLES,
-      entity->handle,
-      RenderPass::postprocessing,
-      false
-    );
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "postprocessing", ShaderType::standard,
-      SHADER_DIR"postprocessing.vert", SHADER_DIR"postprocessing.frag", nullptr
-    );
-    material->add(*state->l_color_texture, "l_color_texture");
-    // Uncomment to use fog.
-    /* material->add(*state->l_depth_texture, "l_depth_texture"); */
-    material->add(*state->blur2_texture, "bloom_texture");
   }
 }
