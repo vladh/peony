@@ -444,6 +444,7 @@ void scene_init(Memory *memory, State *state) {
 
   // Rocks
   {
+#if 1
     Entity *entity = state->entity_manager.add("rocks");
     state->spatial_component_manager.add(
       entity->handle,
@@ -480,6 +481,7 @@ void scene_init(Memory *memory, State *state) {
       Texture(TextureType::normal, "resources/textures/rocks/2k/Stones_Normal.jpg"),
       "normal_texture"
     );
+#endif
   }
 
   // Skysphere
