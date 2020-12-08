@@ -787,6 +787,11 @@ void render_scene_ui(
       container, "entities.size", debug_text
     );
 
+    sprintf(debug_text, "%d", global_oopses);
+    state->gui_manager.draw_named_value(
+      container, "oopses", debug_text
+    );
+
     if (state->gui_manager.draw_toggle(
       container, "Wireframe mode", &state->should_use_wireframe
     )) {
@@ -847,7 +852,7 @@ void render_scene_ui(
   }
 
   {
-#if 1
+#if 0
     GuiContainer *container = state->gui_manager.make_container(
       "Entities", glm::vec2(state->window_info.width - 400.0f, 25.0f)
     );

@@ -4,6 +4,8 @@
 class SpatialComponentManager {
 public:
   Array<SpatialComponent> *components;
+  static glm::mat4 last_model_matrix;
+  static SpatialComponent *last_model_matrix_spatial_component;
 
   SpatialComponent* add(
     EntityHandle entity_handle,
