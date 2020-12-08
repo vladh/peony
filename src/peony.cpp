@@ -580,10 +580,10 @@ void init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-  window_info->width = video_mode->width;
-  window_info->height = video_mode->height;
-  /* window_info->width = 1920; */
-  /* window_info->height = 1080; */
+  /* window_info->width = video_mode->width; */
+  /* window_info->height = video_mode->height; */
+  window_info->width = 1920;
+  window_info->height = 1080;
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
@@ -595,8 +595,8 @@ void init_window(WindowInfo *window_info) {
     return;
   }
   window_info->window = window;
-  glfwSetWindowPos(window, 0, 0);
-  /* glfwSetWindowPos(window, 200, 200); */
+  /* glfwSetWindowPos(window, 0, 0); */
+  glfwSetWindowPos(window, 200, 200);
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
@@ -785,11 +785,6 @@ void render_scene_ui(
     sprintf(debug_text, "%d", state->entities.size);
     state->gui_manager.draw_named_value(
       container, "entities.size", debug_text
-    );
-
-    sprintf(debug_text, "%d", global_oopses);
-    state->gui_manager.draw_named_value(
-      container, "oopses", debug_text
     );
 
     if (state->gui_manager.draw_toggle(
