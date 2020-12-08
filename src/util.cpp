@@ -334,7 +334,9 @@ void APIENTRY Util::debug_message_callback(
     // Texture state usage warning: The texture object (0) bound to texture
     // image unit 4 does not have a defined base level and cannot be used for
     // texture mapping.
-    id == 131204
+    id == 131204 ||
+    // Pixel-path performance warning: Pixel transfer is synchronized with 3D rendering.
+    id == 131154
   ) {
     return;
   }
