@@ -6,7 +6,7 @@
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 #define USE_CACHELINE_SIZE_DISPLAY false
-#define USE_FULLSCREEN true
+#define USE_FULLSCREEN false
 
 #include "peony.hpp"
 
@@ -1258,7 +1258,7 @@ void run_main_loop(Memory *memory, State *state) {
 
       // If we should pause, stop time-based events.
       if (!state->should_pause) {
-        state->dt = std::chrono::duration_cast<std::chrono::duration<float>>(
+        state->dt = std::chrono::duration_cast<std::chrono::duration<real64>>(
           frame_start - last_frame_start
         ).count();
 
