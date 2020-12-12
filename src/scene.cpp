@@ -8,6 +8,29 @@ void scene_init(Memory *memory, State *state) {
     SHADER_DIR"standard_depth.geom"
   );
 
+  uint32 OCEAN_N_VERTICES;
+  uint32 OCEAN_N_INDICES;
+  real32 *OCEAN_VERTEX_DATA;
+  uint32 *OCEAN_INDEX_DATA;
+  Util::make_plane(
+    &memory->asset_memory_pool,
+    200, 200,
+    800, 800,
+    &OCEAN_N_VERTICES, &OCEAN_N_INDICES,
+    &OCEAN_VERTEX_DATA, &OCEAN_INDEX_DATA
+  );
+
+  uint32 SKYSPHERE_N_VERTICES;
+  uint32 SKYSPHERE_N_INDICES;
+  real32 *SKYSPHERE_VERTEX_DATA;
+  uint32 *SKYSPHERE_INDEX_DATA;
+  Util::make_sphere(
+    &memory->asset_memory_pool,
+    64, 64,
+    &SKYSPHERE_N_VERTICES, &SKYSPHERE_N_INDICES,
+    &SKYSPHERE_VERTEX_DATA, &SKYSPHERE_INDEX_DATA
+  );
+
   // Internal
   {
     real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
@@ -229,22 +252,11 @@ void scene_init(Memory *memory, State *state) {
   // Ocean
   {
 #if 1
-    uint32 n_vertices;
-    uint32 n_indices;
-    real32 *vertex_data;
-    uint32 *index_data;
-    Util::make_plane(
-      &memory->temp_memory_pool,
-      200, 200,
-      800, 800,
-      &n_vertices, &n_indices,
-      &vertex_data, &index_data
-    );
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      vertex_data, n_vertices,
-      index_data, n_indices,
+      OCEAN_VERTEX_DATA, OCEAN_N_VERTICES,
+      OCEAN_INDEX_DATA, OCEAN_N_INDICES,
       "ocean",
       GL_TRIANGLES,
       RenderPass::forward_depth,
@@ -289,7 +301,6 @@ void scene_init(Memory *memory, State *state) {
       ),
       "texture_shadowmaps"
     );
-    memory->temp_memory_pool.reset();
 #endif
   }
 
@@ -476,21 +487,11 @@ void scene_init(Memory *memory, State *state) {
   // Skysphere
   {
 #if 1
-    uint32 n_vertices;
-    uint32 n_indices;
-    real32 *vertex_data;
-    uint32 *index_data;
-    Util::make_sphere(
-      &memory->temp_memory_pool,
-      64, 64,
-      &n_vertices, &n_indices,
-      &vertex_data, &index_data
-    );
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      vertex_data, n_vertices,
-      index_data, n_indices,
+      SKYSPHERE_VERTEX_DATA, SKYSPHERE_N_VERTICES,
+      SKYSPHERE_INDEX_DATA, SKYSPHERE_N_INDICES,
       "skysphere",
       GL_TRIANGLE_STRIP,
       RenderPass::forward_skybox,
@@ -509,7 +510,6 @@ void scene_init(Memory *memory, State *state) {
       memory, "skysphere", ShaderType::standard,
       SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag", nullptr
     );
-    memory->temp_memory_pool.reset();
 #endif
   }
 
