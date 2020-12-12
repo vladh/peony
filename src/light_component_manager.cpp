@@ -6,13 +6,25 @@ LightComponentManager::LightComponentManager(
 
 
 LightComponent* LightComponentManager::add(
+  LightComponent light_component
+) {
+  assert(light_component.entity_handle != Entity::no_entity_handle);
+  LightComponent *new_component = this->components->get(
+    light_component.entity_handle
+  );
+  *new_component = light_component;
+  return new_component;
+}
+
+
+LightComponent* LightComponentManager::add(
   EntityHandle entity_handle,
   LightType type,
   glm::vec3 direction,
   glm::vec4 color,
   glm::vec4 attenuation
 ) {
-  assert(entity_handle > 0);
+  assert(entity_handle != Entity::no_entity_handle);
   LightComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->type = type;
@@ -24,6 +36,8 @@ LightComponent* LightComponentManager::add(
 
 
 LightComponent* LightComponentManager::get(EntityHandle handle) {
-  assert(handle > 0);
+  if (handle == Entity::no_entity_handle) {
+    return nullptr;
+  }
   return this->components->get(handle);
 }

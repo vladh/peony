@@ -37,7 +37,12 @@ public:
   const char *path;
   Array<Mesh> meshes;
   Array<Material> materials;
-  EntityHandle parent_entity_handle;
+
+  Entity *entity;
+  SpatialComponent spatial_component;
+  LightComponent light_component;
+  BehaviorComponent behavior_component;
+
   RenderPass::Flag render_pass;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
@@ -48,10 +53,10 @@ public:
   bool32 is_vertex_buffer_setup_done = false;
   bool32 is_entity_creation_done = false;
   std::mutex mutex;
-  bool32 should_create_spatial_components;
   static EntityManager *entity_manager;
   static DrawableComponentManager *drawable_component_manager;
   static SpatialComponentManager *spatial_component_manager;
+  static LightComponentManager *light_component_manager;
   static BehaviorComponentManager *behavior_component_manager;
 
   void load(
@@ -96,9 +101,8 @@ public:
     ModelSource model_source,
     const char *name,
     const char *path,
-    EntityHandle parent_entity_handle,
     RenderPass::Flag render_pass,
-    bool32 should_create_spatial_components
+    Entity *entity
   );
   ModelAsset(
     Memory *memory,
@@ -107,9 +111,8 @@ public:
     uint32 *index_data, uint32 n_indices,
     const char *name,
     GLenum mode,
-    EntityHandle parent_entity_handle,
     RenderPass::Flag render_pass,
-    bool32 should_create_spatial_components
+    Entity *entity
   );
 };
 

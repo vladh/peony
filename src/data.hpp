@@ -1,4 +1,4 @@
-const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
+constexpr const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
   "depth_textures[0]",
   "depth_textures[1]",
   "depth_textures[2]",
@@ -7,6 +7,24 @@ const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
   "depth_textures[5]",
   "depth_textures[6]",
   "depth_textures[7]"
+};
+
+constexpr glm::vec3 CUBEMAP_OFFSETS[6] = {
+  glm::vec3(1.0f, 0.0f, 0.0f),
+  glm::vec3(-1.0f, 0.0f, 0.0f),
+  glm::vec3(0.0f, 1.0f, 0.0f),
+  glm::vec3(0.0f, -1.0f, 0.0f),
+  glm::vec3(0.0f, 0.0f, 1.0f),
+  glm::vec3(0.0f, 0.0f, -1.0f)
+};
+
+constexpr glm::vec3 CUBEMAP_UPS[6] = {
+  glm::vec3(0.0f, -1.0f, 0.0f),
+  glm::vec3(0.0f, -1.0f, 0.0f),
+  glm::vec3(0.0f, 0.0f, 1.0f),
+  glm::vec3(0.0f, 0.0f, -1.0f),
+  glm::vec3(0.0f, -1.0f, 0.0f),
+  glm::vec3(0.0f, -1.0f, 0.0f)
 };
 
 #define AXIS_SIZE 20.0f

@@ -8,11 +8,23 @@ DrawableComponentManager::DrawableComponentManager(
 
 
 DrawableComponent* DrawableComponentManager::add(
+  DrawableComponent drawable_component
+) {
+  assert(drawable_component.entity_handle != Entity::no_entity_handle);
+  DrawableComponent *new_component = this->components->get(
+    drawable_component.entity_handle
+  );
+  *new_component = drawable_component;
+  return new_component;
+}
+
+
+DrawableComponent* DrawableComponentManager::add(
   EntityHandle entity_handle,
   Mesh *mesh,
   RenderPass::Flag target_render_pass
 ) {
-  assert(entity_handle > 0);
+  assert(entity_handle != Entity::no_entity_handle);
   if (!mesh) {
     log_fatal("Invalid mesh when creating DrawableComponent.");
   }
@@ -25,7 +37,9 @@ DrawableComponent* DrawableComponentManager::add(
 
 
 DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
-  assert(handle > 0);
+  if (handle == Entity::no_entity_handle) {
+    return nullptr;
+  }
   return this->components->get(handle);
 }
 
@@ -38,20 +52,20 @@ void DrawableComponentManager::draw_all(
   for (uint32 idx = 0; idx < this->components->size; idx++) {
     DrawableComponent *drawable = this->components->get(idx);
 
-    if (!drawable->mesh) {
+    if (!drawable->is_valid()) {
       continue;
     }
-
-    SpatialComponent *spatial = spatial_component_manager->get(drawable->entity_handle);
 
     if (!(render_pass & drawable->target_render_pass)) {
       continue;
     }
 
+    SpatialComponent *spatial = spatial_component_manager->get(drawable->entity_handle);
+
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
 
-    if (spatial) {
+    if (spatial->is_valid()) {
       // We only need to calculate the normal matrix if we have non-uniform
       // scaling.
       model_matrix = spatial_component_manager->make_model_matrix(spatial);

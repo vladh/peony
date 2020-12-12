@@ -10,6 +10,10 @@ public:
   );
 
   LightComponent* add(
+    LightComponent light_component
+  );
+
+  LightComponent* add(
     EntityHandle entity_handle,
     LightType type,
     glm::vec3 direction,

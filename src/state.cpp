@@ -77,12 +77,6 @@ State::State(
   heading_fadeout_duration(1.0f),
   heading_fadeout_delay(2.0f),
 
-  point_lights(
-    Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "point_lights")
-  ),
-  directional_lights(
-    Array<EntityHandle>(&memory->entity_memory_pool, MAX_N_LIGHTS, "directional_lights")
-  ),
   persistent_pbo(25, 2048, 2048, 4),
   texture_name_pool(memory, 64, 4),
   task_queue(
