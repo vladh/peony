@@ -57,9 +57,6 @@ public:
   real32 heading_fadeout_duration;
   real32 heading_fadeout_delay;
 
-  Array<EntityHandle> point_lights;
-  Array<EntityHandle> directional_lights;
-
   PersistentPbo persistent_pbo;
   TextureNamePool texture_name_pool;
   Queue<Task> task_queue;

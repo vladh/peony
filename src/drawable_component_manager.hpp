@@ -13,6 +13,10 @@ public:
   );
 
   DrawableComponent* add(
+    DrawableComponent drawable_component
+  );
+
+  DrawableComponent* add(
     EntityHandle entity_handle,
     Mesh *mesh,
     RenderPass::Flag target_render_pass

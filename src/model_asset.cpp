@@ -1,6 +1,7 @@
 EntityManager *ModelAsset::entity_manager;
 DrawableComponentManager *ModelAsset::drawable_component_manager;
 SpatialComponentManager *ModelAsset::spatial_component_manager;
+LightComponentManager *ModelAsset::light_component_manager;
 BehaviorComponentManager *ModelAsset::behavior_component_manager;
 
 void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
@@ -319,46 +320,49 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
 
 void ModelAsset::create_entities() {
-  if (this->meshes.size > 1) {
+  if (this->spatial_component.is_valid()) {
+    this->spatial_component.entity_handle = this->entity->handle;
+    this->spatial_component_manager->add(this->spatial_component);
+  }
+
+  if (this->light_component.is_valid()) {
+    this->light_component.entity_handle = this->entity->handle;
+    this->light_component_manager->add(this->light_component);
+  }
+
+  if (this->behavior_component.is_valid()) {
+    this->behavior_component.entity_handle = this->entity->handle;
+    this->behavior_component_manager->add(this->behavior_component);
+  }
+
+  if (this->meshes.size == 1) {
+    this->drawable_component_manager->add(
+      this->entity->handle,
+      this->meshes[0],
+      this->render_pass
+    );
+  } else if (this->meshes.size > 1) {
     for (uint32 idx = 0; idx < this->meshes.size; idx++) {
       Mesh *mesh = this->meshes[idx];
 
-      Entity *entity = this->entity_manager->add(this->name);
+      Entity *child_entity = this->entity_manager->add(this->name);
 
-      if (this->should_create_spatial_components) {
-        // TODO: Change SpatialComponent to take the parent's EntityHandle
-        // instead of a pointer?
-        SpatialComponent *parent_spatial_component =
-          this->spatial_component_manager->get(this->parent_entity_handle);
+      if (this->spatial_component.is_valid()) {
         this->spatial_component_manager->add(
-          entity->handle,
+          child_entity->handle,
           glm::vec3(0.0f),
           glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
           glm::vec3(0.0f),
-          parent_spatial_component
+          this->entity->handle
         );
       }
 
       this->drawable_component_manager->add(
-        entity->handle,
+        child_entity->handle,
         mesh,
         this->render_pass
       );
     }
-  } else {
-    if (this->should_create_spatial_components) {
-      this->spatial_component_manager->add(
-        this->parent_entity_handle,
-        glm::vec3(0.0f),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
-        glm::vec3(1.0f)
-      );
-    }
-    this->drawable_component_manager->add(
-      this->parent_entity_handle,
-      this->meshes[0],
-      this->render_pass
-    );
   }
 }
 
@@ -525,18 +529,16 @@ ModelAsset::ModelAsset(
   ModelSource model_source,
   const char *name,
   const char *path,
-  EntityHandle parent_entity_handle,
   RenderPass::Flag render_pass,
-  bool32 should_create_spatial_components
+  Entity *entity
 ) :
   name(name),
   model_source(model_source),
   path(path),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
-  parent_entity_handle(parent_entity_handle),
   render_pass(render_pass),
-  should_create_spatial_components(should_create_spatial_components)
+  entity(entity)
 {
   // NOTE: We do not load ModelSource::file models here.
   // They will be loaded gradually in `::prepare_for_draw()`.
@@ -550,18 +552,16 @@ ModelAsset::ModelAsset(
   uint32 *index_data, uint32 n_indices,
   const char *name,
   GLenum mode,
-  EntityHandle parent_entity_handle,
   RenderPass::Flag render_pass,
-  bool32 should_create_spatial_components
+  Entity *entity
 ) :
   name(name),
   model_source(model_source),
   path(""),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
-  parent_entity_handle(parent_entity_handle),
   render_pass(render_pass),
-  should_create_spatial_components(should_create_spatial_components)
+  entity(entity)
 {
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);

@@ -27,7 +27,6 @@ global_variable uint32 global_oopses = 0;
 #include "memory_pool.cpp"
 #include "memory.cpp"
 #include "input_manager.cpp"
-#include "entity.cpp"
 #include "entity_manager.cpp"
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
@@ -392,14 +391,14 @@ void update_drawing_options(State *state, GLFWwindow *window) {
 
 
 void update_light_position(State *state, real32 amount) {
-  if (state->directional_lights.size > 0) {
-    EntityHandle *handle = state->directional_lights[0];
-    LightComponent *light_component = state->light_component_manager.get(*handle);
-    if (light_component) {
+  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+    LightComponent *light_component = state->light_component_manager.components->get(idx);
+    if (light_component -> type == LightType::directional) {
       state->dir_light_angle += amount;
       light_component->direction = glm::vec3(
         sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
       );
+      break;
     }
   }
 }
@@ -685,8 +684,6 @@ void copy_scene_data_to_ubo(
   shader_common->camera_near_clip_dist = state->camera_active->near_clip_dist;
   shader_common->camera_far_clip_dist = state->camera_active->far_clip_dist;
 
-  shader_common->n_point_lights = state->point_lights.size;
-  shader_common->n_directional_lights = state->directional_lights.size;
   shader_common->current_shadow_light_idx = current_shadow_light_idx;
   shader_common->current_shadow_light_type = current_shadow_light_type;
 
@@ -698,39 +695,47 @@ void copy_scene_data_to_ubo(
   shader_common->window_width = state->window_info.width;
   shader_common->window_height = state->window_info.height;
 
-  for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
-    EntityHandle handle = *state->point_lights[idx];
-    SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
-    LightComponent *light_component = state->light_component_manager.get(handle);
-    if (spatial_component) {
-      shader_common->point_light_position[idx] = glm::vec4(
+  uint32 n_point_lights = 0;
+  uint32 n_directional_lights = 0;
+
+  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+    LightComponent *light_component =
+      state->light_component_manager.components->get(idx);
+    SpatialComponent *spatial_component = state->spatial_component_manager.get(
+      light_component->entity_handle
+    );
+
+    if (!(
+      light_component->is_valid() &&
+      spatial_component->is_valid()
+    )) {
+      continue;
+    }
+
+    if (light_component->type == LightType::point) {
+      shader_common->point_light_position[n_point_lights] = glm::vec4(
         spatial_component->position, 1.0f
       );
-    }
-    if (light_component) {
-      shader_common->point_light_color[idx] = light_component->color;
-      shader_common->point_light_attenuation[idx] = light_component->attenuation;
+      shader_common->point_light_color[n_point_lights] =
+        light_component->color;
+      shader_common->point_light_attenuation[n_point_lights] =
+        light_component->attenuation;
+      n_point_lights++;
+    } else if (light_component->type == LightType::directional) {
+      shader_common->directional_light_position[n_directional_lights] =
+        glm::vec4(spatial_component->position, 1.0f);
+      shader_common->directional_light_direction[n_directional_lights] =
+        glm::vec4(light_component->direction, 1.0f);
+      shader_common->directional_light_color[n_directional_lights] =
+        light_component->color;
+      shader_common->directional_light_attenuation[n_directional_lights] =
+        light_component->attenuation;
+      n_directional_lights++;
     }
   }
 
-  for (uint32 idx = 0; idx < state->directional_lights.size; idx++) {
-    EntityHandle handle = *state->directional_lights[idx];
-    SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
-    LightComponent *light_component = state->light_component_manager.get(handle);
-    if (spatial_component) {
-      shader_common->directional_light_position[idx] = glm::vec4(
-        spatial_component->position, 1.0f
-      );
-    }
-    if (light_component) {
-      shader_common->directional_light_direction[idx] = glm::vec4(
-        light_component->direction, 1.0f
-      );
-
-      shader_common->directional_light_color[idx] = light_component->color;
-      shader_common->directional_light_attenuation[idx] = light_component->attenuation;
-    }
-  }
+  shader_common->n_point_lights = n_point_lights;
+  shader_common->n_directional_lights = n_directional_lights;
 
   glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
 }
@@ -765,6 +770,120 @@ void set_heading(
   state->heading_opacity = opacity;
   state->heading_fadeout_duration = fadeout_duration;
   state->heading_fadeout_delay = fadeout_delay;
+}
+
+
+void get_entity_text_representation(
+  char *text, State *state, Entity *entity, uint8 depth
+) {
+  EntityHandle handle = entity->handle;
+  SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
+
+  // Children will be drawn under their parents.
+  if (
+    depth == 0 &&
+    spatial_component->is_valid() &&
+    spatial_component->parent_entity_handle != Entity::no_entity_handle
+  ) {
+    return;
+  }
+
+  bool32 has_spatial_component = spatial_component->is_valid();
+  bool32 has_drawable_component =
+    state->drawable_component_manager.get(handle)->is_valid();
+  bool32 has_light_component =
+    state->light_component_manager.get(handle)->is_valid();
+  bool32 has_behavior_component =
+    state->behavior_component_manager.get(handle)->is_valid();
+
+  for (uint8 level = 0; level < depth; level++) {
+    strcat(text, "  ");
+  }
+
+  strcat(text, "- ");
+  strcat(text, entity->debug_name);
+
+  strcat(text, "@");
+  // Because NUM_TO_STR only has 2048 entries
+  assert(entity->handle < 2048);
+  strcat(text, NUM_TO_STR[entity->handle]);
+
+  if (
+    !has_spatial_component &&
+    !has_drawable_component &&
+    !has_light_component &&
+    !has_behavior_component
+  ) {
+    strcat(text, " (orphan)");
+  }
+
+  if (has_spatial_component) {
+    strcat(text, " +S");
+  }
+  if (has_drawable_component) {
+    strcat(text, " +D");
+  }
+  if (has_light_component) {
+    strcat(text, " +L");
+  }
+  if (has_behavior_component) {
+    strcat(text, " +B");
+  }
+
+  if (spatial_component->is_valid()) {
+    // NOTE: This is super slow lol.
+    uint32 n_children_found = 0;
+    for (
+      uint32 child_idx = 1;
+      child_idx < state->spatial_component_manager.components->size;
+      child_idx++
+    ) {
+      SpatialComponent *child_spatial_component =
+        state->spatial_component_manager.components->get(child_idx);
+      if (
+        child_spatial_component->parent_entity_handle ==
+          spatial_component->entity_handle
+      ) {
+        n_children_found++;
+        if (n_children_found > 5) {
+          continue;
+        }
+        EntityHandle child_handle = child_spatial_component->entity_handle;
+        Entity *child_entity = state->entities.get(child_handle);
+
+        if (text[strlen(text) - 1] != '\n') {
+          strcat(text, "\n");
+        }
+        get_entity_text_representation(text, state, child_entity, depth + 1);
+      }
+    }
+    if (n_children_found > 5) {
+      for (uint8 level = 0; level < (depth + 1); level++) {
+        strcat(text, "  ");
+      }
+      strcat(text, "(and ");
+      strcat(text, NUM_TO_STR[n_children_found - 5]);
+      strcat(text, " more)");
+    }
+  }
+
+  if (text[strlen(text) - 1] != '\n') {
+    strcat(text, "\n");
+  }
+}
+
+
+void get_scene_text_representation(char *text, State *state) {
+  strcpy(text, "");
+
+  for (uint32 idx = 1; idx < state->entities.size; idx++) {
+    Entity *entity = state->entities[idx];
+    get_entity_text_representation(text, state, entity, 0);
+  }
+
+  if (text[strlen(text) - 1] == '\n') {
+    text[strlen(text) - 1] = 0;
+  }
 }
 
 
@@ -867,81 +986,11 @@ void render_scene_ui(
   }
 
   {
-#if 0
+#if 1
     GuiContainer *container = state->gui_manager.make_container(
       "Entities", glm::vec2(state->window_info.width - 400.0f, 25.0f)
     );
-
-    strcpy(debug_text, "");
-
-    for (uint32 idx = 1; idx < state->entities.size; idx++) {
-      Entity *entity = state->entities[idx];
-      EntityHandle handle = entity->handle;
-      SpatialComponent *spatial_component =
-        state->spatial_component_manager.get(handle);
-
-      if (spatial_component->scale.x > 0.0f || spatial_component->parent) {
-        if (spatial_component->parent) {
-          continue;
-        }
-
-        strcat(debug_text, "+ ");
-        strcat(debug_text, entity->debug_name);
-
-        strcat(debug_text, "@");
-        // Because NUM_TO_STR only has 2048 entries
-        assert(entity->handle < 2048);
-        strcat(debug_text, NUM_TO_STR[entity->handle]);
-
-        // NOTE: This is super slow lol.
-        uint32 n_children_found = 0;
-        for (
-          uint32 child_idx = 1;
-          child_idx < state->spatial_component_manager.components->size;
-          child_idx++
-        ) {
-          SpatialComponent *child_spatial_component =
-            state->spatial_component_manager.components->get(child_idx);
-          if (
-            child_spatial_component->parent &&
-            child_spatial_component->parent->entity_handle ==
-              spatial_component->entity_handle
-          ) {
-            n_children_found++;
-            if (n_children_found > 5) {
-              continue;
-            }
-            EntityHandle child_handle = child_spatial_component->entity_handle;
-            Entity *child_entity = state->entities.get(child_handle);
-
-            strcat(debug_text, "\n  - ");
-            strcat(debug_text, child_entity->debug_name);
-            strcat(debug_text, "@");
-            // Because NUM_TO_STR only has 2048 entries
-            assert(child_entity->handle < 2048);
-            strcat(debug_text, NUM_TO_STR[child_entity->handle]);
-          }
-        }
-        if (n_children_found > 5) {
-          strcat(debug_text, "\n  (and ");
-          strcat(debug_text, NUM_TO_STR[n_children_found - 5]);
-          strcat(debug_text, " more)");
-        }
-      } else {
-        strcat(debug_text, ". ");
-        strcat(debug_text, entity->debug_name);
-        strcat(debug_text, "@");
-        // Because NUM_TO_STR only has 2048 entries
-        assert(entity->handle < 2048);
-        strcat(debug_text, NUM_TO_STR[entity->handle]);
-      }
-
-      strcat(debug_text, "\n");
-    }
-
-    // Delete the last newline.
-    debug_text[strlen(debug_text) - 1] = 0;
-
+    get_scene_text_representation(debug_text, state);
     state->gui_manager.draw_body_text(container, debug_text);
 #endif
   }
@@ -961,7 +1010,7 @@ void scene_update(Memory *memory, State *state) {
 
     if (
       !behavior_component ||
-      behavior_component->behavior == Behavior::none
+      !behavior_component->is_valid()
     ) {
       continue;
     }
@@ -990,33 +1039,29 @@ void scene_update(Memory *memory, State *state) {
     }
   }
 
-  // Lights are handled separately
-  // TODO: Make lights not be handled separately!
   {
-    for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
-      EntityHandle *handle = state->point_lights[idx];
+    for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+      LightComponent *light_component =
+        state->light_component_manager.components->get(idx);
       SpatialComponent *spatial_component = state->spatial_component_manager.get(
-        *handle
+        light_component->entity_handle
       );
-      if (spatial_component) {
+
+      if (!(
+        light_component->is_valid() &&
+        spatial_component->is_valid()
+      )) {
+        continue;
+      }
+
+      if (light_component->type == LightType::point) {
         real64 time_term =
           (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
         real64 x_term = 0.0f + cos(time_term) * 8.0f;
         real64 z_term = 0.0f + sin(time_term) * 8.0f;
         spatial_component->position.x = (real32)x_term;
         spatial_component->position.z = (real32)z_term;
-      }
-    }
-
-    for (uint32 idx = 0; idx < state->directional_lights.size; idx++) {
-      EntityHandle *handle = state->directional_lights[idx];
-      SpatialComponent *spatial_component = state->spatial_component_manager.get(
-        *handle
-      );
-      LightComponent *light_component = state->light_component_manager.get(
-        *handle
-      );
-      if (spatial_component) {
+      } else if (light_component->type == LightType::directional) {
         spatial_component->position = state->camera_active->position +
           -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
       }
@@ -1066,60 +1111,109 @@ void update_and_render(Memory *memory, State *state) {
 
   // Render shadow map
   {
-    if (state->point_lights.size > 0) {
-      Camera::create_cube_shadowmap_transforms(
-        state->cube_shadowmap_transforms,
-        &state->spatial_component_manager,
-        &state->light_component_manager,
-        &state->point_lights,
-        state->cube_shadowmap_width, state->cube_shadowmap_height,
+    // Point lights
+    {
+      glm::mat4 perspective_projection = glm::perspective(
+        glm::radians(90.0f),
+        (real32)state->cube_shadowmap_width / (real32)state->cube_shadowmap_height,
         state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
       );
 
-      for (uint32 idx = 0; idx < state->point_lights.size; idx++) {
-        EntityHandle handle = *state->point_lights[idx];
-        LightComponent *light_component = state->light_component_manager.get(handle);
+      uint32 idx_light = 0;
+
+      for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+        LightComponent *light_component =
+          state->light_component_manager.components->get(idx);
+        SpatialComponent *spatial_component = state->spatial_component_manager.get(
+          light_component->entity_handle
+        );
+
+        if (!(
+          light_component->is_valid() &&
+          light_component->type == LightType::point &&
+          spatial_component->is_valid()
+        )) {
+          continue;
+        }
+
+        glm::vec3 position = spatial_component->position;
+
+        for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
+          state->cube_shadowmap_transforms[(idx_light * 6) + idx_face] =
+            perspective_projection * glm::lookAt(
+              position,
+              position + CUBEMAP_OFFSETS[idx_face],
+              CUBEMAP_UPS[idx_face]
+            );
+        }
 
         glViewport(0, 0, state->cube_shadowmap_width, state->cube_shadowmap_height);
         glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
         glClear(GL_DEPTH_BUFFER_BIT);
 
         copy_scene_data_to_ubo(
-          memory, state, idx, light_type_to_int(light_component->type), false
+          memory, state, idx_light, light_type_to_int(light_component->type), false
         );
         render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
+
+        idx_light++;
       }
     }
 
-    if (state->directional_lights.size > 0) {
-      Camera::create_texture_shadowmap_transforms(
-        state->texture_shadowmap_transforms,
-        &state->spatial_component_manager,
-        &state->light_component_manager,
-        &state->directional_lights,
-        state->texture_shadowmap_width, state->texture_shadowmap_height,
+    // Directional lights
+    {
+      real32 ortho_ratio = (real32)state->texture_shadowmap_width /
+        (real32)state->texture_shadowmap_height;
+      real32 ortho_width = 100.0f;
+      real32 ortho_height = ortho_width / ortho_ratio;
+      glm::mat4 ortho_projection = glm::ortho(
+        -ortho_width, ortho_width,
+        -ortho_height, ortho_height,
         state->shadowmap_near_clip_dist, state->shadowmap_far_clip_dist
       );
 
-      for (uint32 idx = 0; idx < state->directional_lights.size; idx++) {
-        EntityHandle handle = *state->directional_lights[idx];
-        LightComponent *light_component = state->light_component_manager.get(handle);
+      uint32 idx_light = 0;
 
-        glViewport(0, 0, state->texture_shadowmap_width, state->texture_shadowmap_height);
+      for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+        LightComponent *light_component =
+          state->light_component_manager.components->get(idx);
+        SpatialComponent *spatial_component = state->spatial_component_manager.get(
+          light_component->entity_handle
+        );
+
+        if (!(
+          light_component->is_valid() &&
+          light_component->type == LightType::directional &&
+          spatial_component->is_valid()
+        )) {
+          continue;
+        }
+
+        state->texture_shadowmap_transforms[idx_light] = ortho_projection * glm::lookAt(
+          spatial_component->position,
+          spatial_component->position + light_component->direction,
+          glm::vec3(0.0f, -1.0f, 0.0f)
+        );
+
+        glViewport(
+          0, 0, state->texture_shadowmap_width, state->texture_shadowmap_height
+        );
         glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
         glClear(GL_DEPTH_BUFFER_BIT);
 
         copy_scene_data_to_ubo(
-          memory, state, idx, light_type_to_int(light_component->type), false
+          memory, state, idx_light, light_type_to_int(light_component->type), false
         );
         render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
+
+        idx_light++;
       }
     }
-
-    glViewport(
-      0, 0, state->window_info.width, state->window_info.height
-    );
   }
+
+  glViewport(
+    0, 0, state->window_info.width, state->window_info.height
+  );
 
   // Geometry pass
   {
@@ -1352,7 +1446,16 @@ void run_loading_loop(
 }
 
 
+void check_environment() {
+  // Check that an `enum class`'s default value == its first element == 0;
+  BehaviorComponent test;
+  assert(test.behavior == Behavior::none);
+}
+
+
 int main() {
+  check_environment();
+
   START_TIMER(init);
 
   srand((uint32)time(NULL));
@@ -1373,6 +1476,7 @@ int main() {
   ModelAsset::entity_manager = &state->entity_manager;
   ModelAsset::drawable_component_manager = &state->drawable_component_manager;
   ModelAsset::spatial_component_manager = &state->spatial_component_manager;
+  ModelAsset::light_component_manager = &state->light_component_manager;
   ModelAsset::behavior_component_manager = &state->behavior_component_manager;
 
   std::mutex loading_thread_mutex;

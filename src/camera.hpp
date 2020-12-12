@@ -31,22 +31,6 @@ public:
   void update_ui_matrices(
     uint32 window_width, uint32 window_height
   );
-  static void create_cube_shadowmap_transforms(
-    glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS],
-    SpatialComponentManager *spatial_component_manager,
-    LightComponentManager *light_component_manager,
-    Array<EntityHandle> *point_lights,
-    uint32 cube_shadowmap_width, uint32 cube_shadowmap_height,
-    real32 near_clip_dist, real32 far_clip_dist
-  );
-  static void create_texture_shadowmap_transforms(
-    glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS],
-    SpatialComponentManager *spatial_component_manager,
-    LightComponentManager *light_component_manager,
-    Array<EntityHandle> *directional_lights,
-    uint32 texture_shadowmap_width, uint32 texture_shadowmap_height,
-    real32 near_clip_dist, real32 far_clip_dist
-  );
 
 private:
   CameraType type;

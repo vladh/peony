@@ -8,11 +8,15 @@ public:
   static SpatialComponent *last_model_matrix_spatial_component;
 
   SpatialComponent* add(
+    SpatialComponent spatial_component
+  );
+
+  SpatialComponent* add(
     EntityHandle entity_handle,
     glm::vec3 position,
     glm::quat rotation,
     glm::vec3 scale,
-    SpatialComponent *parent
+    EntityHandle parent_entity_handle
   );
 
   SpatialComponent* add(

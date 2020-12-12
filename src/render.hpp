@@ -37,17 +37,6 @@ namespace RenderPass {
   Flag blur2 = (1 << 9);
 };
 
-enum class LightType {point, directional};
-
-uint32 light_type_to_int(LightType light_type) {
-  if (light_type == LightType::point) {
-    return 1;
-  } else if (light_type == LightType::directional) {
-    return 2;
-  }
-  return 0;
-}
-
 struct ShaderCommon {
   glm::mat4 view;
   glm::mat4 projection;

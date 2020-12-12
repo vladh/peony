@@ -6,6 +6,10 @@ public:
   Array<BehaviorComponent> *components;
 
   BehaviorComponent* add(
+    BehaviorComponent behavior_component
+  );
+
+  BehaviorComponent* add(
     EntityHandle entity_handle,
     Behavior behavior
   );
