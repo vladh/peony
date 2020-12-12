@@ -9,6 +9,16 @@ constexpr const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
   "depth_textures[7]"
 };
 
+uint32 OCEAN_N_VERTICES;
+uint32 OCEAN_N_INDICES;
+real32 *OCEAN_VERTEX_DATA;
+uint32 *OCEAN_INDEX_DATA;
+
+uint32 SKYSPHERE_N_VERTICES;
+uint32 SKYSPHERE_N_INDICES;
+real32 *SKYSPHERE_VERTEX_DATA;
+uint32 *SKYSPHERE_INDEX_DATA;
+
 constexpr glm::vec3 CUBEMAP_OFFSETS[6] = {
   glm::vec3(1.0f, 0.0f, 0.0f),
   glm::vec3(-1.0f, 0.0f, 0.0f),
@@ -27,73 +37,27 @@ constexpr glm::vec3 CUBEMAP_UPS[6] = {
   glm::vec3(0.0f, -1.0f, 0.0f)
 };
 
-#define AXIS_SIZE 20.0f
+constexpr real32 AXIS_SIZE = 20.0f;
 
-#define AXES_VERTICES {\
-  /* position                       normal             texture_coord */\
-  0.0f,      0.0f,      0.0f,       1.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-  AXIS_SIZE, 0.0f,      0.0f,       1.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-  0.0f,      0.0f,      0.0f,       0.0f, 1.0f, 0.0f,  0.0f, 0.0f,\
-  0.0f,      AXIS_SIZE, 0.0f,       0.0f, 1.0f, 0.0f,  0.0f, 0.0f,\
-  0.0f,      0.0f,      0.0f,       0.0f, 0.0f, 1.0f,  0.0f, 0.0f,\
-  0.0f,      0.0f,      AXIS_SIZE,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f\
-}
+constexpr real32 AXES_VERTICES[] = {
+  /* position                       normal             texture_coord */
+  0.0f,      0.0f,      0.0f,       1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+  AXIS_SIZE, 0.0f,      0.0f,       1.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+  0.0f,      0.0f,      0.0f,       0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+  0.0f,      AXIS_SIZE, 0.0f,       0.0f, 1.0f, 0.0f,  0.0f, 0.0f,
+  0.0f,      0.0f,      0.0f,       0.0f, 0.0f, 1.0f,  0.0f, 0.0f,
+  0.0f,      0.0f,      AXIS_SIZE,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f
+};
 
-#define ALPACA_VERTICES {\
-  /* position           normal             texture_coords */\
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-   0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-   0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-   0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-  -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-                                                      \
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-   0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-   0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-                                                      \
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-  -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-                                                      \
-   0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-   0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-   0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-   0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-   0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-                                                      \
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-   0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-   0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-  -0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-  -0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-                                                      \
-  -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-   0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 1.0f,\
-   0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-   0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-  -0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-  -0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 0.0f,  0.0f, 1.0f \
-}
-
-#define SCREENQUAD_VERTICES {\
-  /* position           normal             texture_coords */\
-  -1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-  -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  0.0f, 0.0f,\
-   1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-                                                      \
-  -1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  0.0f, 1.0f,\
-   1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  1.0f, 0.0f,\
-   1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  1.0f, 1.0f \
-}
+constexpr real32 SCREENQUAD_VERTICES[] = {
+  /* position           normal             texture_coords */
+  -1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+  -1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  0.0f, 0.0f,
+   1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+  -1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  0.0f, 1.0f,
+   1.0f, -1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  1.0f, 0.0f,
+   1.0f,  1.0f, 0.0f,   0.0f, 0.0f, 0.0f,  1.0f, 1.0f
+};
 
 const char *NUM_TO_STR[2048] = {
   "0",
