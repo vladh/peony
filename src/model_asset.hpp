@@ -38,7 +38,7 @@ public:
   Array<Mesh> meshes;
   Array<Material> materials;
 
-  Entity *entity;
+  EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
@@ -102,7 +102,7 @@ public:
     const char *name,
     const char *path,
     RenderPass::Flag render_pass,
-    Entity *entity
+    EntityHandle entity_handle
   );
   ModelAsset(
     Memory *memory,
@@ -112,7 +112,7 @@ public:
     const char *name,
     GLenum mode,
     RenderPass::Flag render_pass,
-    Entity *entity
+    EntityHandle entity_handle
   );
 };
 

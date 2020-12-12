@@ -8,10 +8,6 @@ void scene_init(Memory *memory, State *state) {
     SHADER_DIR"standard_depth.geom"
   );
 
-  uint32 OCEAN_N_VERTICES;
-  uint32 OCEAN_N_INDICES;
-  real32 *OCEAN_VERTEX_DATA;
-  uint32 *OCEAN_INDEX_DATA;
   Util::make_plane(
     &memory->asset_memory_pool,
     200, 200,
@@ -20,10 +16,6 @@ void scene_init(Memory *memory, State *state) {
     &OCEAN_VERTEX_DATA, &OCEAN_INDEX_DATA
   );
 
-  uint32 SKYSPHERE_N_VERTICES;
-  uint32 SKYSPHERE_N_INDICES;
-  real32 *SKYSPHERE_VERTEX_DATA;
-  uint32 *SKYSPHERE_INDEX_DATA;
   Util::make_sphere(
     &memory->asset_memory_pool,
     64, 64,
@@ -33,18 +25,16 @@ void scene_init(Memory *memory, State *state) {
 
   // Internal
   {
-    real32 screenquad_vertices[] = SCREENQUAD_VERTICES;
-
     // Lighting screenquad
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      screenquad_vertices, 6,
+      (real32*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_lighting",
       GL_TRIANGLES,
       RenderPass::lighting,
-      state->entity_manager.add("screenquad_lighting")
+      state->entity_manager.add("screenquad_lighting")->handle
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -76,12 +66,12 @@ void scene_init(Memory *memory, State *state) {
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      screenquad_vertices, 6,
+      (real32*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_preblur",
       GL_TRIANGLES,
       RenderPass::preblur,
-      state->entity_manager.add("screenquad_preblur")
+      state->entity_manager.add("screenquad_preblur")->handle
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -94,12 +84,12 @@ void scene_init(Memory *memory, State *state) {
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      screenquad_vertices, 6,
+      (real32*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_blur1",
       GL_TRIANGLES,
       RenderPass::blur1,
-      state->entity_manager.add("screenquad_blur1")
+      state->entity_manager.add("screenquad_blur1")->handle
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -112,12 +102,12 @@ void scene_init(Memory *memory, State *state) {
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      screenquad_vertices, 6,
+      (real32*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_blur2",
       GL_TRIANGLES,
       RenderPass::blur2,
-      state->entity_manager.add("screenquad_blur2")
+      state->entity_manager.add("screenquad_blur2")->handle
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -130,12 +120,12 @@ void scene_init(Memory *memory, State *state) {
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      screenquad_vertices, 6,
+      (real32*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_postprocessing",
       GL_TRIANGLES,
       RenderPass::postprocessing,
-      state->entity_manager.add("screenquad_postprocessing")
+      state->entity_manager.add("screenquad_postprocessing")->handle
     );
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
@@ -151,20 +141,21 @@ void scene_init(Memory *memory, State *state) {
   // Axes
   {
 #if 0
-    real32 axes_vertices[] = AXES_VERTICES;
+    Entity *entity = state->entity_manager.add("axes");
+
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
-      axes_vertices, LEN(axes_vertices),
+      (real32*)AXES_VERTICES, 6,
       nullptr, 0,
       "axes",
       GL_LINES,
       RenderPass::forward_nodepth,
-      state->entity_manager.add("axes")
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(0.0f, 0.1f, 0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(1.0f, 1.0f, 1.0f)
@@ -185,23 +176,25 @@ void scene_init(Memory *memory, State *state) {
       sin(state->dir_light_angle), -sin(state->dir_light_angle), 0.0f
     );
 
+    Entity *sun_entity = state->entity_manager.add("sun");
+
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::file,
       "sun",
       MODEL_DIR"cube.obj",
       RenderPass::forward_nodepth,
-      state->entity_manager.add("sun")
+      sun_entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      sun_entity->handle,
       glm::vec3(-light_direction * DIRECTIONAL_LIGHT_DISTANCE),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(0.3f)
     );
     model_asset->light_component = LightComponent(
-      Entity::no_entity_handle,
+      sun_entity->handle,
       LightType::directional,
       light_direction,
       glm::vec4(4.0f, 4.0f, 4.0f, 1.0f),
@@ -216,24 +209,25 @@ void scene_init(Memory *memory, State *state) {
 #endif
 
 #if 0
+    Entity *pointlight_entity = state->entity_manager.add("pointlight");
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::file,
       "llightight",
       MODEL_DIR"cube.obj",
       RenderPass::forward_nodepth,
-      state->entity_manager.add("pointlight")
+      pointlight_entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      pointlight_entity->handle,
       glm::vec3(-7.0f, 3.0f, 0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(0.3f)
     );
 
     model_asset->light_component = LightComponent(
-      Entity::no_entity_handle,
+      pointlight_entity->handle,
       LightType::point,
       glm::vec3(0.0f, 0.0f, 0.0f),
       glm::vec4(200.0f, 0.0f, 0.0f, 1.0f),
@@ -252,6 +246,8 @@ void scene_init(Memory *memory, State *state) {
   // Ocean
   {
 #if 1
+    Entity *entity = state->entity_manager.add("ocean");
+
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
@@ -260,11 +256,11 @@ void scene_init(Memory *memory, State *state) {
       "ocean",
       GL_TRIANGLES,
       RenderPass::forward_depth,
-      state->entity_manager.add("ocean")
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(1.0f)
@@ -307,17 +303,18 @@ void scene_init(Memory *memory, State *state) {
   // Temple
   {
 #if 0
+    Entity *entity = state->entity_manager.add("temple_root");
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::file,
       "temple",
       MODEL_DIR"shop.fbx",
       RenderPass::deferred | RenderPass::shadowcaster,
-      state->entity_manager.add("temple_root")
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(0.0f, 0.1f, 0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
       glm::vec3(0.1f)
@@ -326,7 +323,7 @@ void scene_init(Memory *memory, State *state) {
     {
       material = new(model_asset->materials.push()) Material(memory);
       material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "entity", ShaderType::standard,
+        memory, "temple0", ShaderType::standard,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
       );
       material->add(
@@ -354,7 +351,7 @@ void scene_init(Memory *memory, State *state) {
     {
       material = new(model_asset->materials.push()) Material(memory);
       material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "entity", ShaderType::standard,
+        memory, "temple1", ShaderType::standard,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
       );
       material->add(
@@ -382,7 +379,7 @@ void scene_init(Memory *memory, State *state) {
     {
       material = new(model_asset->materials.push()) Material(memory);
       material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "entity", ShaderType::standard,
+        memory, "temple2", ShaderType::standard,
         SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
       );
       material->add(
@@ -420,18 +417,18 @@ void scene_init(Memory *memory, State *state) {
       "test",
       MODEL_DIR"cube.obj",
       RenderPass::forward_depth | RenderPass::shadowcaster,
-      entity
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
       glm::vec3(1.0f)
     );
 
     model_asset->behavior_component = BehaviorComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       Behavior::test
     );
 
@@ -445,17 +442,18 @@ void scene_init(Memory *memory, State *state) {
   // Rocks
   {
 #if 1
+    Entity *entity = state->entity_manager.add("rocks_root");
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::file,
       "rocks",
       MODEL_DIR"Stones_AssetKit.fbx",
       RenderPass::deferred | RenderPass::shadowcaster,
-      state->entity_manager.add("rocks_root")
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(0.0f, -3.5f, 0.0f),
       glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
       glm::vec3(0.05f),
@@ -487,6 +485,8 @@ void scene_init(Memory *memory, State *state) {
   // Skysphere
   {
 #if 1
+    Entity *entity = state->entity_manager.add("skysphere");
+
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::data,
@@ -495,11 +495,11 @@ void scene_init(Memory *memory, State *state) {
       "skysphere",
       GL_TRIANGLE_STRIP,
       RenderPass::forward_skybox,
-      state->entity_manager.add("skysphere")
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       glm::vec3(75.0f)
@@ -516,17 +516,18 @@ void scene_init(Memory *memory, State *state) {
   // Goose
   {
 #if 0
+    Entity *entity = state->entity_manager.add("goose");
     model_asset = new(state->model_assets.push()) ModelAsset(
       memory,
       ModelSource::file,
       "goose",
       MODEL_DIR"miniGoose.fbx",
       RenderPass::deferred,
-      state->entity_manager.add("goose")
+      entity->handle
     );
 
     model_asset->spatial_component = SpatialComponent(
-      Entity::no_entity_handle,
+      entity->handle,
       glm::vec3(-4.6f, 0.00f, -1.5f),
       glm::angleAxis(glm::radians(-30.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
       glm::vec3(0.2f)
@@ -534,7 +535,7 @@ void scene_init(Memory *memory, State *state) {
 
     material = new(model_asset->materials.push()) Material(memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "entity", ShaderType::standard,
+      memory, "goose", ShaderType::standard,
       SHADER_DIR"standard.vert", SHADER_DIR"standard.frag", nullptr
     );
     material->set_albedo_static(glm::vec4(0.6f, 0.1f, 0.1f, 1.0f));

@@ -270,10 +270,6 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
   Material *material = mesh->material;
   ShaderAsset *shader_asset = material->shader_asset;
 
-  if (material->textures.size == 0) {
-    return;
-  }
-
   if (shader_asset->type != ShaderType::depth) {
     glUseProgram(shader_asset->program);
 
@@ -301,7 +297,7 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     for (uint32 idx = 0; idx < material->textures.size; idx++) {
       Texture *texture = material->textures[idx];
       const char *uniform_name = *material->texture_uniform_names[idx];
-#if 0
+#if 1
       log_info(
         "Setting uniforms: (model %s) (uniform_name %s) "
         "(texture->texture_name %d)",
@@ -321,23 +317,20 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
 void ModelAsset::create_entities() {
   if (this->spatial_component.is_valid()) {
-    this->spatial_component.entity_handle = this->entity->handle;
     this->spatial_component_manager->add(this->spatial_component);
   }
 
   if (this->light_component.is_valid()) {
-    this->light_component.entity_handle = this->entity->handle;
     this->light_component_manager->add(this->light_component);
   }
 
   if (this->behavior_component.is_valid()) {
-    this->behavior_component.entity_handle = this->entity->handle;
     this->behavior_component_manager->add(this->behavior_component);
   }
 
   if (this->meshes.size == 1) {
     this->drawable_component_manager->add(
-      this->entity->handle,
+      this->entity_handle,
       this->meshes[0],
       this->render_pass
     );
@@ -353,7 +346,7 @@ void ModelAsset::create_entities() {
           glm::vec3(0.0f),
           glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
           glm::vec3(0.0f),
-          this->entity->handle
+          this->entity_handle
         );
       }
 
@@ -484,7 +477,6 @@ void ModelAsset::prepare_for_draw(
         Material *material = this->materials[idx];
 
         if (
-          material->textures.size > 0 &&
           !material->shader_asset->did_set_texture_uniforms
         ) {
           for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
@@ -530,7 +522,7 @@ ModelAsset::ModelAsset(
   const char *name,
   const char *path,
   RenderPass::Flag render_pass,
-  Entity *entity
+  EntityHandle entity_handle
 ) :
   name(name),
   model_source(model_source),
@@ -538,7 +530,7 @@ ModelAsset::ModelAsset(
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
   render_pass(render_pass),
-  entity(entity)
+  entity_handle(entity_handle)
 {
   // NOTE: We do not load ModelSource::file models here.
   // They will be loaded gradually in `::prepare_for_draw()`.
@@ -553,7 +545,7 @@ ModelAsset::ModelAsset(
   const char *name,
   GLenum mode,
   RenderPass::Flag render_pass,
-  Entity *entity
+  EntityHandle entity_handle
 ) :
   name(name),
   model_source(model_source),
@@ -561,7 +553,7 @@ ModelAsset::ModelAsset(
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
   render_pass(render_pass),
-  entity(entity)
+  entity_handle(entity_handle)
 {
   Mesh *mesh = this->meshes.push();
   mesh->transform = glm::mat4(1.0f);
