@@ -1,7 +1,9 @@
 #ifndef FONTS_H
 #define FONTS_H
 
-constexpr uint32 N_CHARS_TO_LOAD = 128;
+// NOTE: Unicode is only the same as ASCII until 0x7F.
+// We can change this to 0xFF when we add Unicode support.
+constexpr uint32 CHAR_MAX_CODEPOINT_TO_LOAD = 0x7F;
 
 struct Character {
   glm::ivec2 size;

@@ -17,7 +17,7 @@ void FontAsset::load_glyphs(
   FT_GlyphSlot glyph = face->glyph;
 
   // TODO: Can we avoid loading all characters twice here?
-  for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
+  for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
     Character *character = this->characters.push();
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
@@ -32,7 +32,18 @@ void FontAsset::load_glyphs(
 
   glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
 
-  for (unsigned char c = 0; c < N_CHARS_TO_LOAD; c++) {
+  for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
+    if (
+      // Unicode C0 controls
+      (c >= 0x00 && c <= 0x1F) ||
+      // DEL
+      (c == 0x7F) ||
+      // Unicode C1 controls
+      (c >= 0x80 && c <= 0x9F)
+    ) {
+      continue;
+    }
+
     Character *character = this->characters[c];
 
     glm::ivec2 tex_coords = texture_atlas->push_space(character->size);
@@ -63,7 +74,7 @@ FontAsset::FontAsset(
   const char *path,
   uint16 font_size
 ) :
-  characters(&memory->asset_memory_pool, N_CHARS_TO_LOAD, "characters")
+  characters(&memory->asset_memory_pool, CHAR_MAX_CODEPOINT_TO_LOAD + 1, "characters")
 {
   this->name = name;
   this->font_size = font_size;
