@@ -53,6 +53,7 @@ public:
   }
 
   T* get(uint32 idx) {
+    assert(idx < this->max_size);
     if (idx < 0) {
       return nullptr;
     }
