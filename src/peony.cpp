@@ -16,7 +16,6 @@ global_variable uint32 global_oopses = 0;
 #include "pack.cpp"
 #include "util.cpp"
 #include "task.cpp"
-#include "resource_manager.cpp"
 #include "texture_name_pool.cpp"
 #include "font_asset.cpp"
 #include "shader_asset.cpp"

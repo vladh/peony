@@ -59,27 +59,27 @@ uint32 ShaderAsset::make_program(
 
 
 const char* ShaderAsset::load_file(Memory *memory, const char *path) {
-  uint32 f1_size = ResourceManager::get_file_size(SHADER_COMMON_PATH);
-  uint32 f2_size = ResourceManager::get_file_size(path);
+  uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
+  uint32 f2_size = Util::get_file_size(path);
   char *file_memory = (char*)memory->temp_memory_pool.push(
     f1_size + f2_size + 1, path
   );
-  ResourceManager::load_file(file_memory, SHADER_COMMON_PATH);
-  ResourceManager::load_file(file_memory + f1_size, path);
+  Util::load_file(file_memory, SHADER_COMMON_PATH);
+  Util::load_file(file_memory + f1_size, path);
   return file_memory;
 }
 
 
 const char* ShaderAsset::load_frag_file(Memory *memory, const char *path) {
-  uint32 f1_size = ResourceManager::get_file_size(SHADER_COMMON_PATH);
-  uint32 f2_size = ResourceManager::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
-  uint32 f3_size = ResourceManager::get_file_size(path);
+  uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
+  uint32 f2_size = Util::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
+  uint32 f3_size = Util::get_file_size(path);
   char *file_memory = (char*)memory->temp_memory_pool.push(
     f1_size + f2_size + f3_size + 1, path
   );
-  ResourceManager::load_file(file_memory, SHADER_COMMON_PATH);
-  ResourceManager::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
-  ResourceManager::load_file(file_memory + f1_size + f2_size, path);
+  Util::load_file(file_memory, SHADER_COMMON_PATH);
+  Util::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
+  Util::load_file(file_memory + f1_size + f2_size, path);
   return file_memory;
 }
 

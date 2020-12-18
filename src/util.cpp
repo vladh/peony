@@ -1,3 +1,83 @@
+unsigned char* Util::load_image(
+  const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
+) {
+  // TODO: Change this to use our custom allocator.
+  stbi_set_flip_vertically_on_load(should_flip);
+  unsigned char *image_data = stbi_load(
+    path, width, height, n_channels, 0
+  );
+  return image_data;
+}
+
+
+unsigned char* Util::load_image(
+  const char *path, int32 *width, int32 *height, int32 *n_channels
+) {
+  return load_image(path, width, height, n_channels, true);
+}
+
+
+void Util::free_image(unsigned char *image_data) {
+  stbi_image_free(image_data);
+}
+
+
+uint32 Util::get_file_size(const char *path) {
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    log_error("Could not open file %s.", path);
+    return 0;
+  }
+  fseek(f, 0, SEEK_END);
+  uint32 size = ftell(f);
+  fclose(f);
+  return size;
+}
+
+
+const char* Util::load_file(MemoryPool *pool, const char *path) {
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    log_error("Could not open file %s.", path);
+    return nullptr;
+  }
+  fseek(f, 0, SEEK_END);
+  uint32 file_size = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  char *string = (char*)pool->push(file_size + 1, path);
+  size_t result = fread(string, file_size, 1, f);
+  fclose(f);
+  if (result != 1) {
+    log_error("Could not read from file %s.", path);
+    return nullptr;
+  }
+
+  string[file_size] = 0;
+  return string;
+}
+
+const char* Util::load_file(char *string, const char *path) {
+  FILE* f = fopen(path, "rb");
+  if (!f) {
+    log_error("Could not open file %s.", path);
+    return nullptr;
+  }
+  fseek(f, 0, SEEK_END);
+  uint32 file_size = ftell(f);
+  fseek(f, 0, SEEK_SET);
+
+  size_t result = fread(string, file_size, 1, f);
+  fclose(f);
+  if (result != 1) {
+    log_error("Could not read from file %s.", path);
+    return nullptr;
+  }
+
+  string[file_size] = 0;
+  return string;
+}
+
 const char* Util::stringify_glenum(GLenum thing) {
   switch (thing) {
     case 0:
@@ -64,54 +144,6 @@ real64 Util::random(real64 min, real64 max) {
   uint32 r = rand();
   real64 r_normalized = (real64)r / (real64)RAND_MAX;
   return min + ((r_normalized) * (max - min));
-}
-
-
-void Util::make_pointcloud(
-  MemoryPool *memory_pool,
-  uint32 x_size, uint32 y_size, uint32 z_size,
-  uint32 n_x_segments, uint32 n_y_segments, uint32 n_z_segments,
-  uint32 *n_vertices, uint32 *n_indices,
-  real32 **vertex_data, uint32 **index_data
-) {
-  uint32 idx_vertices = 0;
-  *n_vertices = 0;
-  *n_indices = 0;
-
-  uint32 vertex_data_length = (n_x_segments + 1) *
-    (n_y_segments + 1) * (n_z_segments + 1) * 8;
-
-  *vertex_data = (real32*)memory_pool->push(
-    sizeof(real32) * vertex_data_length, "pointcloud_vertex_data"
-  );
-  *index_data = nullptr;
-
-  for (uint32 idx_x = 0; idx_x <= n_x_segments; idx_x++) {
-    for (uint32 idx_y = 0; idx_y <= n_y_segments; idx_y++) {
-      for (uint32 idx_z = 0; idx_z <= n_z_segments; idx_z++) {
-        real32 x_segment = (real32)idx_x / (real32)n_x_segments;
-        real32 y_segment = (real32)idx_y / (real32)n_y_segments;
-        real32 z_segment = (real32)idx_z / (real32)n_z_segments;
-        real32 x_pos = x_segment * x_size;
-        real32 y_pos = y_segment * y_size;
-        real32 z_pos = z_segment * z_size;
-
-        // Position
-        (*vertex_data)[idx_vertices++] = x_pos;
-        (*vertex_data)[idx_vertices++] = y_pos;
-        (*vertex_data)[idx_vertices++] = z_pos;
-        // Normal
-        (*vertex_data)[idx_vertices++] = x_pos;
-        (*vertex_data)[idx_vertices++] = y_pos;
-        (*vertex_data)[idx_vertices++] = z_pos;
-        // Tex coords
-        (*vertex_data)[idx_vertices++] = x_segment;
-        (*vertex_data)[idx_vertices++] = z_segment;
-
-        (*n_vertices)++;
-      }
-    }
-  }
 }
 
 

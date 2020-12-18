@@ -37,7 +37,7 @@ void Material::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
     if (texture->texture_name) {
       continue;
     }
-    unsigned char *image_data = ResourceManager::load_image(
+    unsigned char *image_data = Util::load_image(
       texture->path, &texture->width, &texture->height,
       &texture->n_components, true
     );
@@ -47,7 +47,7 @@ void Material::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
       image_data,
       texture->width * texture->height * texture->n_components
     );
-    ResourceManager::free_image(image_data);
+    Util::free_image(image_data);
   }
 
   this->mutex.unlock();
