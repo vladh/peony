@@ -1,5 +1,5 @@
-#ifndef ENTITY_MANAGER_H
-#define ENTITY_MANAGER_H
+#ifndef ENTITY_MANAGER_HPP
+#define ENTITY_MANAGER_HPP
 
 class EntityManager {
 public:

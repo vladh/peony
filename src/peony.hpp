@@ -1,5 +1,5 @@
-#ifndef GL_H
-#define GL_H
+#ifndef PEONY_HPP
+#define PEONY_HPP
 
 #define _HAS_EXCEPTIONS 0
 

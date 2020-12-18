@@ -1,5 +1,5 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef MATH_HPP
+#define MATH_HPP
 
 #define PI32 3.14159265359f
 #define PI 3.14159265358979323846

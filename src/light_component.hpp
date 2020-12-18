@@ -1,5 +1,5 @@
-#ifndef LIGHT_COMPONENT_H
-#define LIGHT_COMPONENT_H
+#ifndef LIGHT_COMPONENT_HPP
+#define LIGHT_COMPONENT_HPP
 
 enum class LightType {none, point, directional};
 

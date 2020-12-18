@@ -1,5 +1,5 @@
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#ifndef MATERIAL_HPP
+#define MATERIAL_HPP
 
 class Material {
 public:

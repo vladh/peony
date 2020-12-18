@@ -1,3 +1,6 @@
+#ifndef RENDER_HPP
+#define RENDER_HPP
+
 constexpr uint16 MAX_N_LIGHTS = 8;
 
 // The position is used in positioning the shadow map, but not
@@ -76,3 +79,5 @@ struct ShaderCommon {
   glm::vec4 directional_light_color[MAX_N_LIGHTS];
   glm::vec4 directional_light_attenuation[MAX_N_LIGHTS];
 };
+
+#endif

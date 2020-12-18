@@ -1,5 +1,5 @@
-#ifndef BEHAVIOR_COMPONENT_H
-#define BEHAVIOR_COMPONENT_H
+#ifndef BEHAVIOR_COMPONENT_HPP
+#define BEHAVIOR_COMPONENT_HPP
 
 enum class Behavior {
   none, test

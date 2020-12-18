@@ -1,5 +1,5 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#ifndef TEXTURE_HPP
+#define TEXTURE_HPP
 
 enum class TextureType {
   albedo,

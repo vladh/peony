@@ -1,5 +1,5 @@
-#ifndef CONTROL_H
-#define CONTROL_H
+#ifndef INPUT_MANAGER_HPP
+#define INPUT_MANAGER_HPP
 
 struct InputManager {
   GLFWwindow *window;

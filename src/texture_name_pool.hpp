@@ -1,5 +1,5 @@
-#ifndef TEXTURE_POOL_H
-#define TEXTURE_POOL_H
+#ifndef TEXTURE_NAME_POOL_HPP
+#define TEXTURE_NAME_POOL_HPP
 
 constexpr uint32 N_MAX_TEXTURE_POOL_SIZES = 6;
 

@@ -1,5 +1,5 @@
-#ifndef LIGHT_COMPONENT_MANAGER_H
-#define LIGHT_COMPONENT_MANAGER_H
+#ifndef LIGHT_COMPONENT_MANAGER_HPP
+#define LIGHT_COMPONENT_MANAGER_HPP
 
 class LightComponentManager {
 public:

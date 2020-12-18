@@ -1,5 +1,5 @@
-#ifndef FONTS_H
-#define FONTS_H
+#ifndef FONT_ASSET_HPP
+#define FONT_ASSET_HPP
 
 // NOTE: Unicode is only the same as ASCII until 0x7F.
 // We can change this to 0xFF when we add Unicode support.

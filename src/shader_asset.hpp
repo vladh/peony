@@ -1,5 +1,5 @@
-#ifndef SHADER_H
-#define SHADER_H
+#ifndef SHADER_ASSET_HPP
+#define SHADER_ASSET_HPP
 
 #define SHADER_DIR "src/shaders/"
 #define SHADER_COMMON_PATH SHADER_DIR"common.glsl"

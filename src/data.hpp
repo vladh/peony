@@ -1,3 +1,6 @@
+#ifndef DATA_HPP
+#define DATA_HPP
+
 constexpr const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
   "depth_textures[0]",
   "depth_textures[1]",
@@ -2109,3 +2112,5 @@ const char *NUM_TO_STR[2048] = {
   "2046",
   "2047",
 };
+
+#endif
