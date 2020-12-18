@@ -10,7 +10,6 @@ public:
   SpatialComponent* add(
     SpatialComponent spatial_component
   );
-
   SpatialComponent* add(
     EntityHandle entity_handle,
     glm::vec3 position,
@@ -18,18 +17,14 @@ public:
     glm::vec3 scale,
     EntityHandle parent_entity_handle
   );
-
   SpatialComponent* add(
     EntityHandle entity_handle,
     glm::vec3 position,
     glm::quat rotation,
     glm::vec3 scale
   );
-
   SpatialComponent* get(EntityHandle handle);
-
   glm::mat4 make_model_matrix(SpatialComponent *spatial_component);
-
   SpatialComponentManager(
     Array<SpatialComponent> *components
   );

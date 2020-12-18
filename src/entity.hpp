@@ -3,11 +3,9 @@
 
 typedef uint32 EntityHandle;
 
-class Entity {
-public:
+struct Entity {
   EntityHandle handle;
   const char *debug_name;
-
   static EntityHandle no_entity_handle;
 };
 

@@ -2,7 +2,6 @@
 #define ASSET_HPP
 
 struct Asset {
-public:
   const char *name;
 };
 

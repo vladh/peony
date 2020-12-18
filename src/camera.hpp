@@ -15,12 +15,12 @@ public:
   real32 vertical_fov;
   real32 near_clip_dist;
   real32 far_clip_dist;
+  CameraType type;
+  real64 yaw;
+  glm::vec3 front;
+  glm::vec3 up;
+  real32 speed;
 
-  Camera(
-    CameraType new_type,
-    uint32 window_width,
-    uint32 window_height
-  );
   void move_front_back(real32 sign, real64 dt);
   void move_left_right(real32 sign, real64 dt);
   void move_up_down(real32 sign, real64 dt);
@@ -31,13 +31,11 @@ public:
   void update_ui_matrices(
     uint32 window_width, uint32 window_height
   );
-
-private:
-  CameraType type;
-  real64 yaw;
-  glm::vec3 front;
-  glm::vec3 up;
-  real32 speed;
+  Camera(
+    CameraType new_type,
+    uint32 window_width,
+    uint32 window_height
+  );
 };
 
 #endif

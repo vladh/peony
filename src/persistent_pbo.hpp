@@ -11,6 +11,7 @@ public:
   uint16 texture_count = 0;
   uint32 texture_size = 0;
   uint32 total_size = 0;
+  uint16 next_idx;
 
   PersistentPbo(
     uint16 texture_count, int32 width, int32 height, int32 n_components
@@ -20,9 +21,6 @@ public:
   void* get_memory_for_idx(uint16 idx);
   void allocate_pbo();
   void delete_pbo();
-
-private:
-  uint16 next_idx;
 };
 
 #endif

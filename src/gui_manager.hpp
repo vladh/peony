@@ -65,11 +65,6 @@ public:
   glm::vec2 window_dimensions;
   uint32 n_vertices_pushed;
 
-  GuiManager(
-    Memory *memory, Array<ShaderAsset> *shader_assets,
-    InputManager *input_manager,
-    uint32 window_width, uint32 window_height
-  );
   void update_screen_dimensions(
     uint32 window_width, uint32 window_height
   );
@@ -136,6 +131,11 @@ public:
   bool32 draw_button(
     GuiContainer *container,
     const char *text
+  );
+  GuiManager(
+    Memory *memory, Array<ShaderAsset> *shader_assets,
+    InputManager *input_manager,
+    uint32 window_width, uint32 window_height
   );
 };
 

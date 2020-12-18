@@ -14,12 +14,6 @@ public:
   PersistentPbo *persistent_pbo;
   Memory *memory;
 
-  Task(
-    TaskType type,
-    ModelAsset *model_asset,
-    PersistentPbo *persistent_pbo,
-    Memory *memory
-  );
   void run();
   static const char* task_type_to_str(TaskType type) {
     if (type == TaskType::load_model) {
@@ -29,6 +23,12 @@ public:
     }
     return "unknown";
   }
+  Task(
+    TaskType type,
+    ModelAsset *model_asset,
+    PersistentPbo *persistent_pbo,
+    Memory *memory
+  );
 };
 
 #endif

@@ -6,6 +6,9 @@ class Queue {
 public:
   uint32 size = 0;
   uint32 max_size = 0;
+  T *items = nullptr;
+  uint32 head = 0;
+  uint32 tail = 0;
 
   Queue(MemoryPool *pool, uint32 new_max_size, const char *debug_name) {
     this->max_size = new_max_size;
@@ -49,11 +52,6 @@ public:
     this->size--;
     return item;
   }
-
-private:
-  T *items = nullptr;
-  uint32 head = 0;
-  uint32 tail = 0;
 };
 
 #endif

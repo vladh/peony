@@ -8,14 +8,11 @@ public:
   BehaviorComponent* add(
     BehaviorComponent behavior_component
   );
-
   BehaviorComponent* add(
     EntityHandle entity_handle,
     Behavior behavior
   );
-
   BehaviorComponent* get(EntityHandle handle);
-
   BehaviorComponentManager(
     Array<BehaviorComponent> *components
   );

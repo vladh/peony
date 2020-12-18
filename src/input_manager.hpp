@@ -1,7 +1,8 @@
 #ifndef INPUT_MANAGER_HPP
 #define INPUT_MANAGER_HPP
 
-struct InputManager {
+class InputManager {
+public:
   GLFWwindow *window;
   glm::vec2 mouse_pos;
   glm::vec2 mouse_offset;
@@ -20,7 +21,6 @@ struct InputManager {
   GLFWcursor *vresize_cursor;
   bool32 have_ever_gotten_mouse_pos;
 
-  InputManager(GLFWwindow *window);
   void update_mouse_button(int button, int action, int mods);
   bool32 is_mouse_button_down(int button);
   bool32 is_mouse_button_up(int button);
@@ -36,6 +36,7 @@ struct InputManager {
   void set_cursor(GLFWcursor *new_cursor);
   void reset_n_mouse_button_state_changes_this_frame();
   void reset_n_key_state_changes_this_frame();
+  InputManager(GLFWwindow *window);
 };
 
 #endif

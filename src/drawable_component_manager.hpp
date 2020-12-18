@@ -8,22 +8,15 @@ public:
   Array<DrawableComponent> *components;
   static uint32 last_drawn_shader_program;
 
-  DrawableComponentManager(
-    Array<DrawableComponent> *components
-  );
-
   DrawableComponent* add(
     DrawableComponent drawable_component
   );
-
   DrawableComponent* add(
     EntityHandle entity_handle,
     Mesh *mesh,
     RenderPass::Flag target_render_pass
   );
-
   DrawableComponent* get(EntityHandle handle);
-
   void draw_all(
     SpatialComponentManager *spatial_component_manager,
     RenderPass::Flag render_pass,
@@ -40,6 +33,9 @@ public:
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
     ShaderAsset *standard_depth_shader_asset
+  );
+  DrawableComponentManager(
+    Array<DrawableComponent> *components
   );
 };
 
