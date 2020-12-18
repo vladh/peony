@@ -9,20 +9,13 @@ public:
   Mesh *mesh = nullptr;
   RenderPass::Flag target_render_pass = RenderPass::none;
 
-  bool32 is_valid() {
-    return this->mesh != nullptr;
-  }
-  DrawableComponent() {};
+  bool32 is_valid();
+  DrawableComponent();
   DrawableComponent(
     EntityHandle entity_handle,
     Mesh *mesh,
     RenderPass::Flag target_render_pass
-  ) :
-    entity_handle(entity_handle),
-    mesh(mesh),
-    target_render_pass(target_render_pass)
-  {
-  }
+  );
 };
 
 #endif

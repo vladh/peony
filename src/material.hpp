@@ -32,11 +32,7 @@ public:
   );
   Material(
     Memory *memory
-  ) :
-    textures(Array<Texture>(&memory->entity_memory_pool, 16, "textures")),
-    texture_uniform_names(Array<const char*>(&memory->entity_memory_pool, 16, "textures"))
-  {
-  };
+  );
 };
 
 #endif
