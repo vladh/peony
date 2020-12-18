@@ -1,5 +1,5 @@
-#ifndef ASSET_H
-#define ASSET_H
+#ifndef ASSET_HPP
+#define ASSET_HPP
 
 struct Asset {
 public:

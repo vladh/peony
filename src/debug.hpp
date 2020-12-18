@@ -1,5 +1,5 @@
-#ifndef DEBUG_H
-#define DEBUG_H
+#ifndef DEBUG_HPP
+#define DEBUG_HPP
 
 #if USE_TIMERS
 

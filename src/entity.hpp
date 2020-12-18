@@ -1,5 +1,5 @@
-#ifndef ENTITY_H
-#define ENTITY_H
+#ifndef ENTITY_HPP
+#define ENTITY_HPP
 
 typedef uint32 EntityHandle;
 

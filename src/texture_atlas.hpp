@@ -1,5 +1,5 @@
-#ifndef TEXTUREATLAS_H
-#define TEXTUREATLAS_H
+#ifndef TEXTURE_ATLAS_HPP
+#define TEXTURE_ATLAS_HPP
 
 class TextureAtlas {
 public:

@@ -1,5 +1,5 @@
-#ifndef MODELS_H
-#define MODELS_H
+#ifndef MODEL_ASSET_HPP
+#define MODEL_ASSET_HPP
 
 #define MODEL_DIR "resources/models/"
 constexpr uint32 MAX_N_MESHES = 2048;

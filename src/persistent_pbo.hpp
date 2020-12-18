@@ -1,3 +1,6 @@
+#ifndef PERSISTENT_PBO_HPP
+#define PERSISTENT_PBO_HPP
+
 class PersistentPbo {
 public:
   uint32 pbo = 0;
@@ -21,3 +24,5 @@ public:
 private:
   uint16 next_idx;
 };
+
+#endif

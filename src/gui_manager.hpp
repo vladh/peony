@@ -1,3 +1,6 @@
+#ifndef GUI_MANAGER_HPP
+#define GUI_MANAGER_HPP
+
 constexpr const char *GUI_MAIN_FONT_REGULAR = "resources/fonts/SofiaProRegular.otf";
 constexpr const char *GUI_MAIN_FONT_BOLD = "resources/fonts/SofiaProBold.otf";
 constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
@@ -135,3 +138,5 @@ public:
     const char *text
   );
 };
+
+#endif

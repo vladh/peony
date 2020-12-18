@@ -1,5 +1,5 @@
-#ifndef SPATIAL_COMPONENT_H
-#define SPATIAL_COMPONENT_H
+#ifndef SPATIAL_COMPONENT_HPP
+#define SPATIAL_COMPONENT_HPP
 
 struct SpatialComponent {
   EntityHandle entity_handle = Entity::no_entity_handle;
