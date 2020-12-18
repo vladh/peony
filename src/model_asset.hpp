@@ -37,12 +37,10 @@ public:
   const char *path;
   Array<Mesh> meshes;
   Array<Material> materials;
-
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
-
   RenderPass::Flag render_pass;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;

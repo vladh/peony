@@ -23,14 +23,6 @@ public:
   uint32 descender;
   uint32 height;
 
-  FontAsset(
-    Memory *memory,
-    TextureAtlas *texture_atlas,
-    FT_Library *ft_library,
-    const char *name,
-    const char *path,
-    uint16 font_size
-  );
   real32 frac_px_to_px(uint32 n);
   real32 font_unit_to_px(uint32 n);
   void load_glyphs(
@@ -38,6 +30,14 @@ public:
   );
   static FontAsset* get_by_name(
     Array<FontAsset> *assets, const char *name
+  );
+  FontAsset(
+    Memory *memory,
+    TextureAtlas *texture_atlas,
+    FT_Library *ft_library,
+    const char *name,
+    const char *path,
+    uint16 font_size
   );
 };
 

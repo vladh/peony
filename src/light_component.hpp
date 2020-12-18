@@ -12,7 +12,8 @@ uint32 light_type_to_int(LightType light_type) {
   return 0;
 }
 
-struct LightComponent {
+class LightComponent {
+public:
   EntityHandle entity_handle = Entity::no_entity_handle;
   LightType type = LightType::none;
   glm::vec3 direction = glm::vec3(0.0f);
@@ -22,9 +23,7 @@ struct LightComponent {
   bool32 is_valid() {
     return this->type != LightType::none;
   }
-
   LightComponent() {};
-
   LightComponent(
     EntityHandle entity_handle,
     LightType type,

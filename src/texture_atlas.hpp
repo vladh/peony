@@ -8,8 +8,8 @@ public:
   glm::ivec2 max_allocated_position_per_axis;
   uint32 texture_name;
 
-  TextureAtlas(glm::ivec2 size);
   glm::ivec2 push_space(glm::ivec2 space_size);
+  TextureAtlas(glm::ivec2 size);
 };
 
 #endif

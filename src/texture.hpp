@@ -47,7 +47,6 @@ public:
       type == TextureType::blur2
     );
   }
-
   Texture(
     TextureType type,
     const char* path
@@ -58,7 +57,6 @@ public:
     this->target = GL_TEXTURE_2D;
     this->is_screensize_dependent = Texture::is_type_screensize_dependent(type);
   }
-
   Texture(
     GLenum target,
     TextureType type,

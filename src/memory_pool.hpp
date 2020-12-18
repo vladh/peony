@@ -7,6 +7,7 @@ constexpr uint32 N_MAX_MEMORYPOOL_ITEMS = 8192;
 
 class MemoryPool {
 public:
+  std::mutex mutex;
   const char *name;
   uint8 *memory;
   size_t size;
@@ -17,15 +18,12 @@ public:
   size_t item_debug_sizes[N_MAX_MEMORYPOOL_ITEMS];
 #endif
 
-  MemoryPool(const char *name, size_t size);
-  ~MemoryPool();
   void reset();
   void zero_out();
   void* push(size_t size, const char *item_debug_name);
   void print();
-
-private:
-  std::mutex mutex;
+  MemoryPool(const char *name, size_t size);
+  ~MemoryPool();
 };
 
 #endif

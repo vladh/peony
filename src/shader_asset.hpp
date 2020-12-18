@@ -37,10 +37,17 @@ public:
   int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
   char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
 
-  ShaderAsset(
-    Memory *memory, const char *name, ShaderType type,
-    const char *vert_path, const char *frag_path, const char *geom_path
+  void assert_shader_status_ok(uint32 shader, const char* path);
+  void assert_program_status_ok(uint32 program);
+  uint32 make_shader(const char *path, const char *source, GLenum shader_type);
+  uint32 make_program(uint32 vertex_shader, uint32 fragment_shader);
+  uint32 make_program(
+    uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
   );
+  const char* load_file(Memory *memory, const char *path);
+  const char* load_frag_file(Memory *memory, const char *path);
+  int32 get_uniform_location(const char *name);
+  void load_uniforms();
   void load(Memory *memory);
   void set_int(const char *name, uint32 value);
   void set_bool(const char *name, bool value);
@@ -58,19 +65,10 @@ public:
   static ShaderAsset* get_by_name(
     Array<ShaderAsset> *assets, const char *name
   );
-
-private:
-  void assert_shader_status_ok(uint32 shader, const char* path);
-  void assert_program_status_ok(uint32 program);
-  uint32 make_shader(const char *path, const char *source, GLenum shader_type);
-  uint32 make_program(uint32 vertex_shader, uint32 fragment_shader);
-  uint32 make_program(
-    uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
+  ShaderAsset(
+    Memory *memory, const char *name, ShaderType type,
+    const char *vert_path, const char *frag_path, const char *geom_path
   );
-  const char* load_file(Memory *memory, const char *path);
-  const char* load_frag_file(Memory *memory, const char *path);
-  int32 get_uniform_location(const char *name);
-  void load_uniforms();
 };
 
 

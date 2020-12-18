@@ -3,7 +3,8 @@
 
 struct Mesh;
 
-struct DrawableComponent {
+class DrawableComponent {
+public:
   EntityHandle entity_handle = Entity::no_entity_handle;
   Mesh *mesh = nullptr;
   RenderPass::Flag target_render_pass = RenderPass::none;
@@ -11,9 +12,7 @@ struct DrawableComponent {
   bool32 is_valid() {
     return this->mesh != nullptr;
   }
-
   DrawableComponent() {};
-
   DrawableComponent(
     EntityHandle entity_handle,
     Mesh *mesh,
