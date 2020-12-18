@@ -13,14 +13,14 @@ public:
   uint32 total_size = 0;
   uint16 next_idx;
 
-  PersistentPbo(
-    uint16 texture_count, int32 width, int32 height, int32 n_components
-  );
   uint16 get_new_idx();
   void* get_offset_for_idx(uint16 idx);
   void* get_memory_for_idx(uint16 idx);
   void allocate_pbo();
   void delete_pbo();
+  PersistentPbo(
+    uint16 texture_count, int32 width, int32 height, int32 n_components
+  );
 };
 
 #endif

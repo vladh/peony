@@ -10,19 +10,6 @@ public:
   uint32 head = 0;
   uint32 tail = 0;
 
-  Queue(MemoryPool *pool, uint32 new_max_size, const char *debug_name) {
-    this->max_size = new_max_size;
-    this->items = (T*)pool->push(sizeof(T) * this->max_size, debug_name);
-  }
-
-  Queue(MemoryPool *pool, uint32 new_size, uint32 new_max_size, T *new_items) {
-    this->size = new_size;
-    this->head = 0;
-    this->tail = new_size;
-    this->max_size = new_max_size;
-    this->items = new_items;
-  }
-
   T* push() {
     assert(this->size < this->max_size);
     T* new_slot = this->items + this->tail;
@@ -51,6 +38,19 @@ public:
     }
     this->size--;
     return item;
+  }
+
+  Queue(MemoryPool *pool, uint32 new_max_size, const char *debug_name) {
+    this->max_size = new_max_size;
+    this->items = (T*)pool->push(sizeof(T) * this->max_size, debug_name);
+  }
+
+  Queue(MemoryPool *pool, uint32 new_size, uint32 new_max_size, T *new_items) {
+    this->size = new_size;
+    this->head = 0;
+    this->tail = new_size;
+    this->max_size = new_max_size;
+    this->items = new_items;
   }
 };
 

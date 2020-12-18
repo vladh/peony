@@ -15,14 +15,7 @@ public:
   Memory *memory;
 
   void run();
-  static const char* task_type_to_str(TaskType type) {
-    if (type == TaskType::load_model) {
-      return "load_model";
-    } else if (type == TaskType::copy_textures_to_pbo) {
-      return "copy_textures_to_pbo";
-    }
-    return "unknown";
-  }
+  static const char* task_type_to_str(TaskType type);
   Task(
     TaskType type,
     ModelAsset *model_asset,
