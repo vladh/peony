@@ -60,20 +60,6 @@ GLenum Util::get_texture_format_from_n_components(int32 n_components) {
 }
 
 
-const char* Util::join(char* buf, const char* s1, const char* s2, const char* s3) {
-  strcpy(buf, s1);
-  strcat(buf, s2);
-  strcat(buf, s3);
-  return buf;
-}
-
-
-const char* Util::join(char* buf, const char* prefix, uint32 n, const char* suffix) {
-  assert(n < LEN(NUM_TO_STR));
-  return join(buf, prefix, NUM_TO_STR[n], suffix);
-}
-
-
 real64 Util::random(real64 min, real64 max) {
   uint32 r = rand();
   real64 r_normalized = (real64)r / (real64)RAND_MAX;
