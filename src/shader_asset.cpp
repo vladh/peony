@@ -183,7 +183,6 @@ void ShaderAsset::load(Memory *memory) {
   }
 
   load_uniforms();
-  memory->temp_memory_pool.reset();
 }
 
 

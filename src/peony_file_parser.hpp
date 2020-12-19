@@ -71,11 +71,18 @@ namespace PeonyFileParser {
     glm::vec4 vec4_value;
   };
 
+  void print_value(PropValue value, PropValueType type);
   bool32 is_char_whitespace(const char target);
   bool32 is_token_whitespace(const char *token);
   bool32 is_char_allowed_in_name(const char target);
   bool32 is_token_name(const char *token);
   bool32 is_char_token_boundary(char target);
+  void get_value_from_token(
+    char *token,
+    FILE *f,
+    PropValueType *prop_value_type,
+    PropValue *prop_value
+  );
   bool32 get_token(char *token, FILE *f);
   bool32 get_non_trivial_token(char *token, FILE *f);
   void parse_header(char *token, FILE *f);
@@ -89,7 +96,12 @@ namespace PeonyFileParser {
     PropValueType prop_value_types[MAX_N_ARRAY_VALUES],
     PropValue prop_values[MAX_N_ARRAY_VALUES]
   );
-  void parse_scene_file(const char *path);
+  void parse_material_file(
+    const char *path, MaterialEntries *material_entries
+  );
+  uint32 parse_scene_file(
+    const char *path, SceneEntityEntries *scene_entity_entries
+  );
 };
 
 #endif
