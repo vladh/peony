@@ -1,3 +1,31 @@
+const char* shader_type_to_string(ShaderType shader_type) {
+  if (shader_type == ShaderType::none) {
+    return "none";
+  } else if (shader_type == ShaderType::standard) {
+    return "standard";
+  } else if (shader_type == ShaderType::depth) {
+    return "depth";
+  } else {
+    log_error("Could not get string for ShaderType: %d", shader_type);
+    return "<unknown>";
+  }
+}
+
+
+ShaderType shader_type_from_string(const char* str) {
+  if (strcmp(str, "none") == 0) {
+    return ShaderType::none;
+  } else if (strcmp(str, "standard") == 0) {
+    return ShaderType::standard;
+  } else if (strcmp(str, "depth") == 0) {
+    return ShaderType::depth;
+  } else {
+    log_fatal("Could not parse ShaderType: %s", str);
+    return ShaderType::none;
+  }
+}
+
+
 void ShaderAsset::assert_shader_status_ok(uint32 new_shader, const char *path) {
   int32 status;
   glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);

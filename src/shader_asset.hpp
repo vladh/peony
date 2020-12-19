@@ -9,7 +9,10 @@ constexpr uint8 MAX_N_UNIFORMS = 64;
 constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
 constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
 
-enum class ShaderType {standard, depth};
+enum class ShaderType {none, standard, depth};
+
+const char* shader_type_to_string(ShaderType shader_type);
+ShaderType shader_type_from_string(const char* str);
 
 class ShaderAsset {
 public:

@@ -3,7 +3,8 @@
 
 namespace PeonyFileParser {
   constexpr uint32 MAX_TOKEN_LENGTH = 128;
-  constexpr uint32 MAX_N_ARRAY_VALUES = 32;
+  constexpr uint32 MAX_N_ARRAY_VALUES = 16;
+  constexpr uint32 MAX_N_FILE_ENTRIES = 128;
 
   constexpr const char TOKEN_SPACE = ' ';
   constexpr const char TOKEN_NEWLINE = '\n';
@@ -17,10 +18,54 @@ namespace PeonyFileParser {
   constexpr const char TOKEN_TUPLE_END = ')';
   constexpr const char TOKEN_ELEMENT_SEPARATOR = ',';
 
-  enum class PropValueType {string, vec2, vec3, vec4};
+  constexpr const char *TEXTURE_PREFIX = "textures.";
+  constexpr size_t TEXTURE_PREFIX_LENGTH = 9;
+  constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
+  constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
+
+  class MaterialEntries {
+  public:
+    char shader_asset_vert_path[MAX_TOKEN_LENGTH];
+    char shader_asset_frag_path[MAX_TOKEN_LENGTH];
+    char shader_asset_geom_path[MAX_TOKEN_LENGTH];
+    char depth_shader_asset_vert_path[MAX_TOKEN_LENGTH];
+    char depth_shader_asset_frag_path[MAX_TOKEN_LENGTH];
+    char depth_shader_asset_geom_path[MAX_TOKEN_LENGTH];
+
+    glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+    real32 metallic_static = -1.0f;
+    real32 roughness_static = -1.0f;
+    real32 ao_static = -1.0f;
+
+    uint32 n_textures = 0;
+    char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+    TextureType texture_types[MAX_N_ARRAY_VALUES];
+    char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+
+    void print();
+  };
+
+  class SceneEntityEntries {
+  public:
+    char entity_debug_name[MAX_TOKEN_LENGTH];
+    char model_path[MAX_TOKEN_LENGTH];
+    uint32 n_materials = 0;
+    MaterialEntries material_entries[MAX_N_ARRAY_VALUES];
+    uint32 n_render_passes = 0;
+    RenderPass::Flag render_passes[MAX_N_ARRAY_VALUES];
+    // NOTE: The `entity_handle` and `parent_entity_handle` properties
+    // must be filled in later!
+    SpatialComponent spatial_component;
+
+    void print();
+  };
+
+  enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};
 
   union PropValue {
     char string_value[MAX_TOKEN_LENGTH];
+    bool32 boolean_value;
+    real32 number_value;
     glm::vec2 vec2_value;
     glm::vec3 vec3_value;
     glm::vec4 vec4_value;

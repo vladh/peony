@@ -1476,11 +1476,6 @@ void check_environment() {
 
 
 int main() {
-#if 0
-  PeonyFileParser::test();
-  return 0;
-#endif
-
   check_environment();
 
   START_TIMER(init);
@@ -1489,6 +1484,10 @@ int main() {
   START_TIMER(allocate_memory);
   Memory memory;
   END_TIMER(allocate_memory);
+
+  PeonyFileParser::test(&memory);
+  return 0;
+
 
   WindowInfo window_info;
   START_TIMER(init_window);
