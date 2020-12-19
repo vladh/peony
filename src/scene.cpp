@@ -45,22 +45,8 @@ void scene_init(Memory *memory, State *state) {
     material->add(*state->g_normal_texture, "g_normal_texture");
     material->add(*state->g_albedo_texture, "g_albedo_texture");
     material->add(*state->g_pbr_texture, "g_pbr_texture");
-    material->add(
-      Texture(
-        GL_TEXTURE_CUBE_MAP_ARRAY,
-        TextureType::shadowmap, state->cube_shadowmaps,
-        state->cube_shadowmap_width, state->cube_shadowmap_height, 1
-      ),
-      "cube_shadowmaps"
-    );
-    material->add(
-      Texture(
-        GL_TEXTURE_2D_ARRAY,
-        TextureType::shadowmap, state->texture_shadowmaps,
-        state->texture_shadowmap_width, state->texture_shadowmap_height, 1
-      ),
-      "texture_shadowmaps"
-    );
+    material->add(*state->cube_shadowmaps_texture, "cube_shadowmaps");
+    material->add(*state->texture_shadowmaps_texture, "texture_shadowmaps");
 
     // Preblur screenquad
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -281,22 +267,8 @@ void scene_init(Memory *memory, State *state) {
     material->add(*state->g_albedo_texture, "g_albedo_texture");
     material->add(Texture(TextureType::normal, "resources/textures/vlachos.jpg"), "normal_texture");
     material->add(Texture(TextureType::other, "resources/textures/water_foam.png"), "foam_texture");
-    material->add(
-      Texture(
-        GL_TEXTURE_CUBE_MAP_ARRAY,
-        TextureType::shadowmap, state->cube_shadowmaps,
-        state->cube_shadowmap_width, state->cube_shadowmap_height, 1
-      ),
-      "cube_shadowmaps"
-    );
-    material->add(
-      Texture(
-        GL_TEXTURE_2D_ARRAY,
-        TextureType::shadowmap, state->texture_shadowmaps,
-        state->texture_shadowmap_width, state->texture_shadowmap_height, 1
-      ),
-      "texture_shadowmaps"
-    );
+    material->add(*state->cube_shadowmaps_texture, "cube_shadowmaps");
+    material->add(*state->texture_shadowmaps_texture, "texture_shadowmaps");
 #endif
   }
 

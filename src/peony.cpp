@@ -14,6 +14,7 @@ global_variable uint32 global_oopses = 0;
 
 #include "log.cpp"
 #include "pack.cpp"
+#include "render.cpp"
 #include "util.cpp"
 #include "task.cpp"
 #include "peony_file_parser.cpp"
@@ -78,6 +79,14 @@ void init_shadowmaps(Memory *memory, State *state) {
     log_fatal("Framebuffer not complete!");
   }
 
+  state->cube_shadowmaps_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "cube_shadowmaps_texture")
+  ) Texture(
+    GL_TEXTURE_CUBE_MAP_ARRAY,
+    TextureType::shadowmap, state->cube_shadowmaps,
+    state->cube_shadowmap_width, state->cube_shadowmap_height, 1
+  );
+
   // Texture
   glGenFramebuffers(1, &state->texture_shadowmaps_framebuffer);
   glGenTextures(1, &state->texture_shadowmaps);
@@ -103,6 +112,14 @@ void init_shadowmaps(Memory *memory, State *state) {
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     log_fatal("Framebuffer not complete!");
   }
+
+  state->texture_shadowmaps_texture = new(
+    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "texture_shadowmaps_texture")
+  ) Texture(
+    GL_TEXTURE_2D_ARRAY,
+    TextureType::shadowmap, state->texture_shadowmaps,
+    state->texture_shadowmap_width, state->texture_shadowmap_height, 1
+  );
 }
 
 
@@ -1459,8 +1476,10 @@ void check_environment() {
 
 
 int main() {
+#if 0
   PeonyFileParser::test();
   return 0;
+#endif
 
   check_environment();
 

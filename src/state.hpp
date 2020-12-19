@@ -76,6 +76,8 @@ public:
   uint32 texture_shadowmaps;
   glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
   glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
+  Texture *cube_shadowmaps_texture;
+  Texture *texture_shadowmaps_texture;
 
   ShaderAsset *standard_depth_shader_asset;
 
