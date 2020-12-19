@@ -42,6 +42,27 @@ namespace PeonyFileParser {
   }
 
 
+  void print_value(PropValue value, PropValueType type) {
+    if (type == PropValueType::unknown) {
+      log_info("<unknown>");
+    } else if (type == PropValueType::string) {
+      log_info("%s", value.string_value);
+    } else if (type == PropValueType::boolean) {
+      log_info("%d", value.boolean_value);
+    } else if (type == PropValueType::number) {
+      log_info("%f", value.number_value);
+    } else if (type == PropValueType::vec2) {
+      log_vec2(&value.vec2_value);
+    } else if (type == PropValueType::vec3) {
+      log_vec3(&value.vec3_value);
+    } else if (type == PropValueType::vec4) {
+      log_vec4(&value.vec4_value);
+    } else {
+      log_info("<invalid>");
+    }
+  }
+
+
   bool32 is_char_whitespace(const char target) {
     return target == TOKEN_NEWLINE ||
       target == TOKEN_SPACE;
@@ -83,6 +104,40 @@ namespace PeonyFileParser {
       target == TOKEN_ARRAY_END ||
       target == TOKEN_OBJECT_START ||
       target == TOKEN_OBJECT_END;
+  }
+
+
+  void get_value_from_token(
+    char *token,
+    FILE *f,
+    PropValueType *prop_value_type,
+    PropValue *prop_value
+  ) {
+    // NOTE: Type names the can start a value: vec2, vec3, vec4
+    if (strcmp(token, "vec2") == 0) {
+      *prop_value_type = PropValueType::vec2;
+      parse_vec2(token, f, &prop_value->vec2_value);
+    } else if (strcmp(token, "vec3") == 0) {
+      *prop_value_type = PropValueType::vec3;
+      parse_vec3(token, f, &prop_value->vec3_value);
+    } else if (strcmp(token, "vec4") == 0) {
+      *prop_value_type = PropValueType::vec4;
+      parse_vec4(token, f, &prop_value->vec4_value);
+    } else if (strcmp(token, "true") == 0) {
+      *prop_value_type = PropValueType::boolean;
+      prop_value->boolean_value = true;
+    } else if (strcmp(token, "false") == 0) {
+      *prop_value_type = PropValueType::boolean;
+      prop_value->boolean_value = false;
+    } else if (strcmp(token, "0.0") == 0 || strtod(token, nullptr) != 0.0f) {
+      // NOTE: `strtod()` returns 0.0 if parsing fails, so we need to check
+      // if our value actually was 0.0;
+      *prop_value_type = PropValueType::number;
+      prop_value->number_value = (real32)strtod(token, nullptr);
+    } else {
+      *prop_value_type = PropValueType::string;
+      strcpy(prop_value->string_value, token);
+    }
   }
 
 
@@ -199,46 +254,25 @@ namespace PeonyFileParser {
     );
 
     if (is_token_name(token)) {
-      // NOTE: Type names the can start a value: vec2, vec3, vec4
-      if (strcmp(token, "vec2") == 0) {
-        prop_value_types[n_values] = PropValueType::vec2;
-        parse_vec2(token, f, &prop_values[n_values].vec2_value);
-        n_values++;
-      } else if (strcmp(token, "vec3") == 0) {
-        prop_value_types[n_values] = PropValueType::vec3;
-        parse_vec3(token, f, &prop_values[n_values].vec3_value);
-        n_values++;
-      } else if (strcmp(token, "vec4") == 0) {
-        prop_value_types[n_values] = PropValueType::vec4;
-        parse_vec4(token, f, &prop_values[n_values].vec4_value);
-        n_values++;
-      } else if (strcmp(token, "true") == 0) {
-        prop_value_types[n_values] = PropValueType::boolean;
-        prop_values[n_values].boolean_value = true;
-        n_values++;
-      } else if (strcmp(token, "false") == 0) {
-        prop_value_types[n_values] = PropValueType::boolean;
-        prop_values[n_values].boolean_value = false;
-        n_values++;
-      } else if (strcmp(token, "0.0") == 0 || strtod(token, nullptr) != 0.0f) {
-        // NOTE: `strtod()` returns 0.0 if parsing fails, so we need to check
-        // if our value actually was 0.0;
-        prop_value_types[n_values] = PropValueType::number;
-        prop_values[n_values].number_value = (real32)strtod(token, nullptr);
-        n_values++;
-      } else {
-        prop_value_types[n_values] = PropValueType::string;
-        strcpy(prop_values[n_values].string_value, token);
-        n_values++;
-      }
+      get_value_from_token(
+        token,
+        f,
+        &prop_value_types[n_values],
+        &prop_values[n_values]
+      );
+      n_values++;
     } else if (token[0] == TOKEN_ARRAY_START) {
       while (true) {
         get_non_trivial_token(token, f);
         if (token[0] == TOKEN_ARRAY_END) {
           break;
         }
-        prop_value_types[n_values] = PropValueType::string;
-        strcpy(prop_values[n_values].string_value, token);
+        get_value_from_token(
+          token,
+          f,
+          &prop_value_types[n_values],
+          &prop_values[n_values]
+        );
         n_values++;
       }
     }
@@ -326,7 +360,10 @@ namespace PeonyFileParser {
           );
           material_entries->n_textures++;
         } else {
-          log_info("Unhandled prop_name: %s", prop_name);
+          log_info("Unhandled prop_name %s with values:", prop_name);
+          for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
+            print_value(prop_values[idx_value], prop_value_types[idx_value]);
+          }
         }
       } else {
         log_info("Unhandled token: %s", token);
@@ -408,7 +445,10 @@ namespace PeonyFileParser {
           scene_entity_entries[idx_entity].spatial_component.scale =
             prop_values[0].vec3_value;
         } else {
-          log_info("Unhandled prop_name: %s", prop_name);
+          log_info("Unhandled prop_name %s with values:", prop_name);
+          for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
+            print_value(prop_values[idx_value], prop_value_types[idx_value]);
+          }
         }
       } else {
         log_info("Unhandled token: %s", token);
@@ -418,21 +458,5 @@ namespace PeonyFileParser {
     fclose(f);
 
     return idx_entity + 1;
-  }
-
-
-  void test(Memory *memory) {
-    SceneEntityEntries *scene_entity_entries =
-      (SceneEntityEntries*)memory->temp_memory_pool.push(
-        sizeof(SceneEntityEntries) * MAX_N_FILE_ENTRIES, "scene_entity_entries"
-      );
-    uint32 n_entities = parse_scene_file(
-      "data/scenes/demo.peony_scene", scene_entity_entries
-    );
-
-    for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
-      scene_entity_entries[idx_entity].print();
-      log_newline();
-    }
   }
 }

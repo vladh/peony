@@ -5,11 +5,3 @@ render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(0.0, -3.5, 0.0)
 spatial_component.rotation = vec4(45.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(0.05, 0.05, 0.05)
-
-> goose
-model_path = goose
-materials = [rocks]
-render_passes = [deferred]
-spatial_component.position = vec3(-4.6, 0.0, -1.5)
-spatial_component.rotation = vec4(-30.0, 0.0, 1.0, 0.0)
-spatial_component.scale = vec3(0.2, 0.2, 0.2)

@@ -122,42 +122,60 @@ void scene_init(Memory *memory, State *state) {
     // Uncomment to use fog.
     /* material->add(*state->l_depth_texture, "l_depth_texture"); */
     material->add(*state->blur2_texture, "bloom_texture");
-  }
 
-  // Axes
-  {
-#if 0
-    Entity *entity = state->entity_manager.add("axes");
+    // Skysphere
+    {
+#if 1
+      Entity *entity = state->entity_manager.add("skysphere");
 
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      (real32*)AXES_VERTICES, 6,
-      nullptr, 0,
-      "axes",
-      GL_LINES,
-      RenderPass::forward_nodepth,
-      entity->handle
-    );
+      model_asset = new(state->model_assets.push()) ModelAsset(
+        memory,
+        ModelSource::data,
+        SKYSPHERE_VERTEX_DATA, SKYSPHERE_N_VERTICES,
+        SKYSPHERE_INDEX_DATA, SKYSPHERE_N_INDICES,
+        "skysphere",
+        GL_TRIANGLE_STRIP,
+        RenderPass::forward_skybox,
+        entity->handle
+      );
 
-    model_asset->spatial_component = SpatialComponent(
-      entity->handle,
-      glm::vec3(0.0f, 0.1f, 0.0f),
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-      glm::vec3(1.0f, 1.0f, 1.0f)
-    );
+      model_asset->spatial_component = SpatialComponent(
+        entity->handle,
+        glm::vec3(0.0f),
+        glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+        glm::vec3(75.0f)
+      );
 
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "axes", ShaderType::standard,
-      SHADER_DIR"axes.vert", SHADER_DIR"axes.frag", nullptr
-    );
+      material = new(model_asset->materials.push()) Material(memory);
+      material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+        memory, "skysphere", ShaderType::standard,
+        SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag", nullptr
+      );
 #endif
+    }
   }
 
+
+  PeonyFileParser::SceneEntityEntries *scene_entity_entries =
+    (PeonyFileParser::SceneEntityEntries*)memory->temp_memory_pool.push(
+      sizeof(PeonyFileParser::SceneEntityEntries) *
+        PeonyFileParser::MAX_N_FILE_ENTRIES,
+      "scene_entity_entries"
+    );
+  uint32 n_entities = PeonyFileParser::parse_scene_file(
+    "data/scenes/demo.peony_scene", scene_entity_entries
+  );
+
+  for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
+    scene_entity_entries[idx_entity].print();
+    log_newline();
+  }
+
+
+#if 0
   // Lights
   {
-#if 1
+#if 0
     glm::vec3 light_direction = glm::vec3(
       sin(state->dir_light_angle), -sin(state->dir_light_angle), 0.0f
     );
@@ -225,6 +243,37 @@ void scene_init(Memory *memory, State *state) {
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "pointlight", ShaderType::standard,
       SHADER_DIR"simple.vert", SHADER_DIR"simple.frag", nullptr
+    );
+#endif
+  }
+
+  // Axes
+  {
+#if 0
+    Entity *entity = state->entity_manager.add("axes");
+
+    model_asset = new(state->model_assets.push()) ModelAsset(
+      memory,
+      ModelSource::data,
+      (real32*)AXES_VERTICES, 6,
+      nullptr, 0,
+      "axes",
+      GL_LINES,
+      RenderPass::forward_nodepth,
+      entity->handle
+    );
+
+    model_asset->spatial_component = SpatialComponent(
+      entity->handle,
+      glm::vec3(0.0f, 0.1f, 0.0f),
+      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+      glm::vec3(1.0f, 1.0f, 1.0f)
+    );
+
+    material = new(model_asset->materials.push()) Material(memory);
+    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
+      memory, "axes", ShaderType::standard,
+      SHADER_DIR"axes.vert", SHADER_DIR"axes.frag", nullptr
     );
 #endif
   }
@@ -454,37 +503,6 @@ void scene_init(Memory *memory, State *state) {
 #endif
   }
 
-  // Skysphere
-  {
-#if 1
-    Entity *entity = state->entity_manager.add("skysphere");
-
-    model_asset = new(state->model_assets.push()) ModelAsset(
-      memory,
-      ModelSource::data,
-      SKYSPHERE_VERTEX_DATA, SKYSPHERE_N_VERTICES,
-      SKYSPHERE_INDEX_DATA, SKYSPHERE_N_INDICES,
-      "skysphere",
-      GL_TRIANGLE_STRIP,
-      RenderPass::forward_skybox,
-      entity->handle
-    );
-
-    model_asset->spatial_component = SpatialComponent(
-      entity->handle,
-      glm::vec3(0.0f),
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-      glm::vec3(75.0f)
-    );
-
-    material = new(model_asset->materials.push()) Material(memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "skysphere", ShaderType::standard,
-      SHADER_DIR"skysphere.vert", SHADER_DIR"skysphere.frag", nullptr
-    );
-#endif
-  }
-
   // Goose
   {
 #if 0
@@ -516,4 +534,6 @@ void scene_init(Memory *memory, State *state) {
     material->set_ao_static(1.0f);
 #endif
   }
+
+#endif
 }

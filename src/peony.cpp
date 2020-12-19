@@ -1485,10 +1485,6 @@ int main() {
   Memory memory;
   END_TIMER(allocate_memory);
 
-  PeonyFileParser::test(&memory);
-  return 0;
-
-
   WindowInfo window_info;
   START_TIMER(init_window);
   init_window(&window_info);
