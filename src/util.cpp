@@ -24,7 +24,7 @@ namespace Util {
 
 
   uint32 get_file_size(const char *path) {
-    FILE* f = fopen(path, "rb");
+    FILE *f = fopen(path, "rb");
     if (!f) {
       log_error("Could not open file %s.", path);
       return 0;
@@ -37,7 +37,7 @@ namespace Util {
 
 
   const char* load_file(MemoryPool *pool, const char *path) {
-    FILE* f = fopen(path, "rb");
+    FILE *f = fopen(path, "rb");
     if (!f) {
       log_error("Could not open file %s.", path);
       return nullptr;
@@ -59,7 +59,7 @@ namespace Util {
   }
 
   const char* load_file(char *string, const char *path) {
-    FILE* f = fopen(path, "rb");
+    FILE *f = fopen(path, "rb");
     if (!f) {
       log_error("Could not open file %s.", path);
       return nullptr;
@@ -283,7 +283,7 @@ namespace Util {
   }
 
 
-  glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from) {
+  glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4 *from) {
     glm::mat4 to;
 
     to[0][0] = (GLfloat)from->a1;

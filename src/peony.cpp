@@ -16,6 +16,7 @@ global_variable uint32 global_oopses = 0;
 #include "pack.cpp"
 #include "util.cpp"
 #include "task.cpp"
+#include "peony_file_parser.cpp"
 #include "texture_name_pool.cpp"
 #include "texture.cpp"
 #include "font_asset.cpp"
@@ -1458,6 +1459,9 @@ void check_environment() {
 
 
 int main() {
+  PeonyFileParser::test();
+  return 0;
+
   check_environment();
 
   START_TIMER(init);

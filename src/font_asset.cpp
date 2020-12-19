@@ -2,6 +2,7 @@ real32 FontAsset::frac_px_to_px(uint32 n) {
   return (real32)(n >> 6);
 }
 
+
 real32 FontAsset::font_unit_to_px(uint32 n) {
   // NOTE: We should be dividing by this->units_per_em here...probably?
   // This is because we expect height etc. to be in "font units".
@@ -10,6 +11,7 @@ real32 FontAsset::font_unit_to_px(uint32 n) {
   // Check this in more detail.
   return (real32)(n >> 6);
 }
+
 
 void FontAsset::load_glyphs(
   FT_Face face, TextureAtlas *texture_atlas

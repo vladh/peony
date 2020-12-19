@@ -2,7 +2,9 @@ bool32 DrawableComponent::is_valid() {
   return this->mesh != nullptr;
 }
 
+
 DrawableComponent::DrawableComponent() {};
+
 
 DrawableComponent::DrawableComponent(
   EntityHandle entity_handle,

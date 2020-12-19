@@ -11,6 +11,7 @@ Task::Task(
 {
 }
 
+
 void Task::run() {
   START_TIMER(task_run);
   if (this->type == TaskType::load_model) {
@@ -22,6 +23,7 @@ void Task::run() {
   }
   END_TIMER(task_run);
 }
+
 
 const char* Task::task_type_to_str(TaskType type) {
   if (type == TaskType::load_model) {

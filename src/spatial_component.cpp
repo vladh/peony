@@ -6,12 +6,15 @@ bool32 SpatialComponent::has_dimensions() {
   );
 }
 
+
 bool32 SpatialComponent::is_valid() {
   return has_dimensions() ||
     this->parent_entity_handle != Entity::no_entity_handle;
 }
 
+
 SpatialComponent::SpatialComponent() {};
+
 
 SpatialComponent::SpatialComponent(
   EntityHandle entity_handle,
@@ -27,6 +30,7 @@ SpatialComponent::SpatialComponent(
   parent_entity_handle(parent_entity_handle)
 {
 }
+
 
 SpatialComponent::SpatialComponent(
   EntityHandle entity_handle,
