@@ -9,6 +9,7 @@ void log_fatal(const char *format, ...) {
   __debugbreak();
 }
 
+
 void log_error(const char *format, ...) {
   va_list vargs;
   fprintf(stderr, "error | ");
@@ -18,6 +19,7 @@ void log_error(const char *format, ...) {
   va_end(vargs);
 }
 
+
 void log_warning(const char *format, ...) {
   va_list vargs;
   fprintf(stderr, "warn  | ");
@@ -26,6 +28,7 @@ void log_warning(const char *format, ...) {
   fprintf(stderr, "\n");
   va_end(vargs);
 }
+
 
 void log_info(const char *format, ...) {
   va_list vargs;
@@ -37,9 +40,11 @@ void log_info(const char *format, ...) {
   va_end(vargs);
 }
 
+
 void log_newline() {
   fprintf(stdout, "\n");
 }
+
 
 void log_aimatrix4x4(aiMatrix4x4 *t) {
   log_info("(%f, %f, %f, %f)", t->a1, t->b1, t->c1, t->d1);
@@ -48,6 +53,7 @@ void log_aimatrix4x4(aiMatrix4x4 *t) {
   log_info("(%f, %f, %f, %f)", t->a4, t->b4, t->c4, t->d4);
 }
 
+
 void log_mat4(glm::mat4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0][0], (*t)[1][0], (*t)[2][0], (*t)[3][0]);
   log_info("(%f, %f, %f, %f)", (*t)[0][1], (*t)[1][1], (*t)[2][1], (*t)[3][1]);
@@ -55,9 +61,16 @@ void log_mat4(glm::mat4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0][3], (*t)[1][3], (*t)[2][3], (*t)[3][3]);
 }
 
+
+void log_vec2(glm::vec2 *t) {
+  log_info("(%f, %f)", (*t)[0], (*t)[1]);
+}
+
+
 void log_vec3(glm::vec3 *t) {
   log_info("(%f, %f, %f)", (*t)[0], (*t)[1], (*t)[2]);
 }
+
 
 void log_vec4(glm::vec4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0], (*t)[1], (*t)[2], (*t)[3]);

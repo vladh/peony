@@ -12,6 +12,7 @@ bool32 Texture::is_type_screensize_dependent(TextureType type) {
   );
 }
 
+
 Texture::Texture(
   TextureType type,
   const char* path
@@ -22,6 +23,7 @@ Texture::Texture(
   this->target = GL_TEXTURE_2D;
   this->is_screensize_dependent = Texture::is_type_screensize_dependent(type);
 }
+
 
 Texture::Texture(
   GLenum target,

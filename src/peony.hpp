@@ -60,6 +60,7 @@
 #include "render.hpp"
 #include "queue.hpp"
 #include "array.hpp"
+#include "peony_file_parser.hpp"
 #include "texture_name_pool.hpp"
 #include "texture_atlas.hpp"
 #include "font_asset.hpp"

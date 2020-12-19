@@ -1,3 +1,2 @@
-[rocks]
+> rocks
 model_path = Stones_AssetKit.fbx
-materials = [rocks]

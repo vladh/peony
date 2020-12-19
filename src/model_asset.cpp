@@ -4,6 +4,7 @@ SpatialComponentManager *ModelAsset::spatial_component_manager;
 LightComponentManager *ModelAsset::light_component_manager;
 BehaviorComponentManager *ModelAsset::behavior_component_manager;
 
+
 void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
   Mesh *mesh,
   real32 *vertex_data, uint32 n_vertices,

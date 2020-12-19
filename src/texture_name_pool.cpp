@@ -14,6 +14,7 @@ TextureNamePool::TextureNamePool(
   );
 }
 
+
 void TextureNamePool::allocate_texture_names() {
   START_TIMER(allocate_textures);
 

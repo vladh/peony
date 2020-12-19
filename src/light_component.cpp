@@ -2,7 +2,9 @@ bool32 LightComponent::is_valid() {
   return this->type != LightType::none;
 }
 
+
 LightComponent::LightComponent() {};
+
 
 LightComponent::LightComponent(
   EntityHandle entity_handle,
