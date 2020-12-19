@@ -9,6 +9,7 @@ public:
   glm::vec3 scale = glm::vec3(0.0f);
   EntityHandle parent_entity_handle = Entity::no_entity_handle;
 
+  void print();
   bool32 has_dimensions();
   bool32 is_valid();
   SpatialComponent();

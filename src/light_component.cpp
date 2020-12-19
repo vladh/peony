@@ -1,3 +1,13 @@
+uint32 light_type_to_int(LightType light_type) {
+  if (light_type == LightType::point) {
+    return 1;
+  } else if (light_type == LightType::directional) {
+    return 2;
+  }
+  return 0;
+}
+
+
 bool32 LightComponent::is_valid() {
   return this->type != LightType::none;
 }

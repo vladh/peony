@@ -1,7 +1,10 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
+#define TEXTURE_DIR "resources/textures/"
+
 enum class TextureType {
+  none,
   albedo,
   metallic,
   roughness,
@@ -21,6 +24,9 @@ enum class TextureType {
   blur1,
   blur2
 };
+
+const char* texture_type_to_string(TextureType texture_type);
+TextureType texture_type_from_string(const char* str);
 
 class Texture {
 public:

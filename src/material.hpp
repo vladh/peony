@@ -18,6 +18,7 @@ public:
   real32 ao_static = -1.0f;
   bool32 should_use_normal_map = false;
 
+  void print();
   void add(Texture texture, const char *uniform_name);
   void set_albedo_static(glm::vec4 albedo_static);
   void set_metallic_static(real32 metallic_static);

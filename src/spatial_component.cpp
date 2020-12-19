@@ -1,3 +1,17 @@
+void SpatialComponent::print() {
+  log_info("SpatialComponent:");
+  log_info("  entity_handle: %d", this->entity_handle);
+  log_info("  position:");
+  log_vec3(&this->position);
+  log_info("  rotation:");
+  log_info("(don't know how to print rotation, sorry)");
+  /* log_vec4(&this->rotation); */
+  log_info("  scale:");
+  log_vec3(&this->scale);
+  log_info("  parent_entity_handle: %d", this->parent_entity_handle);
+}
+
+
 bool32 SpatialComponent::has_dimensions() {
   return (
     this->scale.x > 0.0f &&

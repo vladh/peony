@@ -13,18 +13,6 @@ constexpr glm::vec3 DIRECTIONAL_LIGHT_DISTANCE = glm::vec3(
 
 enum class RenderMode {regular, depth};
 
-/* enum class RenderPass { */
-/*   deferred, */
-/*   forward_depth, */
-/*   forward_nodepth, */
-/*   forward_skybox, */
-/*   lighting, */
-/*   postprocessing, */
-/*   preblur, */
-/*   blur1, */
-/*   blur2 */
-/* }; */
-
 namespace RenderPass {
   typedef uint32 Flag;
   Flag none = 0;
@@ -39,6 +27,9 @@ namespace RenderPass {
   Flag blur1 = (1 << 8);
   Flag blur2 = (1 << 9);
 };
+
+const char* render_pass_to_string(RenderPass::Flag render_pass);
+RenderPass::Flag render_pass_from_string(const char* str);
 
 struct ShaderCommon {
   glm::mat4 view;
