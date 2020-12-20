@@ -167,7 +167,7 @@ void scene_init(Memory *memory, State *state) {
   );
 
   for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
-    scene_entity_entries[idx_entity].print();
+    PeonyFileParser::print_scene_entity_entries(&scene_entity_entries[idx_entity]);
     log_newline();
   }
 

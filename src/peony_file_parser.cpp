@@ -1,44 +1,44 @@
 namespace PeonyFileParser {
-  void MaterialEntries::print() {
-    log_info("shader_asset_vert_path: %s", this->shader_asset_vert_path);
-    log_info("shader_asset_frag_path: %s", this->shader_asset_frag_path);
-    log_info("shader_asset_geom_path: %s", this->shader_asset_geom_path);
-    log_info("depth_shader_asset_vert_path: %s", this->depth_shader_asset_vert_path);
-    log_info("depth_shader_asset_frag_path: %s", this->depth_shader_asset_frag_path);
-    log_info("depth_shader_asset_geom_path: %s", this->depth_shader_asset_geom_path);
+  void print_material_entries(MaterialEntries *entries) {
+    log_info("shader_asset_vert_path: %s", entries->shader_asset_vert_path);
+    log_info("shader_asset_frag_path: %s", entries->shader_asset_frag_path);
+    log_info("shader_asset_geom_path: %s", entries->shader_asset_geom_path);
+    log_info("depth_shader_asset_vert_path: %s", entries->depth_shader_asset_vert_path);
+    log_info("depth_shader_asset_frag_path: %s", entries->depth_shader_asset_frag_path);
+    log_info("depth_shader_asset_geom_path: %s", entries->depth_shader_asset_geom_path);
     log_info("albedo_static:");
-    log_vec4(&this->albedo_static);
-    log_info("metallic_static: %f", this->metallic_static);
-    log_info("roughness_static: %f", this->roughness_static);
-    log_info("ao_static: %f", this->ao_static);
-    log_info("n_textures: %d", this->n_textures);
-    for (uint32 idx_texture = 0; idx_texture < this->n_textures; idx_texture++) {
+    log_vec4(&entries->albedo_static);
+    log_info("metallic_static: %f", entries->metallic_static);
+    log_info("roughness_static: %f", entries->roughness_static);
+    log_info("ao_static: %f", entries->ao_static);
+    log_info("n_textures: %d", entries->n_textures);
+    for (uint32 idx_texture = 0; idx_texture < entries->n_textures; idx_texture++) {
       log_info(
         "texture %s (%s, %s)",
-        this->texture_uniform_names[idx_texture],
+        entries->texture_uniform_names[idx_texture],
         texture_type_to_string(
-          this->texture_types[idx_texture]
+          entries->texture_types[idx_texture]
         ),
-        this->texture_paths[idx_texture]
+        entries->texture_paths[idx_texture]
       );
     }
   }
 
 
-  void SceneEntityEntries::print() {
-    log_info("name: %s", this->entity_debug_name);
-    log_info("model_path: %s", this->model_path);
-    log_info("n_materials: %d", this->n_materials);
+  void print_scene_entity_entries(SceneEntityEntries *entries) {
+    log_info("name: %s", entries->entity_debug_name);
+    log_info("model_path: %s", entries->model_path);
+    log_info("n_materials: %d", entries->n_materials);
     log_info("{");
-    for (uint32 idx_material = 0; idx_material < this->n_materials; idx_material++) {
-      this->material_entries[idx_material].print();
+    for (uint32 idx_material = 0; idx_material < entries->n_materials; idx_material++) {
+      print_material_entries(&entries->material_entries[idx_material]);
     }
     log_info("}");
     log_info("render_passes:");
-    for (uint32 idx_value = 0; idx_value < this->n_render_passes; idx_value++) {
-      log_info("  %s", render_pass_to_string(this->render_passes[idx_value]));
+    for (uint32 idx_value = 0; idx_value < entries->n_render_passes; idx_value++) {
+      log_info("  %s", render_pass_to_string(entries->render_passes[idx_value]));
     }
-    this->spatial_component.print();
+    entries->spatial_component.print();
   }
 
 

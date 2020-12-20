@@ -23,8 +23,7 @@ namespace PeonyFileParser {
   constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
   constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
 
-  class MaterialEntries {
-  public:
+  struct MaterialEntries {
     char shader_asset_vert_path[MAX_TOKEN_LENGTH];
     char shader_asset_frag_path[MAX_TOKEN_LENGTH];
     char shader_asset_geom_path[MAX_TOKEN_LENGTH];
@@ -41,12 +40,9 @@ namespace PeonyFileParser {
     char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
     TextureType texture_types[MAX_N_ARRAY_VALUES];
     char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
-
-    void print();
   };
 
-  class SceneEntityEntries {
-  public:
+  struct SceneEntityEntries {
     char entity_debug_name[MAX_TOKEN_LENGTH];
     char model_path[MAX_TOKEN_LENGTH];
     uint32 n_materials = 0;
@@ -56,8 +52,6 @@ namespace PeonyFileParser {
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
     SpatialComponent spatial_component;
-
-    void print();
   };
 
   enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};
