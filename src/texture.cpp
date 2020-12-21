@@ -101,9 +101,10 @@ Texture::Texture(
   TextureType type,
   const char* path
 ) :
-  type(type),
-  path(path)
+  type(type)
 {
+  strcpy(this->path, TEXTURE_DIR);
+  strcat(this->path, path);
   this->target = GL_TEXTURE_2D;
   this->is_screensize_dependent = Texture::is_type_screensize_dependent(type);
 }

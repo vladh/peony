@@ -7,6 +7,9 @@ namespace Util {
     unsigned char *image_data = stbi_load(
       path, width, height, n_channels, 0
     );
+    if (!image_data) {
+      log_fatal("Could not open file %s.", path);
+    }
     return image_data;
   }
 

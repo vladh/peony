@@ -31,12 +31,12 @@ namespace PeonyFileParser {
     char depth_shader_asset_frag_path[MAX_TOKEN_LENGTH];
     char depth_shader_asset_geom_path[MAX_TOKEN_LENGTH];
 
-    glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
-    real32 metallic_static = -1.0f;
-    real32 roughness_static = -1.0f;
-    real32 ao_static = -1.0f;
+    glm::vec4 albedo_static;
+    real32 metallic_static;
+    real32 roughness_static;
+    real32 ao_static;
 
-    uint32 n_textures = 0;
+    uint32 n_textures;
     char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
     TextureType texture_types[MAX_N_ARRAY_VALUES];
     char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
@@ -47,8 +47,7 @@ namespace PeonyFileParser {
     char model_path[MAX_TOKEN_LENGTH];
     uint32 n_materials = 0;
     MaterialEntries material_entries[MAX_N_ARRAY_VALUES];
-    uint32 n_render_passes = 0;
-    RenderPass::Flag render_passes[MAX_N_ARRAY_VALUES];
+    RenderPass::Flag render_pass;
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
     SpatialComponent spatial_component;
@@ -65,7 +64,10 @@ namespace PeonyFileParser {
     glm::vec4 vec4_value;
   };
 
+  void print_material_entries(MaterialEntries *entries);
+  void print_scene_entity_entries(SceneEntityEntries *entries);
   void print_value(PropValue value, PropValueType type);
+  void init_material_entries();
   bool32 is_char_whitespace(const char target);
   bool32 is_token_whitespace(const char *token);
   bool32 is_char_allowed_in_name(const char target);

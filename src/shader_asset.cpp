@@ -87,27 +87,33 @@ uint32 ShaderAsset::make_program(
 
 
 const char* ShaderAsset::load_file(Memory *memory, const char *path) {
+  char full_path[256]; // TODO: Fix unsafe strings?
+  strcpy(full_path, SHADER_DIR);
+  strcat(full_path, path);
   uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
-  uint32 f2_size = Util::get_file_size(path);
+  uint32 f2_size = Util::get_file_size(full_path);
   char *file_memory = (char*)memory->temp_memory_pool.push(
-    f1_size + f2_size + 1, path
+    f1_size + f2_size + 1, full_path
   );
   Util::load_file(file_memory, SHADER_COMMON_PATH);
-  Util::load_file(file_memory + f1_size, path);
+  Util::load_file(file_memory + f1_size, full_path);
   return file_memory;
 }
 
 
 const char* ShaderAsset::load_frag_file(Memory *memory, const char *path) {
+  char full_path[256]; // TODO: Fix unsafe strings?
+  strcpy(full_path, SHADER_DIR);
+  strcat(full_path, path);
   uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
   uint32 f2_size = Util::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
-  uint32 f3_size = Util::get_file_size(path);
+  uint32 f3_size = Util::get_file_size(full_path);
   char *file_memory = (char*)memory->temp_memory_pool.push(
-    f1_size + f2_size + f3_size + 1, path
+    f1_size + f2_size + f3_size + 1, full_path
   );
   Util::load_file(file_memory, SHADER_COMMON_PATH);
   Util::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
-  Util::load_file(file_memory + f1_size + f2_size, path);
+  Util::load_file(file_memory + f1_size + f2_size, full_path);
   return file_memory;
 }
 
@@ -169,36 +175,30 @@ void ShaderAsset::load_uniforms() {
 
 
 void ShaderAsset::load(Memory *memory) {
-  if (this->geom_path) {
+  if (strlen(this->geom_path) > 0) {
     this->program = make_program(
-      make_shader(this->vert_path, load_file(memory, this->vert_path), GL_VERTEX_SHADER),
-      make_shader(this->frag_path, load_frag_file(memory, this->frag_path), GL_FRAGMENT_SHADER),
-      make_shader(this->geom_path, load_file(memory, this->geom_path), GL_GEOMETRY_SHADER)
+      make_shader(
+        this->vert_path, load_file(memory, this->vert_path), GL_VERTEX_SHADER
+      ),
+      make_shader(
+        this->frag_path, load_frag_file(memory, this->frag_path), GL_FRAGMENT_SHADER
+      ),
+      make_shader(
+        this->geom_path, load_file(memory, this->geom_path), GL_GEOMETRY_SHADER
+      )
     );
   } else {
     this->program = make_program(
-      make_shader(this->vert_path, load_file(memory, this->vert_path), GL_VERTEX_SHADER),
-      make_shader(this->frag_path, load_frag_file(memory, this->frag_path), GL_FRAGMENT_SHADER)
+      make_shader(
+        this->vert_path, load_file(memory, this->vert_path), GL_VERTEX_SHADER
+      ),
+      make_shader(
+        this->frag_path, load_frag_file(memory, this->frag_path), GL_FRAGMENT_SHADER
+      )
     );
   }
 
   load_uniforms();
-}
-
-
-ShaderAsset::ShaderAsset(
-  Memory *memory, const char *new_name, ShaderType new_type,
-  const char *vert_path, const char *frag_path, const char *geom_path
-) {
-  this->name = new_name;
-  this->type = new_type;
-  this->n_texture_units = 0;
-  memset(this->texture_units, 0, sizeof(this->texture_units));
-  memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
-  this->vert_path = vert_path;
-  this->frag_path = frag_path;
-  this->geom_path = geom_path;
-  load(memory);
 }
 
 
@@ -310,4 +310,20 @@ ShaderAsset* ShaderAsset::get_by_name(
   }
   log_warning("Could not find ShaderAsset with name %s", name);
   return nullptr;
+}
+
+
+ShaderAsset::ShaderAsset(
+  Memory *memory, const char *new_name, ShaderType new_type,
+  const char *vert_path, const char *frag_path, const char *geom_path
+) {
+  this->name = new_name;
+  this->type = new_type;
+  this->n_texture_units = 0;
+  memset(this->texture_units, 0, sizeof(this->texture_units));
+  memset(this->texture_unit_types, 0, sizeof(this->texture_unit_types));
+  strcpy(this->vert_path, vert_path);
+  strcpy(this->frag_path, frag_path);
+  strcpy(this->geom_path, geom_path);
+  load(memory);
 }

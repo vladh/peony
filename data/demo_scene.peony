@@ -1,9 +1,0 @@
-; Entities
-[rocks_root]
-model_asset = rocks
-spatial_component = {
-  position = vec3(0.0, -3.5, 0.0)
-  rotation = vec4(45.0, 0.0, 1.0, 0.0)
-  scale = vec3(0.05, 0.05, 0.05)
-}
-materials = [rocks]
