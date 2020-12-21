@@ -31,25 +31,25 @@ const char* render_pass_to_string(RenderPass::Flag render_pass) {
 RenderPass::Flag render_pass_from_string(const char* str) {
   if (strcmp(str, "none") == 0) {
     return RenderPass::none;
-  } else if (strcmp(str, "shadowcaster")) {
+  } else if (strcmp(str, "shadowcaster") == 0) {
     return RenderPass::shadowcaster;
-  } else if (strcmp(str, "deferred")) {
+  } else if (strcmp(str, "deferred") == 0) {
     return RenderPass::deferred;
-  } else if (strcmp(str, "forward_depth")) {
+  } else if (strcmp(str, "forward_depth") == 0) {
     return RenderPass::forward_depth;
-  } else if (strcmp(str, "forward_nodepth")) {
+  } else if (strcmp(str, "forward_nodepth") == 0) {
     return RenderPass::forward_nodepth;
-  } else if (strcmp(str, "forward_skybox")) {
+  } else if (strcmp(str, "forward_skybox") == 0) {
     return RenderPass::forward_skybox;
-  } else if (strcmp(str, "lighting")) {
+  } else if (strcmp(str, "lighting") == 0) {
     return RenderPass::lighting;
-  } else if (strcmp(str, "postprocessing")) {
+  } else if (strcmp(str, "postprocessing") == 0) {
     return RenderPass::postprocessing;
-  } else if (strcmp(str, "preblur")) {
+  } else if (strcmp(str, "preblur") == 0) {
     return RenderPass::preblur;
-  } else if (strcmp(str, "blur1")) {
+  } else if (strcmp(str, "blur1") == 0) {
     return RenderPass::blur1;
-  } else if (strcmp(str, "blur2")) {
+  } else if (strcmp(str, "blur2") == 0) {
     return RenderPass::blur2;
   } else {
     log_fatal("Could not parse RenderPass: %s", str);

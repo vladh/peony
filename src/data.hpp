@@ -12,16 +12,6 @@ constexpr const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
   "depth_textures[7]"
 };
 
-uint32 OCEAN_N_VERTICES;
-uint32 OCEAN_N_INDICES;
-real32 *OCEAN_VERTEX_DATA;
-uint32 *OCEAN_INDEX_DATA;
-
-uint32 SKYSPHERE_N_VERTICES;
-uint32 SKYSPHERE_N_INDICES;
-real32 *SKYSPHERE_VERTEX_DATA;
-uint32 *SKYSPHERE_INDEX_DATA;
-
 constexpr glm::vec3 CUBEMAP_OFFSETS[6] = {
   glm::vec3(1.0f, 0.0f, 0.0f),
   glm::vec3(-1.0f, 0.0f, 0.0f),

@@ -40,7 +40,7 @@ global_variable uint32 global_oopses = 0;
 #include "spatial_component_manager.cpp"
 #include "gui_manager.cpp"
 #include "model_asset.cpp"
-#include "scene.cpp"
+#include "world.cpp"
 #include "state.cpp"
 
 
@@ -1525,7 +1525,7 @@ int main() {
   init_blur_buffers(&memory, state);
   init_shadowmaps(&memory, state);
   init_ubo(&memory, state);
-  scene_init(&memory, state);
+  World::init(&memory, state);
   state->persistent_pbo.allocate_pbo();
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 

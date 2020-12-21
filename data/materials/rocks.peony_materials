@@ -1,8 +1,8 @@
 > rocks
-metallic_static = 0.0
-ao_static = 1.0
 shader_asset.vert_path = standard.vert
 shader_asset.frag_path = standard.frag
+metallic_static = 0.0
+ao_static = 1.0
 textures.albedo_texture = [albedo, rocks/2k/Stones_Color.jpg]
 textures.roughness_texture = [roughness, rocks/2k/Stones_Roughness.jpg]
 textures.normal_texture = [normal, rocks/2k/Stones_Normal.jpg]
