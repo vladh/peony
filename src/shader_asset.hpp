@@ -1,9 +1,9 @@
 #ifndef SHADER_ASSET_HPP
 #define SHADER_ASSET_HPP
 
-#define SHADER_DIR "src/shaders/"
-#define SHADER_COMMON_PATH SHADER_DIR"common.glsl"
-#define SHADER_COMMON_FRAGMENT_PATH SHADER_DIR"common_fragment.glsl"
+constexpr char SHADER_COMMON_PATH[] = "src/shaders/common.glsl";
+constexpr char SHADER_COMMON_FRAGMENT_PATH[] = "src/shaders/common_fragment.glsl";
+constexpr char SHADER_DIR[] = "src/shaders/";
 
 constexpr uint8 MAX_N_UNIFORMS = 64;
 constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
@@ -17,9 +17,9 @@ ShaderType shader_type_from_string(const char* str);
 class ShaderAsset {
 public:
   const char *name;
-  const char *vert_path;
-  const char *frag_path;
-  const char *geom_path;
+  char vert_path[256]; // TODO: Fix unsafe strings?
+  char frag_path[256]; // TODO: Fix unsafe strings?
+  char geom_path[256]; // TODO: Fix unsafe strings?
   uint32 program;
   ShaderType type;
   uint32 n_texture_units;

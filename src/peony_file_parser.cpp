@@ -34,10 +34,7 @@ namespace PeonyFileParser {
       print_material_entries(&entries->material_entries[idx_material]);
     }
     log_info("}");
-    log_info("render_passes:");
-    for (uint32 idx_value = 0; idx_value < entries->n_render_passes; idx_value++) {
-      log_info("  %s", render_pass_to_string(entries->render_passes[idx_value]));
-    }
+    log_info("render_pass: %d", entries->render_pass);
     entries->spatial_component.print();
   }
 
@@ -60,6 +57,14 @@ namespace PeonyFileParser {
     } else {
       log_info("<invalid>");
     }
+  }
+
+
+  void init_material_entries(MaterialEntries *material_entries) {
+    material_entries->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+    material_entries->metallic_static = -1.0f;
+    material_entries->roughness_static = -1.0f;
+    material_entries->ao_static = -1.0f;
   }
 
 
@@ -168,7 +173,7 @@ namespace PeonyFileParser {
       }
 
       if (idx_token >= MAX_TOKEN_LENGTH) {
-        log_error("Reached max token length.");
+        log_error("Reached max token length for token %s.", token);
         break;
       }
     }
@@ -417,17 +422,21 @@ namespace PeonyFileParser {
             strcpy(material_file_path, MATERIAL_FILE_DIRECTORY);
             strcat(material_file_path, prop_values[idx_value].string_value);
             strcat(material_file_path, MATERIAL_FILE_EXTENSION);
+            init_material_entries(
+              &scene_entity_entries[idx_entity].material_entries[idx_value]
+            );
             parse_material_file(
               material_file_path,
               &scene_entity_entries[idx_entity].material_entries[idx_value]
             );
           }
         } else if (strcmp(prop_name, "render_passes") == 0) {
-          scene_entity_entries[idx_entity].n_render_passes = n_values;
+          RenderPass::Flag render_pass = RenderPass::none;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
-            scene_entity_entries[idx_entity].render_passes[idx_value] =
+            render_pass = render_pass |
               render_pass_from_string(prop_values[idx_value].string_value);
           }
+          scene_entity_entries[idx_entity].render_pass = render_pass;
         } else if (strcmp(prop_name, "spatial_component.position") == 0) {
           scene_entity_entries[idx_entity].spatial_component.position =
             prop_values[0].vec3_value;

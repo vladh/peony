@@ -1,5 +1,4 @@
 > rocks
-albedo_static = vec4(1.0, 0.0, 0.0, 1.0)
 metallic_static = 0.0
 ao_static = 1.0
 shader_asset.vert_path = standard.vert

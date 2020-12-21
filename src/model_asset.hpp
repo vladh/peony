@@ -1,9 +1,9 @@
 #ifndef MODEL_ASSET_HPP
 #define MODEL_ASSET_HPP
 
-#define MODEL_DIR "resources/models/"
 constexpr uint32 MAX_N_MESHES = 2048;
 constexpr uint8 MAX_N_MATERIALS = 128;
+constexpr char MODEL_DIR[] = "resources/models/";
 
 // NOTE:
 // * ModelSource::data: Loaded on initialisation, from given vertex data.
@@ -34,7 +34,7 @@ class ModelAsset {
 public:
   const char *name;
   ModelSource model_source;
-  const char *path;
+  char path[256]; // TODO: Fix unsafe strings?
   Array<Mesh> meshes;
   Array<Material> materials;
   EntityHandle entity_handle;
@@ -69,7 +69,6 @@ public:
   void bind_texture_uniforms_for_mesh(
     Mesh *mesh
   );
-
   void setup_mesh_vertex_buffers_for_file_source(
     Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
   );

@@ -217,10 +217,14 @@ void ModelAsset::load(Memory *memory) {
   // shaders and textures and so on, so skip this.
   this->mutex.lock();
 
+  char full_path[256]; // TODO: Fix unsafe strings?
+  strcpy(full_path, MODEL_DIR);
+  strcat(full_path, this->path);
+
   if (this->model_source == ModelSource::file) {
     START_TIMER(assimp_import);
     const aiScene *scene = aiImportFile(
-      this->path,
+      full_path,
       aiProcess_Triangulate
       | aiProcess_JoinIdenticalVertices
       | aiProcess_SortByPType
@@ -527,12 +531,12 @@ ModelAsset::ModelAsset(
 ) :
   name(name),
   model_source(model_source),
-  path(path),
   meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
   materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
   render_pass(render_pass),
   entity_handle(entity_handle)
 {
+  strcpy(this->path, path);
   // NOTE: We do not load ModelSource::file models here.
   // They will be loaded gradually in `::prepare_for_draw()`.
 }

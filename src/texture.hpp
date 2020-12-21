@@ -1,7 +1,7 @@
 #ifndef TEXTURE_HPP
 #define TEXTURE_HPP
 
-#define TEXTURE_DIR "resources/textures/"
+constexpr char TEXTURE_DIR[] = "resources/textures/";
 
 enum class TextureType {
   none,
@@ -32,7 +32,7 @@ class Texture {
 public:
   GLenum target;
   TextureType type;
-  const char* path;
+  char path[256]; // TODO: Fix unsafe strings?
   uint32 texture_name = 0;
   int32 width = 0;
   int32 height = 0;
