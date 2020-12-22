@@ -23,7 +23,7 @@ namespace PeonyFileParser {
   constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
   constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
 
-  struct MaterialEntries {
+  struct MaterialTemplate {
     char shader_asset_vert_path[MAX_TOKEN_LENGTH];
     char shader_asset_frag_path[MAX_TOKEN_LENGTH];
     char shader_asset_geom_path[MAX_TOKEN_LENGTH];
@@ -42,11 +42,12 @@ namespace PeonyFileParser {
     char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
   };
 
-  struct SceneEntityEntries {
+  struct EntityTemplate {
     char entity_debug_name[MAX_TOKEN_LENGTH];
     char model_path[MAX_TOKEN_LENGTH];
+    char builtin_model_name[MAX_TOKEN_LENGTH];
     uint32 n_materials = 0;
-    MaterialEntries material_entries[MAX_N_ARRAY_VALUES];
+    MaterialTemplate material_templates[MAX_N_ARRAY_VALUES];
     RenderPass::Flag render_pass;
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
@@ -65,10 +66,10 @@ namespace PeonyFileParser {
     glm::vec4 vec4_value;
   };
 
-  void print_material_entries(MaterialEntries *entries);
-  void print_scene_entity_entries(SceneEntityEntries *entries);
+  void print_material_template(MaterialTemplate *material_template);
+  void print_entity_template(EntityTemplate *entity_template);
   void print_value(PropValue value, PropValueType type);
-  void init_material_entries();
+  void init_material_template();
   bool32 is_char_whitespace(const char target);
   bool32 is_token_whitespace(const char *token);
   bool32 is_char_allowed_in_name(const char target);
@@ -94,10 +95,10 @@ namespace PeonyFileParser {
     PropValue prop_values[MAX_N_ARRAY_VALUES]
   );
   void parse_material_file(
-    const char *path, MaterialEntries *material_entries
+    const char *path, MaterialTemplate *material_templates
   );
   uint32 parse_scene_file(
-    const char *path, SceneEntityEntries *scene_entity_entries
+    const char *path, EntityTemplate *entity_templates
   );
 };
 

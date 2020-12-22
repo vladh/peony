@@ -37,3 +37,11 @@ light_component.type = point
 light_component.direction = vec3(0.0, 0.0, 0.0)
 light_component.color = vec4(200.0, 0.0, 0.0, 1.0)
 light_component.attenuation = vec4(2.0, 0.18, 0.064, 0.0)
+
+> axes
+builtin_model_name = axes
+materials = [axes]
+render_passes = [forward_nodepth]
+spatial_component.position = vec3(0.0, 0.1, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)

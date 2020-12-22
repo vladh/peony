@@ -1,41 +1,55 @@
 namespace PeonyFileParser {
-  void print_material_entries(MaterialEntries *entries) {
-    log_info("shader_asset_vert_path: %s", entries->shader_asset_vert_path);
-    log_info("shader_asset_frag_path: %s", entries->shader_asset_frag_path);
-    log_info("shader_asset_geom_path: %s", entries->shader_asset_geom_path);
-    log_info("depth_shader_asset_vert_path: %s", entries->depth_shader_asset_vert_path);
-    log_info("depth_shader_asset_frag_path: %s", entries->depth_shader_asset_frag_path);
-    log_info("depth_shader_asset_geom_path: %s", entries->depth_shader_asset_geom_path);
+  void print_material_template(MaterialTemplate *material_template) {
+    log_info("shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
+    log_info("shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
+    log_info("shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
+    log_info(
+      "depth_shader_asset_vert_path: %s",
+      material_template->depth_shader_asset_vert_path
+    );
+    log_info(
+      "depth_shader_asset_frag_path: %s",
+      material_template->depth_shader_asset_frag_path
+    );
+    log_info(
+      "depth_shader_asset_geom_path: %s",
+      material_template->depth_shader_asset_geom_path
+    );
     log_info("albedo_static:");
-    log_vec4(&entries->albedo_static);
-    log_info("metallic_static: %f", entries->metallic_static);
-    log_info("roughness_static: %f", entries->roughness_static);
-    log_info("ao_static: %f", entries->ao_static);
-    log_info("n_textures: %d", entries->n_textures);
-    for (uint32 idx_texture = 0; idx_texture < entries->n_textures; idx_texture++) {
+    log_vec4(&material_template->albedo_static);
+    log_info("metallic_static: %f", material_template->metallic_static);
+    log_info("roughness_static: %f", material_template->roughness_static);
+    log_info("ao_static: %f", material_template->ao_static);
+    log_info("n_textures: %d", material_template->n_textures);
+    for (uint32 idx_texture = 0; idx_texture < material_template->n_textures; idx_texture++) {
       log_info(
         "texture %s (%s, %s)",
-        entries->texture_uniform_names[idx_texture],
+        material_template->texture_uniform_names[idx_texture],
         texture_type_to_string(
-          entries->texture_types[idx_texture]
+          material_template->texture_types[idx_texture]
         ),
-        entries->texture_paths[idx_texture]
+        material_template->texture_paths[idx_texture]
       );
     }
   }
 
 
-  void print_scene_entity_entries(SceneEntityEntries *entries) {
-    log_info("name: %s", entries->entity_debug_name);
-    log_info("model_path: %s", entries->model_path);
-    log_info("n_materials: %d", entries->n_materials);
+  void print_entity_template(EntityTemplate *entity_template) {
+    log_info("name: %s", entity_template->entity_debug_name);
+    log_info("model_path: %s", entity_template->model_path);
+    log_info("builtin_model_name: %s", entity_template->builtin_model_name);
+    log_info("n_materials: %d", entity_template->n_materials);
     log_info("{");
-    for (uint32 idx_material = 0; idx_material < entries->n_materials; idx_material++) {
-      print_material_entries(&entries->material_entries[idx_material]);
+    for (
+      uint32 idx_material = 0;
+      idx_material < entity_template->n_materials;
+      idx_material++
+    ) {
+      print_material_template(&entity_template->material_templates[idx_material]);
     }
     log_info("}");
-    log_info("render_pass: %d", entries->render_pass);
-    entries->spatial_component.print();
+    log_info("render_pass: %d", entity_template->render_pass);
+    entity_template->spatial_component.print();
   }
 
 
@@ -60,11 +74,11 @@ namespace PeonyFileParser {
   }
 
 
-  void init_material_entries(MaterialEntries *material_entries) {
-    material_entries->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
-    material_entries->metallic_static = -1.0f;
-    material_entries->roughness_static = -1.0f;
-    material_entries->ao_static = -1.0f;
+  void init_material_template(MaterialTemplate *material_template) {
+    material_template->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+    material_template->metallic_static = -1.0f;
+    material_template->roughness_static = -1.0f;
+    material_template->ao_static = -1.0f;
   }
 
 
@@ -287,7 +301,7 @@ namespace PeonyFileParser {
 
 
   void parse_material_file(
-    const char *path, MaterialEntries *material_entries
+    const char *path, MaterialTemplate *material_template
   ) {
     FILE *f = fopen(path, "r");
 
@@ -312,58 +326,58 @@ namespace PeonyFileParser {
 
         if (strcmp(prop_name, "shader_asset.vert_path") == 0) {
           strcpy(
-            material_entries->shader_asset_vert_path,
+            material_template->shader_asset_vert_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "shader_asset.frag_path") == 0) {
           strcpy(
-            material_entries->shader_asset_frag_path,
+            material_template->shader_asset_frag_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "shader_asset.geom_path") == 0) {
           strcpy(
-            material_entries->shader_asset_geom_path,
+            material_template->shader_asset_geom_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
           strcpy(
-            material_entries->depth_shader_asset_frag_path,
+            material_template->depth_shader_asset_frag_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
           strcpy(
-            material_entries->depth_shader_asset_vert_path,
+            material_template->depth_shader_asset_vert_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
           strcpy(
-            material_entries->depth_shader_asset_geom_path,
+            material_template->depth_shader_asset_geom_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "albedo_static") == 0) {
-          material_entries->albedo_static = prop_values[0].vec4_value;
+          material_template->albedo_static = prop_values[0].vec4_value;
         } else if (strcmp(prop_name, "metallic_static") == 0) {
-          material_entries->metallic_static =
+          material_template->metallic_static =
             prop_values[0].number_value;
         } else if (strcmp(prop_name, "roughness_static") == 0) {
-          material_entries->roughness_static =
+          material_template->roughness_static =
             prop_values[0].number_value;
         } else if (strcmp(prop_name, "ao_static") == 0) {
-          material_entries->ao_static =
+          material_template->ao_static =
             prop_values[0].number_value;
         } else if (strncmp(prop_name, TEXTURE_PREFIX, TEXTURE_PREFIX_LENGTH) == 0) {
-          uint32 idx_texture = material_entries->n_textures;
+          uint32 idx_texture = material_template->n_textures;
           strcpy(
-            material_entries->texture_uniform_names[idx_texture],
+            material_template->texture_uniform_names[idx_texture],
             prop_name + TEXTURE_PREFIX_LENGTH
           );
-          material_entries->texture_types[idx_texture] =
+          material_template->texture_types[idx_texture] =
             texture_type_from_string(prop_values[0].string_value);
           strcpy(
-            material_entries->texture_paths[idx_texture],
+            material_template->texture_paths[idx_texture],
             prop_values[1].string_value
           );
-          material_entries->n_textures++;
+          material_template->n_textures++;
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
@@ -380,7 +394,7 @@ namespace PeonyFileParser {
 
 
   uint32 parse_scene_file(
-    const char *path, SceneEntityEntries *scene_entity_entries
+    const char *path, EntityTemplate *entity_templates
   ) {
     int32 idx_entity = -1;
 
@@ -391,6 +405,7 @@ namespace PeonyFileParser {
       return 0;
     }
 
+    EntityTemplate *entity_template = nullptr;
     char token[MAX_TOKEN_LENGTH];
     uint32 n_values;
     char prop_name[MAX_TOKEN_LENGTH];
@@ -400,9 +415,10 @@ namespace PeonyFileParser {
     while (get_non_trivial_token(token, f)) {
       if (token[0] == TOKEN_HEADER_START) {
         idx_entity++;
+        entity_template = &entity_templates[idx_entity];
         parse_header(token, f);
         strcpy(
-          scene_entity_entries[idx_entity].entity_debug_name,
+          entity_template->entity_debug_name,
           token
         );
       } else if (is_token_name(token)) {
@@ -412,22 +428,25 @@ namespace PeonyFileParser {
 
         if (strcmp(prop_name, "model_path") == 0) {
           strcpy(
-            scene_entity_entries[idx_entity].model_path,
+            entity_template->model_path,
+            prop_values[0].string_value
+          );
+        } else if (strcmp(prop_name, "builtin_model_name") == 0) {
+          strcpy(
+            entity_template->builtin_model_name,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "materials") == 0) {
-          scene_entity_entries[idx_entity].n_materials = n_values;
+          entity_template->n_materials = n_values;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
             char material_file_path[MAX_TOKEN_LENGTH];
             strcpy(material_file_path, MATERIAL_FILE_DIRECTORY);
             strcat(material_file_path, prop_values[idx_value].string_value);
             strcat(material_file_path, MATERIAL_FILE_EXTENSION);
-            init_material_entries(
-              &scene_entity_entries[idx_entity].material_entries[idx_value]
-            );
+            init_material_template(&entity_template->material_templates[idx_value]);
             parse_material_file(
               material_file_path,
-              &scene_entity_entries[idx_entity].material_entries[idx_value]
+              &entity_template->material_templates[idx_value]
             );
           }
         } else if (strcmp(prop_name, "render_passes") == 0) {
@@ -436,12 +455,11 @@ namespace PeonyFileParser {
             render_pass = render_pass |
               render_pass_from_string(prop_values[idx_value].string_value);
           }
-          scene_entity_entries[idx_entity].render_pass = render_pass;
+          entity_template->render_pass = render_pass;
         } else if (strcmp(prop_name, "spatial_component.position") == 0) {
-          scene_entity_entries[idx_entity].spatial_component.position =
-            prop_values[0].vec3_value;
+          entity_template->spatial_component.position = prop_values[0].vec3_value;
         } else if (strcmp(prop_name, "spatial_component.rotation") == 0) {
-          scene_entity_entries[idx_entity].spatial_component.rotation =
+          entity_template->spatial_component.rotation =
             glm::angleAxis(
               glm::radians(prop_values[0].vec4_value[0]),
               glm::vec3(
@@ -451,20 +469,16 @@ namespace PeonyFileParser {
               )
             );
         } else if (strcmp(prop_name, "spatial_component.scale") == 0) {
-          scene_entity_entries[idx_entity].spatial_component.scale =
-            prop_values[0].vec3_value;
+          entity_template->spatial_component.scale = prop_values[0].vec3_value;
         } else if (strcmp(prop_name, "light_component.type") == 0) {
-          scene_entity_entries[idx_entity].light_component.type =
+          entity_template->light_component.type =
             light_type_from_string(prop_values[0].string_value);
         } else if (strcmp(prop_name, "light_component.direction") == 0) {
-          scene_entity_entries[idx_entity].light_component.direction =
-            prop_values[0].vec3_value;
+          entity_template->light_component.direction = prop_values[0].vec3_value;
         } else if (strcmp(prop_name, "light_component.color") == 0) {
-          scene_entity_entries[idx_entity].light_component.color =
-            prop_values[0].vec4_value;
+          entity_template->light_component.color = prop_values[0].vec4_value;
         } else if (strcmp(prop_name, "light_component.attenuation") == 0) {
-          scene_entity_entries[idx_entity].light_component.attenuation =
-            prop_values[0].vec4_value;
+          entity_template->light_component.attenuation = prop_values[0].vec4_value;
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {

@@ -1,5 +1,3 @@
-[axes]
-shader_asset = {
-  vert_path = axes.vert
-  frag_path = axes.frag
-}
+> axes
+shader_asset.vert_path = axes.vert
+shader_asset.frag_path = axes.frag
