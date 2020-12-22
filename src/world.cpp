@@ -1,88 +1,113 @@
 namespace World {
-  void create_entities_from_scene_entity_entries(
-    PeonyFileParser::SceneEntityEntries *entity_entries,
+  void create_entities_from_entity_template(
+    PeonyFileParser::EntityTemplate *entity_template,
     Memory *memory,
     EntityManager *entity_manager,
     Array<ModelAsset> *model_assets,
     Array<ShaderAsset> *shader_assets
   ) {
-    Entity *entity = entity_manager->add(entity_entries->entity_debug_name);
-    // TODO: Add support for data-based models!
-    ModelAsset *model_asset = new(model_assets->push()) ModelAsset(
-      memory,
-      ModelSource::file,
-      entity_entries->entity_debug_name,
-      entity_entries->model_path,
-      entity_entries->render_pass,
-      entity->handle
-    );
+    Entity *entity = entity_manager->add(entity_template->entity_debug_name);
 
-    if (entity_entries->spatial_component.is_valid()) {
+    ModelAsset *model_asset = nullptr;
+
+    if (strlen(entity_template->builtin_model_name) == 0) {
+      model_asset = new(model_assets->push()) ModelAsset(
+        memory,
+        ModelSource::file,
+        entity_template->entity_debug_name,
+        entity_template->model_path,
+        entity_template->render_pass,
+        entity->handle
+      );
+    } else {
+      if (strcmp(entity_template->builtin_model_name, "axes") == 0) {
+        model_asset = new(model_assets->push()) ModelAsset(
+          memory,
+          ModelSource::data,
+          (real32*)AXES_VERTICES, 6,
+          nullptr, 0,
+          entity_template->entity_debug_name,
+          GL_LINES,
+          entity_template->render_pass,
+          entity->handle
+        );
+      } else {
+        log_fatal(
+          "Could not find builtin model: %s", entity_template->builtin_model_name
+        );
+      }
+    }
+
+    if (!model_asset) {
+      log_fatal("Found no model asset.");
+    }
+
+    if (entity_template->spatial_component.is_valid()) {
       model_asset->spatial_component = SpatialComponent(
         entity->handle,
-        entity_entries->spatial_component.position,
-        entity_entries->spatial_component.rotation,
-        entity_entries->spatial_component.scale
+        entity_template->spatial_component.position,
+        entity_template->spatial_component.rotation,
+        entity_template->spatial_component.scale
         // TODO: Add support for parents! Forgot about this.
       );
     }
 
-    if (entity_entries->light_component.is_valid()) {
+    if (entity_template->light_component.is_valid()) {
       model_asset->light_component = LightComponent(
         entity->handle,
-        entity_entries->light_component.type,
-        entity_entries->light_component.direction,
-        entity_entries->light_component.color,
-        entity_entries->light_component.attenuation
+        entity_template->light_component.type,
+        entity_template->light_component.direction,
+        entity_template->light_component.color,
+        entity_template->light_component.attenuation
       );
     }
 
     for (
       uint32 idx_material = 0;
-      idx_material < entity_entries->n_materials;
+      idx_material < entity_template->n_materials;
       idx_material++
     ) {
-      PeonyFileParser::MaterialEntries *material_entries =
-        &entity_entries->material_entries[idx_material];
+      PeonyFileParser::MaterialTemplate *material_template =
+        &entity_template->material_templates[idx_material];
       Material *material = new(model_asset->materials.push()) Material(memory);
 
-      if (strlen(material_entries->shader_asset_vert_path) > 0) {
+      if (strlen(material_template->shader_asset_vert_path) > 0) {
         material->shader_asset = new(shader_assets->push()) ShaderAsset(
           memory,
-          entity_entries->entity_debug_name,
+          entity_template->entity_debug_name,
           ShaderType::standard,
-          material_entries->shader_asset_vert_path,
-          material_entries->shader_asset_frag_path,
-          material_entries->shader_asset_geom_path
+          material_template->shader_asset_vert_path,
+          material_template->shader_asset_frag_path,
+          material_template->shader_asset_geom_path
         );
       }
-      if (strlen(material_entries->depth_shader_asset_vert_path) > 0) {
+      if (strlen(material_template->depth_shader_asset_vert_path) > 0) {
         material->depth_shader_asset = new(shader_assets->push()) ShaderAsset(
           memory,
-          entity_entries->entity_debug_name,
+          entity_template->entity_debug_name,
           ShaderType::depth,
-          material_entries->depth_shader_asset_vert_path,
-          material_entries->depth_shader_asset_frag_path,
-          material_entries->depth_shader_asset_geom_path
+          material_template->depth_shader_asset_vert_path,
+          material_template->depth_shader_asset_frag_path,
+          material_template->depth_shader_asset_geom_path
         );
       }
 
-      material->set_albedo_static(material_entries->albedo_static);
-      material->set_metallic_static(material_entries->metallic_static);
-      material->set_roughness_static(material_entries->roughness_static);
-      material->set_ao_static(material_entries->ao_static);
+      material->set_albedo_static(material_template->albedo_static);
+      material->set_metallic_static(material_template->metallic_static);
+      material->set_roughness_static(material_template->roughness_static);
+      material->set_ao_static(material_template->ao_static);
 
       for (
         uint32 idx_texture = 0;
-        idx_texture < material_entries->n_textures;
+        idx_texture < material_template->n_textures;
         idx_texture++
       ) {
         material->add(
           Texture(
-            material_entries->texture_types[idx_texture],
-            material_entries->texture_paths[idx_texture]
+            material_template->texture_types[idx_texture],
+            material_template->texture_paths[idx_texture]
           ),
-          material_entries->texture_uniform_names[idx_texture]
+          material_template->texture_uniform_names[idx_texture]
         );
       }
     }
@@ -260,20 +285,20 @@ namespace World {
 
     create_internal_entities(memory, state);
 
-    PeonyFileParser::SceneEntityEntries *scene_entity_entries =
-      (PeonyFileParser::SceneEntityEntries*)memory->temp_memory_pool.push(
-        sizeof(PeonyFileParser::SceneEntityEntries) *
+    PeonyFileParser::EntityTemplate *entity_templates =
+      (PeonyFileParser::EntityTemplate*)memory->temp_memory_pool.push(
+        sizeof(PeonyFileParser::EntityTemplate) *
           PeonyFileParser::MAX_N_FILE_ENTRIES,
-        "scene_entity_entries"
+        "entity_templates"
       );
 
     uint32 n_entities = PeonyFileParser::parse_scene_file(
-      "data/scenes/demo.peony_scene", scene_entity_entries
+      "data/scenes/demo.peony_scene", entity_templates
     );
 
     for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
-      create_entities_from_scene_entity_entries(
-        &scene_entity_entries[idx_entity],
+      create_entities_from_entity_template(
+        &entity_templates[idx_entity],
         memory,
         &state->entity_manager,
         &state->model_assets,
@@ -281,6 +306,7 @@ namespace World {
       );
     }
 
+#if 0
     // Axes
     {
 #if 0
