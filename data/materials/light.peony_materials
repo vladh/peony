@@ -1,5 +1,3 @@
-[light]
-shader_asset = {
-  vert_path = simple.vert
-  frag_path = simple.frag
-}
+> light
+shader_asset.vert_path = simple.vert
+shader_asset.frag_path = simple.frag

@@ -3,6 +3,10 @@
 
 enum class LightType {none, point, directional};
 
+const char* light_type_to_string(LightType light_type);
+LightType light_type_from_string(const char *str);
+uint32 light_type_to_int(LightType light_type);
+
 class LightComponent {
 public:
   EntityHandle entity_handle = Entity::no_entity_handle;

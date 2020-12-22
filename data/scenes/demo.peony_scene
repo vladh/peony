@@ -13,3 +13,27 @@ render_passes = [deferred]
 spatial_component.position = vec3(-4.6, 0.0, -1.5)
 spatial_component.rotation = vec4(-30.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(0.2, 0.2, 0.2)
+
+> sun
+model_path = cube.obj
+materials = [light]
+render_passes = [forward_nodepth]
+spatial_component.position = vec3(0.0, 0.0, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(0.3, 0.3, 0.3)
+light_component.type = directional
+light_component.direction = vec3(0.70, -0.70, 0.0)
+light_component.color = vec4(4.0, 4.0, 4.0, 1.0)
+light_component.attenuation = vec4(1.0, 0.0, 0.0, 0.0)
+
+> pointlight
+model_path = cube.obj
+materials = [light]
+render_passes = [forward_nodepth]
+spatial_component.position = vec3(-7.0, 3.0, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(0.3, 0.3, 0.3)
+light_component.type = point
+light_component.direction = vec3(0.0, 0.0, 0.0)
+light_component.color = vec4(200.0, 0.0, 0.0, 1.0)
+light_component.attenuation = vec4(2.0, 0.18, 0.064, 0.0)

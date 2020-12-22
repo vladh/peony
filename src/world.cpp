@@ -27,6 +27,16 @@ namespace World {
       );
     }
 
+    if (entity_entries->light_component.is_valid()) {
+      model_asset->light_component = LightComponent(
+        entity->handle,
+        entity_entries->light_component.type,
+        entity_entries->light_component.direction,
+        entity_entries->light_component.color,
+        entity_entries->light_component.attenuation
+      );
+    }
+
     for (
       uint32 idx_material = 0;
       idx_material < entity_entries->n_materials;
@@ -269,81 +279,6 @@ namespace World {
         &state->model_assets,
         &state->shader_assets
       );
-    }
-
-#if 0
-    // Lights
-    {
-#if 0
-      glm::vec3 light_direction = glm::vec3(
-        sin(state->dir_light_angle), -sin(state->dir_light_angle), 0.0f
-      );
-
-      Entity *sun_entity = state->entity_manager.add("sun");
-
-      model_asset = new(state->model_assets.push()) ModelAsset(
-        memory,
-        ModelSource::file,
-        "sun",
-        "cube.obj",
-        RenderPass::forward_nodepth,
-        sun_entity->handle
-      );
-
-      model_asset->spatial_component = SpatialComponent(
-        sun_entity->handle,
-        glm::vec3(-light_direction * DIRECTIONAL_LIGHT_DISTANCE),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-        glm::vec3(0.3f)
-      );
-      model_asset->light_component = LightComponent(
-        sun_entity->handle,
-        LightType::directional,
-        light_direction,
-        glm::vec4(4.0f, 4.0f, 4.0f, 1.0f),
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f)
-      );
-
-      material = new(model_asset->materials.push()) Material(memory);
-      material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "light", ShaderType::standard,
-        "simple.vert", "simple.frag", ""
-      );
-#endif
-
-#if 0
-      Entity *pointlight_entity = state->entity_manager.add("pointlight");
-      model_asset = new(state->model_assets.push()) ModelAsset(
-        memory,
-        ModelSource::file,
-        "light",
-        "cube.obj",
-        RenderPass::forward_nodepth,
-        pointlight_entity->handle
-      );
-
-      model_asset->spatial_component = SpatialComponent(
-        pointlight_entity->handle,
-        glm::vec3(-7.0f, 3.0f, 0.0f),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-        glm::vec3(0.3f)
-      );
-
-      model_asset->light_component = LightComponent(
-        pointlight_entity->handle,
-        LightType::point,
-        glm::vec3(0.0f, 0.0f, 0.0f),
-        glm::vec4(200.0f, 0.0f, 0.0f, 1.0f),
-        /* glm::vec4(1.0f, 0.09f, 0.032f, 0.0f) */
-        glm::vec4(1.0f, 0.09f, 0.032f, 0.0f) * 2.0f
-      );
-
-      material = new(model_asset->materials.push()) Material(memory);
-      material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "pointlight", ShaderType::standard,
-        "simple.vert", "simple.frag", ""
-      );
-#endif
     }
 
     // Axes
