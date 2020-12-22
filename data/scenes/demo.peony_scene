@@ -3,16 +3,16 @@ model_path = Stones_AssetKit.fbx
 materials = [rocks]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(2.0, -3.5, 2.0)
-spatial_component.rotation = vec4(45.0, 1.0, 1.0, 0.0)
+spatial_component.rotation = vec4(45.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(0.05, 0.05, 0.05)
 
-> goose
-model_path = miniGoose.fbx
-materials = [goose]
-render_passes = [deferred]
-spatial_component.position = vec3(-4.6, 0.0, -1.5)
-spatial_component.rotation = vec4(-30.0, 0.0, 1.0, 0.0)
-spatial_component.scale = vec3(0.2, 0.2, 0.2)
+; > goose
+; model_path = miniGoose.fbx
+; materials = [goose]
+; render_passes = [deferred]
+; spatial_component.position = vec3(-4.6, 0.0, -1.5)
+; spatial_component.rotation = vec4(-30.0, 0.0, 1.0, 0.0)
+; spatial_component.scale = vec3(0.2, 0.2, 0.2)
 
 > sun
 model_path = cube.obj
@@ -26,22 +26,30 @@ light_component.direction = vec3(0.70, -0.70, 0.0)
 light_component.color = vec4(4.0, 4.0, 4.0, 1.0)
 light_component.attenuation = vec4(1.0, 0.0, 0.0, 0.0)
 
-> pointlight
-model_path = cube.obj
-materials = [light]
-render_passes = [forward_nodepth]
-spatial_component.position = vec3(-7.0, 3.0, 0.0)
-spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
-spatial_component.scale = vec3(0.3, 0.3, 0.3)
-light_component.type = point
-light_component.direction = vec3(0.0, 0.0, 0.0)
-light_component.color = vec4(200.0, 0.0, 0.0, 1.0)
-light_component.attenuation = vec4(2.0, 0.18, 0.064, 0.0)
+; > pointlight
+; model_path = cube.obj
+; materials = [light]
+; render_passes = [forward_nodepth]
+; spatial_component.position = vec3(-7.0, 3.0, 0.0)
+; spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+; spatial_component.scale = vec3(0.3, 0.3, 0.3)
+; light_component.type = point
+; light_component.direction = vec3(0.0, 0.0, 0.0)
+; light_component.color = vec4(200.0, 0.0, 0.0, 1.0)
+; light_component.attenuation = vec4(2.0, 0.18, 0.064, 0.0)
 
-> axes
-builtin_model_name = axes
-materials = [axes]
-render_passes = [forward_nodepth]
-spatial_component.position = vec3(0.0, 0.1, 0.0)
+; > axes
+; builtin_model_name = axes
+; materials = [axes]
+; render_passes = [forward_nodepth]
+; spatial_component.position = vec3(0.0, 0.1, 0.0)
+; spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+; spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> ocean
+builtin_model_name = ocean
+materials = [ocean]
+render_passes = [forward_depth]
+spatial_component.position = vec3(0.0, 0.0, 0.0)
 spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
