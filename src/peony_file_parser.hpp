@@ -17,9 +17,12 @@ namespace PeonyFileParser {
   constexpr const char TOKEN_TUPLE_START = '(';
   constexpr const char TOKEN_TUPLE_END = ')';
   constexpr const char TOKEN_ELEMENT_SEPARATOR = ',';
+  constexpr const char TOKEN_COMMENT_START = ';';
 
   constexpr const char *TEXTURE_PREFIX = "textures.";
   constexpr size_t TEXTURE_PREFIX_LENGTH = 9;
+  constexpr const char *BUILTIN_TEXTURE_PREFIX = "builtin_textures.";
+  constexpr size_t BUILTIN_TEXTURE_PREFIX_LENGTH = 17;
   constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
   constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
 
@@ -40,6 +43,9 @@ namespace PeonyFileParser {
     char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
     TextureType texture_types[MAX_N_ARRAY_VALUES];
     char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+
+    uint32 n_builtin_textures;
+    char builtin_texture_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
   };
 
   struct EntityTemplate {

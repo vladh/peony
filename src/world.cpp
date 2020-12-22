@@ -4,7 +4,8 @@ namespace World {
     Memory *memory,
     EntityManager *entity_manager,
     Array<ModelAsset> *model_assets,
-    Array<ShaderAsset> *shader_assets
+    Array<ShaderAsset> *shader_assets,
+    State *state
   ) {
     Entity *entity = entity_manager->add(entity_template->entity_debug_name);
 
@@ -28,6 +29,30 @@ namespace World {
           nullptr, 0,
           entity_template->entity_debug_name,
           GL_LINES,
+          entity_template->render_pass,
+          entity->handle
+        );
+      } else if (strcmp(entity_template->builtin_model_name, "ocean") == 0) {
+        uint32 ocean_n_vertices;
+        uint32 ocean_n_indices;
+        real32 *ocean_vertex_data;
+        uint32 *ocean_index_data;
+
+        Util::make_plane(
+          &memory->asset_memory_pool,
+          200, 200,
+          800, 800,
+          &ocean_n_vertices, &ocean_n_indices,
+          &ocean_vertex_data, &ocean_index_data
+        );
+
+        model_asset = new(model_assets->push()) ModelAsset(
+          memory,
+          ModelSource::data,
+          ocean_vertex_data, ocean_n_vertices,
+          ocean_index_data, ocean_n_indices,
+          entity_template->entity_debug_name,
+          GL_TRIANGLES,
           entity_template->render_pass,
           entity->handle
         );
@@ -109,6 +134,32 @@ namespace World {
           ),
           material_template->texture_uniform_names[idx_texture]
         );
+      }
+
+      for (
+        uint32 idx_texture = 0;
+        idx_texture < material_template->n_builtin_textures;
+        idx_texture++
+      ) {
+        const char *builtin_texture_name =
+          material_template->builtin_texture_names[idx_texture];
+        // TODO: Make the built-in textures some kind of array, that we can
+        // also pass in instead of passing State.
+        // NOTE: This list is intentionally not complete until we fix the above.
+        if (strcmp(builtin_texture_name, "g_position_texture") == 0) {
+          material->add(*state->g_position_texture, builtin_texture_name);
+        } else if (strcmp(builtin_texture_name, "g_albedo_texture") == 0) {
+          material->add(*state->g_albedo_texture, builtin_texture_name);
+        } else if (strcmp(builtin_texture_name, "cube_shadowmaps") == 0) {
+          material->add(*state->cube_shadowmaps_texture, builtin_texture_name);
+        } else if (strcmp(builtin_texture_name, "texture_shadowmaps") == 0) {
+          material->add(*state->texture_shadowmaps_texture, builtin_texture_name);
+        } else {
+          log_fatal(
+            "Attempted to use unsupported built-in texture %s",
+            builtin_texture_name
+          );
+        }
       }
     }
   }
@@ -269,18 +320,6 @@ namespace World {
 
   void init(Memory *memory, State *state) {
 #if 0
-    uint32 ocean_n_vertices;
-    uint32 ocean_n_indices;
-    real32 *ocean_vertex_data;
-    uint32 *ocean_index_data;
-
-    Util::make_plane(
-      &memory->asset_memory_pool,
-      200, 200,
-      800, 800,
-      &ocean_n_vertices, &ocean_n_indices,
-      &ocean_vertex_data, &ocean_index_data
-    );
 #endif
 
     create_internal_entities(memory, state);
@@ -297,88 +336,18 @@ namespace World {
     );
 
     for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
+      /* PeonyFileParser::print_entity_template(&entity_templates[idx_entity]); */
       create_entities_from_entity_template(
         &entity_templates[idx_entity],
         memory,
         &state->entity_manager,
         &state->model_assets,
-        &state->shader_assets
+        &state->shader_assets,
+        state
       );
     }
 
 #if 0
-    // Axes
-    {
-#if 0
-      Entity *entity = state->entity_manager.add("axes");
-
-      model_asset = new(state->model_assets.push()) ModelAsset(
-        memory,
-        ModelSource::data,
-        (real32*)AXES_VERTICES, 6,
-        nullptr, 0,
-        "axes",
-        GL_LINES,
-        RenderPass::forward_nodepth,
-        entity->handle
-      );
-
-      model_asset->spatial_component = SpatialComponent(
-        entity->handle,
-        glm::vec3(0.0f, 0.1f, 0.0f),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-        glm::vec3(1.0f, 1.0f, 1.0f)
-      );
-
-      material = new(model_asset->materials.push()) Material(memory);
-      material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "axes", ShaderType::standard,
-        "axes.vert", "axes.frag", ""
-      );
-#endif
-    }
-
-    // Ocean
-    {
-#if 1
-      Entity *entity = state->entity_manager.add("ocean");
-
-      model_asset = new(state->model_assets.push()) ModelAsset(
-        memory,
-        ModelSource::data,
-        ocean_vertex_data, ocean_n_vertices,
-        ocean_index_data, ocean_n_indices,
-        "ocean",
-        GL_TRIANGLES,
-        RenderPass::forward_depth,
-        entity->handle
-      );
-
-      model_asset->spatial_component = SpatialComponent(
-        entity->handle,
-        glm::vec3(0.0f),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-        glm::vec3(1.0f)
-      );
-
-      material = new(model_asset->materials.push()) Material(memory);
-      material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "water", ShaderType::standard,
-        "water.vert", "water.frag", ""
-      );
-      material->depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "water_depth", ShaderType::depth,
-        "water_depth.vert", "standard_depth.frag", ""
-      );
-      material->add(*state->g_position_texture, "g_position_texture");
-      material->add(*state->g_albedo_texture, "g_albedo_texture");
-      material->add(Texture(TextureType::normal, "vlachos.jpg"), "normal_texture");
-      material->add(Texture(TextureType::other, "water_foam.png"), "foam_texture");
-      material->add(*state->cube_shadowmaps_texture, "cube_shadowmaps");
-      material->add(*state->texture_shadowmaps_texture, "texture_shadowmaps");
-#endif
-    }
-
     // Temple
     {
 #if 0

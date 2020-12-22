@@ -21,7 +21,11 @@ namespace PeonyFileParser {
     log_info("roughness_static: %f", material_template->roughness_static);
     log_info("ao_static: %f", material_template->ao_static);
     log_info("n_textures: %d", material_template->n_textures);
-    for (uint32 idx_texture = 0; idx_texture < material_template->n_textures; idx_texture++) {
+    for (
+      uint32 idx_texture = 0;
+      idx_texture < material_template->n_textures;
+      idx_texture++
+    ) {
       log_info(
         "texture %s (%s, %s)",
         material_template->texture_uniform_names[idx_texture],
@@ -29,6 +33,17 @@ namespace PeonyFileParser {
           material_template->texture_types[idx_texture]
         ),
         material_template->texture_paths[idx_texture]
+      );
+    }
+    log_info("n_builtin_textures: %d", material_template->n_builtin_textures);
+    for (
+      uint32 idx_texture = 0;
+      idx_texture < material_template->n_builtin_textures;
+      idx_texture++
+    ) {
+      log_info(
+        "built-in texture %s",
+        material_template->builtin_texture_names[idx_texture]
       );
     }
   }
@@ -202,6 +217,13 @@ namespace PeonyFileParser {
     bool32 could_get_token;
     do {
       could_get_token = get_token(token, f);
+      if (token[0] == TOKEN_COMMENT_START) {
+        while ((could_get_token = get_token(token, f)) != false) {
+          if (token[0] == TOKEN_NEWLINE) {
+            break;
+          }
+        }
+      }
     } while (is_token_whitespace(token) || token[0] == TOKEN_ELEMENT_SEPARATOR);
     return could_get_token;
   }
@@ -339,17 +361,17 @@ namespace PeonyFileParser {
             material_template->shader_asset_geom_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
-          strcpy(
-            material_template->depth_shader_asset_frag_path,
-            prop_values[0].string_value
-          );
-        } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
+        } else if (strcmp(prop_name, "depth_shader_asset.vert_path") == 0) {
           strcpy(
             material_template->depth_shader_asset_vert_path,
             prop_values[0].string_value
           );
         } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
+          strcpy(
+            material_template->depth_shader_asset_frag_path,
+            prop_values[0].string_value
+          );
+        } else if (strcmp(prop_name, "depth_shader_asset.geom_path") == 0) {
           strcpy(
             material_template->depth_shader_asset_geom_path,
             prop_values[0].string_value
@@ -365,7 +387,9 @@ namespace PeonyFileParser {
         } else if (strcmp(prop_name, "ao_static") == 0) {
           material_template->ao_static =
             prop_values[0].number_value;
-        } else if (strncmp(prop_name, TEXTURE_PREFIX, TEXTURE_PREFIX_LENGTH) == 0) {
+        } else if (
+          strncmp(prop_name, TEXTURE_PREFIX, TEXTURE_PREFIX_LENGTH) == 0
+        ) {
           uint32 idx_texture = material_template->n_textures;
           strcpy(
             material_template->texture_uniform_names[idx_texture],
@@ -378,6 +402,17 @@ namespace PeonyFileParser {
             prop_values[1].string_value
           );
           material_template->n_textures++;
+        } else if (
+          strncmp(
+            prop_name, BUILTIN_TEXTURE_PREFIX, BUILTIN_TEXTURE_PREFIX_LENGTH
+          ) == 0
+        ) {
+          uint32 idx_texture = material_template->n_builtin_textures;
+          strcpy(
+            material_template->builtin_texture_names[idx_texture],
+            prop_name + BUILTIN_TEXTURE_PREFIX_LENGTH
+          );
+          material_template->n_builtin_textures++;
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
