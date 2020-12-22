@@ -453,6 +453,18 @@ namespace PeonyFileParser {
         } else if (strcmp(prop_name, "spatial_component.scale") == 0) {
           scene_entity_entries[idx_entity].spatial_component.scale =
             prop_values[0].vec3_value;
+        } else if (strcmp(prop_name, "light_component.type") == 0) {
+          scene_entity_entries[idx_entity].light_component.type =
+            light_type_from_string(prop_values[0].string_value);
+        } else if (strcmp(prop_name, "light_component.direction") == 0) {
+          scene_entity_entries[idx_entity].light_component.direction =
+            prop_values[0].vec3_value;
+        } else if (strcmp(prop_name, "light_component.color") == 0) {
+          scene_entity_entries[idx_entity].light_component.color =
+            prop_values[0].vec4_value;
+        } else if (strcmp(prop_name, "light_component.attenuation") == 0) {
+          scene_entity_entries[idx_entity].light_component.attenuation =
+            prop_values[0].vec4_value;
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {

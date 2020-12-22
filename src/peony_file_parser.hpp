@@ -51,6 +51,7 @@ namespace PeonyFileParser {
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
     SpatialComponent spatial_component;
+    LightComponent light_component;
   };
 
   enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};
