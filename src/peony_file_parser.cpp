@@ -514,6 +514,9 @@ namespace PeonyFileParser {
           entity_template->light_component.color = prop_values[0].vec4_value;
         } else if (strcmp(prop_name, "light_component.attenuation") == 0) {
           entity_template->light_component.attenuation = prop_values[0].vec4_value;
+        } else if (strcmp(prop_name, "behavior_component.behavior") == 0) {
+          entity_template->behavior_component.behavior =
+            behavior_from_string(prop_values[0].string_value);
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {

@@ -1,0 +1,8 @@
+> temple_1
+shader_asset.vert_path = standard.vert
+shader_asset.frag_path = standard.frag
+textures.albedo_texture = [albedo, shop/03_-_Default_BaseColor.tga.png]
+textures.metallic_texture = [metallic, shop/03_-_Default_Metallic.tga.png]
+textures.roughness_texture = [roughness, shop/03_-_Default_Roughness.tga.png]
+textures.ao_texture = [ao, shop/AO-3.tga.png]
+textures.normal_texture = [normal, shop/03_-_Default_Normal.tga.png]
