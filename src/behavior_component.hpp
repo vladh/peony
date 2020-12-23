@@ -5,6 +5,9 @@ enum class Behavior {
   none, test
 };
 
+const char* behavior_to_string(Behavior behavior);
+Behavior behavior_from_string(const char *str);
+
 class BehaviorComponent {
 public:
   EntityHandle entity_handle = Entity::no_entity_handle;

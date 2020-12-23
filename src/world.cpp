@@ -87,6 +87,13 @@ namespace World {
       );
     }
 
+    if (entity_template->behavior_component.is_valid()) {
+      model_asset->behavior_component = BehaviorComponent(
+        entity->handle,
+        entity_template->behavior_component.behavior
+      );
+    }
+
     for (
       uint32 idx_material = 0;
       idx_material < entity_template->n_materials;
@@ -319,9 +326,6 @@ namespace World {
 
 
   void init(Memory *memory, State *state) {
-#if 0
-#endif
-
     create_internal_entities(memory, state);
 
     PeonyFileParser::EntityTemplate *entity_templates =
@@ -346,147 +350,5 @@ namespace World {
         state
       );
     }
-
-#if 0
-    // Temple
-    {
-#if 0
-      Entity *entity = state->entity_manager.add("temple_root");
-      model_asset = new(state->model_assets.push()) ModelAsset(
-        memory,
-        ModelSource::file,
-        "temple",
-        "shop.fbx",
-        RenderPass::deferred | RenderPass::shadowcaster,
-        entity->handle
-      );
-
-      model_asset->spatial_component = SpatialComponent(
-        entity->handle,
-        glm::vec3(0.0f, 0.1f, 0.0f),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-        glm::vec3(0.1f)
-      );
-
-      {
-        material = new(model_asset->materials.push()) Material(memory);
-        material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-          memory, "temple0", ShaderType::standard,
-          "standard.vert", "standard.frag", ""
-        );
-        material->add(
-          Texture(TextureType::albedo, "shop/03_-_Default_BaseColor.tga.png"),
-          "albedo_texture"
-        );
-        material->add(
-          Texture(TextureType::metallic, "shop/03_-_Default_Metallic.tga.png"),
-          "metallic_texture"
-        );
-        material->add(
-          Texture(TextureType::roughness, "shop/03_-_Default_Roughness.tga.png"),
-          "roughness_texture"
-        );
-        material->add(
-          Texture(TextureType::ao, "shop/AO-3.tga.png"),
-          "ao_texture"
-        );
-        material->add(
-          Texture(TextureType::normal, "shop/03_-_Default_Normal.tga.png"),
-          "normal_texture"
-        );
-      }
-
-      {
-        material = new(model_asset->materials.push()) Material(memory);
-        material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-          memory, "temple1", ShaderType::standard,
-          "standard.vert", "standard.frag", ""
-        );
-        material->add(
-          Texture(TextureType::albedo, "shop/01_-_Default_BaseColor.tga.png"),
-          "albedo_texture"
-        );
-        material->add(
-          Texture(TextureType::metallic, "shop/01_-_Default_Metallic.tga.png"),
-          "metallic_texture"
-        );
-        material->add(
-          Texture(TextureType::roughness, "shop/01_-_Default_Roughness.tga.png"),
-          "roughness_texture"
-        );
-        material->add(
-          Texture(TextureType::ao, "shop/AO-1.tga.png"),
-          "ao_texture"
-        );
-        material->add(
-          Texture(TextureType::normal, "shop/01_-_Default_Normal.tga.png"),
-          "normal_texture"
-        );
-      }
-
-      {
-        material = new(model_asset->materials.push()) Material(memory);
-        material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-          memory, "temple2", ShaderType::standard,
-          "standard.vert", "standard.frag", ""
-        );
-        material->add(
-          Texture(TextureType::albedo, "shop/02_-_Default_BaseColor.tga.png"),
-          "albedo_texture"
-        );
-        material->add(
-          Texture(TextureType::metallic, "shop/02_-_Default_Metallic.tga.png"),
-          "metallic_texture"
-        );
-        material->add(
-          Texture(TextureType::roughness, "shop/02_-_Default_Roughness.tga.png"),
-          "roughness_texture"
-        );
-        material->add(
-          Texture(TextureType::ao, "shop/AO-2.tga.png"),
-          "ao_texture"
-        );
-        material->add(
-          Texture(TextureType::normal, "shop/02_-_Default_Normal.tga.png"),
-          "normal_texture"
-        );
-      }
-#endif
-    }
-
-    // Test
-    EntityHandle test_entity_handle;
-    {
-      Entity *entity = state->entity_manager.add("test");
-      test_entity_handle = entity->handle;
-      model_asset = new(state->model_assets.push()) ModelAsset(
-        memory,
-        ModelSource::file,
-        "test",
-        "cube.obj",
-        RenderPass::forward_depth | RenderPass::shadowcaster,
-        entity->handle
-      );
-
-      model_asset->spatial_component = SpatialComponent(
-        entity->handle,
-        glm::vec3(0.0f),
-        glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),
-        glm::vec3(1.0f)
-      );
-
-      model_asset->behavior_component = BehaviorComponent(
-        entity->handle,
-        Behavior::test
-      );
-
-      material = new(model_asset->materials.push()) Material(memory);
-      material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-        memory, "light", ShaderType::standard,
-        "simple.vert", "simple.frag", ""
-      );
-    }
-
-#endif
   }
 };

@@ -59,6 +59,7 @@ namespace PeonyFileParser {
     // must be filled in later!
     SpatialComponent spatial_component;
     LightComponent light_component;
+    BehaviorComponent behavior_component;
   };
 
   enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};
