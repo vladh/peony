@@ -80,5 +80,6 @@
 #include "data.hpp"
 #include "camera.hpp"
 #include "state.hpp"
+#include "world.hpp"
 
 #endif
