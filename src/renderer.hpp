@@ -96,6 +96,22 @@ namespace Renderer {
   void key_callback(
     GLFWwindow* window, int key, int scancode, int action, int mods
   );
+  void reload_shaders(Memory *memory, State *state);
+  void render_scene(
+    Memory *memory,
+    State *state,
+    Renderer::RenderPassFlag render_pass,
+    Renderer::RenderMode render_mode
+  );
+  void set_heading(
+    State *state,
+    const char *text, real32 opacity,
+    real32 fadeout_duration, real32 fadeout_delay
+  );
+  void render_scene_ui(
+    Memory *memory, State *state
+  );
+  void render(Memory *memory, State *state);
 }
 
 #endif
