@@ -526,8 +526,10 @@ void World::check_all_model_assets_loaded(Memory *memory, State *state) {
 
 
 void World::update(Memory *memory, State *state) {
-  state->camera_active->update_matrices(
-    state->window_info.width, state->window_info.height
+  Cameras::update_matrices(
+    state->camera_active,
+    state->window_info.width,
+    state->window_info.height
   );
   check_all_model_assets_loaded(memory, state);
 

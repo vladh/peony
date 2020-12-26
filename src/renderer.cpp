@@ -580,11 +580,15 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
   );
   state->window_info.width = width;
   state->window_info.height = height;
-  state->camera_active->update_matrices(
-    state->window_info.width, state->window_info.height
+  Cameras::update_matrices(
+    state->camera_active,
+    state->window_info.width,
+    state->window_info.height
   );
-  state->camera_active->update_ui_matrices(
-    state->window_info.width, state->window_info.height
+  Cameras::update_ui_matrices(
+    state->camera_active,
+    state->window_info.width,
+    state->window_info.height
   );
   state->gui_manager.update_screen_dimensions(
     state->window_info.width, state->window_info.height
@@ -610,7 +614,10 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   state->input_manager.update_mouse(mouse_pos);
 
   if (state->is_cursor_disabled) {
-    state->camera_active->update_mouse(state->input_manager.mouse_3d_offset);
+    Cameras::update_mouse(
+      state->camera_active,
+      state->input_manager.mouse_3d_offset
+    );
   } else {
     state->gui_manager.update_mouse();
   }

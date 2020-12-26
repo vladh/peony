@@ -42,19 +42,19 @@ global_variable uint32 global_oopses = 0;
 void process_input(GLFWwindow *window, State *state, Memory *memory) {
   // Continuous
   if (state->input_manager.is_key_down(GLFW_KEY_W)) {
-    state->camera_active->move_front_back(1, state->dt);
+    Cameras::move_front_back(state->camera_active, 1, state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_S)) {
-    state->camera_active->move_front_back(-1, state->dt);
+    Cameras::move_front_back(state->camera_active, -1, state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_A)) {
-    state->camera_active->move_left_right(-1, state->dt);
+    Cameras::move_left_right(state->camera_active, -1, state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_D)) {
-    state->camera_active->move_left_right(1, state->dt);
+    Cameras::move_left_right(state->camera_active, 1, state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_Z)) {
@@ -66,11 +66,11 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_SPACE)) {
-    state->camera_active->move_up_down(1, state->dt);
+    Cameras::move_up_down(state->camera_active, 1, state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
-    state->camera_active->move_up_down(-1, state->dt);
+    Cameras::move_up_down(state->camera_active, -1, state->dt);
   }
 
   // Transient
@@ -272,6 +272,13 @@ int main() {
   Renderer::init_ubo(&memory, state);
   World::init(&memory, state);
   Textures::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
+  Cameras::init_camera(
+    &state->camera_main,
+    Cameras::CameraType::perspective,
+    state->window_info.width,
+    state->window_info.height
+  );
+  state->camera_active = &state->camera_main;
 
 #if 0
   memory.asset_memory_pool.print();
