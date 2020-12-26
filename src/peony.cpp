@@ -39,20 +39,6 @@ global_variable uint32 global_oopses = 0;
 #include "renderer.cpp"
 
 
-void update_light_position(State *state, real32 amount) {
-  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-    LightComponent *light_component = state->light_component_manager.components->get(idx);
-    if (light_component -> type == LightType::directional) {
-      state->dir_light_angle += amount;
-      light_component->direction = glm::vec3(
-        sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
-      );
-      break;
-    }
-  }
-}
-
-
 void process_input(GLFWwindow *window, State *state, Memory *memory) {
   // Continuous
   if (state->input_manager.is_key_down(GLFW_KEY_W)) {
@@ -72,11 +58,11 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_Z)) {
-    update_light_position(state, 0.10f * (real32)state->dt);
+    World::update_light_position(state, 0.10f * (real32)state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_X)) {
-    update_light_position(state, -0.10f * (real32)state->dt);
+    World::update_light_position(state, -0.10f * (real32)state->dt);
   }
 
   if (state->input_manager.is_key_down(GLFW_KEY_SPACE)) {
@@ -194,11 +180,6 @@ void run_main_loop(Memory *memory, State *state) {
 }
 
 
-void destroy_window() {
-  glfwTerminate();
-}
-
-
 void run_loading_loop(
   std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
 ) {
@@ -235,6 +216,7 @@ void check_environment() {
   // Check that an `enum class`'s default value == its first element == 0;
   BehaviorComponent test;
   assert(test.behavior == Behavior::none);
+  assert(static_cast<int>(test.behavior) == 0);
 }
 
 
@@ -311,7 +293,7 @@ int main() {
   loading_thread_4.join();
   loading_thread_5.join();
 
-  destroy_window();
+  Renderer::destroy_window();
 
   log_info("Bye!");
 

@@ -90,6 +90,7 @@ namespace Renderer {
   );
   void copy_scene_data_to_ubo(Memory *memory, State *state);
   void init_window(WindowInfo *window_info);
+  void destroy_window();
   void framebuffer_size_callback(GLFWwindow* window, int width, int height);
   void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
   void mouse_callback(GLFWwindow *window, real64 x, real64 y);

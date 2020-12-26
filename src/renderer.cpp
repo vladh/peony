@@ -719,6 +719,11 @@ void Renderer::init_window(WindowInfo *window_info) {
 }
 
 
+void Renderer::destroy_window() {
+  glfwTerminate();
+}
+
+
 void Renderer::reload_shaders(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
     ShaderAsset *shader_asset = state->shader_assets[idx];
