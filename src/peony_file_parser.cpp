@@ -29,7 +29,7 @@ namespace PeonyFileParser {
       log_info(
         "texture %s (%s, %s)",
         material_template->texture_uniform_names[idx_texture],
-        texture_type_to_string(
+        Textures::texture_type_to_string(
           material_template->texture_types[idx_texture]
         ),
         material_template->texture_paths[idx_texture]
@@ -396,7 +396,7 @@ namespace PeonyFileParser {
             prop_name + TEXTURE_PREFIX_LENGTH
           );
           material_template->texture_types[idx_texture] =
-            texture_type_from_string(prop_values[0].string_value);
+            Textures::texture_type_from_string(prop_values[0].string_value);
           strcpy(
             material_template->texture_paths[idx_texture],
             prop_values[1].string_value

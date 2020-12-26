@@ -26,14 +26,14 @@ public:
   real32 frac_px_to_px(uint32 n);
   real32 font_unit_to_px(uint32 n);
   void load_glyphs(
-    FT_Face face, TextureAtlas *texture_atlas
+    FT_Face face, Textures::TextureAtlas *texture_atlas
   );
   static FontAsset* get_by_name(
     Array<FontAsset> *assets, const char *name
   );
   FontAsset(
     Memory *memory,
-    TextureAtlas *texture_atlas,
+    Textures::TextureAtlas *texture_atlas,
     FT_Library *ft_library,
     const char *name,
     const char *path,

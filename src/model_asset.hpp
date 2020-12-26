@@ -18,7 +18,7 @@ struct Vertex {
 
 struct Mesh {
   glm::mat4 transform;
-  Material *material;
+  Textures::Material *material;
   Pack indices_pack;
   uint32 n_vertices;
   uint32 n_indices;
@@ -36,7 +36,7 @@ public:
   ModelSource model_source;
   char path[256]; // TODO: Fix unsafe strings?
   Array<Mesh> meshes;
-  Array<Material> materials;
+  Array<Textures::Material> materials;
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
@@ -61,7 +61,7 @@ public:
     Memory *memory
   );
   void copy_textures_to_pbo(
-    PersistentPbo *persistent_pbo
+    Textures::PersistentPbo *persistent_pbo
   );
   static ModelAsset* get_by_name(
     Array<ModelAsset> *assets, const char *name
@@ -89,8 +89,8 @@ public:
   void create_entities();
   void prepare_for_draw(
     Memory *memory,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
+    Textures::PersistentPbo *persistent_pbo,
+    Textures::TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue
   );
   ModelAsset(

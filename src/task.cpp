@@ -1,7 +1,7 @@
 Task::Task(
   TaskType type,
   ModelAsset *model_asset,
-  PersistentPbo *persistent_pbo,
+  Textures::PersistentPbo *persistent_pbo,
   Memory *memory
 ) :
   type(type),

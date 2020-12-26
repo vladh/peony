@@ -101,7 +101,9 @@ namespace World {
     ) {
       PeonyFileParser::MaterialTemplate *material_template =
         &entity_template->material_templates[idx_material];
-      Material *material = new(model_asset->materials.push()) Material(memory);
+      Textures::Material *material = Textures::init_material(
+        model_asset->materials.push(), memory
+      );
 
       if (strlen(material_template->shader_asset_vert_path) > 0) {
         material->shader_asset = new(shader_assets->push()) ShaderAsset(
@@ -124,21 +126,25 @@ namespace World {
         );
       }
 
-      material->set_albedo_static(material_template->albedo_static);
-      material->set_metallic_static(material_template->metallic_static);
-      material->set_roughness_static(material_template->roughness_static);
-      material->set_ao_static(material_template->ao_static);
+      material->albedo_static = material_template->albedo_static;
+      material->metallic_static = material_template->metallic_static;
+      material->roughness_static = material_template->roughness_static;
+      material->ao_static = material_template->ao_static;
 
       for (
         uint32 idx_texture = 0;
         idx_texture < material_template->n_textures;
         idx_texture++
       ) {
-        material->add(
-          Texture(
-            material_template->texture_types[idx_texture],
-            material_template->texture_paths[idx_texture]
-          ),
+        Textures::Texture texture;
+        Textures::init_texture(
+          &texture,
+          material_template->texture_types[idx_texture],
+          material_template->texture_paths[idx_texture]
+        );
+        Textures::add_texture_to_material(
+          material,
+          texture,
           material_template->texture_uniform_names[idx_texture]
         );
       }
@@ -154,13 +160,21 @@ namespace World {
         // also pass in instead of passing State.
         // NOTE: This list is intentionally not complete until we fix the above.
         if (strcmp(builtin_texture_name, "g_position_texture") == 0) {
-          material->add(*state->g_position_texture, builtin_texture_name);
+          Textures::add_texture_to_material(
+            material, *state->g_position_texture, builtin_texture_name
+          );
         } else if (strcmp(builtin_texture_name, "g_albedo_texture") == 0) {
-          material->add(*state->g_albedo_texture, builtin_texture_name);
+          Textures::add_texture_to_material(
+            material, *state->g_albedo_texture, builtin_texture_name
+          );
         } else if (strcmp(builtin_texture_name, "cube_shadowmaps") == 0) {
-          material->add(*state->cube_shadowmaps_texture, builtin_texture_name);
+          Textures::add_texture_to_material(
+            material, *state->cube_shadowmaps_texture, builtin_texture_name
+          );
         } else if (strcmp(builtin_texture_name, "texture_shadowmaps") == 0) {
-          material->add(*state->texture_shadowmaps_texture, builtin_texture_name);
+          Textures::add_texture_to_material(
+            material, *state->texture_shadowmaps_texture, builtin_texture_name
+          );
         } else {
           log_fatal(
             "Attempted to use unsupported built-in texture %s",
@@ -174,7 +188,7 @@ namespace World {
 
   void create_internal_entities(Memory *memory, State *state) {
     ModelAsset *model_asset;
-    Material *material;
+    Textures::Material *material;
 
     state->standard_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "standard_depth", ShaderType::depth,
@@ -205,17 +219,29 @@ namespace World {
       RenderPass::lighting,
       state->entity_manager.add("screenquad_lighting")->handle
     );
-    material = new(model_asset->materials.push()) Material(memory);
+    material = Textures::init_material(model_asset->materials.push(), memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "lighting", ShaderType::standard,
       "lighting.vert", "lighting.frag", ""
     );
-    material->add(*state->g_position_texture, "g_position_texture");
-    material->add(*state->g_normal_texture, "g_normal_texture");
-    material->add(*state->g_albedo_texture, "g_albedo_texture");
-    material->add(*state->g_pbr_texture, "g_pbr_texture");
-    material->add(*state->cube_shadowmaps_texture, "cube_shadowmaps");
-    material->add(*state->texture_shadowmaps_texture, "texture_shadowmaps");
+    Textures::add_texture_to_material(
+      material, *state->g_position_texture, "g_position_texture"
+    );
+    Textures::add_texture_to_material(
+      material, *state->g_normal_texture, "g_normal_texture"
+    );
+    Textures::add_texture_to_material(
+      material, *state->g_albedo_texture, "g_albedo_texture"
+    );
+    Textures::add_texture_to_material(
+      material, *state->g_pbr_texture, "g_pbr_texture"
+    );
+    Textures::add_texture_to_material(
+      material, *state->cube_shadowmaps_texture, "cube_shadowmaps"
+    );
+    Textures::add_texture_to_material(
+      material, *state->texture_shadowmaps_texture, "texture_shadowmaps"
+    );
 
     // Preblur screenquad
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -228,12 +254,14 @@ namespace World {
       RenderPass::preblur,
       state->entity_manager.add("screenquad_preblur")->handle
     );
-    material = new(model_asset->materials.push()) Material(memory);
+    material = Textures::init_material(model_asset->materials.push(), memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
-    material->add(*state->l_bright_color_texture, "source_texture");
+    Textures::add_texture_to_material(
+      material, *state->l_bright_color_texture, "source_texture"
+    );
 
     // Blur 1 screenquad
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -246,12 +274,12 @@ namespace World {
       RenderPass::blur1,
       state->entity_manager.add("screenquad_blur1")->handle
     );
-    material = new(model_asset->materials.push()) Material(memory);
+    material = Textures::init_material(model_asset->materials.push(), memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
-    material->add(*state->blur2_texture, "source_texture");
+    Textures::add_texture_to_material(material, *state->blur2_texture, "source_texture");
 
     // Blur 2 screenquad
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -264,12 +292,12 @@ namespace World {
       RenderPass::blur2,
       state->entity_manager.add("screenquad_blur2")->handle
     );
-    material = new(model_asset->materials.push()) Material(memory);
+    material = Textures::init_material(model_asset->materials.push(), memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
-    material->add(*state->blur1_texture, "source_texture");
+    Textures::add_texture_to_material(material, *state->blur1_texture, "source_texture");
 
     // Postprocessing screenquad
     model_asset = new(state->model_assets.push()) ModelAsset(
@@ -282,15 +310,19 @@ namespace World {
       RenderPass::postprocessing,
       state->entity_manager.add("screenquad_postprocessing")->handle
     );
-    material = new(model_asset->materials.push()) Material(memory);
+    material = Textures::init_material(model_asset->materials.push(), memory);
     material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
       memory, "postprocessing", ShaderType::standard,
       "postprocessing.vert", "postprocessing.frag", ""
     );
-    material->add(*state->l_color_texture, "l_color_texture");
+    Textures::add_texture_to_material(
+      material, *state->l_color_texture, "l_color_texture"
+    );
+    Textures::add_texture_to_material(material, *state->blur2_texture, "bloom_texture");
     // Uncomment to use fog.
-    /* material->add(*state->l_depth_texture, "l_depth_texture"); */
-    material->add(*state->blur2_texture, "bloom_texture");
+    /* Textures::add_texture_to-material( */
+    /*   material, *state->l_depth_texture, "l_depth_texture" */
+    /* ); */
 
     // Skysphere
     {
@@ -315,7 +347,7 @@ namespace World {
         glm::vec3(75.0f)
       );
 
-      material = new(model_asset->materials.push()) Material(memory);
+      material = Textures::init_material(model_asset->materials.push(), memory);
       material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
         memory, "skysphere", ShaderType::standard,
         "skysphere.vert", "skysphere.frag", ""
