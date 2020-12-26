@@ -216,7 +216,7 @@ namespace World {
       nullptr, 0,
       "screenquad_lighting",
       GL_TRIANGLES,
-      RenderPass::lighting,
+      Renderer::RenderPass::lighting,
       state->entity_manager.add("screenquad_lighting")->handle
     );
     material = Textures::init_material(model_asset->materials.push(), memory);
@@ -251,7 +251,7 @@ namespace World {
       nullptr, 0,
       "screenquad_preblur",
       GL_TRIANGLES,
-      RenderPass::preblur,
+      Renderer::RenderPass::preblur,
       state->entity_manager.add("screenquad_preblur")->handle
     );
     material = Textures::init_material(model_asset->materials.push(), memory);
@@ -271,7 +271,7 @@ namespace World {
       nullptr, 0,
       "screenquad_blur1",
       GL_TRIANGLES,
-      RenderPass::blur1,
+      Renderer::RenderPass::blur1,
       state->entity_manager.add("screenquad_blur1")->handle
     );
     material = Textures::init_material(model_asset->materials.push(), memory);
@@ -289,7 +289,7 @@ namespace World {
       nullptr, 0,
       "screenquad_blur2",
       GL_TRIANGLES,
-      RenderPass::blur2,
+      Renderer::RenderPass::blur2,
       state->entity_manager.add("screenquad_blur2")->handle
     );
     material = Textures::init_material(model_asset->materials.push(), memory);
@@ -307,7 +307,7 @@ namespace World {
       nullptr, 0,
       "screenquad_postprocessing",
       GL_TRIANGLES,
-      RenderPass::postprocessing,
+      Renderer::RenderPass::postprocessing,
       state->entity_manager.add("screenquad_postprocessing")->handle
     );
     material = Textures::init_material(model_asset->materials.push(), memory);
@@ -336,7 +336,7 @@ namespace World {
         skysphere_index_data, skysphere_n_indices,
         "skysphere",
         GL_TRIANGLE_STRIP,
-        RenderPass::forward_skybox,
+        Renderer::RenderPass::forward_skybox,
         entity->handle
       );
 

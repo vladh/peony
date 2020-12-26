@@ -14,13 +14,13 @@ public:
   DrawableComponent* add(
     EntityHandle entity_handle,
     Mesh *mesh,
-    RenderPass::Flag target_render_pass
+    Renderer::RenderPassFlag target_render_pass
   );
   DrawableComponent* get(EntityHandle handle);
   void draw_all(
     SpatialComponentManager *spatial_component_manager,
-    RenderPass::Flag render_pass,
-    RenderMode render_mode,
+    Renderer::RenderPassFlag render_pass,
+    Renderer::RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset
   );
   void draw(

@@ -4,9 +4,6 @@
 constexpr uint32 N_MAX_TEXTURE_POOL_SIZES = 6;
 constexpr char TEXTURE_DIR[] = "resources/textures/";
 
-class Material;
-class ShaderAsset;
-
 namespace Textures {
   struct TextureNamePool {
     uint32 mipmap_max_level = 0;

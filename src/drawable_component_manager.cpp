@@ -22,7 +22,7 @@ DrawableComponent* DrawableComponentManager::add(
 DrawableComponent* DrawableComponentManager::add(
   EntityHandle entity_handle,
   Mesh *mesh,
-  RenderPass::Flag target_render_pass
+  Renderer::RenderPassFlag target_render_pass
 ) {
   assert(entity_handle != Entity::no_entity_handle);
   if (!mesh) {
@@ -46,7 +46,8 @@ DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
 
 void DrawableComponentManager::draw_all(
   SpatialComponentManager *spatial_component_manager,
-  RenderPass::Flag render_pass, RenderMode render_mode,
+  Renderer::RenderPassFlag render_pass,
+  Renderer::RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset
 ) {
   for (uint32 idx = 0; idx < this->components->size; idx++) {
@@ -85,7 +86,7 @@ void DrawableComponentManager::draw_all(
       }
     }
 
-    if (render_mode == RenderMode::depth) {
+    if (render_mode == Renderer::RenderMode::depth) {
       draw_in_depth_mode(
         drawable->mesh,
         &model_matrix,

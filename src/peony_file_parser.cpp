@@ -485,10 +485,10 @@ namespace PeonyFileParser {
             );
           }
         } else if (strcmp(prop_name, "render_passes") == 0) {
-          RenderPass::Flag render_pass = RenderPass::none;
+          Renderer::RenderPassFlag render_pass = Renderer::RenderPass::none;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
             render_pass = render_pass |
-              render_pass_from_string(prop_values[idx_value].string_value);
+              Renderer::render_pass_from_string(prop_values[idx_value].string_value);
           }
           entity_template->render_pass = render_pass;
         } else if (strcmp(prop_name, "spatial_component.position") == 0) {

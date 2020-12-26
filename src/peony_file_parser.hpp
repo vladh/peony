@@ -54,7 +54,7 @@ namespace PeonyFileParser {
     char builtin_model_name[MAX_TOKEN_LENGTH];
     uint32 n_materials = 0;
     MaterialTemplate material_templates[MAX_N_ARRAY_VALUES];
-    RenderPass::Flag render_pass;
+    Renderer::RenderPassFlag render_pass;
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
     SpatialComponent spatial_component;
