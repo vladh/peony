@@ -1,35 +1,36 @@
-Task::Task(
-  TaskType type,
-  ModelAsset *model_asset,
-  Textures::PersistentPbo *persistent_pbo,
-  Memory *memory
-) :
-  type(type),
-  model_asset(model_asset),
-  persistent_pbo(persistent_pbo),
-  memory(memory)
-{
-}
-
-
-void Task::run() {
-  START_TIMER(task_run);
-  if (this->type == TaskType::load_model) {
-    this->model_asset->load(this->memory);
-  } else if (this->type ==  TaskType::copy_textures_to_pbo) {
-    this->model_asset->copy_textures_to_pbo(this->persistent_pbo);
-  } else {
-    log_error("Don't know how to run task with type %d", this->type);
-  }
-  END_TIMER(task_run);
-}
-
-
-const char* Task::task_type_to_str(TaskType type) {
+const char* Tasks::task_type_to_str(TaskType type) {
   if (type == TaskType::load_model) {
     return "load_model";
   } else if (type == TaskType::copy_textures_to_pbo) {
     return "copy_textures_to_pbo";
   }
   return "unknown";
+}
+
+
+Tasks::Task* Tasks::init_task(
+  Task *task,
+  TaskType type,
+  ModelAsset *model_asset,
+  Textures::PersistentPbo *persistent_pbo,
+  Memory *memory
+) {
+  task->type = type;
+  task->model_asset = model_asset;
+  task->persistent_pbo = persistent_pbo;
+  task->memory = memory;
+  return task;
+}
+
+
+void Tasks::run_task(Tasks::Task *task) {
+  START_TIMER(run_task);
+  if (task->type == TaskType::load_model) {
+    task->model_asset->load(task->memory);
+  } else if (task->type ==  TaskType::copy_textures_to_pbo) {
+    task->model_asset->copy_textures_to_pbo(task->persistent_pbo);
+  } else {
+    log_error("Don't know how to run task with type %d", task->type);
+  }
+  END_TIMER(run_task);
 }

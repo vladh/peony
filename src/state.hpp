@@ -59,7 +59,7 @@ public:
 
   Textures::PersistentPbo persistent_pbo;
   Textures::TextureNamePool texture_name_pool;
-  Queue<Task> task_queue;
+  Queue<Tasks::Task> task_queue;
 
   uint32 cube_shadowmap_width;
   uint32 cube_shadowmap_height;
