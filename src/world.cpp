@@ -112,6 +112,20 @@ void World::get_scene_text_representation(char *text, State *state) {
 }
 
 
+void World::update_light_position(State *state, real32 amount) {
+  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+    LightComponent *light_component = state->light_component_manager.components->get(idx);
+    if (light_component -> type == LightType::directional) {
+      state->dir_light_angle += amount;
+      light_component->direction = glm::vec3(
+        sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
+      );
+      break;
+    }
+  }
+}
+
+
 void World::create_entities_from_entity_template(
   PeonyFileParser::EntityTemplate *entity_template,
   Memory *memory,

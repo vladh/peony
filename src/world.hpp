@@ -6,6 +6,7 @@ namespace World {
     char *text, State *state, Entity *entity, uint8 depth
   );
   void get_scene_text_representation(char *text, State *state);
+  void update_light_position(State *state, real32 amount);
   void create_entities_from_entity_template(
     PeonyFileParser::EntityTemplate *entity_template,
     Memory *memory,
