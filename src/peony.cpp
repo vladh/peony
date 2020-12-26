@@ -111,19 +111,6 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
 }
 
 
-void check_all_model_assets_loaded(Memory *memory, State *state) {
-  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    ModelAsset *model_asset = state->model_assets[idx];
-    model_asset->prepare_for_draw(
-      memory,
-      &state->persistent_pbo,
-      &state->texture_name_pool,
-      &state->task_queue
-    );
-  }
-}
-
-
 void run_main_loop(Memory *memory, State *state) {
   std::chrono::steady_clock::time_point second_start = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
