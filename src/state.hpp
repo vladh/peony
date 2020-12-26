@@ -57,8 +57,8 @@ public:
   real32 heading_fadeout_duration;
   real32 heading_fadeout_delay;
 
-  PersistentPbo persistent_pbo;
-  TextureNamePool texture_name_pool;
+  Textures::PersistentPbo persistent_pbo;
+  Textures::TextureNamePool texture_name_pool;
   Queue<Task> task_queue;
 
   uint32 cube_shadowmap_width;
@@ -76,8 +76,8 @@ public:
   uint32 texture_shadowmaps;
   glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
   glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
-  Texture *cube_shadowmaps_texture;
-  Texture *texture_shadowmaps_texture;
+  Textures::Texture *cube_shadowmaps_texture;
+  Textures::Texture *texture_shadowmaps_texture;
 
   ShaderAsset *standard_depth_shader_asset;
 
@@ -85,20 +85,20 @@ public:
   ShaderCommon shader_common;
 
   uint32 g_buffer;
-  Texture *g_position_texture;
-  Texture *g_normal_texture;
-  Texture *g_albedo_texture;
-  Texture *g_pbr_texture;
+  Textures::Texture *g_position_texture;
+  Textures::Texture *g_normal_texture;
+  Textures::Texture *g_albedo_texture;
+  Textures::Texture *g_pbr_texture;
 
   uint32 l_buffer;
-  Texture *l_color_texture;
-  Texture *l_bright_color_texture;
-  Texture *l_depth_texture;
+  Textures::Texture *l_color_texture;
+  Textures::Texture *l_bright_color_texture;
+  Textures::Texture *l_depth_texture;
 
   uint32 blur1_buffer;
   uint32 blur2_buffer;
-  Texture *blur1_texture;
-  Texture *blur2_texture;
+  Textures::Texture *blur1_texture;
+  Textures::Texture *blur2_texture;
 
   State(Memory *memory, WindowInfo window_info);
 };

@@ -56,7 +56,7 @@ public:
   InputManager *input_manager;
   GLFWcursor *requested_cursor;
   Array<FontAsset> font_assets;
-  TextureAtlas texture_atlas;
+  Textures::TextureAtlas texture_atlas;
   Array<GuiContainer> containers;
   GuiContainer *container_being_moved;
   uint32 vao;

@@ -41,7 +41,7 @@ namespace PeonyFileParser {
 
     uint32 n_textures;
     char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
-    TextureType texture_types[MAX_N_ARRAY_VALUES];
+    Textures::TextureType texture_types[MAX_N_ARRAY_VALUES];
     char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
 
     uint32 n_builtin_textures;

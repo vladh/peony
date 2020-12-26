@@ -663,9 +663,10 @@ GuiManager::GuiManager(
   memory(memory),
   input_manager(input_manager),
   window_dimensions(window_width, window_height),
-  n_vertices_pushed(0),
-  texture_atlas(glm::ivec2(2000, 2000))
+  n_vertices_pushed(0)
 {
+  Textures::init_texture_atlas(&this->texture_atlas, glm::ivec2(2000, 2000));
+
   // Shaders
   {
     this->shader_asset = new(shader_assets->push()) ShaderAsset(

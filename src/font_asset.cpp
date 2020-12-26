@@ -14,7 +14,7 @@ real32 FontAsset::font_unit_to_px(uint32 n) {
 
 
 void FontAsset::load_glyphs(
-  FT_Face face, TextureAtlas *texture_atlas
+  FT_Face face, Textures::TextureAtlas *texture_atlas
 ) {
   FT_GlyphSlot glyph = face->glyph;
 
@@ -48,7 +48,9 @@ void FontAsset::load_glyphs(
 
     Character *character = this->characters[c];
 
-    glm::ivec2 tex_coords = texture_atlas->push_space(character->size);
+    glm::ivec2 tex_coords = Textures::push_space_to_texture_atlas(
+      texture_atlas, character->size
+    );
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -70,7 +72,7 @@ void FontAsset::load_glyphs(
 
 FontAsset::FontAsset(
   Memory *memory,
-  TextureAtlas *texture_atlas,
+  Textures::TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
   const char *path,

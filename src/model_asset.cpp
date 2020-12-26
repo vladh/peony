@@ -257,12 +257,16 @@ void ModelAsset::load(Memory *memory) {
 }
 
 
-void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
+void ModelAsset::copy_textures_to_pbo(
+  Textures::PersistentPbo *persistent_pbo
+) {
   for (uint32 idx = 0; idx < this->materials.size; idx++) {
-    Material *material = this->materials[idx];
+    Textures::Material *material = this->materials[idx];
 
     if (material->textures.size > 0) {
-      material->copy_textures_to_pbo(persistent_pbo);
+      Textures::copy_material_textures_to_pbo(
+        material, persistent_pbo
+      );
     }
   }
 
@@ -272,7 +276,7 @@ void ModelAsset::copy_textures_to_pbo(PersistentPbo *persistent_pbo) {
 
 
 void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
-  Material *material = mesh->material;
+  Textures::Material *material = mesh->material;
   ShaderAsset *shader_asset = material->shader_asset;
 
   if (shader_asset->type != ShaderType::depth) {
@@ -300,7 +304,7 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
     shader_asset->reset_texture_units();
 
     for (uint32 idx = 0; idx < material->textures.size; idx++) {
-      Texture *texture = material->textures[idx];
+      Textures::Texture *texture = material->textures[idx];
       const char *uniform_name = *material->texture_uniform_names[idx];
 #if 1
       log_info(
@@ -367,8 +371,8 @@ void ModelAsset::create_entities() {
 
 void ModelAsset::prepare_for_draw(
   Memory *memory,
-  PersistentPbo *persistent_pbo,
-  TextureNamePool *texture_name_pool,
+  Textures::PersistentPbo *persistent_pbo,
+  Textures::TextureNamePool *texture_name_pool,
   Queue<Task> *task_queue
 ) {
   // Step 1: Load mesh data. This is done on a separate thread.
@@ -390,7 +394,7 @@ void ModelAsset::prepare_for_draw(
     // Step 3: Once the mesh data is loaded, bind materials for their respective meshes.
     if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
       for (uint32 idx_material = 0; idx_material < this->materials.size; idx_material++) {
-        Material *material = this->materials[idx_material];
+        Textures::Material *material = this->materials[idx_material];
         for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
           Mesh *mesh = this->meshes[idx_mesh];
           uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
@@ -421,14 +425,14 @@ void ModelAsset::prepare_for_draw(
       // that have one or more textures that do not have names yet.
       bool32 should_try_to_copy_textures = false;
       for (uint32 idx = 0; idx < this->materials.size; idx++) {
-        Material *material = this->materials[idx];
+        Textures::Material *material = this->materials[idx];
         if (material->textures.size > 0) {
           for (
             uint32 texture_idx = 0;
             texture_idx < material->textures.size;
             texture_idx++
           ) {
-            Texture *texture = material->textures[texture_idx];
+            Textures::Texture *texture = material->textures[texture_idx];
             if (!texture->texture_name) {
               should_try_to_copy_textures = true;
               break;
@@ -458,14 +462,16 @@ void ModelAsset::prepare_for_draw(
       START_TIMER(copy_pbo_to_texture);
 
       for (uint32 idx = 0; idx < this->materials.size; idx++) {
-        Material *material = this->materials[idx];
+        Textures::Material *material = this->materials[idx];
 
         if (
           material->textures.size > 0 &&
           !material->have_textures_been_generated
         ) {
-          material->generate_textures_from_pbo(
-            persistent_pbo, texture_name_pool
+          Textures::generate_textures_from_pbo(
+            material,
+            persistent_pbo,
+            texture_name_pool
           );
         }
       }
@@ -479,7 +485,7 @@ void ModelAsset::prepare_for_draw(
     // check whether or not we need to set any uniforms every time.
     if (this->is_texture_creation_done) {
       for (uint32 idx = 0; idx < this->materials.size; idx++) {
-        Material *material = this->materials[idx];
+        Textures::Material *material = this->materials[idx];
 
         if (
           !material->shader_asset->did_set_texture_uniforms

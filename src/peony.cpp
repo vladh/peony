@@ -1,6 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-#define USE_OPENGL_DEBUG false
 #define USE_TIMERS true
 #define USE_VLD false
 #define USE_MEMORY_DEBUG_LOGS false
@@ -18,13 +17,9 @@ global_variable uint32 global_oopses = 0;
 #include "util.cpp"
 #include "task.cpp"
 #include "peony_file_parser.cpp"
-#include "texture_name_pool.cpp"
-#include "texture.cpp"
+#include "textures.cpp"
 #include "font_asset.cpp"
 #include "shader_asset.cpp"
-#include "persistent_pbo.cpp"
-#include "material.cpp"
-#include "texture_atlas.cpp"
 #include "camera.cpp"
 #include "memory_pool.cpp"
 #include "memory.cpp"
@@ -42,372 +37,13 @@ global_variable uint32 global_oopses = 0;
 #include "model_asset.cpp"
 #include "world.cpp"
 #include "state.cpp"
-
-
-void init_ubo(Memory *memory, State *state) {
-  glGenBuffers(1, &state->ubo_shader_common);
-  glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-  glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
-}
-
-
-void init_shadowmaps(Memory *memory, State *state) {
-  // Cube
-  glGenFramebuffers(1, &state->cube_shadowmaps_framebuffer);
-  glGenTextures(1, &state->cube_shadowmaps);
-  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, state->cube_shadowmaps);
-
-  glTexStorage3D(
-    GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-    state->cube_shadowmap_width, state->cube_shadowmap_height,
-    6 * MAX_N_LIGHTS
-  );
-
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
-  glFramebufferTexture(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->cube_shadowmaps, 0
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
-  }
-
-  state->cube_shadowmaps_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "cube_shadowmaps_texture")
-  ) Texture(
-    GL_TEXTURE_CUBE_MAP_ARRAY,
-    TextureType::shadowmap, state->cube_shadowmaps,
-    state->cube_shadowmap_width, state->cube_shadowmap_height, 1
-  );
-
-  // Texture
-  glGenFramebuffers(1, &state->texture_shadowmaps_framebuffer);
-  glGenTextures(1, &state->texture_shadowmaps);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, state->texture_shadowmaps);
-
-  glTexStorage3D(
-    GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-    state->texture_shadowmap_width, state->texture_shadowmap_height,
-    MAX_N_LIGHTS
-  );
-
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-  real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
-  glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, border_color);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
-  glFramebufferTexture(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, state->texture_shadowmaps, 0
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
-  }
-
-  state->texture_shadowmaps_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "texture_shadowmaps_texture")
-  ) Texture(
-    GL_TEXTURE_2D_ARRAY,
-    TextureType::shadowmap, state->texture_shadowmaps,
-    state->texture_shadowmap_width, state->texture_shadowmap_height, 1
-  );
-}
-
-
-void init_g_buffer(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->g_buffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-
-  uint32 g_position_texture_name;
-  uint32 g_normal_texture_name;
-  uint32 g_albedo_texture_name;
-  uint32 g_pbr_texture_name;
-
-  glGenTextures(1, &g_position_texture_name);
-  glGenTextures(1, &g_normal_texture_name);
-  glGenTextures(1, &g_albedo_texture_name);
-  glGenTextures(1, &g_pbr_texture_name);
-
-  state->g_position_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_position_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  state->g_normal_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_normal_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  state->g_albedo_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_albedo_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  state->g_pbr_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "g_pbr_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-
-  glBindTexture(GL_TEXTURE_2D, state->g_position_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->g_position_texture->width, state->g_position_texture->height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->g_position_texture->texture_name, 0
-  );
-
-  glBindTexture(GL_TEXTURE_2D, state->g_normal_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->g_normal_texture->width, state->g_normal_texture->height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-    state->g_normal_texture->texture_name, 0
-  );
-
-  glBindTexture(GL_TEXTURE_2D, state->g_albedo_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA,
-    state->g_albedo_texture->width, state->g_albedo_texture->height,
-    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D,
-    state->g_albedo_texture->texture_name, 0
-  );
-
-  glBindTexture(GL_TEXTURE_2D, state->g_pbr_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA,
-    state->g_pbr_texture->width, state->g_pbr_texture->height,
-    0, GL_RGBA, GL_UNSIGNED_BYTE, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D,
-    state->g_pbr_texture->texture_name, 0
-  );
-
-  uint32 attachments[4] = {
-    GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-    GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
-  };
-  glDrawBuffers(4, attachments);
-
-  uint32 rbo_depth;
-  glGenRenderbuffers(1, &rbo_depth);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
-  glRenderbufferStorage(
-    GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
-    state->window_info.width, state->window_info.height
-  );
-  glFramebufferRenderbuffer(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
-  }
-}
-
-
-void init_l_buffer(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->l_buffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
-
-  uint32 l_color_texture_name;
-  glGenTextures(1, &l_color_texture_name);
-  state->l_color_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_color_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  glBindTexture(GL_TEXTURE_2D, state->l_color_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->l_color_texture->width, state->l_color_texture->height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->l_color_texture->texture_name, 0
-  );
-
-  uint32 l_bright_color_texture_name;
-  glGenTextures(1, &l_bright_color_texture_name);
-  state->l_bright_color_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_bright_color_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  glBindTexture(GL_TEXTURE_2D, state->l_bright_color_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->l_bright_color_texture->width, state->l_bright_color_texture->height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-    state->l_bright_color_texture->texture_name, 0
-  );
-
-  uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-  glDrawBuffers(2, attachments);
-
-#if 0
-  uint32 rbo_depth;
-  glGenRenderbuffers(1, &rbo_depth);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
-  glRenderbufferStorage(
-    GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
-    state->window_info.width, state->window_info.height
-  );
-  glFramebufferRenderbuffer(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
-  );
-#else
-  uint32 l_depth_texture_name;
-  glGenTextures(1, &l_depth_texture_name);
-  state->l_depth_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "l_depth_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
-    state->window_info.width, state->window_info.height, 1
-  );
-  glBindTexture(GL_TEXTURE_2D, state->l_depth_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-    state->l_depth_texture->width, state->l_depth_texture->height,
-    0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-    state->l_depth_texture->texture_name, 0
-  );
-#endif
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
-  }
-}
-
-
-void init_blur_buffers(Memory *memory, State *state) {
-  glGenFramebuffers(1, &state->blur1_buffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-  uint32 blur1_texture_name;
-  glGenTextures(1, &blur1_texture_name);
-  state->blur1_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur1_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::blur1, blur1_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  glBindTexture(GL_TEXTURE_2D, state->blur1_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->blur1_texture->width, state->blur1_texture->height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->blur1_texture->texture_name, 0
-  );
-
-  glGenFramebuffers(1, &state->blur2_buffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-  uint32 blur2_texture_name;
-  glGenTextures(1, &blur2_texture_name);
-  state->blur2_texture = new(
-    (Texture*)memory->asset_memory_pool.push(sizeof(Texture), "blur2_texture")
-  ) Texture(
-    GL_TEXTURE_2D, TextureType::blur2, blur2_texture_name,
-    state->window_info.width, state->window_info.height, 4
-  );
-  glBindTexture(GL_TEXTURE_2D, state->blur2_texture->texture_name);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glTexImage2D(
-    GL_TEXTURE_2D, 0, GL_RGBA16F,
-    state->blur2_texture->width, state->blur2_texture->height,
-    0, GL_RGBA, GL_FLOAT, NULL
-  );
-  glFramebufferTexture2D(
-    GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-    state->blur2_texture->texture_name, 0
-  );
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
-  }
-}
+#include "renderer.cpp"
 
 
 void reload_shaders(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
     ShaderAsset *shader_asset = state->shader_assets[idx];
     shader_asset->load(memory);
-  }
-}
-
-
-void update_drawing_options(State *state, GLFWwindow *window) {
-  if (state->is_cursor_disabled) {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  } else {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-  }
-
-  if (state->should_use_wireframe) {
-    // This will be handled in the rendering loop.
-  } else {
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 }
 
@@ -467,7 +103,7 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
 
   if (state->input_manager.is_key_now_down(GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
-    update_drawing_options(state, window);
+    Renderer::update_drawing_options(state, window);
   }
 
   if (state->input_manager.is_key_now_down(GLFW_KEY_TAB)) {
@@ -481,290 +117,6 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
   if (state->input_manager.is_key_down(GLFW_KEY_ENTER)) {
     state->should_manually_advance_to_next_frame = true;
   }
-}
-
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-  State *state = memory_and_state->state;
-  Memory *memory = memory_and_state->memory;
-  log_info(
-    "Window is now: %d x %d", state->window_info.width, state->window_info.height
-  );
-  state->window_info.width = width;
-  state->window_info.height = height;
-  state->camera_active->update_matrices(
-    state->window_info.width, state->window_info.height
-  );
-  state->camera_active->update_ui_matrices(
-    state->window_info.width, state->window_info.height
-  );
-  state->gui_manager.update_screen_dimensions(
-    state->window_info.width, state->window_info.height
-  );
-
-  // TODO: Only regenerate once we're done resizing, not for every little bit of the resize.
-  init_g_buffer(memory, state);
-  init_l_buffer(memory, state);
-  init_blur_buffers(memory, state);
-
-  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    ModelAsset *model_asset = state->model_assets[idx];
-    for (
-      uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
-    ) {
-      Mesh *mesh = model_asset->meshes[idx_mesh];
-      if (
-        mesh->material->textures.size > 0 &&
-        mesh->material->is_screensize_dependent
-      ) {
-        Material *material = mesh->material;
-        log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
-        for(
-          uint32 idx_texture = 0; idx_texture < material->textures.size; idx_texture++
-        ) {
-          Texture *texture = material->textures[idx_texture];
-          if (texture->type == TextureType::g_position) {
-            material->textures.set(idx_texture, state->g_position_texture);
-          } else if (texture->type == TextureType::g_normal) {
-            material->textures.set(idx_texture, state->g_normal_texture);
-          } else if (texture->type == TextureType::g_albedo) {
-            material->textures.set(idx_texture, state->g_albedo_texture);
-          } else if (texture->type == TextureType::g_pbr) {
-            material->textures.set(idx_texture, state->g_pbr_texture);
-          } else if (texture->type == TextureType::l_color) {
-            material->textures.set(idx_texture, state->l_color_texture);
-          } else if (texture->type == TextureType::l_bright_color) {
-            material->textures.set(idx_texture, state->l_bright_color_texture);
-          } else if (texture->type == TextureType::l_depth) {
-            material->textures.set(idx_texture, state->l_depth_texture);
-          } else if (texture->type == TextureType::blur1) {
-            material->textures.set(idx_texture, state->blur1_texture);
-          } else if (texture->type == TextureType::blur2) {
-            material->textures.set(idx_texture, state->blur2_texture);
-          }
-        }
-        model_asset->bind_texture_uniforms_for_mesh(mesh);
-      }
-    }
-  }
-}
-
-
-void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
-  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-  State *state = memory_and_state->state;
-
-  state->input_manager.update_mouse_button(button, action, mods);
-  state->gui_manager.update_mouse_button();
-}
-
-
-void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
-  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-  State *state = memory_and_state->state;
-
-  glm::vec2 mouse_pos = glm::vec2(x, y);
-  state->input_manager.update_mouse(mouse_pos);
-
-  if (state->is_cursor_disabled) {
-    state->camera_active->update_mouse(state->input_manager.mouse_3d_offset);
-  } else {
-    state->gui_manager.update_mouse();
-  }
-}
-
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-  State *state = memory_and_state->state;
-  state->input_manager.update_keys(key, scancode, action, mods);
-}
-
-
-void init_window(WindowInfo *window_info) {
-  strcpy(window_info->title, "hi lol");
-
-  glfwInit();
-
-  log_info("Using OpenGL 4.1");
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_SAMPLES, 4);
-
-#if defined(__APPLE__)
-  log_info("Using GLFW_OPENGL_FORWARD_COMPAT");
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
-
-#if USE_OPENGL_DEBUG
-  log_info("Using OpenGL debug context");
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
-
-  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-
-  int32 n_monitors;
-  GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[0];
-
-  const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
-  glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-  glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-  glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-  glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-#if USE_FULLSCREEN
-  window_info->width = video_mode->width;
-  window_info->height = video_mode->height;
-#else
-  window_info->width = 1920;
-  window_info->height = 1080;
-#endif
-
-  GLFWwindow *window = glfwCreateWindow(
-    window_info->width, window_info->height, window_info->title,
-    /* target_monitor, nullptr */
-    nullptr, nullptr
-  );
-  if (!window) {
-    log_fatal("Failed to create GLFW window");
-    return;
-  }
-  window_info->window = window;
-#if USE_FULLSCREEN
-  glfwSetWindowPos(window, 0, 0);
-#else
-  glfwSetWindowPos(window, 200, 200);
-#endif
-
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(0);
-
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    log_fatal("Failed to initialize GLAD");
-    return;
-  }
-
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_MULTISAMPLE);
-
-#if USE_OPENGL_DEBUG
-  GLint flags;
-  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-
-  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(Util::debug_message_callback, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-  } else {
-    log_fatal("Tried to initialise OpenGL debug output but couldn't");
-  }
-#endif
-
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  glViewport(0, 0, window_info->width, window_info->height);
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
-  glfwSetKeyCallback(window, key_callback);
-}
-
-
-void copy_scene_data_to_ubo(
-  Memory *memory, State *state,
-  uint32 current_shadow_light_idx,
-  uint32 current_shadow_light_type,
-  bool32 is_blur_horizontal
-) {
-  ShaderCommon *shader_common = &state->shader_common;
-
-  shader_common->view = state->camera_active->view;
-  shader_common->projection = state->camera_active->projection;
-  shader_common->ui_projection = state->camera_active->ui_projection;
-  memcpy(
-    shader_common->cube_shadowmap_transforms,
-    state->cube_shadowmap_transforms,
-    sizeof(state->cube_shadowmap_transforms)
-  );
-  memcpy(
-    shader_common->texture_shadowmap_transforms,
-    state->texture_shadowmap_transforms,
-    sizeof(state->texture_shadowmap_transforms)
-  );
-
-  shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
-  shader_common->camera_pitch = (float)state->camera_active->pitch;
-
-  shader_common->camera_horizontal_fov = state->camera_active->horizontal_fov;
-  shader_common->camera_vertical_fov = state->camera_active->vertical_fov;
-  shader_common->camera_near_clip_dist = state->camera_active->near_clip_dist;
-  shader_common->camera_far_clip_dist = state->camera_active->far_clip_dist;
-
-  shader_common->current_shadow_light_idx = current_shadow_light_idx;
-  shader_common->current_shadow_light_type = current_shadow_light_type;
-
-  shader_common->shadow_far_clip_dist = state->shadowmap_far_clip_dist;
-  shader_common->is_blur_horizontal = is_blur_horizontal;
-
-  shader_common->exposure = state->camera_active->exposure;
-  shader_common->t = (float)state->t;
-  shader_common->window_width = state->window_info.width;
-  shader_common->window_height = state->window_info.height;
-
-  uint32 n_point_lights = 0;
-  uint32 n_directional_lights = 0;
-
-  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-    LightComponent *light_component =
-      state->light_component_manager.components->get(idx);
-    SpatialComponent *spatial_component = state->spatial_component_manager.get(
-      light_component->entity_handle
-    );
-
-    if (!(
-      light_component->is_valid() &&
-      spatial_component->is_valid()
-    )) {
-      continue;
-    }
-
-    if (light_component->type == LightType::point) {
-      shader_common->point_light_position[n_point_lights] = glm::vec4(
-        spatial_component->position, 1.0f
-      );
-      shader_common->point_light_color[n_point_lights] =
-        light_component->color;
-      shader_common->point_light_attenuation[n_point_lights] =
-        light_component->attenuation;
-      n_point_lights++;
-    } else if (light_component->type == LightType::directional) {
-      shader_common->directional_light_position[n_directional_lights] =
-        glm::vec4(spatial_component->position, 1.0f);
-      shader_common->directional_light_direction[n_directional_lights] =
-        glm::vec4(light_component->direction, 1.0f);
-      shader_common->directional_light_color[n_directional_lights] =
-        light_component->color;
-      shader_common->directional_light_attenuation[n_directional_lights] =
-        light_component->attenuation;
-      n_directional_lights++;
-    }
-  }
-
-  shader_common->n_point_lights = n_point_lights;
-  shader_common->n_directional_lights = n_directional_lights;
-
-  glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
-}
-
-
-void copy_scene_data_to_ubo(Memory *memory, State *state) {
-  copy_scene_data_to_ubo(memory, state, 0, 0, false);
 }
 
 
@@ -1002,7 +354,7 @@ void render_scene_ui(
     if (state->gui_manager.draw_button(
       container, "Delete PBO"
     )) {
-      state->persistent_pbo.delete_pbo();
+      Textures::delete_persistent_pbo(&state->persistent_pbo);
       set_heading(state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }
@@ -1021,7 +373,25 @@ void render_scene_ui(
 }
 
 
+void check_all_model_assets_loaded(Memory *memory, State *state) {
+  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
+    ModelAsset *model_asset = state->model_assets[idx];
+    model_asset->prepare_for_draw(
+      memory,
+      &state->persistent_pbo,
+      &state->texture_name_pool,
+      &state->task_queue
+    );
+  }
+}
+
+
 void scene_update(Memory *memory, State *state) {
+  state->camera_active->update_matrices(
+    state->window_info.width, state->window_info.height
+  );
+  check_all_model_assets_loaded(memory, state);
+
   for (
     uint32 idx = 1;
     idx < state->behavior_component_manager.components->size;
@@ -1092,26 +462,8 @@ void scene_update(Memory *memory, State *state) {
 }
 
 
-void check_all_model_assets_loaded(Memory *memory, State *state) {
-  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    ModelAsset *model_asset = state->model_assets[idx];
-    model_asset->prepare_for_draw(
-      memory,
-      &state->persistent_pbo,
-      &state->texture_name_pool,
-      &state->task_queue
-    );
-  }
-}
-
-
-void update_and_render(Memory *memory, State *state) {
-  state->camera_active->update_matrices(
-    state->window_info.width, state->window_info.height
-  );
-  check_all_model_assets_loaded(memory, state);
-  scene_update(memory, state);
-  copy_scene_data_to_ubo(memory, state);
+void render(Memory *memory, State *state) {
+  Renderer::copy_scene_data_to_ubo(memory, state);
 
   // Clear framebuffers
   {
@@ -1173,7 +525,7 @@ void update_and_render(Memory *memory, State *state) {
         glBindFramebuffer(GL_FRAMEBUFFER, state->cube_shadowmaps_framebuffer);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        copy_scene_data_to_ubo(
+        Renderer::copy_scene_data_to_ubo(
           memory, state, idx_light, light_type_to_int(light_component->type), false
         );
         render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
@@ -1223,7 +575,7 @@ void update_and_render(Memory *memory, State *state) {
         glBindFramebuffer(GL_FRAMEBUFFER, state->texture_shadowmaps_framebuffer);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        copy_scene_data_to_ubo(
+        Renderer::copy_scene_data_to_ubo(
           memory, state, idx_light, light_type_to_int(light_component->type), false
         );
         render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
@@ -1311,20 +663,20 @@ void update_and_render(Memory *memory, State *state) {
   // Blur pass
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-    copy_scene_data_to_ubo(memory, state, 0, 0, true);
+    Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, true);
     render_scene(memory, state, RenderPass::preblur, RenderMode::regular);
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-    copy_scene_data_to_ubo(memory, state, 0, 0, false);
+    Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, false);
     render_scene(memory, state, RenderPass::blur2, RenderMode::regular);
 
     for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-      copy_scene_data_to_ubo(memory, state, 0, 0, true);
+      Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, true);
       render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-      copy_scene_data_to_ubo(memory, state, 0, 0, false);
+      Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, false);
       render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
     }
   }
@@ -1407,7 +759,8 @@ void run_main_loop(Memory *memory, State *state) {
       // NOTE: Don't render on the very first frame. This avoids flashing that happens in
       // fullscreen. There is a better way to handle this, but whatever, figure it out later.
       if (state->n_frames_since_start > 1) {
-        update_and_render(memory, state);
+        scene_update(memory, state);
+        render(memory, state);
       }
       if (state->is_manual_frame_advance_enabled) {
         state->should_manually_advance_to_next_frame = false;
@@ -1487,7 +840,7 @@ int main() {
 
   WindowInfo window_info;
   START_TIMER(init_window);
-  init_window(&window_info);
+  Renderer::init_window(&window_info);
   END_TIMER(init_window);
   if (!window_info.window) {
     return -1;
@@ -1514,20 +867,19 @@ int main() {
   Util::print_texture_internalformat_info(GL_SRGB8);
 #endif
 
-  update_drawing_options(state, window_info.window);
+  Renderer::update_drawing_options(state, window_info.window);
 
   MemoryAndState memory_and_state = {&memory, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
-  state->texture_name_pool.allocate_texture_names();
-  init_g_buffer(&memory, state);
-  init_l_buffer(&memory, state);
-  init_blur_buffers(&memory, state);
-  init_shadowmaps(&memory, state);
-  init_ubo(&memory, state);
+  Textures::init_texture_name_pool(&state->texture_name_pool, &memory, 64, 4);
+  Renderer::init_g_buffer(&memory, state);
+  Renderer::init_l_buffer(&memory, state);
+  Renderer::init_blur_buffers(&memory, state);
+  Renderer::init_shadowmaps(&memory, state);
+  Renderer::init_ubo(&memory, state);
   World::init(&memory, state);
-  state->persistent_pbo.allocate_pbo();
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  Textures::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 
 #if 0
   memory.asset_memory_pool.print();
