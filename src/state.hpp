@@ -19,8 +19,8 @@ public:
   bool32 should_hide_ui;
   WindowInfo window_info;
 
-  Camera camera_main;
-  Camera *camera_active;
+  Cameras::Camera camera_main;
+  Cameras::Camera *camera_active;
   InputManager input_manager;
 
   real64 t;

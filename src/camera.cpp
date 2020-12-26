@@ -1,124 +1,135 @@
-Camera::Camera(
-  CameraType new_type,
-  uint32 window_width,
-  uint32 window_height
-) {
-  this->type = new_type;
-  this->yaw = -45.0f;
-  this->pitch = 0.0f;
-  this->position = glm::vec3(-7.0f, 3.0f, 7.0f);
-  this->front = glm::vec3(0.0f, 0.0f, 0.0f);
-  this->up = glm::vec3(0.0f, 1.0f, 0.0f);
-  this->speed = 5.0f;
-  this->horizontal_fov = 90.0f;
-  this->vertical_fov = 0.0f; // Filled in later
-  this->near_clip_dist = 0.1f;
-  this->far_clip_dist = 100.0f;
-  this->exposure = 1.0f;
-
-  update_matrices(window_width, window_height);
-  update_ui_matrices(window_width, window_height);
-}
-
-
-void Camera::update_matrices_ortho(
-  uint32 window_width, uint32 window_height
+void Cameras::update_matrices_ortho(
+  Camera *camera, uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
     return;
   }
 
-  this->view = glm::lookAt(
-    this->position,
+  camera->view = glm::lookAt(
+    camera->position,
     glm::vec3(0.0f, 0.0f, 0.0f),
-    this->up
+    camera->up
   );
 
-  this->projection = glm::ortho(
+  camera->projection = glm::ortho(
     -10.0f, 10.0f, -10.0f, 10.0f,
-    this->near_clip_dist, this->far_clip_dist
+    camera->near_clip_dist, camera->far_clip_dist
   );
 }
 
 
-void Camera::update_matrices_perspective(
-  uint32 window_width, uint32 window_height
+void Cameras::update_matrices_perspective(
+  Camera *camera, uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
     return;
   }
 
-  this->front = glm::normalize(glm::vec3(
-    cos(glm::radians(this->yaw)) * cos(glm::radians(this->pitch)),
-    -sin(glm::radians(this->pitch)),
-    sin(glm::radians(this->yaw)) * cos(glm::radians(this->pitch))
+  camera->front = glm::normalize(glm::vec3(
+    cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
+    -sin(glm::radians(camera->pitch)),
+    sin(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch))
   ));
 
-  this->view = glm::lookAt(
-    this->position, this->position + this->front, this->up
+  camera->view = glm::lookAt(
+    camera->position, camera->position + camera->front, camera->up
   );
 
-  this->projection = glm::perspective(
-    glm::radians(this->horizontal_fov),
+  camera->projection = glm::perspective(
+    glm::radians(camera->horizontal_fov),
     (real32)window_width / (real32)window_height,
-    this->near_clip_dist, this->far_clip_dist
+    camera->near_clip_dist, camera->far_clip_dist
   );
   // https://en.wikipedia.org/wiki/Field_of_view_in_video_games#Field_of_view_calculations
-  this->vertical_fov = (real32)RAD_TO_DEG(2 * atan(
-    tan(DEG_TO_RAD(this->horizontal_fov) / 2) * window_height / window_width
+  camera->vertical_fov = (real32)RAD_TO_DEG(2 * atan(
+    tan(DEG_TO_RAD(camera->horizontal_fov) / 2) * window_height / window_width
   ));
 }
 
 
-void Camera::update_matrices(
-  uint32 window_width, uint32 window_height
+void Cameras::update_matrices(
+  Camera *camera, uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
     return;
   }
 
-  if (this->type == CameraType::perspective) {
-    this->update_matrices_perspective(window_width, window_height);
-  } else if (this->type == CameraType::ortho) {
-    this->update_matrices_ortho(window_width, window_height);
+  if (camera->type == CameraType::perspective) {
+    update_matrices_perspective(camera, window_width, window_height);
+  } else if (camera->type == CameraType::ortho) {
+    update_matrices_ortho(camera, window_width, window_height);
   }
 }
 
 
-void Camera::update_ui_matrices(
-  uint32 window_width, uint32 window_height
+void Cameras::update_ui_matrices(
+  Camera *camera, uint32 window_width, uint32 window_height
 ) {
-  this->ui_projection = glm::ortho(
+  camera->ui_projection = glm::ortho(
     0.0f, (real32)window_width, 0.0f, (real32)window_height
   );
 }
 
 
-void Camera::move_front_back(real32 sign, real64 dt) {
-  this->position += (sign * this->speed * (real32)dt) * this->front;
+void Cameras::move_front_back(
+  Camera *camera, real32 sign, real64 dt
+) {
+  camera->position += (sign * camera->speed * (real32)dt) * camera->front;
 }
 
 
-void Camera::move_left_right(real32 sign, real64 dt) {
+void Cameras::move_left_right(
+  Camera *camera, real32 sign, real64 dt
+) {
   glm::vec3 direction = glm::normalize(glm::cross(
-    this->front, this->up
+    camera->front, camera->up
   ));
-  this->position += (sign * this->speed * (real32)dt) * direction;
+  camera->position += (sign * camera->speed * (real32)dt) * direction;
 }
 
 
-void Camera::move_up_down(real32 sign, real64 dt) {
-  this->position += (sign * this->speed * (real32)dt) * this->up;
+void Cameras::move_up_down(
+  Camera *camera, real32 sign, real64 dt
+) {
+  camera->position += (sign * camera->speed * (real32)dt) * camera->up;
 }
 
 
-void Camera::update_mouse(glm::vec2 mouse_offset) {
-  this->yaw += mouse_offset.x;
-  this->pitch += mouse_offset.y;
+void Cameras::update_mouse(
+  Camera *camera, glm::vec2 mouse_offset
+) {
+  camera->yaw += mouse_offset.x;
+  camera->pitch += mouse_offset.y;
 
-  if (this->pitch > 89.0f) {
-    this->pitch = 89.0f;
-  } else if (this->pitch < -89.0f) {
-    this->pitch = -89.0f;
+  if (camera->pitch > 89.0f) {
+    camera->pitch = 89.0f;
+  } else if (camera->pitch < -89.0f) {
+    camera->pitch = -89.0f;
   }
+}
+
+
+Cameras::Camera* Cameras::init_camera(
+  Cameras::Camera *camera,
+  Cameras::CameraType new_type,
+  uint32 window_width,
+  uint32 window_height
+) {
+  camera->type = new_type;
+  camera->yaw = -45.0f;
+  camera->pitch = 0.0f;
+  camera->position = glm::vec3(-7.0f, 3.0f, 7.0f);
+  camera->front = glm::vec3(0.0f, 0.0f, 0.0f);
+  camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
+  camera->speed = 5.0f;
+  camera->horizontal_fov = 90.0f;
+  camera->vertical_fov = 0.0f; // Filled in later
+  camera->near_clip_dist = 0.1f;
+  camera->far_clip_dist = 100.0f;
+  camera->exposure = 1.0f;
+
+  update_matrices(camera, window_width, window_height);
+  update_ui_matrices(camera, window_width, window_height);
+
+  return camera;
 }

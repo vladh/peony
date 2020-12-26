@@ -9,12 +9,6 @@ State::State(
   should_hide_ui(false),
   window_info(window_info),
 
-  camera_main(
-    CameraType::perspective,
-    this->window_info.width,
-    this->window_info.height
-  ),
-  camera_active(&this->camera_main),
   input_manager(this->window_info.window),
 
   t(0),
