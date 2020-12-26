@@ -4,18 +4,20 @@
 class ModelAsset;
 class Memory;
 
-enum class TaskType {load_model, copy_textures_to_pbo};
+namespace Tasks {
+  enum class TaskType {load_model, copy_textures_to_pbo};
 
-class Task {
-public:
-  TaskType type;
-  ModelAsset *model_asset;
-  Textures::PersistentPbo *persistent_pbo;
-  Memory *memory;
+  struct Task {
+    TaskType type;
+    ModelAsset *model_asset;
+    Textures::PersistentPbo *persistent_pbo;
+    Memory *memory;
+  };
 
-  void run();
   static const char* task_type_to_str(TaskType type);
-  Task(
+  void run_task(Task *task);
+  Task* init_task(
+    Task *task,
     TaskType type,
     ModelAsset *model_asset,
     Textures::PersistentPbo *persistent_pbo,

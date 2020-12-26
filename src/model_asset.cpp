@@ -373,12 +373,12 @@ void ModelAsset::prepare_for_draw(
   Memory *memory,
   Textures::PersistentPbo *persistent_pbo,
   Textures::TextureNamePool *texture_name_pool,
-  Queue<Task> *task_queue
+  Queue<Tasks::Task> *task_queue
 ) {
   // Step 1: Load mesh data. This is done on a separate thread.
   if (!this->is_mesh_data_loading_in_progress && !this->is_mesh_data_loading_done) {
     this->is_mesh_data_loading_in_progress = true;
-    task_queue->push({TaskType::load_model, this, nullptr, memory});
+    task_queue->push({Tasks::TaskType::load_model, this, nullptr, memory});
   }
 
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
@@ -443,7 +443,9 @@ void ModelAsset::prepare_for_draw(
 
       if (should_try_to_copy_textures) {
         this->is_texture_copying_to_pbo_in_progress = true;
-        task_queue->push({TaskType::copy_textures_to_pbo, this, persistent_pbo, nullptr});
+        task_queue->push({
+          Tasks::TaskType::copy_textures_to_pbo, this, persistent_pbo, nullptr
+        });
       } else {
         this->is_texture_copying_to_pbo_done = true;
         this->is_texture_creation_done = true;

@@ -78,7 +78,7 @@ State::State(
   heading_fadeout_delay(2.0f),
 
   task_queue(
-    Queue<Task>(&memory->entity_memory_pool, 128, "task_queue")
+    Queue<Tasks::Task>(&memory->entity_memory_pool, 128, "task_queue")
   ),
   cube_shadowmap_width(this->window_info.width),
   cube_shadowmap_height(this->window_info.width),

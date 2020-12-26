@@ -184,7 +184,7 @@ void run_loading_loop(
   std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
 ) {
   while (!state->should_stop) {
-    Task *task = nullptr;
+    Tasks::Task *task = nullptr;
 
     mutex->lock();
     if (state->task_queue.size > 0) {
@@ -196,14 +196,14 @@ void run_loading_loop(
       log_info(
         "[Thread #%d] Running task %s for model %s",
         idx_thread,
-        Task::task_type_to_str(task->type),
+        Tasks::task_type_to_str(task->type),
         task->model_asset->name
       );
-      task->run();
+      Tasks::run_task(task);
       log_info(
         "[Thread #%d] Finished task %s for model %s",
         idx_thread,
-        Task::task_type_to_str(task->type),
+        Tasks::task_type_to_str(task->type),
         task->model_asset->name
       );
     }
