@@ -41,7 +41,7 @@ public:
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
-  RenderPass::Flag render_pass;
+  Renderer::RenderPassFlag render_pass;
   bool32 is_mesh_data_loading_in_progress = false;
   bool32 is_texture_copying_to_pbo_done = false;
   bool32 is_texture_copying_to_pbo_in_progress = false;
@@ -98,7 +98,7 @@ public:
     ModelSource model_source,
     const char *name,
     const char *path,
-    RenderPass::Flag render_pass,
+    Renderer::RenderPassFlag render_pass,
     EntityHandle entity_handle
   );
   ModelAsset(
@@ -108,7 +108,7 @@ public:
     uint32 *index_data, uint32 n_indices,
     const char *name,
     GLenum mode,
-    RenderPass::Flag render_pass,
+    Renderer::RenderPassFlag render_pass,
     EntityHandle entity_handle
   );
 };

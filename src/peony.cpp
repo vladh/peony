@@ -13,7 +13,6 @@ global_variable uint32 global_oopses = 0;
 
 #include "log.cpp"
 #include "pack.cpp"
-#include "render.cpp"
 #include "util.cpp"
 #include "task.cpp"
 #include "peony_file_parser.cpp"
@@ -123,8 +122,8 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
 void render_scene(
   Memory *memory,
   State *state,
-  RenderPass::Flag render_pass,
-  RenderMode render_mode
+  Renderer::RenderPassFlag render_pass,
+  Renderer::RenderMode render_mode
 ) {
   state->drawable_component_manager.draw_all(
     &state->spatial_component_manager,
@@ -528,7 +527,11 @@ void render(Memory *memory, State *state) {
         Renderer::copy_scene_data_to_ubo(
           memory, state, idx_light, light_type_to_int(light_component->type), false
         );
-        render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
+        render_scene(
+          memory, state,
+          Renderer::RenderPass::shadowcaster,
+          Renderer::RenderMode::depth
+        );
 
         idx_light++;
       }
@@ -578,7 +581,11 @@ void render(Memory *memory, State *state) {
         Renderer::copy_scene_data_to_ubo(
           memory, state, idx_light, light_type_to_int(light_component->type), false
         );
-        render_scene(memory, state, RenderPass::shadowcaster, RenderMode::depth);
+        render_scene(
+          memory, state,
+          Renderer::RenderPass::shadowcaster,
+          Renderer::RenderMode::depth
+        );
 
         idx_light++;
       }
@@ -595,7 +602,11 @@ void render(Memory *memory, State *state) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
     glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
-    render_scene(memory, state, RenderPass::deferred, RenderMode::regular);
+    render_scene(
+      memory, state,
+      Renderer::RenderPass::deferred,
+      Renderer::RenderMode::regular
+    );
     if (state->should_use_wireframe) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -617,7 +628,11 @@ void render(Memory *memory, State *state) {
   // Lighting pass
   {
     glDisable(GL_DEPTH_TEST);
-    render_scene(memory, state, RenderPass::lighting, RenderMode::regular);
+    render_scene(
+      memory, state,
+      Renderer::RenderPass::lighting,
+      Renderer::RenderMode::regular
+    );
     glEnable(GL_DEPTH_TEST);
   }
 
@@ -633,7 +648,11 @@ void render(Memory *memory, State *state) {
       // Draw at the very back of our depth range, so as to be behind everything.
       glDepthRange(0.9999f, 1.0f);
 
-      render_scene(memory, state, RenderPass::forward_skybox, RenderMode::regular);
+      render_scene(
+        memory, state,
+        Renderer::RenderPass::forward_skybox,
+        Renderer::RenderMode::regular
+      );
 
       glDepthRange(0.0f, 1.0f);
       glDepthMask(GL_TRUE);
@@ -646,10 +665,18 @@ void render(Memory *memory, State *state) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
       }
 
-      render_scene(memory, state, RenderPass::forward_depth, RenderMode::regular);
+      render_scene(
+        memory, state,
+        Renderer::RenderPass::forward_depth,
+        Renderer::RenderMode::regular
+      );
 
       glDisable(GL_DEPTH_TEST);
-      render_scene(memory, state, RenderPass::forward_nodepth, RenderMode::regular);
+      render_scene(
+        memory, state,
+        Renderer::RenderPass::forward_nodepth,
+        Renderer::RenderMode::regular
+      );
       glEnable(GL_DEPTH_TEST);
 
       if (state->should_use_wireframe) {
@@ -664,20 +691,28 @@ void render(Memory *memory, State *state) {
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
     Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, true);
-    render_scene(memory, state, RenderPass::preblur, RenderMode::regular);
+    render_scene(
+      memory, state, Renderer::RenderPass::preblur, Renderer::RenderMode::regular
+    );
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
     Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, false);
-    render_scene(memory, state, RenderPass::blur2, RenderMode::regular);
+    render_scene(
+      memory, state, Renderer::RenderPass::blur2, Renderer::RenderMode::regular
+    );
 
     for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
       Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, true);
-      render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
+      render_scene(
+        memory, state, Renderer::RenderPass::blur1, Renderer::RenderMode::regular
+      );
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
       Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, false);
-      render_scene(memory, state, RenderPass::blur1, RenderMode::regular);
+      render_scene(
+        memory, state, Renderer::RenderPass::blur1, Renderer::RenderMode::regular
+      );
     }
   }
 
@@ -685,7 +720,11 @@ void render(Memory *memory, State *state) {
 
   // Postprocessing pass
   {
-    render_scene(memory, state, RenderPass::postprocessing, RenderMode::regular);
+    render_scene(
+      memory, state,
+      Renderer::RenderPass::postprocessing,
+      Renderer::RenderMode::regular
+    );
   }
 
   // UI pass

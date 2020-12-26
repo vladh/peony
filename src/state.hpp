@@ -82,7 +82,7 @@ public:
   ShaderAsset *standard_depth_shader_asset;
 
   uint32 ubo_shader_common;
-  ShaderCommon shader_common;
+  Renderer::ShaderCommon shader_common;
 
   uint32 g_buffer;
   Textures::Texture *g_position_texture;

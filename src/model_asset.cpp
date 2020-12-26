@@ -532,7 +532,7 @@ ModelAsset::ModelAsset(
   ModelSource model_source,
   const char *name,
   const char *path,
-  RenderPass::Flag render_pass,
+  Renderer::RenderPassFlag render_pass,
   EntityHandle entity_handle
 ) :
   name(name),
@@ -555,7 +555,7 @@ ModelAsset::ModelAsset(
   uint32 *index_data, uint32 n_indices,
   const char *name,
   GLenum mode,
-  RenderPass::Flag render_pass,
+  Renderer::RenderPassFlag render_pass,
   EntityHandle entity_handle
 ) :
   name(name),
