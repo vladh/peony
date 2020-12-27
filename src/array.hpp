@@ -87,6 +87,9 @@ public:
     items(items)
   {
   }
+
+  // TODO: Remove.
+  Array() {}
 };
 
 #endif

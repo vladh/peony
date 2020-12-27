@@ -50,7 +50,7 @@ public:
   LightComponentManager light_component_manager;
   SpatialComponentManager spatial_component_manager;
   BehaviorComponentManager behavior_component_manager;
-  GuiManager gui_manager;
+  Gui::GuiState gui_state;
 
   real32 heading_opacity;
   const char *heading_text;

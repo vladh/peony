@@ -590,8 +590,8 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
     state->window_info.width,
     state->window_info.height
   );
-  state->gui_manager.update_screen_dimensions(
-    state->window_info.width, state->window_info.height
+  Gui::update_screen_dimensions(
+    &state->gui_state, state->window_info.width, state->window_info.height
   );
   resize_renderer_buffers(memory, state);
 }
@@ -602,7 +602,7 @@ void Renderer::mouse_button_callback(GLFWwindow *window, int button, int action,
   State *state = memory_and_state->state;
 
   Input::update_mouse_button(&state->input_state, button, action, mods);
-  state->gui_manager.update_mouse_button();
+  Gui::update_mouse_button(&state->gui_state);
 }
 
 
@@ -619,7 +619,7 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
       state->input_state.mouse_3d_offset
     );
   } else {
-    state->gui_manager.update_mouse();
+    Gui::update_mouse(&state->gui_state);
   }
 }
 
@@ -771,10 +771,11 @@ void Renderer::render_scene_ui(
 ) {
   char debug_text[1 << 14];
 
-  state->gui_manager.start_drawing();
+  Gui::start_drawing(&state->gui_state);
 
   if (state->heading_opacity > 0.0f) {
-    state->gui_manager.draw_heading(
+    Gui::draw_heading(
+      &state->gui_state,
       state->heading_text,
       glm::vec4(0.0f, 0.33f, 0.93f, state->heading_opacity)
     );
@@ -786,27 +787,21 @@ void Renderer::render_scene_ui(
   }
 
   {
-    GuiContainer *container = state->gui_manager.make_container(
-      "Peony debug info", glm::vec2(25.0f, 25.0f)
+    Gui::GuiContainer *container = Gui::make_container(
+      &state->gui_state, "Peony debug info", glm::vec2(25.0f, 25.0f)
     );
 
     sprintf(debug_text, "%d fps", state->last_fps);
-    state->gui_manager.draw_named_value(
-      container, "fps", debug_text
-    );
+    Gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
 
     sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
-    state->gui_manager.draw_named_value(
-      container, "dt", debug_text
-    );
+    Gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
 
     sprintf(debug_text, "%d", state->entities.size);
-    state->gui_manager.draw_named_value(
-      container, "entities.size", debug_text
-    );
+    Gui::draw_named_value(&state->gui_state, container, "entities.size", debug_text);
 
-    if (state->gui_manager.draw_toggle(
-      container, "Wireframe mode", &state->should_use_wireframe
+    if (Gui::draw_toggle(
+      &state->gui_state, container, "Wireframe mode", &state->should_use_wireframe
     )) {
       state->should_use_wireframe = !state->should_use_wireframe;
       if (state->should_use_wireframe) {
@@ -816,8 +811,8 @@ void Renderer::render_scene_ui(
       }
     }
 
-    if (state->gui_manager.draw_toggle(
-      container, "FPS limit", &state->should_limit_fps
+    if (Gui::draw_toggle(
+      &state->gui_state, container, "FPS limit", &state->should_limit_fps
     )) {
       state->should_limit_fps = !state->should_limit_fps;
       if (state->should_limit_fps) {
@@ -827,8 +822,8 @@ void Renderer::render_scene_ui(
       }
     }
 
-    if (state->gui_manager.draw_toggle(
-      container, "Manual frame advance", &state->is_manual_frame_advance_enabled
+    if (Gui::draw_toggle(
+      &state->gui_state, container, "Manual frame advance", &state->is_manual_frame_advance_enabled
     )) {
       state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
       if (state->is_manual_frame_advance_enabled) {
@@ -838,8 +833,8 @@ void Renderer::render_scene_ui(
       }
     }
 
-    if (state->gui_manager.draw_toggle(
-      container, "Pause", &state->should_pause
+    if (Gui::draw_toggle(
+      &state->gui_state, container, "Pause", &state->should_pause
     )) {
       state->should_pause = !state->should_pause;
       if (state->should_pause) {
@@ -849,15 +844,15 @@ void Renderer::render_scene_ui(
       }
     }
 
-    if (state->gui_manager.draw_button(
-      container, "Reload shaders"
+    if (Gui::draw_button(
+      &state->gui_state, container, "Reload shaders"
     )) {
       reload_shaders(memory, state);
       set_heading(state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
-    if (state->gui_manager.draw_button(
-      container, "Delete PBO"
+    if (Gui::draw_button(
+      &state->gui_state, container, "Delete PBO"
     )) {
       Textures::delete_persistent_pbo(&state->persistent_pbo);
       set_heading(state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
@@ -866,15 +861,15 @@ void Renderer::render_scene_ui(
 
   {
 #if 1
-    GuiContainer *container = state->gui_manager.make_container(
-      "Entities", glm::vec2(state->window_info.width - 400.0f, 25.0f)
+    Gui::GuiContainer *container = Gui::make_container(
+      &state->gui_state, "Entities", glm::vec2(state->window_info.width - 400.0f, 25.0f)
     );
     World::get_scene_text_representation(debug_text, state);
-    state->gui_manager.draw_body_text(container, debug_text);
+    Gui::draw_body_text(&state->gui_state, container, debug_text);
 #endif
   }
 
-  state->gui_manager.render();
+  Gui::render(&state->gui_state);
 }
 
 

@@ -76,7 +76,7 @@
 #include "models.hpp"
 #include "peony_file_parser.hpp"
 #include "input.hpp"
-#include "gui_manager.hpp"
+#include "gui.hpp"
 #include "data.hpp"
 #include "camera.hpp"
 #include "state.hpp"
