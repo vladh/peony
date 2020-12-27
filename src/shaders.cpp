@@ -312,6 +312,8 @@ void Shaders::load_shader_asset(
   Shaders::ShaderAsset *shader_asset,
   Memory *memory
 ) {
+  shader_asset->did_set_texture_uniforms = false;
+
   if (strlen(shader_asset->geom_path) > 0) {
     shader_asset->program = make_program(
       make_shader(
