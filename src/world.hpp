@@ -12,7 +12,7 @@ namespace World {
     Memory *memory,
     EntityManager *entity_manager,
     Array<Models::ModelAsset> *model_assets,
-    Array<ShaderAsset> *shader_assets,
+    Array<Shaders::ShaderAsset> *shader_assets,
     State *state
   );
   void create_internal_entities(Memory *memory, State *state);

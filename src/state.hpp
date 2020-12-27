@@ -36,7 +36,7 @@ public:
   bool32 should_use_wireframe;
   glm::vec4 background_color;
 
-  Array<ShaderAsset> shader_assets;
+  Array<Shaders::ShaderAsset> shader_assets;
   Array<Models::ModelAsset> model_assets;
 
   Array<Entity> entities;
@@ -79,7 +79,7 @@ public:
   Textures::Texture *cube_shadowmaps_texture;
   Textures::Texture *texture_shadowmaps_texture;
 
-  ShaderAsset *standard_depth_shader_asset;
+  Shaders::ShaderAsset *standard_depth_shader_asset;
 
   uint32 ubo_shader_common;
   Renderer::ShaderCommon shader_common;
