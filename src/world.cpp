@@ -131,7 +131,7 @@ void World::create_entities_from_entity_template(
   Memory *memory,
   EntityManager *entity_manager,
   Array<Models::ModelAsset> *model_assets,
-  Array<ShaderAsset> *shader_assets,
+  Array<Shaders::ShaderAsset> *shader_assets,
   State *state
 ) {
   Entity *entity = entity_manager->add(entity_template->entity_debug_name);
@@ -236,20 +236,22 @@ void World::create_entities_from_entity_template(
     );
 
     if (strlen(material_template->shader_asset_vert_path) > 0) {
-      material->shader_asset = new(shader_assets->push()) ShaderAsset(
+      material->shader_asset = Shaders::init_shader_asset(
+        (Shaders::ShaderAsset*)(shader_assets->push()),
         memory,
         entity_template->entity_debug_name,
-        ShaderType::standard,
+        Shaders::ShaderType::standard,
         material_template->shader_asset_vert_path,
         material_template->shader_asset_frag_path,
         material_template->shader_asset_geom_path
       );
     }
     if (strlen(material_template->depth_shader_asset_vert_path) > 0) {
-      material->depth_shader_asset = new(shader_assets->push()) ShaderAsset(
+      material->depth_shader_asset = Shaders::init_shader_asset(
+        (Shaders::ShaderAsset*)(shader_assets->push()),
         memory,
         entity_template->entity_debug_name,
-        ShaderType::depth,
+        Shaders::ShaderType::depth,
         material_template->depth_shader_asset_vert_path,
         material_template->depth_shader_asset_frag_path,
         material_template->depth_shader_asset_geom_path
@@ -320,8 +322,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
   Models::ModelAsset *model_asset;
   Textures::Material *material;
 
-  state->standard_depth_shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory, "standard_depth", ShaderType::depth,
+  state->standard_depth_shader_asset = Shaders::init_shader_asset(
+    (Shaders::ShaderAsset*)(state->shader_assets.push()),
+    memory, "standard_depth", Shaders::ShaderType::depth,
     "standard_depth.vert", "standard_depth.frag",
     "standard_depth.geom"
   );
@@ -351,8 +354,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
     state->entity_manager.add("screenquad_lighting")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
-  material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory, "lighting", ShaderType::standard,
+  material->shader_asset = Shaders::init_shader_asset(
+    (Shaders::ShaderAsset*)(state->shader_assets.push()),
+    memory, "lighting", Shaders::ShaderType::standard,
     "lighting.vert", "lighting.frag", ""
   );
   Textures::add_texture_to_material(
@@ -387,8 +391,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
     state->entity_manager.add("screenquad_preblur")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
-  material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory, "blur", ShaderType::standard,
+  material->shader_asset = Shaders::init_shader_asset(
+    (Shaders::ShaderAsset*)(state->shader_assets.push()),
+    memory, "blur", Shaders::ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Textures::add_texture_to_material(
@@ -408,8 +413,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
     state->entity_manager.add("screenquad_blur1")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
-  material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory, "blur", ShaderType::standard,
+  material->shader_asset = Shaders::init_shader_asset(
+    (Shaders::ShaderAsset*)(state->shader_assets.push()),
+    memory, "blur", Shaders::ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Textures::add_texture_to_material(material, *state->blur2_texture, "source_texture");
@@ -427,8 +433,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
     state->entity_manager.add("screenquad_blur2")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
-  material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory, "blur", ShaderType::standard,
+  material->shader_asset = Shaders::init_shader_asset(
+    (Shaders::ShaderAsset*)(state->shader_assets.push()),
+    memory, "blur", Shaders::ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Textures::add_texture_to_material(material, *state->blur1_texture, "source_texture");
@@ -446,8 +453,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
     state->entity_manager.add("screenquad_postprocessing")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
-  material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-    memory, "postprocessing", ShaderType::standard,
+  material->shader_asset = Shaders::init_shader_asset(
+    (Shaders::ShaderAsset*)(state->shader_assets.push()),
+    memory, "postprocessing", Shaders::ShaderType::standard,
     "postprocessing.vert", "postprocessing.frag", ""
   );
   Textures::add_texture_to_material(
@@ -484,8 +492,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
     );
 
     material = Textures::init_material(model_asset->materials.push(), memory);
-    material->shader_asset = new(state->shader_assets.push()) ShaderAsset(
-      memory, "skysphere", ShaderType::standard,
+    material->shader_asset = Shaders::init_shader_asset(
+      (Shaders::ShaderAsset*)(state->shader_assets.push()),
+      memory, "skysphere", Shaders::ShaderType::standard,
       "skysphere.vert", "skysphere.frag", ""
     );
 #endif

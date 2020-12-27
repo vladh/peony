@@ -23,7 +23,7 @@ State::State(
   background_color(glm::vec4(0.81f, 0.93f, 1.00f, 1.0f)),
 
   shader_assets(
-    Array<ShaderAsset>(&memory->asset_memory_pool, 512, "shader_assets")
+    Array<Shaders::ShaderAsset>(&memory->asset_memory_pool, 512, "shader_assets")
   ),
   model_assets(
     Array<Models::ModelAsset>(&memory->asset_memory_pool, 512, "model_assets")

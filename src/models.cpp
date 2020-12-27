@@ -272,9 +272,9 @@ void Models::copy_textures_to_pbo(
 
 void Models::bind_texture_uniforms_for_mesh(Models::Mesh *mesh) {
   Textures::Material *material = mesh->material;
-  ShaderAsset *shader_asset = material->shader_asset;
+  Shaders::ShaderAsset *shader_asset = material->shader_asset;
 
-  if (shader_asset->type != ShaderType::depth) {
+  if (shader_asset->type != Shaders::ShaderType::depth) {
     glUseProgram(shader_asset->program);
 
     for (
@@ -284,19 +284,29 @@ void Models::bind_texture_uniforms_for_mesh(Models::Mesh *mesh) {
     ) {
       const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
       if (strcmp(uniform_name, "should_use_normal_map") == 0) {
-        shader_asset->set_bool("should_use_normal_map", material->should_use_normal_map);
+        Shaders::set_bool(
+          shader_asset, "should_use_normal_map", material->should_use_normal_map
+        );
       } else if (strcmp(uniform_name, "albedo_static") == 0) {
-        shader_asset->set_vec4("albedo_static", &material->albedo_static);
+        Shaders::set_vec4(
+          shader_asset, "albedo_static", &material->albedo_static
+        );
       } else if (strcmp(uniform_name, "metallic_static") == 0) {
-        shader_asset->set_float("metallic_static", material->metallic_static);
+        Shaders::set_float(
+          shader_asset, "metallic_static", material->metallic_static
+        );
       } else if (strcmp(uniform_name, "roughness_static") == 0) {
-        shader_asset->set_float("roughness_static", material->roughness_static);
+        Shaders::set_float(
+          shader_asset, "roughness_static", material->roughness_static
+        );
       } else if (strcmp(uniform_name, "ao_static") == 0) {
-        shader_asset->set_float("ao_static", material->ao_static);
+        Shaders::set_float(
+          shader_asset, "ao_static", material->ao_static
+        );
       }
     }
 
-    shader_asset->reset_texture_units();
+    Shaders::reset_texture_units(shader_asset);
 
     for (uint32 idx = 0; idx < material->textures.size; idx++) {
       Textures::Texture *texture = material->textures[idx];
@@ -308,9 +318,10 @@ void Models::bind_texture_uniforms_for_mesh(Models::Mesh *mesh) {
         uniform_name, texture->texture_name
       );
 #endif
-      shader_asset->set_int(
+      Shaders::set_int(
+        shader_asset,
         uniform_name,
-        shader_asset->add_texture_unit(texture->texture_name, texture->target)
+        Shaders::add_texture_unit(shader_asset, texture->texture_name, texture->target)
       );
     }
   }

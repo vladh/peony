@@ -733,8 +733,8 @@ void Renderer::destroy_window() {
 
 void Renderer::reload_shaders(Memory *memory, State *state) {
   for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
-    ShaderAsset *shader_asset = state->shader_assets[idx];
-    shader_asset->load(memory);
+    Shaders::ShaderAsset *shader_asset = state->shader_assets[idx];
+    Shaders::load_shader_asset(shader_asset, memory);
   }
 }
 

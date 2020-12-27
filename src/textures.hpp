@@ -70,8 +70,8 @@ namespace Textures {
   struct Material {
     bool32 have_textures_been_generated = false;
     bool32 is_screensize_dependent = false;
-    ShaderAsset *shader_asset;
-    ShaderAsset *depth_shader_asset;
+    Shaders::ShaderAsset *shader_asset;
+    Shaders::ShaderAsset *depth_shader_asset;
     Array<Texture> textures;
     Array<const char*> texture_uniform_names;
 

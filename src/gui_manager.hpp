@@ -52,7 +52,7 @@ struct GuiContainer {
 class GuiManager {
 public:
   Memory *memory;
-  ShaderAsset *shader_asset;
+  Shaders::ShaderAsset *shader_asset;
   InputManager *input_manager;
   GLFWcursor *requested_cursor;
   Array<Fonts::FontAsset> font_assets;
@@ -133,7 +133,7 @@ public:
     const char *text
   );
   GuiManager(
-    Memory *memory, Array<ShaderAsset> *shader_assets,
+    Memory *memory, Array<Shaders::ShaderAsset> *shader_assets,
     InputManager *input_manager,
     uint32 window_width, uint32 window_height
   );

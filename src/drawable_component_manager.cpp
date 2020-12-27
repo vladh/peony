@@ -48,7 +48,7 @@ void DrawableComponentManager::draw_all(
   SpatialComponentManager *spatial_component_manager,
   Renderer::RenderPassFlag render_pass,
   Renderer::RenderMode render_mode,
-  ShaderAsset *standard_depth_shader_asset
+  Shaders::ShaderAsset *standard_depth_shader_asset
 ) {
   for (uint32 idx = 0; idx < this->components->size; idx++) {
     DrawableComponent *drawable = this->components->get(idx);
@@ -109,7 +109,7 @@ void DrawableComponentManager::draw(
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix
 ) {
-  ShaderAsset *shader_asset = mesh->material->shader_asset;
+  Shaders::ShaderAsset *shader_asset = mesh->material->shader_asset;
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
   if (shader_asset->program != DrawableComponentManager::last_drawn_shader_program) {
@@ -137,9 +137,9 @@ void DrawableComponentManager::draw(
   ) {
     const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
     if (strcmp(uniform_name, "model_matrix") == 0) {
-      shader_asset->set_mat4("model_matrix", model_matrix);
+      Shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
     } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-      shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+      Shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
     }
   }
 
@@ -156,9 +156,9 @@ void DrawableComponentManager::draw_in_depth_mode(
   Models::Mesh *mesh,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
-  ShaderAsset *standard_depth_shader_asset
+  Shaders::ShaderAsset *standard_depth_shader_asset
 ) {
-  ShaderAsset *shader_asset = standard_depth_shader_asset;
+  Shaders::ShaderAsset *shader_asset = standard_depth_shader_asset;
 
   if (mesh->material->depth_shader_asset) {
     shader_asset = mesh->material->depth_shader_asset;
@@ -177,9 +177,9 @@ void DrawableComponentManager::draw_in_depth_mode(
   ) {
     const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
     if (strcmp(uniform_name, "model_matrix") == 0) {
-      shader_asset->set_mat4("model_matrix", model_matrix);
+      Shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
     } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
-      shader_asset->set_mat3("model_normal_matrix", model_normal_matrix);
+      Shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
     }
   }
 

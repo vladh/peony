@@ -24,7 +24,7 @@ public:
     SpatialComponentManager *spatial_component_manager,
     Renderer::RenderPassFlag render_pass,
     Renderer::RenderMode render_mode,
-    ShaderAsset *standard_depth_shader_asset
+    Shaders::ShaderAsset *standard_depth_shader_asset
   );
   void draw(
     Models::Mesh *mesh,
@@ -35,7 +35,7 @@ public:
     Models::Mesh *mesh,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
-    ShaderAsset *standard_depth_shader_asset
+    Shaders::ShaderAsset *standard_depth_shader_asset
   );
   DrawableComponentManager(
     Array<DrawableComponent> *components

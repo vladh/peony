@@ -51,11 +51,13 @@ void GuiManager::push_vertices(real32 *vertices, uint32 n_vertices) {
 
 void GuiManager::render() {
   glUseProgram(this->shader_asset->program);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture_atlas.texture_name);
+
   if (!this->shader_asset->did_set_texture_uniforms) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_atlas.texture_name);
-    this->shader_asset->set_int("atlas_texture", 0);
-    this->shader_asset->did_set_texture_uniforms;
+    Shaders::set_int(this->shader_asset, "atlas_texture", 0);
+    this->shader_asset->did_set_texture_uniforms = true;
   }
 
   glDrawArrays(GL_TRIANGLES, 0, this->n_vertices_pushed);
@@ -647,7 +649,7 @@ bool32 GuiManager::draw_button(
 
 
 GuiManager::GuiManager(
-  Memory *memory, Array<ShaderAsset> *shader_assets,
+  Memory *memory, Array<Shaders::ShaderAsset> *shader_assets,
   InputManager *input_manager,
   uint32 window_width, uint32 window_height
 ) :
@@ -671,8 +673,9 @@ GuiManager::GuiManager(
 
   // Shaders
   {
-    this->shader_asset = new(shader_assets->push()) ShaderAsset(
-      this->memory, "gui_generic", ShaderType::standard,
+    this->shader_asset = Shaders::init_shader_asset(
+      (Shaders::ShaderAsset*)(shader_assets->push()),
+      this->memory, "gui_generic", Shaders::ShaderType::standard,
       "gui_generic.vert", "gui_generic.frag", ""
     );
   }
