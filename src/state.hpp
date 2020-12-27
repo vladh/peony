@@ -37,7 +37,7 @@ public:
   glm::vec4 background_color;
 
   Array<ShaderAsset> shader_assets;
-  Array<ModelAsset> model_assets;
+  Array<Models::ModelAsset> model_assets;
 
   Array<Entity> entities;
   Array<DrawableComponent> drawable_components;

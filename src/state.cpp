@@ -26,7 +26,7 @@ State::State(
     Array<ShaderAsset>(&memory->asset_memory_pool, 512, "shader_assets")
   ),
   model_assets(
-    Array<ModelAsset>(&memory->asset_memory_pool, 512, "model_assets")
+    Array<Models::ModelAsset>(&memory->asset_memory_pool, 512, "model_assets")
   ),
 
   entities(

@@ -11,7 +11,7 @@ namespace World {
     PeonyFileParser::EntityTemplate *entity_template,
     Memory *memory,
     EntityManager *entity_manager,
-    Array<ModelAsset> *model_assets,
+    Array<Models::ModelAsset> *model_assets,
     Array<ShaderAsset> *shader_assets,
     State *state
   );

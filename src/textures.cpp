@@ -215,8 +215,6 @@ void Textures::copy_material_textures_to_pbo(
   Textures::Material *material,
   Textures::PersistentPbo *persistent_pbo
 ) {
-  persistent_pbo->mutex.lock();
-
   for (uint32 idx = 0; idx < material->textures.size; idx++) {
     Texture *texture = material->textures[idx];
     if (texture->texture_name) {
@@ -234,8 +232,6 @@ void Textures::copy_material_textures_to_pbo(
     );
     Util::free_image(image_data);
   }
-
-  persistent_pbo->mutex.unlock();
 }
 
 
@@ -244,7 +240,6 @@ void Textures::generate_textures_from_pbo(
   Textures::PersistentPbo *persistent_pbo,
   Textures::TextureNamePool *texture_name_pool
 ) {
-  persistent_pbo->mutex.lock();
   if (material->have_textures_been_generated) {
     log_warning("Tried to generate textures but they've already been generated.");
   }
@@ -275,7 +270,6 @@ void Textures::generate_textures_from_pbo(
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   material->have_textures_been_generated = true;
-  persistent_pbo->mutex.unlock();
 }
 
 

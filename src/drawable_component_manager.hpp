@@ -2,6 +2,9 @@
 #define DRAWABLE_COMPONENT_MANAGER_HPP
 
 class SpatialComponentManager;
+namespace Models {
+  struct Mesh;
+};
 
 class DrawableComponentManager {
 public:
@@ -13,7 +16,7 @@ public:
   );
   DrawableComponent* add(
     EntityHandle entity_handle,
-    Mesh *mesh,
+    Models::Mesh *mesh,
     Renderer::RenderPassFlag target_render_pass
   );
   DrawableComponent* get(EntityHandle handle);
@@ -24,12 +27,12 @@ public:
     ShaderAsset *standard_depth_shader_asset
   );
   void draw(
-    Mesh *mesh,
+    Models::Mesh *mesh,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix
   );
   void draw_in_depth_mode(
-    Mesh *mesh,
+    Models::Mesh *mesh,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
     ShaderAsset *standard_depth_shader_asset

@@ -1,15 +1,17 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
-class ModelAsset;
 class Memory;
+namespace Models {
+  struct ModelAsset;
+};
 
 namespace Tasks {
   enum class TaskType {load_model, copy_textures_to_pbo};
 
   struct Task {
     TaskType type;
-    ModelAsset *model_asset;
+    Models::ModelAsset *model_asset;
     Textures::PersistentPbo *persistent_pbo;
     Memory *memory;
   };
@@ -19,9 +21,12 @@ namespace Tasks {
   Task* init_task(
     Task *task,
     TaskType type,
-    ModelAsset *model_asset,
+    Models::ModelAsset *model_asset,
     Textures::PersistentPbo *persistent_pbo,
     Memory *memory
+  );
+  void run_loading_loop(
+    std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
   );
 };
 

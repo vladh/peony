@@ -24,7 +24,6 @@ namespace Textures {
     uint32 texture_size = 0;
     uint32 total_size = 0;
     uint16 next_idx = 0;
-    std::mutex mutex;
   };
 
   struct TextureAtlas {
