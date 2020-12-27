@@ -48,6 +48,7 @@ void Fonts::load_glyphs(
     character->advance = glm::ivec2(glyph->advance.x, glyph->advance.y);
   }
 
+  glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
 
   for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {

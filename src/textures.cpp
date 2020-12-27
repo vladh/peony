@@ -286,11 +286,16 @@ Textures::PersistentPbo* Textures::init_persistent_pbo(
 
   glGenBuffers(1, &ppbo->pbo);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, ppbo->pbo);
+
   GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
   glBufferStorage(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, flags);
   ppbo->memory = glMapBufferRange(
     GL_PIXEL_UNPACK_BUFFER, 0, ppbo->total_size, flags
   );
+
+  // We need to unbind this or it will mess up some textures transfers
+  // after this function.
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
   return ppbo;
 }

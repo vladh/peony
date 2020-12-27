@@ -52,17 +52,14 @@ State::State(
       &memory->entity_memory_pool, 4096, "behavior_components", true
     )
   ),
+  // TODO: Remove.
+  gui_state(),
 
   entity_manager(&this->entities),
   drawable_component_manager(&this->drawable_components),
   light_component_manager(&this->light_components),
   spatial_component_manager(&this->spatial_components),
   behavior_component_manager(&this->behavior_components),
-  gui_manager(
-    memory, &this->shader_assets,
-    &this->input_state,
-    this->window_info.width, this->window_info.height
-  ),
 
   heading_opacity(0.0f),
   heading_text(""),

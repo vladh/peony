@@ -32,7 +32,7 @@ global_variable uint32 global_oopses = 0;
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
-#include "gui_manager.cpp"
+#include "gui.cpp"
 #include "models.cpp"
 #include "world.cpp"
 #include "state.cpp"
@@ -243,7 +243,16 @@ int main() {
   Renderer::init_shadowmaps(&memory, state);
   Renderer::init_ubo(&memory, state);
   World::init(&memory, state);
+
   Textures::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
+
+  Gui::init_gui_state(
+    &state->gui_state,
+    &memory,
+    &state->shader_assets,
+    &state->input_state,
+    state->window_info.width, state->window_info.height
+  );
 
   Cameras::init_camera(
     &state->camera_main,
