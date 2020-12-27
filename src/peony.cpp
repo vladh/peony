@@ -17,7 +17,7 @@ global_variable uint32 global_oopses = 0;
 #include "tasks.cpp"
 #include "peony_file_parser.cpp"
 #include "textures.cpp"
-#include "font_asset.cpp"
+#include "fonts.cpp"
 #include "shader_asset.cpp"
 #include "camera.cpp"
 #include "memory_pool.cpp"

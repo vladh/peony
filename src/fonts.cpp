@@ -1,10 +1,10 @@
-real32 FontAsset::frac_px_to_px(uint32 n) {
+real32 Fonts::frac_px_to_px(uint32 n) {
   return (real32)(n >> 6);
 }
 
 
-real32 FontAsset::font_unit_to_px(uint32 n) {
-  // NOTE: We should be dividing by this->units_per_em here...probably?
+real32 Fonts::font_unit_to_px(uint32 n) {
+  // NOTE: We should be dividing by units_per_em here...probably?
   // This is because we expect height etc. to be in "font units".
   // But treating these metrics as "fractional pixels" seems to work,
   // whereas division by units_per_em doesn't.
@@ -13,14 +13,30 @@ real32 FontAsset::font_unit_to_px(uint32 n) {
 }
 
 
-void FontAsset::load_glyphs(
-  FT_Face face, Textures::TextureAtlas *texture_atlas
+Fonts::FontAsset* Fonts::get_by_name(
+  Array<Fonts::FontAsset> *assets, const char *name
+) {
+  for (uint32 idx = 0; idx < assets->size; idx++) {
+    FontAsset *asset = assets->get(idx);
+    if (strcmp(asset->name, name) == 0) {
+      return asset;
+    }
+  }
+  log_warning("Could not find FontAsset with name %s", name);
+  return nullptr;
+}
+
+
+void Fonts::load_glyphs(
+  Fonts::FontAsset *font_asset,
+  FT_Face face,
+  Textures::TextureAtlas *texture_atlas
 ) {
   FT_GlyphSlot glyph = face->glyph;
 
   // TODO: Can we avoid loading all characters twice here?
   for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
-    Character *character = this->characters.push();
+    Fonts::Character *character = font_asset->characters.push();
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -46,7 +62,7 @@ void FontAsset::load_glyphs(
       continue;
     }
 
-    Character *character = this->characters[c];
+    Fonts::Character *character = font_asset->characters[c];
 
     glm::ivec2 tex_coords = Textures::push_space_to_texture_atlas(
       texture_atlas, character->size
@@ -70,44 +86,40 @@ void FontAsset::load_glyphs(
 }
 
 
-FontAsset::FontAsset(
+Fonts::FontAsset* Fonts::init_font_asset(
+  Fonts::FontAsset *font_asset,
   Memory *memory,
   Textures::TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
   const char *path,
   uint16 font_size
-) :
-  characters(&memory->asset_memory_pool, CHAR_MAX_CODEPOINT_TO_LOAD + 1, "characters")
-{
-  this->name = name;
-  this->font_size = font_size;
+) {
+  font_asset->name = name;
+  font_asset->font_size = font_size;
+
+  font_asset->characters = Array<Fonts::Character>(
+    &memory->asset_memory_pool,
+    Fonts::CHAR_MAX_CODEPOINT_TO_LOAD + 1,
+    "characters"
+  );
+
   FT_Face face;
   if (FT_New_Face(*ft_library, path, 0, &face)) {
     log_error("Could not load font at %s", path);
   }
-  FT_Set_Pixel_Sizes(face, 0, this->font_size);
+  FT_Set_Pixel_Sizes(face, 0, font_asset->font_size);
   if (!FT_IS_SCALABLE(face)) {
     log_fatal("Font face not scalable, don't know what to do.");
   }
-  this->units_per_em = face->units_per_EM;
-  this->ascender = face->ascender;
-  this->descender = face->descender;
-  this->height = face->height;
-  load_glyphs(face, texture_atlas);
+  font_asset->units_per_em = face->units_per_EM;
+  font_asset->ascender = face->ascender;
+  font_asset->descender = face->descender;
+  font_asset->height = face->height;
+
+  load_glyphs(font_asset, face, texture_atlas);
+
   FT_Done_Face(face);
-}
 
-
-FontAsset* FontAsset::get_by_name(
-  Array<FontAsset> *assets, const char *name
-) {
-  for (uint32 idx = 0; idx < assets->size; idx++) {
-    FontAsset *asset = assets->get(idx);
-    if (strcmp(asset->name, name) == 0) {
-      return asset;
-    }
-  }
-  log_warning("Could not find FontAsset with name %s", name);
-  return nullptr;
+  return font_asset;
 }

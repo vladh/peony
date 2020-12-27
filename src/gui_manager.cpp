@@ -70,11 +70,13 @@ glm::vec2 GuiManager::get_text_dimensions(
 ) {
   // NOTE: This returns the dimensions around the main body of the text.
   // This does not include descenders.
-  FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
+  Fonts::FontAsset *font_asset = Fonts::get_by_name(
+    &this->font_assets, font_name
+  );
 
-  real32 line_height = font_asset->font_unit_to_px(font_asset->height);
+  real32 line_height = Fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
-  real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
+  real32 ascender = Fonts::font_unit_to_px(font_asset->ascender);
 
   real32 start_x = 0.0f;
   real32 start_y = 0.0f - (line_height - ascender);
@@ -95,15 +97,15 @@ glm::vec2 GuiManager::get_text_dimensions(
       continue;
     }
 
-    Character *character = font_asset->characters[c];
+    Fonts::Character *character = font_asset->characters[c];
 
     if (!character) {
       log_warning("Could not get character: %c", c);
       continue;
     }
 
-    curr_x += font_asset->frac_px_to_px(character->advance.x);
-    curr_y += font_asset->frac_px_to_px(character->advance.y);
+    curr_x += Fonts::frac_px_to_px(character->advance.x);
+    curr_y += Fonts::frac_px_to_px(character->advance.y);
   }
 
   max_x = glm::max(max_x, curr_x);
@@ -278,11 +280,11 @@ void GuiManager::draw_text(
   glm::vec2 position,
   glm::vec4 color
 ) {
-  FontAsset *font_asset = FontAsset::get_by_name(&this->font_assets, font_name);
+  Fonts::FontAsset *font_asset = Fonts::get_by_name(&this->font_assets, font_name);
 
-  real32 line_height = font_asset->font_unit_to_px(font_asset->height);
+  real32 line_height = Fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
-  real32 ascender = font_asset->font_unit_to_px(font_asset->ascender);
+  real32 ascender = Fonts::font_unit_to_px(font_asset->ascender);
 
   // NOTE: When changing this code, remember that the text positioning logic
   // needs to be replicated in `get_text_dimensions()`!
@@ -303,7 +305,7 @@ void GuiManager::draw_text(
       continue;
     }
 
-    Character *character = font_asset->characters[c];
+    Fonts::Character *character = font_asset->characters[c];
 
     if (!character) {
       log_warning("Could not get character: %c", c);
@@ -312,7 +314,7 @@ void GuiManager::draw_text(
 
     real32 char_x = curr_x + character->bearing.x;
     real32 char_y = curr_y + (
-      font_asset->font_unit_to_px(font_asset->height) - character->bearing.y
+      Fonts::font_unit_to_px(font_asset->height) - character->bearing.y
     );
 
     real32 tex_x = (real32)character->tex_coords.x / this->texture_atlas.size.x;
@@ -323,8 +325,8 @@ void GuiManager::draw_text(
     real32 w = (real32)character->size.x;
     real32 h = (real32)character->size.y;
 
-    curr_x += font_asset->frac_px_to_px(character->advance.x);
-    curr_y += font_asset->frac_px_to_px(character->advance.y);
+    curr_x += Fonts::frac_px_to_px(character->advance.x);
+    curr_y += Fonts::frac_px_to_px(character->advance.y);
 
     // Skip glyphs with no pixels, like spaces.
     if (w <= 0 || h <= 0) {
@@ -650,7 +652,7 @@ GuiManager::GuiManager(
   uint32 window_width, uint32 window_height
 ) :
   font_assets(
-    Array<FontAsset>(
+    Array<Fonts::FontAsset>(
       &memory->asset_memory_pool, 8, "font_assets"
     )
   ),
@@ -684,22 +686,26 @@ GuiManager::GuiManager(
       return;
     }
 
-    new(this->font_assets.push()) FontAsset(
+    Fonts::init_font_asset(
+      (Fonts::FontAsset*)(this->font_assets.push()),
       this->memory, &this->texture_atlas,
       &ft_library, "body", GUI_MAIN_FONT_REGULAR, 18
     );
 
-    new(this->font_assets.push()) FontAsset(
+    Fonts::init_font_asset(
+      (Fonts::FontAsset*)(this->font_assets.push()),
       this->memory, &this->texture_atlas,
       &ft_library, "body-bold", GUI_MAIN_FONT_BOLD, 18
     );
 
-    new(this->font_assets.push()) FontAsset(
+    Fonts::init_font_asset(
+      (Fonts::FontAsset*)(this->font_assets.push()),
       this->memory, &this->texture_atlas,
       &ft_library, "heading", GUI_MAIN_FONT_REGULAR, 42
     );
 
-    new(this->font_assets.push()) FontAsset(
+    Fonts::init_font_asset(
+      (Fonts::FontAsset*)(this->font_assets.push()),
       this->memory, &this->texture_atlas,
       &ft_library, "title", GUI_MAIN_FONT_REGULAR, 64
     );

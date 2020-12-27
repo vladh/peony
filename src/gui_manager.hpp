@@ -55,7 +55,7 @@ public:
   ShaderAsset *shader_asset;
   InputManager *input_manager;
   GLFWcursor *requested_cursor;
-  Array<FontAsset> font_assets;
+  Array<Fonts::FontAsset> font_assets;
   Textures::TextureAtlas texture_atlas;
   Array<GuiContainer> containers;
   GuiContainer *container_being_moved;

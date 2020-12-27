@@ -61,7 +61,7 @@
 #include "shader_asset.hpp"
 #include "textures.hpp"
 #include "tasks.hpp"
-#include "font_asset.hpp"
+#include "fonts.hpp"
 #include "renderer.hpp"
 #include "entity.hpp"
 #include "spatial_component.hpp"
