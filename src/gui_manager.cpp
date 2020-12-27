@@ -6,7 +6,7 @@ void GuiManager::update_screen_dimensions(
 
 
 void GuiManager::update_mouse_button() {
-  if (this->input_manager->is_mouse_button_now_up(GLFW_MOUSE_BUTTON_LEFT)) {
+  if (Input::is_mouse_button_now_up(this->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
     this->container_being_moved = nullptr;
   }
 }
@@ -14,7 +14,7 @@ void GuiManager::update_mouse_button() {
 
 void GuiManager::update_mouse() {
   if (this->container_being_moved) {
-    this->container_being_moved->position += this->input_manager->mouse_offset;
+    this->container_being_moved->position += this->input_state->mouse_offset;
   }
 }
 
@@ -25,7 +25,7 @@ void GuiManager::request_cursor(GLFWcursor *cursor) {
 
 
 void GuiManager::set_cursor() {
-  this->input_manager->set_cursor(this->requested_cursor);
+  Input::set_cursor(this->input_state, this->requested_cursor);
   this->requested_cursor = nullptr;
 }
 
@@ -239,13 +239,16 @@ GuiContainer* GuiManager::make_container(
   if (container) {
     // Check if we need to set this container as being moved.
     if (
-      this->input_manager->is_mouse_in_bb(
+      Input::is_mouse_in_bb(
+        this->input_state,
         container->position,
         container->position + glm::vec2(
           container->dimensions.x, container->title_bar_height
         )
       ) &&
-      this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)
+      Input::is_mouse_button_now_down(
+        this->input_state, GLFW_MOUSE_BUTTON_LEFT
+      )
     ) {
       this->container_being_moved = container;
     }
@@ -508,19 +511,19 @@ bool32 GuiManager::draw_toggle(
     button_color = GUI_LIGHT_COLOR;
   }
 
-  if (this->input_manager->is_mouse_in_bb(position, button_bottomright)) {
-    this->request_cursor(this->input_manager->hand_cursor);
+  if (Input::is_mouse_in_bb(this->input_state, position, button_bottomright)) {
+    this->request_cursor(this->input_state->hand_cursor);
     if (*toggle_state) {
       button_color = GUI_MAIN_HOVER_COLOR;
     } else {
       button_color = GUI_LIGHT_HOVER_COLOR;
     }
 
-    if (this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
+    if (Input::is_mouse_button_now_down(this->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
-    if (this->input_manager->is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
+    if (Input::is_mouse_button_down(this->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       if (*toggle_state) {
         button_color = GUI_MAIN_ACTIVE_COLOR;
       } else {
@@ -614,15 +617,15 @@ bool32 GuiManager::draw_button(
 
   glm::vec4 button_color = GUI_MAIN_COLOR;
 
-  if (this->input_manager->is_mouse_in_bb(position, bottomright)) {
-    this->request_cursor(this->input_manager->hand_cursor);
+  if (Input::is_mouse_in_bb(this->input_state, position, bottomright)) {
+    this->request_cursor(this->input_state->hand_cursor);
     button_color = GUI_MAIN_HOVER_COLOR;
 
-    if (this->input_manager->is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
+    if (Input::is_mouse_button_now_down(this->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
-    if (this->input_manager->is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
+    if (Input::is_mouse_button_down(this->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       button_color = GUI_MAIN_ACTIVE_COLOR;
     }
   }
@@ -650,7 +653,7 @@ bool32 GuiManager::draw_button(
 
 GuiManager::GuiManager(
   Memory *memory, Array<Shaders::ShaderAsset> *shader_assets,
-  InputManager *input_manager,
+  Input::InputState *input_state,
   uint32 window_width, uint32 window_height
 ) :
   font_assets(
@@ -665,7 +668,7 @@ GuiManager::GuiManager(
   ),
   container_being_moved(nullptr),
   memory(memory),
-  input_manager(input_manager),
+  input_state(input_state),
   window_dimensions(window_width, window_height),
   n_vertices_pushed(0)
 {

@@ -9,8 +9,6 @@ State::State(
   should_hide_ui(false),
   window_info(window_info),
 
-  input_manager(this->window_info.window),
-
   t(0),
   dt(0),
   dt_hist_idx(0),
@@ -62,7 +60,7 @@ State::State(
   behavior_component_manager(&this->behavior_components),
   gui_manager(
     memory, &this->shader_assets,
-    &this->input_manager,
+    &this->input_state,
     this->window_info.width, this->window_info.height
   ),
 

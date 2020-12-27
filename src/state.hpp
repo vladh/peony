@@ -21,7 +21,7 @@ public:
 
   Cameras::Camera camera_main;
   Cameras::Camera *camera_active;
-  InputManager input_manager;
+  Input::InputState input_state;
 
   real64 t;
   real64 dt;
