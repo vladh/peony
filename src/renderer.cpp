@@ -66,11 +66,11 @@ void Renderer::resize_renderer_buffers(Memory *memory, State *state) {
   init_blur_buffers(memory, state);
 
   for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    ModelAsset *model_asset = state->model_assets[idx];
+    Models::ModelAsset *model_asset = state->model_assets[idx];
     for (
       uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
     ) {
-      Mesh *mesh = model_asset->meshes[idx_mesh];
+      Models::Mesh *mesh = model_asset->meshes[idx_mesh];
       if (
         mesh->material->textures.size > 0 &&
         mesh->material->is_screensize_dependent
@@ -101,7 +101,7 @@ void Renderer::resize_renderer_buffers(Memory *memory, State *state) {
             material->textures.set(idx_texture, state->blur2_texture);
           }
         }
-        model_asset->bind_texture_uniforms_for_mesh(mesh);
+        Models::bind_texture_uniforms_for_mesh(mesh);
       }
     }
   }

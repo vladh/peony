@@ -65,9 +65,6 @@ public:
   uint32 add_texture_unit(
     uint32 texture_unit, GLenum texture_unit_type
   );
-  static ShaderAsset* get_by_name(
-    Array<ShaderAsset> *assets, const char *name
-  );
   ShaderAsset(
     Memory *memory, const char *name, ShaderType type,
     const char *vert_path, const char *frag_path, const char *geom_path

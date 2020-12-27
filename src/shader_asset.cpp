@@ -299,20 +299,6 @@ void ShaderAsset::set_mat4(const char *uniform_name, glm::mat4 *mat) {
 }
 
 
-ShaderAsset* ShaderAsset::get_by_name(
-  Array<ShaderAsset> *assets, const char *name
-) {
-  for (uint32 idx = 0; idx < assets->size; idx++) {
-    ShaderAsset *asset = assets->get(idx);
-    if (strcmp(asset->name, name) == 0) {
-      return asset;
-    }
-  }
-  log_warning("Could not find ShaderAsset with name %s", name);
-  return nullptr;
-}
-
-
 ShaderAsset::ShaderAsset(
   Memory *memory, const char *new_name, ShaderType new_type,
   const char *vert_path, const char *frag_path, const char *geom_path

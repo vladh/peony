@@ -14,7 +14,7 @@ global_variable uint32 global_oopses = 0;
 #include "log.cpp"
 #include "pack.cpp"
 #include "util.cpp"
-#include "task.cpp"
+#include "tasks.cpp"
 #include "peony_file_parser.cpp"
 #include "textures.cpp"
 #include "font_asset.cpp"
@@ -33,7 +33,7 @@ global_variable uint32 global_oopses = 0;
 #include "light_component_manager.cpp"
 #include "spatial_component_manager.cpp"
 #include "gui_manager.cpp"
-#include "model_asset.cpp"
+#include "models.cpp"
 #include "world.cpp"
 #include "state.cpp"
 #include "renderer.cpp"
@@ -180,38 +180,6 @@ void run_main_loop(Memory *memory, State *state) {
 }
 
 
-void run_loading_loop(
-  std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
-) {
-  while (!state->should_stop) {
-    Tasks::Task *task = nullptr;
-
-    mutex->lock();
-    if (state->task_queue.size > 0) {
-      task = state->task_queue.pop();
-    }
-    mutex->unlock();
-
-    if (task) {
-      log_info(
-        "[Thread #%d] Running task %s for model %s",
-        idx_thread,
-        Tasks::task_type_to_str(task->type),
-        task->model_asset->name
-      );
-      Tasks::run_task(task);
-      log_info(
-        "[Thread #%d] Finished task %s for model %s",
-        idx_thread,
-        Tasks::task_type_to_str(task->type),
-        task->model_asset->name
-      );
-    }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-  }
-}
-
-
 void check_environment() {
   // Check that an `enum class`'s default value == its first element == 0;
   BehaviorComponent test;
@@ -240,18 +208,22 @@ int main() {
 
   State *state = new((State*)memory.state_memory) State(&memory, window_info);
 
-  ModelAsset::entity_manager = &state->entity_manager;
-  ModelAsset::drawable_component_manager = &state->drawable_component_manager;
-  ModelAsset::spatial_component_manager = &state->spatial_component_manager;
-  ModelAsset::light_component_manager = &state->light_component_manager;
-  ModelAsset::behavior_component_manager = &state->behavior_component_manager;
-
   std::mutex loading_thread_mutex;
-  std::thread loading_thread_1 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 1);
-  std::thread loading_thread_2 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 2);
-  std::thread loading_thread_3 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 3);
-  std::thread loading_thread_4 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 4);
-  std::thread loading_thread_5 = std::thread(run_loading_loop, &loading_thread_mutex, &memory, state, 5);
+  std::thread loading_thread_1 = std::thread(
+    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 1
+  );
+  std::thread loading_thread_2 = std::thread(
+    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 2
+  );
+  std::thread loading_thread_3 = std::thread(
+    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 3
+  );
+  std::thread loading_thread_4 = std::thread(
+    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 4
+  );
+  std::thread loading_thread_5 = std::thread(
+    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 5
+  );
 
 #if 0
   Util::print_texture_internalformat_info(GL_RGB8);
@@ -272,6 +244,7 @@ int main() {
   Renderer::init_ubo(&memory, state);
   World::init(&memory, state);
   Textures::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
+
   Cameras::init_camera(
     &state->camera_main,
     Cameras::CameraType::perspective,

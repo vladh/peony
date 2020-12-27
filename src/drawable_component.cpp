@@ -8,7 +8,7 @@ DrawableComponent::DrawableComponent() {};
 
 DrawableComponent::DrawableComponent(
   EntityHandle entity_handle,
-  Mesh *mesh,
+  Models::Mesh *mesh,
   Renderer::RenderPassFlag target_render_pass
 ) :
   entity_handle(entity_handle),

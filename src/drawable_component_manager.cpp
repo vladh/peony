@@ -21,7 +21,7 @@ DrawableComponent* DrawableComponentManager::add(
 
 DrawableComponent* DrawableComponentManager::add(
   EntityHandle entity_handle,
-  Mesh *mesh,
+  Models::Mesh *mesh,
   Renderer::RenderPassFlag target_render_pass
 ) {
   assert(entity_handle != Entity::no_entity_handle);
@@ -105,7 +105,7 @@ void DrawableComponentManager::draw_all(
 
 
 void DrawableComponentManager::draw(
-  Mesh *mesh,
+  Models::Mesh *mesh,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix
 ) {
@@ -153,7 +153,7 @@ void DrawableComponentManager::draw(
 
 
 void DrawableComponentManager::draw_in_depth_mode(
-  Mesh *mesh,
+  Models::Mesh *mesh,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
   ShaderAsset *standard_depth_shader_asset

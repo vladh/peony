@@ -1,12 +1,5 @@
-EntityManager *ModelAsset::entity_manager;
-DrawableComponentManager *ModelAsset::drawable_component_manager;
-SpatialComponentManager *ModelAsset::spatial_component_manager;
-LightComponentManager *ModelAsset::light_component_manager;
-BehaviorComponentManager *ModelAsset::behavior_component_manager;
-
-
-void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
-  Mesh *mesh,
+void Models::setup_mesh_vertex_buffers_for_data_source(
+  Models::Mesh *mesh,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices
 ) {
@@ -62,8 +55,8 @@ void ModelAsset::setup_mesh_vertex_buffers_for_data_source(
 }
 
 
-void ModelAsset::setup_mesh_vertex_buffers_for_file_source(
-  Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
+void Models::setup_mesh_vertex_buffers_for_file_source(
+  Models::Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
 ) {
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
@@ -105,8 +98,8 @@ void ModelAsset::setup_mesh_vertex_buffers_for_file_source(
 }
 
 
-void ModelAsset::load_mesh(
-  Memory *memory, Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+void Models::load_mesh(
+  Models::Mesh *mesh, Memory *memory, aiMesh *mesh_data, const aiScene *scene,
   glm::mat4 transform, Pack indices_pack
 ) {
   mesh->transform = transform;
@@ -180,7 +173,8 @@ void ModelAsset::load_mesh(
 }
 
 
-void ModelAsset::load_node(
+void Models::load_node(
+  Models::ModelAsset *model_asset,
   Memory *memory, aiNode *node, const aiScene *scene,
   glm::mat4 accumulated_transform, Pack indices_pack
 ) {
@@ -190,8 +184,8 @@ void ModelAsset::load_node(
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     load_mesh(
+      model_asset->meshes.push(),
       memory,
-      this->meshes.push(),
       mesh_data, scene,
       transform,
       indices_pack
@@ -205,23 +199,24 @@ void ModelAsset::load_node(
     // to a uint8.
     pack_push(&new_indices_pack, (uint8)idx);
     load_node(
+      model_asset,
       memory, node->mChildren[idx], scene, transform, new_indices_pack
     );
   }
 }
 
 
-void ModelAsset::load(Memory *memory) {
+void Models::load_model_asset(
+  Models::ModelAsset *model_asset, Memory *memory
+) {
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
-  this->mutex.lock();
-
   char full_path[256]; // TODO: Fix unsafe strings?
   strcpy(full_path, MODEL_DIR);
-  strcat(full_path, this->path);
+  strcat(full_path, model_asset->path);
 
-  if (this->model_source == ModelSource::file) {
+  if (model_asset->model_source == ModelSource::file) {
     START_TIMER(assimp_import);
     const aiScene *scene = aiImportFile(
       full_path,
@@ -244,24 +239,24 @@ void ModelAsset::load(Memory *memory) {
     }
 
     load_node(
+      model_asset,
       memory, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
     );
 
     aiReleaseImport(scene);
   }
 
-  this->is_mesh_data_loading_in_progress = false;
-  this->is_mesh_data_loading_done = true;
-
-  this->mutex.unlock();
+  model_asset->is_mesh_data_loading_in_progress = false;
+  model_asset->is_mesh_data_loading_done = true;
 }
 
 
-void ModelAsset::copy_textures_to_pbo(
+void Models::copy_textures_to_pbo(
+  Models::ModelAsset *model_asset,
   Textures::PersistentPbo *persistent_pbo
 ) {
-  for (uint32 idx = 0; idx < this->materials.size; idx++) {
-    Textures::Material *material = this->materials[idx];
+  for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
+    Textures::Material *material = model_asset->materials[idx];
 
     if (material->textures.size > 0) {
       Textures::copy_material_textures_to_pbo(
@@ -270,12 +265,12 @@ void ModelAsset::copy_textures_to_pbo(
     }
   }
 
-  this->is_texture_copying_to_pbo_done = true;
-  this->is_texture_copying_to_pbo_in_progress = false;
+  model_asset->is_texture_copying_to_pbo_done = true;
+  model_asset->is_texture_copying_to_pbo_in_progress = false;
 }
 
 
-void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
+void Models::bind_texture_uniforms_for_mesh(Models::Mesh *mesh) {
   Textures::Material *material = mesh->material;
   ShaderAsset *shader_asset = material->shader_asset;
 
@@ -308,9 +303,9 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
       const char *uniform_name = *material->texture_uniform_names[idx];
 #if 1
       log_info(
-        "Setting uniforms: (model %s) (uniform_name %s) "
+        "Setting uniforms: (uniform_name %s) "
         "(texture->texture_name %d)",
-        this->name, uniform_name, texture->texture_name
+        uniform_name, texture->texture_name
       );
 #endif
       shader_asset->set_int(
@@ -324,79 +319,105 @@ void ModelAsset::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 }
 
 
-void ModelAsset::create_entities() {
-  if (this->spatial_component.is_valid()) {
-    this->spatial_component_manager->add(this->spatial_component);
+void Models::create_entities(
+  Models::ModelAsset *model_asset,
+  EntityManager *entity_manager,
+  DrawableComponentManager *drawable_component_manager,
+  SpatialComponentManager *spatial_component_manager,
+  LightComponentManager *light_component_manager,
+  BehaviorComponentManager *behavior_component_manager
+) {
+  if (model_asset->spatial_component.is_valid()) {
+    spatial_component_manager->add(model_asset->spatial_component);
   }
 
-  if (this->light_component.is_valid()) {
-    this->light_component_manager->add(this->light_component);
+  if (model_asset->light_component.is_valid()) {
+    light_component_manager->add(model_asset->light_component);
   }
 
-  if (this->behavior_component.is_valid()) {
-    this->behavior_component_manager->add(this->behavior_component);
+  if (model_asset->behavior_component.is_valid()) {
+    behavior_component_manager->add(model_asset->behavior_component);
   }
 
-  if (this->meshes.size == 1) {
-    this->drawable_component_manager->add(
-      this->entity_handle,
-      this->meshes[0],
-      this->render_pass
+  if (model_asset->meshes.size == 1) {
+    drawable_component_manager->add(
+      model_asset->entity_handle,
+      model_asset->meshes[0],
+      model_asset->render_pass
     );
-  } else if (this->meshes.size > 1) {
-    for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-      Mesh *mesh = this->meshes[idx];
+  } else if (model_asset->meshes.size > 1) {
+    for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
+      Models::Mesh *mesh = model_asset->meshes[idx];
 
-      Entity *child_entity = this->entity_manager->add(this->name);
+      Entity *child_entity = entity_manager->add(model_asset->name);
 
-      if (this->spatial_component.is_valid()) {
-        this->spatial_component_manager->add(
+      if (model_asset->spatial_component.is_valid()) {
+        spatial_component_manager->add(
           child_entity->handle,
           glm::vec3(0.0f),
           glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
           glm::vec3(0.0f),
-          this->entity_handle
+          model_asset->entity_handle
         );
       }
 
-      this->drawable_component_manager->add(
+      drawable_component_manager->add(
         child_entity->handle,
         mesh,
-        this->render_pass
+        model_asset->render_pass
       );
     }
   }
 }
 
 
-void ModelAsset::prepare_for_draw(
+void Models::prepare_for_draw(
+  Models::ModelAsset *model_asset,
   Memory *memory,
   Textures::PersistentPbo *persistent_pbo,
   Textures::TextureNamePool *texture_name_pool,
-  Queue<Tasks::Task> *task_queue
+  Queue<Tasks::Task> *task_queue,
+  EntityManager *entity_manager,
+  DrawableComponentManager *drawable_component_manager,
+  SpatialComponentManager *spatial_component_manager,
+  LightComponentManager *light_component_manager,
+  BehaviorComponentManager *behavior_component_manager
 ) {
   // Step 1: Load mesh data. This is done on a separate thread.
-  if (!this->is_mesh_data_loading_in_progress && !this->is_mesh_data_loading_done) {
-    this->is_mesh_data_loading_in_progress = true;
-    task_queue->push({Tasks::TaskType::load_model, this, nullptr, memory});
+  if (
+    !model_asset->is_mesh_data_loading_in_progress &&
+    !model_asset->is_mesh_data_loading_done
+  ) {
+    model_asset->is_mesh_data_loading_in_progress = true;
+    task_queue->push({Tasks::TaskType::load_model, model_asset, nullptr, memory});
   }
 
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
-  if (this->is_mesh_data_loading_done && !this->is_vertex_buffer_setup_done) {
-    for (uint32 idx = 0; idx < this->meshes.size; idx++) {
-      Mesh *mesh = this->meshes[idx];
+  if (
+    model_asset->is_mesh_data_loading_done &&
+    !model_asset->is_vertex_buffer_setup_done
+  ) {
+    for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
+      Models::Mesh *mesh = model_asset->meshes[idx];
       setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
     }
-    this->is_vertex_buffer_setup_done = true;
+    model_asset->is_vertex_buffer_setup_done = true;
   }
 
-  if (this->is_mesh_data_loading_done && this->materials.size > 0) {
+  if (
+    model_asset->is_mesh_data_loading_done &&
+    model_asset->materials.size > 0
+  ) {
     // Step 3: Once the mesh data is loaded, bind materials for their respective meshes.
-    if (this->is_mesh_data_loading_done && !this->is_shader_setting_done) {
-      for (uint32 idx_material = 0; idx_material < this->materials.size; idx_material++) {
-        Textures::Material *material = this->materials[idx_material];
-        for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-          Mesh *mesh = this->meshes[idx_mesh];
+    if (model_asset->is_mesh_data_loading_done && !model_asset->is_shader_setting_done) {
+      for (
+        uint32 idx_material = 0;
+        idx_material < model_asset->materials.size;
+        idx_material++
+      ) {
+        Textures::Material *material = model_asset->materials[idx_material];
+        for (uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++) {
+          Models::Mesh *mesh = model_asset->meshes[idx_mesh];
           uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
           // For our model's mesh number `mesh_number`, we want to choose
           // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
@@ -405,27 +426,27 @@ void ModelAsset::prepare_for_draw(
           // meshes all get material number 0.
           if (
             mesh_number == idx_material ||
-            mesh_number >= this->materials.size && idx_material == 0
+            mesh_number >= model_asset->materials.size && idx_material == 0
           ) {
             mesh->material = material;
           }
         }
       }
-      this->is_shader_setting_done = true;
+      model_asset->is_shader_setting_done = true;
     }
 
     // Step 4: In parallel with the above, on a second thread, load all textures
-    // for this model from their files and copy them over to the PBO.
+    // for model_asset model from their files and copy them over to the PBO.
     if (
-      !this->is_texture_copying_to_pbo_done &&
-      !this->is_texture_copying_to_pbo_in_progress
+      !model_asset->is_texture_copying_to_pbo_done &&
+      !model_asset->is_texture_copying_to_pbo_in_progress
     ) {
       // NOTE: Make sure we don't spawn threads that do nothing, or queue up
       // useless work for threads! This means only copying textures for meshes
       // that have one or more textures that do not have names yet.
       bool32 should_try_to_copy_textures = false;
-      for (uint32 idx = 0; idx < this->materials.size; idx++) {
-        Textures::Material *material = this->materials[idx];
+      for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
+        Textures::Material *material = model_asset->materials[idx];
         if (material->textures.size > 0) {
           for (
             uint32 texture_idx = 0;
@@ -442,29 +463,29 @@ void ModelAsset::prepare_for_draw(
       }
 
       if (should_try_to_copy_textures) {
-        this->is_texture_copying_to_pbo_in_progress = true;
+        model_asset->is_texture_copying_to_pbo_in_progress = true;
         task_queue->push({
-          Tasks::TaskType::copy_textures_to_pbo, this, persistent_pbo, nullptr
+          Tasks::TaskType::copy_textures_to_pbo, model_asset, persistent_pbo, nullptr
         });
       } else {
-        this->is_texture_copying_to_pbo_done = true;
-        this->is_texture_creation_done = true;
+        model_asset->is_texture_copying_to_pbo_done = true;
+        model_asset->is_texture_creation_done = true;
       }
     }
 
     // Step 5: Once all of the above is complete, copy the texture data from the
     // PBO to the actual textures.
     if (
-      this->is_mesh_data_loading_done &&
-      this->is_vertex_buffer_setup_done &&
-      this->is_shader_setting_done &&
-      this->is_texture_copying_to_pbo_done &&
-      !this->is_texture_creation_done
+      model_asset->is_mesh_data_loading_done &&
+      model_asset->is_vertex_buffer_setup_done &&
+      model_asset->is_shader_setting_done &&
+      model_asset->is_texture_copying_to_pbo_done &&
+      !model_asset->is_texture_creation_done
     ) {
       START_TIMER(copy_pbo_to_texture);
 
-      for (uint32 idx = 0; idx < this->materials.size; idx++) {
-        Textures::Material *material = this->materials[idx];
+      for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
+        Textures::Material *material = model_asset->materials[idx];
 
         if (
           material->textures.size > 0 &&
@@ -478,22 +499,22 @@ void ModelAsset::prepare_for_draw(
         }
       }
 
-      this->is_texture_creation_done = true;
+      model_asset->is_texture_creation_done = true;
       END_TIMER_MIN(copy_pbo_to_texture, 5);
     }
 
     // Step 6: Bind the texture uniforms.
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
-    if (this->is_texture_creation_done) {
-      for (uint32 idx = 0; idx < this->materials.size; idx++) {
-        Textures::Material *material = this->materials[idx];
+    if (model_asset->is_texture_creation_done) {
+      for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
+        Textures::Material *material = model_asset->materials[idx];
 
         if (
           !material->shader_asset->did_set_texture_uniforms
         ) {
-          for (uint32 idx_mesh = 0; idx_mesh < this->meshes.size; idx_mesh++) {
-            Mesh *mesh = this->meshes[idx_mesh];
+          for (uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++) {
+            Models::Mesh *mesh = model_asset->meshes[idx_mesh];
             if (!mesh->material->shader_asset->did_set_texture_uniforms) {
               bind_texture_uniforms_for_mesh(mesh);
             }
@@ -504,53 +525,55 @@ void ModelAsset::prepare_for_draw(
 
     // Step 7: Create the entities.
     if (
-      this->is_texture_creation_done &&
-      !this->is_entity_creation_done
+      model_asset->is_texture_creation_done &&
+      !model_asset->is_entity_creation_done
     ) {
-      create_entities();
-      this->is_entity_creation_done = true;
+      create_entities(
+        model_asset,
+        entity_manager,
+        drawable_component_manager,
+        spatial_component_manager,
+        light_component_manager,
+        behavior_component_manager
+      );
+      model_asset->is_entity_creation_done = true;
     }
 
   }
 }
 
 
-ModelAsset* ModelAsset::get_by_name(
-  Array<ModelAsset> *assets, const char *name
-) {
-  for (uint32 idx = 0; idx < assets->size; idx++) {
-    ModelAsset *asset = assets->get(idx);
-    if (strcmp(asset->name, name) == 0) {
-      return asset;
-    }
-  }
-  log_warning("Could not find ModelAsset with name %s", name);
-  return nullptr;
-}
-
-
-ModelAsset::ModelAsset(
+Models::ModelAsset* Models::init_model_asset(
+  ModelAsset *model_asset,
   Memory *memory,
   ModelSource model_source,
   const char *name,
   const char *path,
   Renderer::RenderPassFlag render_pass,
   EntityHandle entity_handle
-) :
-  name(name),
-  model_source(model_source),
-  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
-  render_pass(render_pass),
-  entity_handle(entity_handle)
-{
-  strcpy(this->path, path);
+) {
+  model_asset->name = name;
+  model_asset->model_source = model_source;
+  model_asset->render_pass = render_pass;
+  model_asset->entity_handle = entity_handle;
+
+  model_asset->meshes = Array<Models::Mesh>(
+    &memory->asset_memory_pool, MAX_N_MESHES, "meshes"
+  );
+  model_asset->materials = Array<Textures::Material>(
+    &memory->asset_memory_pool, MAX_N_MATERIALS, "materials"
+  );
+
+  strcpy(model_asset->path, path);
   // NOTE: We do not load ModelSource::file models here.
   // They will be loaded gradually in `::prepare_for_draw()`.
+
+  return model_asset;
 }
 
 
-ModelAsset::ModelAsset(
+Models::ModelAsset* Models::init_model_asset(
+  ModelAsset *model_asset,
   Memory *memory,
   ModelSource model_source,
   real32 *vertex_data, uint32 n_vertices,
@@ -559,16 +582,20 @@ ModelAsset::ModelAsset(
   GLenum mode,
   Renderer::RenderPassFlag render_pass,
   EntityHandle entity_handle
-) :
-  name(name),
-  model_source(model_source),
-  path(""),
-  meshes(&memory->asset_memory_pool, MAX_N_MESHES, "meshes"),
-  materials(&memory->asset_memory_pool, MAX_N_MATERIALS, "materials"),
-  render_pass(render_pass),
-  entity_handle(entity_handle)
-{
-  Mesh *mesh = this->meshes.push();
+) {
+  model_asset->name = name;
+  model_asset->model_source = model_source;
+  model_asset->render_pass = render_pass;
+  model_asset->entity_handle = entity_handle;
+
+  model_asset->meshes = Array<Models::Mesh>(
+    &memory->asset_memory_pool, MAX_N_MESHES, "meshes"
+  );
+  model_asset->materials = Array<Textures::Material>(
+    &memory->asset_memory_pool, MAX_N_MATERIALS, "materials"
+  );
+
+  Models::Mesh *mesh = model_asset->meshes.push();
   mesh->transform = glm::mat4(1.0f);
   mesh->material = nullptr;
   mesh->mode = mode;
@@ -579,6 +606,8 @@ ModelAsset::ModelAsset(
   setup_mesh_vertex_buffers_for_data_source(
     mesh, vertex_data, n_vertices, index_data, n_indices
   );
-  this->is_mesh_data_loading_done = true;
-  this->is_vertex_buffer_setup_done = true;
+  model_asset->is_mesh_data_loading_done = true;
+  model_asset->is_vertex_buffer_setup_done = true;
+
+  return model_asset;
 }
