@@ -22,7 +22,7 @@ global_variable uint32 global_oopses = 0;
 #include "camera.cpp"
 #include "memory_pool.cpp"
 #include "memory.cpp"
-#include "input_manager.cpp"
+#include "input.cpp"
 #include "entity_manager.cpp"
 #include "behavior_component.cpp"
 #include "drawable_component.cpp"
@@ -41,57 +41,57 @@ global_variable uint32 global_oopses = 0;
 
 void process_input(GLFWwindow *window, State *state, Memory *memory) {
   // Continuous
-  if (state->input_manager.is_key_down(GLFW_KEY_W)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_W)) {
     Cameras::move_front_back(state->camera_active, 1, state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_S)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_S)) {
     Cameras::move_front_back(state->camera_active, -1, state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_A)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_A)) {
     Cameras::move_left_right(state->camera_active, -1, state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_D)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_D)) {
     Cameras::move_left_right(state->camera_active, 1, state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_Z)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_Z)) {
     World::update_light_position(state, 0.10f * (real32)state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_X)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_X)) {
     World::update_light_position(state, -0.10f * (real32)state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_SPACE)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_SPACE)) {
     Cameras::move_up_down(state->camera_active, 1, state->dt);
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_LEFT_CONTROL)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_LEFT_CONTROL)) {
     Cameras::move_up_down(state->camera_active, -1, state->dt);
   }
 
   // Transient
-  if (state->input_manager.is_key_now_down(GLFW_KEY_ESCAPE)) {
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (state->input_manager.is_key_now_down(GLFW_KEY_C)) {
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_C)) {
     state->is_cursor_disabled = !state->is_cursor_disabled;
     Renderer::update_drawing_options(state, window);
   }
 
-  if (state->input_manager.is_key_now_down(GLFW_KEY_TAB)) {
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_TAB)) {
     state->should_pause = !state->should_pause;
   }
 
-  if (state->input_manager.is_key_now_down(GLFW_KEY_BACKSPACE)) {
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
     state->should_hide_ui = !state->should_hide_ui;
   }
 
-  if (state->input_manager.is_key_down(GLFW_KEY_ENTER)) {
+  if (Input::is_key_down(&state->input_state, GLFW_KEY_ENTER)) {
     state->should_manually_advance_to_next_frame = true;
   }
 }
@@ -161,8 +161,8 @@ void run_main_loop(Memory *memory, State *state) {
       if (state->is_manual_frame_advance_enabled) {
         state->should_manually_advance_to_next_frame = false;
       }
-      state->input_manager.reset_n_mouse_button_state_changes_this_frame();
-      state->input_manager.reset_n_key_state_changes_this_frame();
+      Input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
+      Input::reset_n_key_state_changes_this_frame(&state->input_state);
 
       if (state->should_limit_fps) {
         std::this_thread::sleep_until(time_frame_should_end);
@@ -252,6 +252,11 @@ int main() {
     state->window_info.height
   );
   state->camera_active = &state->camera_main;
+
+  Input::init_input_state(
+    &state->input_state,
+    state->window_info.window
+  );
 
 #if 0
   memory.asset_memory_pool.print();

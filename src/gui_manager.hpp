@@ -53,7 +53,7 @@ class GuiManager {
 public:
   Memory *memory;
   Shaders::ShaderAsset *shader_asset;
-  InputManager *input_manager;
+  Input::InputState *input_state;
   GLFWcursor *requested_cursor;
   Array<Fonts::FontAsset> font_assets;
   Textures::TextureAtlas texture_atlas;
@@ -134,7 +134,7 @@ public:
   );
   GuiManager(
     Memory *memory, Array<Shaders::ShaderAsset> *shader_assets,
-    InputManager *input_manager,
+    Input::InputState *input_state,
     uint32 window_width, uint32 window_height
   );
 };

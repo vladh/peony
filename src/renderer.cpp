@@ -601,7 +601,7 @@ void Renderer::mouse_button_callback(GLFWwindow *window, int button, int action,
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
 
-  state->input_manager.update_mouse_button(button, action, mods);
+  Input::update_mouse_button(&state->input_state, button, action, mods);
   state->gui_manager.update_mouse_button();
 }
 
@@ -611,12 +611,12 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   State *state = memory_and_state->state;
 
   glm::vec2 mouse_pos = glm::vec2(x, y);
-  state->input_manager.update_mouse(mouse_pos);
+  Input::update_mouse(&state->input_state, mouse_pos);
 
   if (state->is_cursor_disabled) {
     Cameras::update_mouse(
       state->camera_active,
-      state->input_manager.mouse_3d_offset
+      state->input_state.mouse_3d_offset
     );
   } else {
     state->gui_manager.update_mouse();
@@ -627,7 +627,7 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 void Renderer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
-  state->input_manager.update_keys(key, scancode, action, mods);
+  Input::update_keys(&state->input_state, key, scancode, action, mods);
 }
 
 

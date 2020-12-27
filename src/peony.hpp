@@ -75,7 +75,7 @@
 #include "behavior_component_manager.hpp"
 #include "models.hpp"
 #include "peony_file_parser.hpp"
-#include "input_manager.hpp"
+#include "input.hpp"
 #include "gui_manager.hpp"
 #include "data.hpp"
 #include "camera.hpp"
