@@ -50,6 +50,8 @@ void DrawableComponentManager::draw_all(
   Renderer::RenderMode render_mode,
   Shaders::ShaderAsset *standard_depth_shader_asset
 ) {
+  ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
+
   for (uint32 idx = 0; idx < this->components->size; idx++) {
     DrawableComponent *drawable = this->components->get(idx);
 
@@ -69,7 +71,7 @@ void DrawableComponentManager::draw_all(
     if (spatial->is_valid()) {
       // We only need to calculate the normal matrix if we have non-uniform
       // scaling.
-      model_matrix = spatial_component_manager->make_model_matrix(spatial);
+      model_matrix = spatial_component_manager->make_model_matrix(spatial, &cache);
 
       // TODO: Even though we have a uniform scaling in the transformation for
       // our spatial component itself, when accumulating it with the parent
