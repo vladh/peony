@@ -27,7 +27,7 @@ public:
     glm::vec3 scale
   );
   SpatialComponent* get(EntityHandle handle);
-  glm::mat4 SpatialComponentManager::make_model_matrix(
+  glm::mat4 make_model_matrix(
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
   SpatialComponentManager(

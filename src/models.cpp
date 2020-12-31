@@ -437,7 +437,7 @@ void Models::prepare_for_draw(
           // meshes all get material number 0.
           if (
             mesh_number == idx_material ||
-            mesh_number >= model_asset->materials.size && idx_material == 0
+            (mesh_number >= model_asset->materials.size && idx_material == 0)
           ) {
             mesh->material = material;
           }

@@ -1,21 +1,17 @@
-TARGET = gl
+TARGET = peony
 BINPATH = build/
 CC = g++
 CFLAGS = -I${HOME}/opt/include -std=c++2a -Wall -g
 # LDFLAGS = -L${HOME}/opt/lib -lm -lglfw -lassimp
-LDFLAGS = -lm -lglfw -lassimp
+LDFLAGS = -lm -lglfw -lassimp -lfreetype
 
-OBJECTS = $(patsubst %.cpp, %.o, $(wildcard src/*.cpp))
-HEADERS = $(wildcard src/*.h)
+OBJECTS = src/peony.cpp
 
 .PHONY: test default all clean
 default: $(TARGET)
 all: default
 
-src/%.o: src/%.cpp $(HEADERS)
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(TARGET): $(OBJECTS)
+$(TARGET):
 	$(CC) $(OBJECTS) $(CFLAGS) $(LDFLAGS) -o $(BINPATH)$@
 
 run: $(TARGET)

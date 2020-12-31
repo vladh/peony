@@ -9,8 +9,6 @@
 
 #include "peony.hpp"
 
-global_variable uint32 global_oopses = 0;
-
 #include "log.cpp"
 #include "pack.cpp"
 #include "util.cpp"
