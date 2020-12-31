@@ -179,8 +179,8 @@ vec3 get_normal_from_map(
 
 vec3 desaturate(vec3 color, float factor) {
   // https://github.com/jamieowen/glsl-blend/blob/master/_temp/conversion/desaturate.glsl
-  vec3 filter = vec3(0.3, 0.59, 0.11);
-  vec3 gray = vec3(dot(filter, color));
+  vec3 mask = vec3(0.3, 0.59, 0.11);
+  vec3 gray = vec3(dot(mask, color));
   return mix(color, gray, factor);
 }
 
