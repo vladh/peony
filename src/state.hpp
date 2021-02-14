@@ -44,13 +44,13 @@ public:
   Array<LightComponent> light_components;
   Array<SpatialComponent> spatial_components;
   Array<BehaviorComponent> behavior_components;
+  Gui::GuiState gui_state;
 
   EntityManager entity_manager;
   DrawableComponentManager drawable_component_manager;
   LightComponentManager light_component_manager;
   SpatialComponentManager spatial_component_manager;
   BehaviorComponentManager behavior_component_manager;
-  Gui::GuiState gui_state;
 
   real32 heading_opacity;
   const char *heading_text;
