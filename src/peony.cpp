@@ -5,7 +5,9 @@
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 #define USE_CACHELINE_SIZE_DISPLAY false
-#define USE_FULLSCREEN false
+#define USE_FULLSCREEN true
+#define USE_WINDOWED_FULLSCREEN true
+#define TARGET_MONITOR 0
 
 #include "peony.hpp"
 
