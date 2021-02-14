@@ -653,39 +653,47 @@ void Renderer::init_window(WindowInfo *window_info) {
 #endif
 
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
 
+#if USE_FULLSCREEN
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[0];
+  GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
 
   const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
   glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
   glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-#if USE_FULLSCREEN
+
   window_info->width = video_mode->width;
   window_info->height = video_mode->height;
-#else
-  window_info->width = 1920;
-  window_info->height = 1080;
-#endif
 
   GLFWwindow *window = glfwCreateWindow(
     window_info->width, window_info->height, window_info->title,
-    /* target_monitor, nullptr */
+#if USE_WINDOWED_FULLSCREEN
+    nullptr, nullptr
+#else
+    target_monitor, nullptr
+#endif
+  );
+#else
+  window_info->width = 1920;
+  window_info->height = 1080;
+
+  GLFWwindow *window = glfwCreateWindow(
+    window_info->width, window_info->height, window_info->title,
     nullptr, nullptr
   );
+
+  glfwSetWindowPos(window, 200, 200);
+#endif
+
   if (!window) {
     log_fatal("Failed to create GLFW window");
     return;
   }
   window_info->window = window;
-#if USE_FULLSCREEN
-  glfwSetWindowPos(window, 0, 0);
-#else
-  glfwSetWindowPos(window, 200, 200);
-#endif
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
