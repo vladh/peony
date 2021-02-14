@@ -21,15 +21,15 @@ void main() {
   vec2 texelSize = 1.0 / textureSize(source_texture, 0);
   vec2 blur = texelSize * direction;
 
-  sum += texture2D(source_texture, vec2(tc.x, tc.y)) * BLUR_WEIGHTS[0];
+  sum += texture(source_texture, vec2(tc.x, tc.y)) * BLUR_WEIGHTS[0];
 
   for (int idx = 1; idx < 3; idx++) {
     float offset = BLUR_OFFSETS[idx];
     // float offset = idx;
-    sum += texture2D(
+    sum += texture(
       source_texture, tc - vec2(blur.x * offset, blur.y * offset)
     ) * BLUR_WEIGHTS[idx];
-    sum += texture2D(
+    sum += texture(
       source_texture, tc + vec2(blur.x * offset, blur.y * offset)
     ) * BLUR_WEIGHTS[idx];
   }

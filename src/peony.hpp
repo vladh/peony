@@ -15,7 +15,9 @@
 #include <stdio.h>
 #include <signal.h>
 
+#ifdef _WIN32
 #include <intrin.h>
+#endif
 
 #include <chrono>
 #include <thread>

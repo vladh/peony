@@ -5,8 +5,11 @@ void log_fatal(const char *format, ...) {
   vfprintf(stderr, format, vargs);
   fprintf(stderr, "\n");
   va_end(vargs);
-  /* raise(SIGABRT); */
+#ifdef _WIN32
   __debugbreak();
+#else
+  raise(SIGABRT);
+#endif
 }
 
 
