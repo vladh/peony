@@ -1,25 +1,35 @@
 void World::get_entity_text_representation(
-  char *text, State *state, Entity *entity, uint8 depth
+  char *text,
+  State *state,
+  Entities::Entity *entity,
+  uint8 depth
 ) {
-  EntityHandle handle = entity->handle;
-  SpatialComponent *spatial_component = state->spatial_component_manager.get(handle);
+  Entities::EntityHandle handle = entity->handle;
+  Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
+    handle
+  );
 
   // Children will be drawn under their parents.
   if (
     depth == 0 &&
-    spatial_component->is_valid() &&
-    spatial_component->parent_entity_handle != Entity::no_entity_handle
+    Entities::is_spatial_component_valid(spatial_component) &&
+    spatial_component->parent_entity_handle != Entities::Entity::no_entity_handle
   ) {
     return;
   }
 
-  bool32 has_spatial_component = spatial_component->is_valid();
-  bool32 has_drawable_component =
-    state->drawable_component_manager.get(handle)->is_valid();
-  bool32 has_light_component =
-    state->light_component_manager.get(handle)->is_valid();
-  bool32 has_behavior_component =
-    state->behavior_component_manager.get(handle)->is_valid();
+  bool32 has_spatial_component = Entities::is_spatial_component_valid(
+    spatial_component
+  );
+  bool32 has_drawable_component = Entities::is_drawable_component_valid(
+    state->drawable_component_manager.get(handle)
+  );
+  bool32 has_light_component = Entities::is_light_component_valid(
+    state->light_component_manager.get(handle)
+  );
+  bool32 has_behavior_component = Entities::is_behavior_component_valid(
+    state->behavior_component_manager.get(handle)
+  );
 
   for (uint8 level = 0; level < depth; level++) {
     strcat(text, "  ");
@@ -55,7 +65,7 @@ void World::get_entity_text_representation(
     strcat(text, " +B");
   }
 
-  if (spatial_component->is_valid()) {
+  if (Entities::is_spatial_component_valid(spatial_component)) {
     // NOTE: This is super slow lol.
     uint32 n_children_found = 0;
     for (
@@ -63,7 +73,7 @@ void World::get_entity_text_representation(
       child_idx < state->spatial_component_manager.components->size;
       child_idx++
     ) {
-      SpatialComponent *child_spatial_component =
+      Entities::SpatialComponent *child_spatial_component =
         state->spatial_component_manager.components->get(child_idx);
       if (
         child_spatial_component->parent_entity_handle ==
@@ -73,8 +83,8 @@ void World::get_entity_text_representation(
         if (n_children_found > 5) {
           continue;
         }
-        EntityHandle child_handle = child_spatial_component->entity_handle;
-        Entity *child_entity = state->entities.get(child_handle);
+        Entities::EntityHandle child_handle = child_spatial_component->entity_handle;
+        Entities::Entity *child_entity = state->entities.get(child_handle);
 
         if (text[strlen(text) - 1] != '\n') {
           strcat(text, "\n");
@@ -102,7 +112,7 @@ void World::get_scene_text_representation(char *text, State *state) {
   strcpy(text, "");
 
   for (uint32 idx = 1; idx < state->entities.size; idx++) {
-    Entity *entity = state->entities[idx];
+    Entities::Entity *entity = state->entities[idx];
     get_entity_text_representation(text, state, entity, 0);
   }
 
@@ -114,8 +124,9 @@ void World::get_scene_text_representation(char *text, State *state) {
 
 void World::update_light_position(State *state, real32 amount) {
   for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-    LightComponent *light_component = state->light_component_manager.components->get(idx);
-    if (light_component -> type == LightType::directional) {
+    Entities::LightComponent *light_component =
+      state->light_component_manager.components->get(idx);
+    if (light_component -> type == Entities::LightType::directional) {
       state->dir_light_angle += amount;
       light_component->direction = glm::vec3(
         sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
@@ -134,7 +145,7 @@ void World::create_entities_from_entity_template(
   Array<Shaders::ShaderAsset> *shader_assets,
   State *state
 ) {
-  Entity *entity = entity_manager->add(entity_template->entity_debug_name);
+  Entities::Entity *entity = entity_manager->add(entity_template->entity_debug_name);
 
   Models::ModelAsset *model_asset = nullptr;
 
@@ -197,8 +208,9 @@ void World::create_entities_from_entity_template(
     log_fatal("Found no model asset.");
   }
 
-  if (entity_template->spatial_component.is_valid()) {
-    model_asset->spatial_component = SpatialComponent(
+  if (Entities::is_spatial_component_valid(&entity_template->spatial_component)) {
+    Entities::init_spatial_component(
+      &model_asset->spatial_component,
       entity->handle,
       entity_template->spatial_component.position,
       entity_template->spatial_component.rotation,
@@ -207,8 +219,9 @@ void World::create_entities_from_entity_template(
     );
   }
 
-  if (entity_template->light_component.is_valid()) {
-    model_asset->light_component = LightComponent(
+  if (Entities::is_light_component_valid(&entity_template->light_component)) {
+    Entities::init_light_component(
+      &model_asset->light_component,
       entity->handle,
       entity_template->light_component.type,
       entity_template->light_component.direction,
@@ -217,8 +230,9 @@ void World::create_entities_from_entity_template(
     );
   }
 
-  if (entity_template->behavior_component.is_valid()) {
-    model_asset->behavior_component = BehaviorComponent(
+  if (Entities::is_behavior_component_valid(&entity_template->behavior_component)) {
+    Entities::init_behavior_component(
+      &model_asset->behavior_component,
       entity->handle,
       entity_template->behavior_component.behavior
     );
@@ -470,7 +484,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Skysphere
   {
 #if 1
-    Entity *entity = state->entity_manager.add("skysphere");
+    Entities::Entity *entity = state->entity_manager.add("skysphere");
 
     model_asset = Models::init_model_asset(
       (Models::ModelAsset*)(state->model_assets.push()),
@@ -484,7 +498,8 @@ void World::create_internal_entities(Memory *memory, State *state) {
       entity->handle
     );
 
-    model_asset->spatial_component = SpatialComponent(
+    Entities::init_spatial_component(
+      &model_asset->spatial_component,
       entity->handle,
       glm::vec3(0.0f),
       glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
@@ -562,32 +577,32 @@ void World::update(Memory *memory, State *state) {
     idx < state->behavior_component_manager.components->size;
     idx++
   ) {
-    BehaviorComponent *behavior_component =
+    Entities::BehaviorComponent *behavior_component =
       state->behavior_component_manager.components->get(idx);
 
     if (
       !behavior_component ||
-      !behavior_component->is_valid()
+      !Entities::is_behavior_component_valid(behavior_component)
     ) {
       continue;
     }
 
-    EntityHandle entity_handle = behavior_component->entity_handle;
+    Entities::EntityHandle entity_handle = behavior_component->entity_handle;
 
-    SpatialComponent *spatial_component =
+    Entities::SpatialComponent *spatial_component =
       state->spatial_component_manager.get(entity_handle);
     if (!spatial_component) {
       log_error("Could not get SpatialComponent for BehaviorComponent");
       continue;
     }
 
-    Entity *entity = state->entities.get(entity_handle);
+    Entities::Entity *entity = state->entities.get(entity_handle);
     if (!entity) {
       log_error("Could not get Entity for BehaviorComponent");
       continue;
     }
 
-    if (behavior_component->behavior == Behavior::test) {
+    if (behavior_component->behavior == Entities::Behavior::test) {
       spatial_component->position = glm::vec3(
         (real32)sin(state->t) * 15.0f,
         (real32)((sin(state->t * 2.0f) + 1.5) * 3.0f),
@@ -598,27 +613,27 @@ void World::update(Memory *memory, State *state) {
 
   {
     for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-      LightComponent *light_component =
+      Entities::LightComponent *light_component =
         state->light_component_manager.components->get(idx);
-      SpatialComponent *spatial_component = state->spatial_component_manager.get(
+      Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
         light_component->entity_handle
       );
 
       if (!(
-        light_component->is_valid() &&
-        spatial_component->is_valid()
+        Entities::is_light_component_valid(light_component) &&
+        Entities::is_spatial_component_valid(spatial_component)
       )) {
         continue;
       }
 
-      if (light_component->type == LightType::point) {
+      if (light_component->type == Entities::LightType::point) {
         real64 time_term =
           (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
         real64 x_term = 0.0f + cos(time_term) * 8.0f;
         real64 z_term = 0.0f + sin(time_term) * 8.0f;
         spatial_component->position.x = (real32)x_term;
         spatial_component->position.z = (real32)z_term;
-      } else if (light_component->type == LightType::directional) {
+      } else if (light_component->type == Entities::LightType::directional) {
         spatial_component->position = state->camera_active->position +
           -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
       }

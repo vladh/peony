@@ -8,18 +8,18 @@ namespace Models {
 
 class DrawableComponentManager {
 public:
-  Array<DrawableComponent> *components;
+  Array<Entities::DrawableComponent> *components;
   static uint32 last_drawn_shader_program;
 
-  DrawableComponent* add(
-    DrawableComponent drawable_component
+  Entities::DrawableComponent* add(
+    Entities::DrawableComponent drawable_component
   );
-  DrawableComponent* add(
-    EntityHandle entity_handle,
+  Entities::DrawableComponent* add(
+    Entities::EntityHandle entity_handle,
     Models::Mesh *mesh,
     Renderer::RenderPassFlag target_render_pass
   );
-  DrawableComponent* get(EntityHandle handle);
+  Entities::DrawableComponent* get(Entities::EntityHandle handle);
   void draw_all(
     SpatialComponentManager *spatial_component_manager,
     Renderer::RenderPassFlag render_pass,
@@ -38,7 +38,7 @@ public:
     Shaders::ShaderAsset *standard_depth_shader_asset
   );
   DrawableComponentManager(
-    Array<DrawableComponent> *components
+    Array<Entities::DrawableComponent> *components
   );
 };
 

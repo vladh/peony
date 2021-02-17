@@ -57,9 +57,9 @@ namespace PeonyFileParser {
     Renderer::RenderPassFlag render_pass;
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
-    SpatialComponent spatial_component;
-    LightComponent light_component;
-    BehaviorComponent behavior_component;
+    Entities::SpatialComponent spatial_component;
+    Entities::LightComponent light_component;
+    Entities::BehaviorComponent behavior_component;
   };
 
   enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};

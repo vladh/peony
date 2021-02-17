@@ -3,35 +3,35 @@
 
 struct ModelMatrixCache {
   glm::mat4 last_model_matrix;
-  SpatialComponent *last_model_matrix_spatial_component;
+  Entities::SpatialComponent *last_model_matrix_spatial_component;
 };
 
 class SpatialComponentManager {
 public:
-  Array<SpatialComponent> *components;
+  Array<Entities::SpatialComponent> *components;
 
-  SpatialComponent* add(
-    SpatialComponent spatial_component
+  Entities::SpatialComponent* add(
+    Entities::SpatialComponent spatial_component
   );
-  SpatialComponent* add(
-    EntityHandle entity_handle,
+  Entities::SpatialComponent* add(
+    Entities::EntityHandle entity_handle,
     glm::vec3 position,
     glm::quat rotation,
     glm::vec3 scale,
-    EntityHandle parent_entity_handle
+    Entities::EntityHandle parent_entity_handle
   );
-  SpatialComponent* add(
-    EntityHandle entity_handle,
+  Entities::SpatialComponent* add(
+    Entities::EntityHandle entity_handle,
     glm::vec3 position,
     glm::quat rotation,
     glm::vec3 scale
   );
-  SpatialComponent* get(EntityHandle handle);
+  Entities::SpatialComponent* get(Entities::EntityHandle handle);
   glm::mat4 make_model_matrix(
-    SpatialComponent *spatial_component, ModelMatrixCache *cache
+    Entities::SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
   SpatialComponentManager(
-    Array<SpatialComponent> *components
+    Array<Entities::SpatialComponent> *components
   );
 };
 

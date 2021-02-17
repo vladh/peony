@@ -4,13 +4,13 @@
 class EntityManager {
 public:
   // NOTE: 0 is an invalid handle.
-  EntityHandle last_handle = 1;
-  Array<Entity> *entities;
+  Entities::EntityHandle last_handle = 1;
+  Array<Entities::Entity> *entities;
 
-  EntityHandle make_handle();
-  Entity* add(const char* debug_name);
-  Entity* get(EntityHandle handle);
-  EntityManager(Array<Entity> *entities);
+  Entities::EntityHandle make_handle();
+  Entities::Entity* add(const char* debug_name);
+  Entities::Entity* get(Entities::EntityHandle handle);
+  EntityManager(Array<Entities::Entity> *entities);
 };
 
 #endif

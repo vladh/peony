@@ -524,20 +524,20 @@ void Renderer::copy_scene_data_to_ubo(
   uint32 n_directional_lights = 0;
 
   for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-    LightComponent *light_component =
+    Entities::LightComponent *light_component =
       state->light_component_manager.components->get(idx);
-    SpatialComponent *spatial_component = state->spatial_component_manager.get(
+    Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
       light_component->entity_handle
     );
 
     if (!(
-      light_component->is_valid() &&
-      spatial_component->is_valid()
+      Entities::is_light_component_valid(light_component) &&
+      Entities::is_spatial_component_valid(spatial_component)
     )) {
       continue;
     }
 
-    if (light_component->type == LightType::point) {
+    if (light_component->type == Entities::LightType::point) {
       shader_common->point_light_position[n_point_lights] = glm::vec4(
         spatial_component->position, 1.0f
       );
@@ -546,7 +546,7 @@ void Renderer::copy_scene_data_to_ubo(
       shader_common->point_light_attenuation[n_point_lights] =
         light_component->attenuation;
       n_point_lights++;
-    } else if (light_component->type == LightType::directional) {
+    } else if (light_component->type == Entities::LightType::directional) {
       shader_common->directional_light_position[n_directional_lights] =
         glm::vec4(spatial_component->position, 1.0f);
       shader_common->directional_light_direction[n_directional_lights] =
@@ -915,16 +915,16 @@ void Renderer::render(Memory *memory, State *state) {
       uint32 idx_light = 0;
 
       for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-        LightComponent *light_component =
+        Entities::LightComponent *light_component =
           state->light_component_manager.components->get(idx);
-        SpatialComponent *spatial_component = state->spatial_component_manager.get(
+        Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
           light_component->entity_handle
         );
 
         if (!(
-          light_component->is_valid() &&
-          light_component->type == LightType::point &&
-          spatial_component->is_valid()
+          Entities::is_light_component_valid(light_component) &&
+          light_component->type == Entities::LightType::point &&
+          Entities::is_spatial_component_valid(spatial_component)
         )) {
           continue;
         }
@@ -972,16 +972,16 @@ void Renderer::render(Memory *memory, State *state) {
       uint32 idx_light = 0;
 
       for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
-        LightComponent *light_component =
+        Entities::LightComponent *light_component =
           state->light_component_manager.components->get(idx);
-        SpatialComponent *spatial_component = state->spatial_component_manager.get(
+        Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
           light_component->entity_handle
         );
 
         if (!(
-          light_component->is_valid() &&
-          light_component->type == LightType::directional &&
-          spatial_component->is_valid()
+          Entities::is_light_component_valid(light_component) &&
+          light_component->type == Entities::LightType::directional &&
+          Entities::is_spatial_component_valid(spatial_component)
         )) {
           continue;
         }

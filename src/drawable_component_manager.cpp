@@ -1,17 +1,17 @@
 uint32 DrawableComponentManager::last_drawn_shader_program = 0;
 
 DrawableComponentManager::DrawableComponentManager(
-  Array<DrawableComponent> *new_components
+  Array<Entities::DrawableComponent> *new_components
 ) {
   this->components = new_components;
 }
 
 
-DrawableComponent* DrawableComponentManager::add(
-  DrawableComponent drawable_component
+Entities::DrawableComponent* DrawableComponentManager::add(
+  Entities::DrawableComponent drawable_component
 ) {
-  assert(drawable_component.entity_handle != Entity::no_entity_handle);
-  DrawableComponent *new_component = this->components->get(
+  assert(drawable_component.entity_handle != Entities::Entity::no_entity_handle);
+  Entities::DrawableComponent *new_component = this->components->get(
     drawable_component.entity_handle
   );
   *new_component = drawable_component;
@@ -19,16 +19,16 @@ DrawableComponent* DrawableComponentManager::add(
 }
 
 
-DrawableComponent* DrawableComponentManager::add(
-  EntityHandle entity_handle,
+Entities::DrawableComponent* DrawableComponentManager::add(
+  Entities::EntityHandle entity_handle,
   Models::Mesh *mesh,
   Renderer::RenderPassFlag target_render_pass
 ) {
-  assert(entity_handle != Entity::no_entity_handle);
+  assert(entity_handle != Entities::Entity::no_entity_handle);
   if (!mesh) {
     log_fatal("Invalid mesh when creating DrawableComponent.");
   }
-  DrawableComponent *new_component = this->components->get(entity_handle);
+  Entities::DrawableComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->mesh = mesh;
   new_component->target_render_pass = target_render_pass;
@@ -36,8 +36,10 @@ DrawableComponent* DrawableComponentManager::add(
 }
 
 
-DrawableComponent* DrawableComponentManager::get(EntityHandle handle) {
-  if (handle == Entity::no_entity_handle) {
+Entities::DrawableComponent* DrawableComponentManager::get(
+  Entities::EntityHandle handle
+) {
+  if (handle == Entities::Entity::no_entity_handle) {
     return nullptr;
   }
   return this->components->get(handle);
@@ -53,9 +55,9 @@ void DrawableComponentManager::draw_all(
   ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
 
   for (uint32 idx = 0; idx < this->components->size; idx++) {
-    DrawableComponent *drawable = this->components->get(idx);
+    Entities::DrawableComponent *drawable = this->components->get(idx);
 
-    if (!drawable->is_valid()) {
+    if (!Entities::is_drawable_component_valid(drawable)) {
       continue;
     }
 
@@ -63,12 +65,14 @@ void DrawableComponentManager::draw_all(
       continue;
     }
 
-    SpatialComponent *spatial = spatial_component_manager->get(drawable->entity_handle);
+    Entities::SpatialComponent *spatial = spatial_component_manager->get(
+      drawable->entity_handle
+    );
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
 
-    if (spatial->is_valid()) {
+    if (Entities::is_spatial_component_valid(spatial)) {
       // We only need to calculate the normal matrix if we have non-uniform
       // scaling.
       model_matrix = spatial_component_manager->make_model_matrix(spatial, &cache);

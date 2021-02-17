@@ -39,11 +39,11 @@ public:
   Array<Shaders::ShaderAsset> shader_assets;
   Array<Models::ModelAsset> model_assets;
 
-  Array<Entity> entities;
-  Array<DrawableComponent> drawable_components;
-  Array<LightComponent> light_components;
-  Array<SpatialComponent> spatial_components;
-  Array<BehaviorComponent> behavior_components;
+  Array<Entities::Entity> entities;
+  Array<Entities::DrawableComponent> drawable_components;
+  Array<Entities::LightComponent> light_components;
+  Array<Entities::SpatialComponent> spatial_components;
+  Array<Entities::BehaviorComponent> behavior_components;
   Gui::GuiState gui_state;
 
   EntityManager entity_manager;

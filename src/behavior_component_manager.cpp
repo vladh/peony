@@ -1,15 +1,15 @@
 BehaviorComponentManager::BehaviorComponentManager(
-  Array<BehaviorComponent> *new_components
+  Array<Entities::BehaviorComponent> *new_components
 ) {
   this->components = new_components;
 }
 
 
-BehaviorComponent* BehaviorComponentManager::add(
-  BehaviorComponent behavior_component
+Entities::BehaviorComponent* BehaviorComponentManager::add(
+  Entities::BehaviorComponent behavior_component
 ) {
-  assert(behavior_component.entity_handle != Entity::no_entity_handle);
-  BehaviorComponent *new_component = this->components->get(
+  assert(behavior_component.entity_handle != Entities::Entity::no_entity_handle);
+  Entities::BehaviorComponent *new_component = this->components->get(
     behavior_component.entity_handle
   );
   *new_component = behavior_component;
@@ -17,20 +17,22 @@ BehaviorComponent* BehaviorComponentManager::add(
 }
 
 
-BehaviorComponent* BehaviorComponentManager::add(
-  EntityHandle entity_handle,
-  Behavior behavior
+Entities::BehaviorComponent* BehaviorComponentManager::add(
+  Entities::EntityHandle entity_handle,
+  Entities::Behavior behavior
 ) {
-  assert(entity_handle != Entity::no_entity_handle);
-  BehaviorComponent *new_component = this->components->get(entity_handle);
+  assert(entity_handle != Entities::Entity::no_entity_handle);
+  Entities::BehaviorComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->behavior = behavior;
   return new_component;
 }
 
 
-BehaviorComponent* BehaviorComponentManager::get(EntityHandle handle) {
-  if (handle == Entity::no_entity_handle) {
+Entities::BehaviorComponent* BehaviorComponentManager::get(
+  Entities::EntityHandle handle
+) {
+  if (handle == Entities::Entity::no_entity_handle) {
     return nullptr;
   }
   return this->components->get(handle);

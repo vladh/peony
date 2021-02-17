@@ -24,10 +24,7 @@
 #include "memory.cpp"
 #include "input.cpp"
 #include "entity_manager.cpp"
-#include "behavior_component.cpp"
-#include "drawable_component.cpp"
-#include "light_component.cpp"
-#include "spatial_component.cpp"
+#include "entities.cpp"
 #include "behavior_component_manager.cpp"
 #include "drawable_component_manager.cpp"
 #include "light_component_manager.cpp"
@@ -182,8 +179,8 @@ void run_main_loop(Memory *memory, State *state) {
 
 void check_environment() {
   // Check that an `enum class`'s default value == its first element == 0;
-  BehaviorComponent test;
-  assert(test.behavior == Behavior::none);
+  Entities::BehaviorComponent test;
+  assert(test.behavior == Entities::Behavior::none);
   assert(static_cast<int>(test.behavior) == 0);
 }
 

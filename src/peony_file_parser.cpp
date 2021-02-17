@@ -64,7 +64,7 @@ namespace PeonyFileParser {
     }
     log_info("}");
     log_info("render_pass: %d", entity_template->render_pass);
-    entity_template->spatial_component.print();
+    Entities::print_spatial_component(&entity_template->spatial_component);
   }
 
 
@@ -507,7 +507,7 @@ namespace PeonyFileParser {
           entity_template->spatial_component.scale = prop_values[0].vec3_value;
         } else if (strcmp(prop_name, "light_component.type") == 0) {
           entity_template->light_component.type =
-            light_type_from_string(prop_values[0].string_value);
+            Entities::light_type_from_string(prop_values[0].string_value);
         } else if (strcmp(prop_name, "light_component.direction") == 0) {
           entity_template->light_component.direction = prop_values[0].vec3_value;
         } else if (strcmp(prop_name, "light_component.color") == 0) {
@@ -516,7 +516,7 @@ namespace PeonyFileParser {
           entity_template->light_component.attenuation = prop_values[0].vec4_value;
         } else if (strcmp(prop_name, "behavior_component.behavior") == 0) {
           entity_template->behavior_component.behavior =
-            behavior_from_string(prop_values[0].string_value);
+            Entities::behavior_from_string(prop_values[0].string_value);
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
