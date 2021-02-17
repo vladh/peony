@@ -338,15 +338,15 @@ void Models::create_entities(
   LightComponentManager *light_component_manager,
   BehaviorComponentManager *behavior_component_manager
 ) {
-  if (model_asset->spatial_component.is_valid()) {
+  if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
     spatial_component_manager->add(model_asset->spatial_component);
   }
 
-  if (model_asset->light_component.is_valid()) {
+  if (Entities::is_light_component_valid(&model_asset->light_component)) {
     light_component_manager->add(model_asset->light_component);
   }
 
-  if (model_asset->behavior_component.is_valid()) {
+  if (Entities::is_behavior_component_valid(&model_asset->behavior_component)) {
     behavior_component_manager->add(model_asset->behavior_component);
   }
 
@@ -360,9 +360,9 @@ void Models::create_entities(
     for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
       Models::Mesh *mesh = model_asset->meshes[idx];
 
-      Entity *child_entity = entity_manager->add(model_asset->name);
+      Entities::Entity *child_entity = entity_manager->add(model_asset->name);
 
-      if (model_asset->spatial_component.is_valid()) {
+      if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
         spatial_component_manager->add(
           child_entity->handle,
           glm::vec3(0.0f),
@@ -561,7 +561,7 @@ Models::ModelAsset* Models::init_model_asset(
   const char *name,
   const char *path,
   Renderer::RenderPassFlag render_pass,
-  EntityHandle entity_handle
+  Entities::EntityHandle entity_handle
 ) {
   model_asset->name = name;
   model_asset->model_source = model_source;
@@ -592,7 +592,7 @@ Models::ModelAsset* Models::init_model_asset(
   const char *name,
   GLenum mode,
   Renderer::RenderPassFlag render_pass,
-  EntityHandle entity_handle
+  Entities::EntityHandle entity_handle
 ) {
   model_asset->name = name;
   model_asset->model_source = model_source;

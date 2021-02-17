@@ -28,27 +28,27 @@ State::State(
   ),
 
   entities(
-    Array<Entity>(
+    Array<Entities::Entity>(
       &memory->entity_memory_pool, 4096, "entities", true
     )
   ),
   drawable_components(
-    Array<DrawableComponent>(
+    Array<Entities::DrawableComponent>(
       &memory->entity_memory_pool, 4096, "drawable_components", true
     )
   ),
   light_components(
-    Array<LightComponent>(
+    Array<Entities::LightComponent>(
       &memory->entity_memory_pool, 4096, "light_components", true
     )
   ),
   spatial_components(
-    Array<SpatialComponent>(
+    Array<Entities::SpatialComponent>(
       &memory->entity_memory_pool, 4096, "spatial_components", true
     )
   ),
   behavior_components(
-    Array<BehaviorComponent>(
+    Array<Entities::BehaviorComponent>(
       &memory->entity_memory_pool, 4096, "behavior_components", true
     )
   ),

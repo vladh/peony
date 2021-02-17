@@ -3,21 +3,21 @@
 
 class LightComponentManager {
 public:
-  Array<LightComponent> *components;
+  Array<Entities::LightComponent> *components;
 
-  LightComponent* add(
-    LightComponent light_component
+  Entities::LightComponent* add(
+    Entities::LightComponent light_component
   );
-  LightComponent* add(
-    EntityHandle entity_handle,
-    LightType type,
+  Entities::LightComponent* add(
+    Entities::EntityHandle entity_handle,
+    Entities::LightType type,
     glm::vec3 direction,
     glm::vec4 color,
     glm::vec4 attenuation
   );
-  LightComponent* get(EntityHandle handle);
+  Entities::LightComponent* get(Entities::EntityHandle handle);
   LightComponentManager(
-    Array<LightComponent> *components
+    Array<Entities::LightComponent> *components
   );
 };
 

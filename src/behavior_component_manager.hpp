@@ -3,18 +3,18 @@
 
 class BehaviorComponentManager {
 public:
-  Array<BehaviorComponent> *components;
+  Array<Entities::BehaviorComponent> *components;
 
-  BehaviorComponent* add(
-    BehaviorComponent behavior_component
+  Entities::BehaviorComponent* add(
+    Entities::BehaviorComponent behavior_component
   );
-  BehaviorComponent* add(
-    EntityHandle entity_handle,
-    Behavior behavior
+  Entities::BehaviorComponent* add(
+    Entities::EntityHandle entity_handle,
+    Entities::Behavior behavior
   );
-  BehaviorComponent* get(EntityHandle handle);
+  Entities::BehaviorComponent* get(Entities::EntityHandle handle);
   BehaviorComponentManager(
-    Array<BehaviorComponent> *components
+    Array<Entities::BehaviorComponent> *components
   );
 };
 

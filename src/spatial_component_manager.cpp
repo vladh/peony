@@ -1,8 +1,8 @@
-SpatialComponent* SpatialComponentManager::add(
-  SpatialComponent spatial_component
+Entities::SpatialComponent* SpatialComponentManager::add(
+  Entities::SpatialComponent spatial_component
 ) {
-  assert(spatial_component.entity_handle != Entity::no_entity_handle);
-  SpatialComponent *new_component = this->components->get(
+  assert(spatial_component.entity_handle != Entities::Entity::no_entity_handle);
+  Entities::SpatialComponent *new_component = this->components->get(
     spatial_component.entity_handle
   );
   *new_component = spatial_component;
@@ -10,15 +10,15 @@ SpatialComponent* SpatialComponentManager::add(
 }
 
 
-SpatialComponent* SpatialComponentManager::add(
-  EntityHandle entity_handle,
+Entities::SpatialComponent* SpatialComponentManager::add(
+  Entities::EntityHandle entity_handle,
   glm::vec3 position,
   glm::quat rotation,
   glm::vec3 scale,
-  EntityHandle parent_entity_handle
+  Entities::EntityHandle parent_entity_handle
 ) {
-  assert(entity_handle != Entity::no_entity_handle);
-  SpatialComponent *new_component = this->components->get(entity_handle);
+  assert(entity_handle != Entities::Entity::no_entity_handle);
+  Entities::SpatialComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->position = position;
   new_component->rotation = rotation;
@@ -28,25 +28,27 @@ SpatialComponent* SpatialComponentManager::add(
 }
 
 
-SpatialComponent* SpatialComponentManager::add(
-  EntityHandle entity_handle,
+Entities::SpatialComponent* SpatialComponentManager::add(
+  Entities::EntityHandle entity_handle,
   glm::vec3 position,
   glm::quat rotation,
   glm::vec3 scale
 ) {
-  assert(entity_handle != Entity::no_entity_handle);
-  SpatialComponent *new_component = this->components->get(entity_handle);
+  assert(entity_handle != Entities::Entity::no_entity_handle);
+  Entities::SpatialComponent *new_component = this->components->get(entity_handle);
   new_component->entity_handle = entity_handle;
   new_component->position = position;
   new_component->rotation = rotation;
   new_component->scale = scale;
-  new_component->parent_entity_handle = Entity::no_entity_handle;
+  new_component->parent_entity_handle = Entities::Entity::no_entity_handle;
   return new_component;
 }
 
 
-SpatialComponent* SpatialComponentManager::get(EntityHandle handle) {
-  if (handle == Entity::no_entity_handle) {
+Entities::SpatialComponent* SpatialComponentManager::get(
+  Entities::EntityHandle handle
+) {
+  if (handle == Entities::Entity::no_entity_handle) {
     return nullptr;
   }
   return this->components->get(handle);
@@ -54,16 +56,17 @@ SpatialComponent* SpatialComponentManager::get(EntityHandle handle) {
 
 
 glm::mat4 SpatialComponentManager::make_model_matrix(
-  SpatialComponent *spatial_component, ModelMatrixCache *cache
+  Entities::SpatialComponent *spatial_component,
+  ModelMatrixCache *cache
 ) {
   glm::mat4 model_matrix = glm::mat4(1.0f);
 
-  if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
-    SpatialComponent *parent = get(spatial_component->parent_entity_handle);
+  if (spatial_component->parent_entity_handle != Entities::Entity::no_entity_handle) {
+    Entities::SpatialComponent *parent = get(spatial_component->parent_entity_handle);
     model_matrix = make_model_matrix(parent, cache);
   }
 
-  if (spatial_component->has_dimensions()) {
+  if (Entities::does_spatial_component_have_dimensions(spatial_component)) {
     // TODO: This is somehow really #slow, the multiplication in particular.
     // Is there a better way?
     if (
@@ -84,7 +87,7 @@ glm::mat4 SpatialComponentManager::make_model_matrix(
 
 
 SpatialComponentManager::SpatialComponentManager(
-  Array<SpatialComponent> *new_components
+  Array<Entities::SpatialComponent> *new_components
 ) {
   this->components = new_components;
 }

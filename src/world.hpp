@@ -3,7 +3,7 @@
 
 namespace World {
   void get_entity_text_representation(
-    char *text, State *state, Entity *entity, uint8 depth
+    char *text, State *state, Entities::Entity *entity, uint8 depth
   );
   void get_scene_text_representation(char *text, State *state);
   void update_light_position(State *state, real32 amount);

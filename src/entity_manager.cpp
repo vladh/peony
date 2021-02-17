@@ -1,22 +1,22 @@
-EntityManager::EntityManager(Array<Entity> *entities) {
+EntityManager::EntityManager(Array<Entities::Entity> *entities) {
   this->entities = entities;
 }
 
 
-Entity* EntityManager::add(const char* debug_name) {
-  EntityHandle new_handle = make_handle();
-  Entity *new_entity = entities->get(new_handle);
+Entities::Entity* EntityManager::add(const char* debug_name) {
+  Entities::EntityHandle new_handle = make_handle();
+  Entities::Entity *new_entity = entities->get(new_handle);
   new_entity->handle = new_handle;
   new_entity->debug_name = debug_name;
   return new_entity;
 }
 
 
-Entity* EntityManager::get(EntityHandle handle) {
+Entities::Entity* EntityManager::get(Entities::EntityHandle handle) {
   return entities->get(handle);
 }
 
 
-EntityHandle EntityManager::make_handle() {
+Entities::EntityHandle EntityManager::make_handle() {
   return last_handle++;
 }
