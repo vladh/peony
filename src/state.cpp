@@ -55,12 +55,6 @@ State::State(
   // TODO: Remove.
   gui_state(),
 
-  entity_manager(&this->entities),
-  drawable_component_manager(&this->drawable_components),
-  light_component_manager(&this->light_components),
-  spatial_component_manager(&this->spatial_components),
-  behavior_component_manager(&this->behavior_components),
-
   heading_opacity(0.0f),
   heading_text(""),
   heading_fadeout_duration(1.0f),
@@ -81,4 +75,19 @@ State::State(
   shadowmap_far_clip_dist(200.0f),
   dir_light_angle(PI32 / 4.0f)
 {
+  EntitySets::init_entity_set(
+    &this->entity_set, &this->entities
+  );
+  EntitySets::init_drawable_component_set(
+    &this->drawable_component_set, &this->drawable_components
+  );
+  EntitySets::init_light_component_set(
+    &this->light_component_set, &this->light_components
+  );
+  EntitySets::init_spatial_component_set(
+    &this->spatial_component_set, &this->spatial_components
+  );
+  EntitySets::init_behavior_component_set(
+    &this->behavior_component_set, &this->behavior_components
+  );
 }

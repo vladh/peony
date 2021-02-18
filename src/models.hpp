@@ -79,11 +79,11 @@ namespace Models {
   void bind_texture_uniforms_for_mesh(Models::Mesh *mesh);
   void create_entities(
     Models::ModelAsset *model_asset,
-    EntityManager *entity_manager,
-    DrawableComponentManager *drawable_component_manager,
-    SpatialComponentManager *spatial_component_manager,
-    LightComponentManager *light_component_manager,
-    BehaviorComponentManager *behavior_component_manager
+    EntitySets::EntitySet *entity_set,
+    EntitySets::DrawableComponentSet *drawable_component_set,
+    EntitySets::SpatialComponentSet *spatial_component_set,
+    EntitySets::LightComponentSet *light_component_set,
+    EntitySets::BehaviorComponentSet *behavior_component_set
   );
   void prepare_for_draw(
     Models::ModelAsset *model_asset,
@@ -91,11 +91,11 @@ namespace Models {
     Textures::PersistentPbo *persistent_pbo,
     Textures::TextureNamePool *texture_name_pool,
     Queue<Tasks::Task> *task_queue,
-    EntityManager *entity_manager,
-    DrawableComponentManager *drawable_component_manager,
-    SpatialComponentManager *spatial_component_manager,
-    LightComponentManager *light_component_manager,
-    BehaviorComponentManager *behavior_component_manager
+    EntitySets::EntitySet *entity_set,
+    EntitySets::DrawableComponentSet *drawable_component_set,
+    EntitySets::SpatialComponentSet *spatial_component_set,
+    EntitySets::LightComponentSet *light_component_set,
+    EntitySets::BehaviorComponentSet *behavior_component_set
   );
   Models::ModelAsset* init_model_asset(
     ModelAsset *model_asset,

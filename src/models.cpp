@@ -332,26 +332,35 @@ void Models::bind_texture_uniforms_for_mesh(Models::Mesh *mesh) {
 
 void Models::create_entities(
   Models::ModelAsset *model_asset,
-  EntityManager *entity_manager,
-  DrawableComponentManager *drawable_component_manager,
-  SpatialComponentManager *spatial_component_manager,
-  LightComponentManager *light_component_manager,
-  BehaviorComponentManager *behavior_component_manager
+  EntitySets::EntitySet *entity_set,
+  EntitySets::DrawableComponentSet *drawable_component_set,
+  EntitySets::SpatialComponentSet *spatial_component_set,
+  EntitySets::LightComponentSet *light_component_set,
+  EntitySets::BehaviorComponentSet *behavior_component_set
 ) {
   if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
-    spatial_component_manager->add(model_asset->spatial_component);
+    EntitySets::add_spatial_component_to_set(
+      spatial_component_set, model_asset->spatial_component
+    );
   }
 
   if (Entities::is_light_component_valid(&model_asset->light_component)) {
-    light_component_manager->add(model_asset->light_component);
+    EntitySets::add_light_component_to_set(
+      light_component_set,
+      model_asset->light_component
+    );
   }
 
   if (Entities::is_behavior_component_valid(&model_asset->behavior_component)) {
-    behavior_component_manager->add(model_asset->behavior_component);
+    EntitySets::add_behavior_component_to_set(
+      behavior_component_set,
+      model_asset->behavior_component
+    );
   }
 
   if (model_asset->meshes.size == 1) {
-    drawable_component_manager->add(
+    EntitySets::add_drawable_component_to_set(
+      drawable_component_set,
       model_asset->entity_handle,
       model_asset->meshes[0],
       model_asset->render_pass
@@ -360,10 +369,14 @@ void Models::create_entities(
     for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
       Models::Mesh *mesh = model_asset->meshes[idx];
 
-      Entities::Entity *child_entity = entity_manager->add(model_asset->name);
+      Entities::Entity *child_entity = EntitySets::add_entity_to_set(
+        entity_set,
+        model_asset->name
+      );
 
       if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
-        spatial_component_manager->add(
+        EntitySets::add_spatial_component_to_set(
+          spatial_component_set,
           child_entity->handle,
           glm::vec3(0.0f),
           glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
@@ -372,7 +385,8 @@ void Models::create_entities(
         );
       }
 
-      drawable_component_manager->add(
+      EntitySets::add_drawable_component_to_set(
+        drawable_component_set,
         child_entity->handle,
         mesh,
         model_asset->render_pass
@@ -388,11 +402,11 @@ void Models::prepare_for_draw(
   Textures::PersistentPbo *persistent_pbo,
   Textures::TextureNamePool *texture_name_pool,
   Queue<Tasks::Task> *task_queue,
-  EntityManager *entity_manager,
-  DrawableComponentManager *drawable_component_manager,
-  SpatialComponentManager *spatial_component_manager,
-  LightComponentManager *light_component_manager,
-  BehaviorComponentManager *behavior_component_manager
+  EntitySets::EntitySet *entity_set,
+  EntitySets::DrawableComponentSet *drawable_component_set,
+  EntitySets::SpatialComponentSet *spatial_component_set,
+  EntitySets::LightComponentSet *light_component_set,
+  EntitySets::BehaviorComponentSet *behavior_component_set
 ) {
   // Step 1: Load mesh data. This is done on a separate thread.
   if (
@@ -541,11 +555,11 @@ void Models::prepare_for_draw(
     ) {
       create_entities(
         model_asset,
-        entity_manager,
-        drawable_component_manager,
-        spatial_component_manager,
-        light_component_manager,
-        behavior_component_manager
+        entity_set,
+        drawable_component_set,
+        spatial_component_set,
+        light_component_set,
+        behavior_component_set
       );
       model_asset->is_entity_creation_done = true;
     }

@@ -523,12 +523,14 @@ void Renderer::copy_scene_data_to_ubo(
   uint32 n_point_lights = 0;
   uint32 n_directional_lights = 0;
 
-  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+  for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
     Entities::LightComponent *light_component =
-      state->light_component_manager.components->get(idx);
-    Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
-      light_component->entity_handle
-    );
+      state->light_component_set.components->get(idx);
+    Entities::SpatialComponent *spatial_component =
+      EntitySets::get_spatial_component_from_set(
+        &state->spatial_component_set,
+        light_component->entity_handle
+      );
 
     if (!(
       Entities::is_light_component_valid(light_component) &&
@@ -753,8 +755,9 @@ void Renderer::render_scene(
   Renderer::RenderPassFlag render_pass,
   Renderer::RenderMode render_mode
 ) {
-  state->drawable_component_manager.draw_all(
-    &state->spatial_component_manager,
+  EntitySets::draw_all(
+    &state->drawable_component_set,
+    &state->spatial_component_set,
     render_pass,
     render_mode,
     state->standard_depth_shader_asset
@@ -914,12 +917,14 @@ void Renderer::render(Memory *memory, State *state) {
 
       uint32 idx_light = 0;
 
-      for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+      for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
         Entities::LightComponent *light_component =
-          state->light_component_manager.components->get(idx);
-        Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
-          light_component->entity_handle
-        );
+          state->light_component_set.components->get(idx);
+        Entities::SpatialComponent *spatial_component =
+          EntitySets::get_spatial_component_from_set(
+            &state->spatial_component_set,
+            light_component->entity_handle
+          );
 
         if (!(
           Entities::is_light_component_valid(light_component) &&
@@ -971,12 +976,14 @@ void Renderer::render(Memory *memory, State *state) {
 
       uint32 idx_light = 0;
 
-      for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+      for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
         Entities::LightComponent *light_component =
-          state->light_component_manager.components->get(idx);
-        Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
-          light_component->entity_handle
-        );
+          state->light_component_set.components->get(idx);
+        Entities::SpatialComponent *spatial_component =
+          EntitySets::get_spatial_component_from_set(
+            &state->spatial_component_set,
+            light_component->entity_handle
+          );
 
         if (!(
           Entities::is_light_component_valid(light_component) &&
