@@ -59,12 +59,14 @@ Entities::LightComponent* EntitySets::add_light_component_to_set(
   Entities::LightComponent *new_component = light_component_set->components->get(
     entity_handle
   );
-  new_component->entity_handle = entity_handle;
-  new_component->type = type;
-  new_component->direction = direction;
-  new_component->color = color;
-  new_component->attenuation = attenuation;
-  return new_component;
+  return Entities::init_light_component(
+    new_component,
+    entity_handle,
+    type,
+    direction,
+    color,
+    attenuation
+  );
 }
 
 
@@ -110,12 +112,14 @@ Entities::SpatialComponent* EntitySets::add_spatial_component_to_set(
   Entities::SpatialComponent *new_component = spatial_component_set->components->get(
     entity_handle
   );
-  new_component->entity_handle = entity_handle;
-  new_component->position = position;
-  new_component->rotation = rotation;
-  new_component->scale = scale;
-  new_component->parent_entity_handle = parent_entity_handle;
-  return new_component;
+  return Entities::init_spatial_component(
+    new_component,
+    entity_handle,
+    position,
+    rotation,
+    scale,
+    parent_entity_handle
+  );
 }
 
 
@@ -130,12 +134,13 @@ Entities::SpatialComponent* EntitySets::add_spatial_component_to_set(
   Entities::SpatialComponent *new_component = spatial_component_set->components->get(
     entity_handle
   );
-  new_component->entity_handle = entity_handle;
-  new_component->position = position;
-  new_component->rotation = rotation;
-  new_component->scale = scale;
-  new_component->parent_entity_handle = Entities::Entity::no_entity_handle;
-  return new_component;
+  return Entities::init_spatial_component(
+    new_component,
+    entity_handle,
+    position,
+    rotation,
+    scale
+  );
 }
 
 
@@ -220,10 +225,12 @@ Entities::DrawableComponent* EntitySets::add_drawable_component_to_set(
   Entities::DrawableComponent *new_component = drawable_component_set->components->get(
     entity_handle
   );
-  new_component->entity_handle = entity_handle;
-  new_component->mesh = mesh;
-  new_component->target_render_pass = target_render_pass;
-  return new_component;
+  return Entities::init_drawable_component(
+    new_component,
+    entity_handle,
+    mesh,
+    target_render_pass
+  );
 }
 
 
@@ -270,9 +277,11 @@ Entities::BehaviorComponent* EntitySets::add_behavior_component_to_set(
   Entities::BehaviorComponent *new_component = behavior_component_set->components->get(
     entity_handle
   );
-  new_component->entity_handle = entity_handle;
-  new_component->behavior = behavior;
-  return new_component;
+  return Entities::init_behavior_component(
+    new_component,
+    entity_handle,
+    behavior
+  );
 }
 
 
