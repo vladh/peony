@@ -10,7 +10,7 @@ namespace World {
   void create_entities_from_entity_template(
     PeonyFileParser::EntityTemplate *entity_template,
     Memory *memory,
-    EntityManager *entity_manager,
+    EntitySets::EntitySet *entity_set,
     Array<Models::ModelAsset> *model_assets,
     Array<Shaders::ShaderAsset> *shader_assets,
     State *state

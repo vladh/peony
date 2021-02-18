@@ -5,9 +5,8 @@ void World::get_entity_text_representation(
   uint8 depth
 ) {
   Entities::EntityHandle handle = entity->handle;
-  Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
-    handle
-  );
+  Entities::SpatialComponent *spatial_component =
+    EntitySets::get_spatial_component_from_set(&state->spatial_component_set, handle);
 
   // Children will be drawn under their parents.
   if (
@@ -22,13 +21,22 @@ void World::get_entity_text_representation(
     spatial_component
   );
   bool32 has_drawable_component = Entities::is_drawable_component_valid(
-    state->drawable_component_manager.get(handle)
+    EntitySets::get_drawable_component_from_set(
+      &state->drawable_component_set,
+      handle
+    )
   );
   bool32 has_light_component = Entities::is_light_component_valid(
-    state->light_component_manager.get(handle)
+    EntitySets::get_light_component_from_set(
+      &state->light_component_set,
+      handle
+    )
   );
   bool32 has_behavior_component = Entities::is_behavior_component_valid(
-    state->behavior_component_manager.get(handle)
+    EntitySets::get_behavior_component_from_set(
+      &state->behavior_component_set,
+      handle
+    )
   );
 
   for (uint8 level = 0; level < depth; level++) {
@@ -70,11 +78,11 @@ void World::get_entity_text_representation(
     uint32 n_children_found = 0;
     for (
       uint32 child_idx = 1;
-      child_idx < state->spatial_component_manager.components->size;
+      child_idx < state->spatial_component_set.components->size;
       child_idx++
     ) {
       Entities::SpatialComponent *child_spatial_component =
-        state->spatial_component_manager.components->get(child_idx);
+        state->spatial_component_set.components->get(child_idx);
       if (
         child_spatial_component->parent_entity_handle ==
           spatial_component->entity_handle
@@ -123,9 +131,9 @@ void World::get_scene_text_representation(char *text, State *state) {
 
 
 void World::update_light_position(State *state, real32 amount) {
-  for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+  for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
     Entities::LightComponent *light_component =
-      state->light_component_manager.components->get(idx);
+      state->light_component_set.components->get(idx);
     if (light_component -> type == Entities::LightType::directional) {
       state->dir_light_angle += amount;
       light_component->direction = glm::vec3(
@@ -140,12 +148,15 @@ void World::update_light_position(State *state, real32 amount) {
 void World::create_entities_from_entity_template(
   PeonyFileParser::EntityTemplate *entity_template,
   Memory *memory,
-  EntityManager *entity_manager,
+  EntitySets::EntitySet *entity_set,
   Array<Models::ModelAsset> *model_assets,
   Array<Shaders::ShaderAsset> *shader_assets,
   State *state
 ) {
-  Entities::Entity *entity = entity_manager->add(entity_template->entity_debug_name);
+  Entities::Entity *entity = EntitySets::add_entity_to_set(
+    entity_set,
+    entity_template->entity_debug_name
+  );
 
   Models::ModelAsset *model_asset = nullptr;
 
@@ -365,7 +376,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
     "screenquad_lighting",
     GL_TRIANGLES,
     Renderer::RenderPass::lighting,
-    state->entity_manager.add("screenquad_lighting")->handle
+    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_lighting")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
   material->shader_asset = Shaders::init_shader_asset(
@@ -402,7 +413,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
     "screenquad_preblur",
     GL_TRIANGLES,
     Renderer::RenderPass::preblur,
-    state->entity_manager.add("screenquad_preblur")->handle
+    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_preblur")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
   material->shader_asset = Shaders::init_shader_asset(
@@ -424,7 +435,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
     "screenquad_blur1",
     GL_TRIANGLES,
     Renderer::RenderPass::blur1,
-    state->entity_manager.add("screenquad_blur1")->handle
+    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur1")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
   material->shader_asset = Shaders::init_shader_asset(
@@ -444,7 +455,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
     "screenquad_blur2",
     GL_TRIANGLES,
     Renderer::RenderPass::blur2,
-    state->entity_manager.add("screenquad_blur2")->handle
+    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur2")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
   material->shader_asset = Shaders::init_shader_asset(
@@ -464,7 +475,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
     "screenquad_postprocessing",
     GL_TRIANGLES,
     Renderer::RenderPass::postprocessing,
-    state->entity_manager.add("screenquad_postprocessing")->handle
+    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_postprocessing")->handle
   );
   material = Textures::init_material(model_asset->materials.push(), memory);
   material->shader_asset = Shaders::init_shader_asset(
@@ -484,7 +495,9 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Skysphere
   {
 #if 1
-    Entities::Entity *entity = state->entity_manager.add("skysphere");
+    Entities::Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "skysphere"
+    );
 
     model_asset = Models::init_model_asset(
       (Models::ModelAsset*)(state->model_assets.push()),
@@ -536,7 +549,7 @@ void World::init(Memory *memory, State *state) {
     create_entities_from_entity_template(
       &entity_templates[idx_entity],
       memory,
-      &state->entity_manager,
+      &state->entity_set,
       &state->model_assets,
       &state->shader_assets,
       state
@@ -554,11 +567,11 @@ void World::check_all_model_assets_loaded(Memory *memory, State *state) {
       &state->persistent_pbo,
       &state->texture_name_pool,
       &state->task_queue,
-      &state->entity_manager,
-      &state->drawable_component_manager,
-      &state->spatial_component_manager,
-      &state->light_component_manager,
-      &state->behavior_component_manager
+      &state->entity_set,
+      &state->drawable_component_set,
+      &state->spatial_component_set,
+      &state->light_component_set,
+      &state->behavior_component_set
     );
   }
 }
@@ -574,11 +587,11 @@ void World::update(Memory *memory, State *state) {
 
   for (
     uint32 idx = 1;
-    idx < state->behavior_component_manager.components->size;
+    idx < state->behavior_component_set.components->size;
     idx++
   ) {
     Entities::BehaviorComponent *behavior_component =
-      state->behavior_component_manager.components->get(idx);
+      state->behavior_component_set.components->get(idx);
 
     if (
       !behavior_component ||
@@ -590,7 +603,9 @@ void World::update(Memory *memory, State *state) {
     Entities::EntityHandle entity_handle = behavior_component->entity_handle;
 
     Entities::SpatialComponent *spatial_component =
-      state->spatial_component_manager.get(entity_handle);
+      EntitySets::get_spatial_component_from_set(
+        &state->spatial_component_set, entity_handle
+      );
     if (!spatial_component) {
       log_error("Could not get SpatialComponent for BehaviorComponent");
       continue;
@@ -612,12 +627,14 @@ void World::update(Memory *memory, State *state) {
   }
 
   {
-    for (uint32 idx = 0; idx < state->light_component_manager.components->size; idx++) {
+    for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
       Entities::LightComponent *light_component =
-        state->light_component_manager.components->get(idx);
-      Entities::SpatialComponent *spatial_component = state->spatial_component_manager.get(
-        light_component->entity_handle
-      );
+        state->light_component_set.components->get(idx);
+      Entities::SpatialComponent *spatial_component =
+        EntitySets::get_spatial_component_from_set(
+          &state->spatial_component_set,
+          light_component->entity_handle
+        );
 
       if (!(
         Entities::is_light_component_valid(light_component) &&

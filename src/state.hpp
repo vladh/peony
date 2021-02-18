@@ -46,11 +46,11 @@ public:
   Array<Entities::BehaviorComponent> behavior_components;
   Gui::GuiState gui_state;
 
-  EntityManager entity_manager;
-  DrawableComponentManager drawable_component_manager;
-  LightComponentManager light_component_manager;
-  SpatialComponentManager spatial_component_manager;
-  BehaviorComponentManager behavior_component_manager;
+  EntitySets::EntitySet entity_set;
+  EntitySets::DrawableComponentSet drawable_component_set;
+  EntitySets::LightComponentSet light_component_set;
+  EntitySets::SpatialComponentSet spatial_component_set;
+  EntitySets::BehaviorComponentSet behavior_component_set;
 
   real32 heading_opacity;
   const char *heading_text;
