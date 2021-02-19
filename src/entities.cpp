@@ -182,6 +182,9 @@ Entities::DrawableComponent* Entities::init_drawable_component(
   Models::Mesh *mesh,
   Renderer::RenderPassFlag target_render_pass
 ) {
+  if (!mesh) {
+    log_fatal("Invalid mesh when creating DrawableComponent.");
+  }
   drawable_component->entity_handle = entity_handle;
   drawable_component->mesh = mesh;
   drawable_component->target_render_pass = target_render_pass;

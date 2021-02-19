@@ -339,28 +339,44 @@ void Models::create_entities(
   EntitySets::BehaviorComponentSet *behavior_component_set
 ) {
   if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
-    EntitySets::add_spatial_component_to_set(
-      spatial_component_set, model_asset->spatial_component
-    );
+    Entities::SpatialComponent *spatial_component =
+      EntitySets::get_spatial_component_from_set(
+        spatial_component_set,
+        model_asset->spatial_component.entity_handle
+      );
+    assert(spatial_component);
+    *spatial_component = model_asset->spatial_component;
   }
 
   if (Entities::is_light_component_valid(&model_asset->light_component)) {
-    EntitySets::add_light_component_to_set(
-      light_component_set,
-      model_asset->light_component
-    );
+    Entities::LightComponent *light_component =
+      EntitySets::get_light_component_from_set(
+        light_component_set,
+        model_asset->light_component.entity_handle
+      );
+    assert(light_component);
+    *light_component = model_asset->light_component;
   }
 
   if (Entities::is_behavior_component_valid(&model_asset->behavior_component)) {
-    EntitySets::add_behavior_component_to_set(
-      behavior_component_set,
-      model_asset->behavior_component
-    );
+    Entities::BehaviorComponent *behavior_component =
+      EntitySets::get_behavior_component_from_set(
+        behavior_component_set,
+        model_asset->behavior_component.entity_handle
+      );
+    assert(behavior_component);
+    *behavior_component = model_asset->behavior_component;
   }
 
   if (model_asset->meshes.size == 1) {
-    EntitySets::add_drawable_component_to_set(
-      drawable_component_set,
+    Entities::DrawableComponent *drawable_component =
+      EntitySets::get_drawable_component_from_set(
+        drawable_component_set,
+        model_asset->entity_handle
+      );
+    assert(drawable_component);
+    Entities::init_drawable_component(
+      drawable_component,
       model_asset->entity_handle,
       model_asset->meshes[0],
       model_asset->render_pass
@@ -375,8 +391,14 @@ void Models::create_entities(
       );
 
       if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
-        EntitySets::add_spatial_component_to_set(
-          spatial_component_set,
+        Entities::SpatialComponent *spatial_component =
+          EntitySets::get_spatial_component_from_set(
+            spatial_component_set,
+            child_entity->handle
+          );
+        assert(spatial_component);
+        Entities::init_spatial_component(
+          spatial_component,
           child_entity->handle,
           glm::vec3(0.0f),
           glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
@@ -385,8 +407,14 @@ void Models::create_entities(
         );
       }
 
-      EntitySets::add_drawable_component_to_set(
-        drawable_component_set,
+      Entities::DrawableComponent *drawable_component =
+        EntitySets::get_drawable_component_from_set(
+          drawable_component_set,
+          child_entity->handle
+        );
+      assert(drawable_component);
+      Entities::init_drawable_component(
+        drawable_component,
         child_entity->handle,
         mesh,
         model_asset->render_pass

@@ -50,18 +50,6 @@ namespace EntitySets {
     Array<Entities::Entity> *entities
   );
 
-  Entities::LightComponent* add_light_component_to_set(
-    LightComponentSet *light_component_set,
-    Entities::LightComponent light_component
-  );
-  Entities::LightComponent* add_light_component_to_set(
-    LightComponentSet *light_component_set,
-    Entities::EntityHandle entity_handle,
-    Entities::LightType type,
-    glm::vec3 direction,
-    glm::vec4 color,
-    glm::vec4 attenuation
-  );
   Entities::LightComponent* get_light_component_from_set(
     LightComponentSet *light_component_set,
     Entities::EntityHandle handle
@@ -71,25 +59,6 @@ namespace EntitySets {
     Array<Entities::LightComponent> *components
   );
 
-  Entities::SpatialComponent* add_spatial_component_to_set(
-    SpatialComponentSet *spatial_component_set,
-    Entities::SpatialComponent spatial_component
-  );
-  Entities::SpatialComponent* add_spatial_component_to_set(
-    SpatialComponentSet *spatial_component_set,
-    Entities::EntityHandle entity_handle,
-    glm::vec3 position,
-    glm::quat rotation,
-    glm::vec3 scale,
-    Entities::EntityHandle parent_entity_handle
-  );
-  Entities::SpatialComponent* add_spatial_component_to_set(
-    SpatialComponentSet *spatial_component_set,
-    Entities::EntityHandle entity_handle,
-    glm::vec3 position,
-    glm::quat rotation,
-    glm::vec3 scale
-  );
   Entities::SpatialComponent* get_spatial_component_from_set(
     SpatialComponentSet *spatial_component_set,
     Entities::EntityHandle handle
@@ -103,16 +72,6 @@ namespace EntitySets {
     Array<Entities::SpatialComponent> *components
   );
 
-  Entities::DrawableComponent* add_drawable_component_to_set(
-    DrawableComponentSet *drawable_component_set,
-    Entities::DrawableComponent drawable_component
-  );
-  Entities::DrawableComponent* add_drawable_component_to_set(
-    DrawableComponentSet *drawable_component_set,
-    Entities::EntityHandle entity_handle,
-    Models::Mesh *mesh,
-    Renderer::RenderPassFlag target_render_pass
-  );
   Entities::DrawableComponent* get_drawable_component_from_set(
     DrawableComponentSet *drawable_component_set,
     Entities::EntityHandle handle
@@ -122,15 +81,6 @@ namespace EntitySets {
     Array<Entities::DrawableComponent> *components
   );
 
-  Entities::BehaviorComponent* add_behavior_component_to_set(
-    BehaviorComponentSet *behavior_component_set,
-    Entities::BehaviorComponent behavior_component
-  );
-  Entities::BehaviorComponent* add_behavior_component_to_set(
-    BehaviorComponentSet *behavior_component_set,
-    Entities::EntityHandle entity_handle,
-    Entities::Behavior behavior
-  );
   Entities::BehaviorComponent* get_behavior_component_from_set(
     BehaviorComponentSet *behavior_component_set,
     Entities::EntityHandle handle

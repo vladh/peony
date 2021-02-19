@@ -34,42 +34,6 @@ EntitySets::EntitySet* EntitySets::init_entity_set(
 }
 
 
-Entities::LightComponent* EntitySets::add_light_component_to_set(
-  LightComponentSet *light_component_set,
-  Entities::LightComponent light_component
-) {
-  assert(light_component.entity_handle != Entities::Entity::no_entity_handle);
-  Entities::LightComponent *new_component = light_component_set->components->get(
-    light_component.entity_handle
-  );
-  *new_component = light_component;
-  return new_component;
-}
-
-
-Entities::LightComponent* EntitySets::add_light_component_to_set(
-  LightComponentSet *light_component_set,
-  Entities::EntityHandle entity_handle,
-  Entities::LightType type,
-  glm::vec3 direction,
-  glm::vec4 color,
-  glm::vec4 attenuation
-) {
-  assert(entity_handle != Entities::Entity::no_entity_handle);
-  Entities::LightComponent *new_component = light_component_set->components->get(
-    entity_handle
-  );
-  return Entities::init_light_component(
-    new_component,
-    entity_handle,
-    type,
-    direction,
-    color,
-    attenuation
-  );
-}
-
-
 Entities::LightComponent* EntitySets::get_light_component_from_set(
   LightComponentSet *light_component_set,
   Entities::EntityHandle handle
@@ -84,63 +48,6 @@ EntitySets::LightComponentSet* EntitySets::init_light_component_set(
 ) {
   light_component_set->components = components;
   return light_component_set;
-}
-
-
-Entities::SpatialComponent* EntitySets::add_spatial_component_to_set(
-  SpatialComponentSet *spatial_component_set,
-  Entities::SpatialComponent spatial_component
-) {
-  assert(spatial_component.entity_handle != Entities::Entity::no_entity_handle);
-  Entities::SpatialComponent *new_component = spatial_component_set->components->get(
-    spatial_component.entity_handle
-  );
-  *new_component = spatial_component;
-  return new_component;
-}
-
-
-Entities::SpatialComponent* EntitySets::add_spatial_component_to_set(
-  SpatialComponentSet *spatial_component_set,
-  Entities::EntityHandle entity_handle,
-  glm::vec3 position,
-  glm::quat rotation,
-  glm::vec3 scale,
-  Entities::EntityHandle parent_entity_handle
-) {
-  assert(entity_handle != Entities::Entity::no_entity_handle);
-  Entities::SpatialComponent *new_component = spatial_component_set->components->get(
-    entity_handle
-  );
-  return Entities::init_spatial_component(
-    new_component,
-    entity_handle,
-    position,
-    rotation,
-    scale,
-    parent_entity_handle
-  );
-}
-
-
-Entities::SpatialComponent* EntitySets::add_spatial_component_to_set(
-  SpatialComponentSet *spatial_component_set,
-  Entities::EntityHandle entity_handle,
-  glm::vec3 position,
-  glm::quat rotation,
-  glm::vec3 scale
-) {
-  assert(entity_handle != Entities::Entity::no_entity_handle);
-  Entities::SpatialComponent *new_component = spatial_component_set->components->get(
-    entity_handle
-  );
-  return Entities::init_spatial_component(
-    new_component,
-    entity_handle,
-    position,
-    rotation,
-    scale
-  );
 }
 
 
@@ -199,41 +106,6 @@ EntitySets::SpatialComponentSet* EntitySets::init_spatial_component_set(
 }
 
 
-Entities::DrawableComponent* EntitySets::add_drawable_component_to_set(
-  DrawableComponentSet *drawable_component_set,
-  Entities::DrawableComponent drawable_component
-) {
-  assert(drawable_component.entity_handle != Entities::Entity::no_entity_handle);
-  Entities::DrawableComponent *new_component = drawable_component_set->components->get(
-    drawable_component.entity_handle
-  );
-  *new_component = drawable_component;
-  return new_component;
-}
-
-
-Entities::DrawableComponent* EntitySets::add_drawable_component_to_set(
-  DrawableComponentSet *drawable_component_set,
-  Entities::EntityHandle entity_handle,
-  Models::Mesh *mesh,
-  Renderer::RenderPassFlag target_render_pass
-) {
-  assert(entity_handle != Entities::Entity::no_entity_handle);
-  if (!mesh) {
-    log_fatal("Invalid mesh when creating DrawableComponent.");
-  }
-  Entities::DrawableComponent *new_component = drawable_component_set->components->get(
-    entity_handle
-  );
-  return Entities::init_drawable_component(
-    new_component,
-    entity_handle,
-    mesh,
-    target_render_pass
-  );
-}
-
-
 Entities::DrawableComponent* EntitySets::get_drawable_component_from_set(
   DrawableComponentSet *drawable_component_set,
   Entities::EntityHandle handle
@@ -252,36 +124,6 @@ EntitySets::DrawableComponentSet* EntitySets::init_drawable_component_set(
   drawable_component_set->components = components;
   drawable_component_set->last_drawn_shader_program = 0;
   return drawable_component_set;
-}
-
-
-Entities::BehaviorComponent* EntitySets::add_behavior_component_to_set(
-  BehaviorComponentSet *behavior_component_set,
-  Entities::BehaviorComponent behavior_component
-) {
-  assert(behavior_component.entity_handle != Entities::Entity::no_entity_handle);
-  Entities::BehaviorComponent *new_component = behavior_component_set->components->get(
-    behavior_component.entity_handle
-  );
-  *new_component = behavior_component;
-  return new_component;
-}
-
-
-Entities::BehaviorComponent* EntitySets::add_behavior_component_to_set(
-  BehaviorComponentSet *behavior_component_set,
-  Entities::EntityHandle entity_handle,
-  Entities::Behavior behavior
-) {
-  assert(entity_handle != Entities::Entity::no_entity_handle);
-  Entities::BehaviorComponent *new_component = behavior_component_set->components->get(
-    entity_handle
-  );
-  return Entities::init_behavior_component(
-    new_component,
-    entity_handle,
-    behavior
-  );
 }
 
 
