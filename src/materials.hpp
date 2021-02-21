@@ -4,7 +4,7 @@
 constexpr uint32 N_MAX_TEXTURE_POOL_SIZES = 6;
 constexpr char TEXTURE_DIR[] = "resources/textures/";
 
-namespace Textures {
+namespace Materials {
   struct TextureNamePool {
     uint32 mipmap_max_level = 0;
     uint32 n_textures = 0;
@@ -119,7 +119,7 @@ namespace Textures {
   );
   void copy_material_textures_to_pbo(
     Material *material,
-    Textures::PersistentPbo *persistent_pbo
+    Materials::PersistentPbo *persistent_pbo
   );
   void generate_textures_from_pbo(
     Material *material,

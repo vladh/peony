@@ -30,7 +30,7 @@ Fonts::FontAsset* Fonts::get_by_name(
 void Fonts::load_glyphs(
   Fonts::FontAsset *font_asset,
   FT_Face face,
-  Textures::TextureAtlas *texture_atlas
+  Materials::TextureAtlas *texture_atlas
 ) {
   FT_GlyphSlot glyph = face->glyph;
 
@@ -65,7 +65,7 @@ void Fonts::load_glyphs(
 
     Fonts::Character *character = font_asset->characters[c];
 
-    glm::ivec2 tex_coords = Textures::push_space_to_texture_atlas(
+    glm::ivec2 tex_coords = Materials::push_space_to_texture_atlas(
       texture_atlas, character->size
     );
 
@@ -90,7 +90,7 @@ void Fonts::load_glyphs(
 Fonts::FontAsset* Fonts::init_font_asset(
   Fonts::FontAsset *font_asset,
   Memory *memory,
-  Textures::TextureAtlas *texture_atlas,
+  Materials::TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
   const char *path,

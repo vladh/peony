@@ -75,29 +75,29 @@ void Renderer::resize_renderer_buffers(Memory *memory, State *state) {
         mesh->material->textures.size > 0 &&
         mesh->material->is_screensize_dependent
       ) {
-        Textures::Material *material = mesh->material;
+        Materials::Material *material = mesh->material;
         log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
         for(
           uint32 idx_texture = 0; idx_texture < material->textures.size; idx_texture++
         ) {
-          Textures::Texture *texture = material->textures[idx_texture];
-          if (texture->type == Textures::TextureType::g_position) {
+          Materials::Texture *texture = material->textures[idx_texture];
+          if (texture->type == Materials::TextureType::g_position) {
             material->textures.set(idx_texture, state->g_position_texture);
-          } else if (texture->type == Textures::TextureType::g_normal) {
+          } else if (texture->type == Materials::TextureType::g_normal) {
             material->textures.set(idx_texture, state->g_normal_texture);
-          } else if (texture->type == Textures::TextureType::g_albedo) {
+          } else if (texture->type == Materials::TextureType::g_albedo) {
             material->textures.set(idx_texture, state->g_albedo_texture);
-          } else if (texture->type == Textures::TextureType::g_pbr) {
+          } else if (texture->type == Materials::TextureType::g_pbr) {
             material->textures.set(idx_texture, state->g_pbr_texture);
-          } else if (texture->type == Textures::TextureType::l_color) {
+          } else if (texture->type == Materials::TextureType::l_color) {
             material->textures.set(idx_texture, state->l_color_texture);
-          } else if (texture->type == Textures::TextureType::l_bright_color) {
+          } else if (texture->type == Materials::TextureType::l_bright_color) {
             material->textures.set(idx_texture, state->l_bright_color_texture);
-          } else if (texture->type == Textures::TextureType::l_depth) {
+          } else if (texture->type == Materials::TextureType::l_depth) {
             material->textures.set(idx_texture, state->l_depth_texture);
-          } else if (texture->type == Textures::TextureType::blur1) {
+          } else if (texture->type == Materials::TextureType::blur1) {
             material->textures.set(idx_texture, state->blur1_texture);
-          } else if (texture->type == Textures::TextureType::blur2) {
+          } else if (texture->type == Materials::TextureType::blur2) {
             material->textures.set(idx_texture, state->blur2_texture);
           }
         }
@@ -143,12 +143,12 @@ void Renderer::init_shadowmaps(Memory *memory, State *state) {
     log_fatal("Framebuffer not complete!");
   }
 
-  state->cube_shadowmaps_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "cube_shadowmaps_texture"
+  state->cube_shadowmaps_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "cube_shadowmaps_texture"
     ),
     GL_TEXTURE_CUBE_MAP_ARRAY,
-    Textures::TextureType::shadowmap, state->cube_shadowmaps,
+    Materials::TextureType::shadowmap, state->cube_shadowmaps,
     state->cube_shadowmap_width, state->cube_shadowmap_height, 1
   );
 
@@ -178,12 +178,12 @@ void Renderer::init_shadowmaps(Memory *memory, State *state) {
     log_fatal("Framebuffer not complete!");
   }
 
-  state->texture_shadowmaps_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "texture_shadowmaps_texture"
+  state->texture_shadowmaps_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "texture_shadowmaps_texture"
     ),
     GL_TEXTURE_2D_ARRAY,
-    Textures::TextureType::shadowmap, state->texture_shadowmaps,
+    Materials::TextureType::shadowmap, state->texture_shadowmaps,
     state->texture_shadowmap_width, state->texture_shadowmap_height, 1
   );
 }
@@ -203,32 +203,32 @@ void Renderer::init_g_buffer(Memory *memory, State *state) {
   glGenTextures(1, &g_albedo_texture_name);
   glGenTextures(1, &g_pbr_texture_name);
 
-  state->g_position_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "g_position_texture"
+  state->g_position_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "g_position_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::g_position, g_position_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::g_position, g_position_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
-  state->g_normal_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "g_normal_texture"
+  state->g_normal_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "g_normal_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::g_normal, g_normal_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::g_normal, g_normal_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
-  state->g_albedo_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "g_albedo_texture"
+  state->g_albedo_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "g_albedo_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::g_albedo, g_albedo_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::g_albedo, g_albedo_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
-  state->g_pbr_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "g_pbr_texture"
+  state->g_pbr_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "g_pbr_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::g_pbr, g_pbr_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::g_pbr, g_pbr_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
 
@@ -313,11 +313,11 @@ void Renderer::init_l_buffer(Memory *memory, State *state) {
 
   uint32 l_color_texture_name;
   glGenTextures(1, &l_color_texture_name);
-  state->l_color_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "l_color_texture"
+  state->l_color_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "l_color_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::l_color, l_color_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::l_color, l_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->l_color_texture->texture_name);
@@ -337,11 +337,11 @@ void Renderer::init_l_buffer(Memory *memory, State *state) {
 
   uint32 l_bright_color_texture_name;
   glGenTextures(1, &l_bright_color_texture_name);
-  state->l_bright_color_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "l_bright_color_texture"
+  state->l_bright_color_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "l_bright_color_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::l_bright_color, l_bright_color_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::l_bright_color, l_bright_color_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->l_bright_color_texture->texture_name);
@@ -376,11 +376,11 @@ void Renderer::init_l_buffer(Memory *memory, State *state) {
 #else
   uint32 l_depth_texture_name;
   glGenTextures(1, &l_depth_texture_name);
-  state->l_depth_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "l_depth_texture"
+  state->l_depth_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "l_depth_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::l_depth, l_depth_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::l_depth, l_depth_texture_name,
     state->window_info.width, state->window_info.height, 1
   );
   glBindTexture(GL_TEXTURE_2D, state->l_depth_texture->texture_name);
@@ -410,11 +410,11 @@ void Renderer::init_blur_buffers(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
   uint32 blur1_texture_name;
   glGenTextures(1, &blur1_texture_name);
-  state->blur1_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "blur1_texture"
+  state->blur1_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "blur1_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::blur1, blur1_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::blur1, blur1_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->blur1_texture->texture_name);
@@ -436,11 +436,11 @@ void Renderer::init_blur_buffers(Memory *memory, State *state) {
   glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
   uint32 blur2_texture_name;
   glGenTextures(1, &blur2_texture_name);
-  state->blur2_texture = Textures::init_texture(
-    (Textures::Texture*)memory->asset_memory_pool.push(
-      sizeof(Textures::Texture), "blur2_texture"
+  state->blur2_texture = Materials::init_texture(
+    (Materials::Texture*)memory->asset_memory_pool.push(
+      sizeof(Materials::Texture), "blur2_texture"
     ),
-    GL_TEXTURE_2D, Textures::TextureType::blur2, blur2_texture_name,
+    GL_TEXTURE_2D, Materials::TextureType::blur2, blur2_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   glBindTexture(GL_TEXTURE_2D, state->blur2_texture->texture_name);
@@ -865,7 +865,7 @@ void Renderer::render_scene_ui(
     if (Gui::draw_button(
       &state->gui_state, container, "Delete PBO"
     )) {
-      Textures::delete_persistent_pbo(&state->persistent_pbo);
+      Materials::delete_persistent_pbo(&state->persistent_pbo);
       set_heading(state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }

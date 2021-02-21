@@ -12,7 +12,7 @@ Tasks::Task* Tasks::init_task(
   Task *task,
   TaskType type,
   Models::ModelAsset *model_asset,
-  Textures::PersistentPbo *persistent_pbo,
+  Materials::PersistentPbo *persistent_pbo,
   Memory *memory
 ) {
   task->type = type;
