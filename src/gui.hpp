@@ -54,7 +54,7 @@ namespace Gui {
     Input::InputState *input_state;
     GLFWcursor *requested_cursor;
     Array<Fonts::FontAsset> font_assets;
-    Textures::TextureAtlas texture_atlas;
+    Materials::TextureAtlas texture_atlas;
     Array<GuiContainer> containers;
     GuiContainer *container_being_moved;
     uint32 vao;

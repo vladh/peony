@@ -19,7 +19,7 @@ namespace Models {
 
   struct Mesh {
     glm::mat4 transform;
-    Textures::Material *material;
+    Materials::Material *material;
     Pack indices_pack;
     uint32 n_vertices;
     uint32 n_indices;
@@ -36,7 +36,7 @@ namespace Models {
     ModelSource model_source;
     char path[256]; // TODO: Fix unsafe strings?
     Array<Mesh> meshes;
-    Array<Textures::Material> materials;
+    Array<Materials::Material> materials;
     Entities::EntityHandle entity_handle;
     Entities::SpatialComponent spatial_component;
     Entities::LightComponent light_component;
@@ -74,7 +74,7 @@ namespace Models {
   );
   void copy_textures_to_pbo(
     Models::ModelAsset *model_asset,
-    Textures::PersistentPbo *persistent_pbo
+    Materials::PersistentPbo *persistent_pbo
   );
   void bind_texture_uniforms_for_mesh(Models::Mesh *mesh);
   void create_entities(
@@ -88,8 +88,8 @@ namespace Models {
   void prepare_for_draw(
     Models::ModelAsset *model_asset,
     Memory *memory,
-    Textures::PersistentPbo *persistent_pbo,
-    Textures::TextureNamePool *texture_name_pool,
+    Materials::PersistentPbo *persistent_pbo,
+    Materials::TextureNamePool *texture_name_pool,
     Queue<Tasks::Task> *task_queue,
     EntitySets::EntitySet *entity_set,
     EntitySets::DrawableComponentSet *drawable_component_set,

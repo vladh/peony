@@ -16,7 +16,7 @@
 #include "util.cpp"
 #include "tasks.cpp"
 #include "peony_file_parser.cpp"
-#include "textures.cpp"
+#include "materials.cpp"
 #include "fonts.cpp"
 #include "shaders.cpp"
 #include "camera.cpp"
@@ -229,7 +229,7 @@ int main() {
   MemoryAndState memory_and_state = {&memory, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
-  Textures::init_texture_name_pool(&state->texture_name_pool, &memory, 64, 4);
+  Materials::init_texture_name_pool(&state->texture_name_pool, &memory, 64, 4);
   Renderer::init_g_buffer(&memory, state);
   Renderer::init_l_buffer(&memory, state);
   Renderer::init_blur_buffers(&memory, state);
@@ -237,7 +237,7 @@ int main() {
   Renderer::init_ubo(&memory, state);
   World::init(&memory, state);
 
-  Textures::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
+  Materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 
   Gui::init_gui_state(
     &state->gui_state,

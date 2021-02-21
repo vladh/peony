@@ -12,7 +12,7 @@ namespace Tasks {
   struct Task {
     TaskType type;
     Models::ModelAsset *model_asset;
-    Textures::PersistentPbo *persistent_pbo;
+    Materials::PersistentPbo *persistent_pbo;
     Memory *memory;
   };
 
@@ -22,7 +22,7 @@ namespace Tasks {
     Task *task,
     TaskType type,
     Models::ModelAsset *model_asset,
-    Textures::PersistentPbo *persistent_pbo,
+    Materials::PersistentPbo *persistent_pbo,
     Memory *memory
   );
   void run_loading_loop(

@@ -32,12 +32,12 @@ namespace Fonts {
   void load_glyphs(
     Fonts::FontAsset *font_asset,
     FT_Face face,
-    Textures::TextureAtlas *texture_atlas
+    Materials::TextureAtlas *texture_atlas
   );
   FontAsset* init_font_asset(
     FontAsset *font_asset,
     Memory *memory,
-    Textures::TextureAtlas *texture_atlas,
+    Materials::TextureAtlas *texture_atlas,
     FT_Library *ft_library,
     const char *name,
     const char *path,

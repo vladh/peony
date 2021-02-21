@@ -714,7 +714,7 @@ Gui::GuiState* Gui::init_gui_state(
   gui_state->memory = memory;
   gui_state->input_state = input_state;
   gui_state->window_dimensions = glm::vec2(window_width, window_height);
-  Textures::init_texture_atlas(&gui_state->texture_atlas, glm::ivec2(2000, 2000));
+  Materials::init_texture_atlas(&gui_state->texture_atlas, glm::ivec2(2000, 2000));
 
   // Shaders
   {
