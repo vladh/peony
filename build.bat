@@ -4,6 +4,10 @@ echo ###########################################################################
 echo ### Building
 echo ################################################################################
 
+if not defined DevEnvDir (
+  call vcvarsall x64
+)
+
 :: Compiler flags
 :: ---------------------
 :: -FC - Display full path of source code files in warnings
