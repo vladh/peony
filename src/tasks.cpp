@@ -12,13 +12,11 @@ Tasks::Task* Tasks::init_task(
   Task *task,
   TaskType type,
   Models::ModelAsset *model_asset,
-  Materials::PersistentPbo *persistent_pbo,
-  Memory *memory
+  Materials::PersistentPbo *persistent_pbo
 ) {
   task->type = type;
   task->model_asset = model_asset;
   task->persistent_pbo = persistent_pbo;
-  task->memory = memory;
   return task;
 }
 
@@ -26,7 +24,7 @@ Tasks::Task* Tasks::init_task(
 void Tasks::run_task(Tasks::Task *task) {
   START_TIMER(run_task);
   if (task->type == TaskType::load_model) {
-    Models::load_model_asset(task->model_asset, task->memory);
+    Models::load_model_asset(task->model_asset);
   } else if (task->type ==  TaskType::copy_textures_to_pbo) {
     Models::copy_textures_to_pbo(task->model_asset, task->persistent_pbo);
   } else {
@@ -37,7 +35,7 @@ void Tasks::run_task(Tasks::Task *task) {
 
 
 void Tasks::run_loading_loop(
-  std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
+  std::mutex *mutex, State *state, uint32 idx_thread
 ) {
   while (!state->should_stop) {
     Tasks::Task *task = nullptr;

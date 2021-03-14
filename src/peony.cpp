@@ -20,7 +20,6 @@
 #include "fonts.cpp"
 #include "shaders.cpp"
 #include "camera.cpp"
-#include "memory_pool.cpp"
 #include "memory.cpp"
 #include "input.cpp"
 #include "entities.cpp"
@@ -32,7 +31,7 @@
 #include "renderer.cpp"
 
 
-void process_input(GLFWwindow *window, State *state, Memory *memory) {
+void process_input(GLFWwindow *window, State *state) {
   // Continuous
   if (Input::is_key_down(&state->input_state, GLFW_KEY_W)) {
     Cameras::move_front_back(state->camera_active, 1, state->dt);
@@ -90,7 +89,7 @@ void process_input(GLFWwindow *window, State *state, Memory *memory) {
 }
 
 
-void run_main_loop(Memory *memory, State *state) {
+void run_main_loop(State *state) {
   std::chrono::steady_clock::time_point second_start = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
   std::chrono::steady_clock::time_point last_frame_start = std::chrono::steady_clock::now();
@@ -102,7 +101,7 @@ void run_main_loop(Memory *memory, State *state) {
 
   while (!state->should_stop) {
     glfwPollEvents();
-    process_input(state->window_info.window, state, memory);
+    process_input(state->window_info.window, state);
 
     if (
       !state->is_manual_frame_advance_enabled ||
@@ -148,8 +147,8 @@ void run_main_loop(Memory *memory, State *state) {
       // NOTE: Don't render on the very first frame. This avoids flashing that happens in
       // fullscreen. There is a better way to handle this, but whatever, figure it out later.
       if (state->n_frames_since_start > 1) {
-        World::update(memory, state);
-        Renderer::render(memory, state);
+        World::update(state);
+        Renderer::render(state);
       }
       if (state->is_manual_frame_advance_enabled) {
         state->should_manually_advance_to_next_frame = false;
@@ -183,13 +182,14 @@ void check_environment() {
 
 int main() {
   check_environment();
+  srand((uint32)time(NULL));
 
   START_TIMER(init);
 
-  srand((uint32)time(NULL));
-  START_TIMER(allocate_memory);
-  Memory memory;
-  END_TIMER(allocate_memory);
+  MemoryPool state_memory_pool = {};
+  state_memory_pool.size = sizeof(State);
+  MemoryPool asset_memory_pool = {};
+  MemoryPool entity_memory_pool = {};
 
   WindowInfo window_info;
   START_TIMER(init_window);
@@ -199,23 +199,31 @@ int main() {
     return -1;
   }
 
-  State *state = new((State*)memory.state_memory) State(&memory, window_info);
+  State *state = new(
+    (State*)Memory::push(
+      &state_memory_pool, sizeof(State), "state"
+    )
+  ) State(
+    &asset_memory_pool,
+    &entity_memory_pool,
+    window_info
+  );
 
   std::mutex loading_thread_mutex;
   std::thread loading_thread_1 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 1
+    Tasks::run_loading_loop, &loading_thread_mutex, state, 1
   );
   std::thread loading_thread_2 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 2
+    Tasks::run_loading_loop, &loading_thread_mutex, state, 2
   );
   std::thread loading_thread_3 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 3
+    Tasks::run_loading_loop, &loading_thread_mutex, state, 3
   );
   std::thread loading_thread_4 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 4
+    Tasks::run_loading_loop, &loading_thread_mutex, state, 4
   );
   std::thread loading_thread_5 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, &memory, state, 5
+    Tasks::run_loading_loop, &loading_thread_mutex, state, 5
   );
 
 #if 0
@@ -226,22 +234,22 @@ int main() {
 
   Renderer::update_drawing_options(state, window_info.window);
 
-  MemoryAndState memory_and_state = {&memory, state};
+  MemoryAndState memory_and_state = {&asset_memory_pool, &entity_memory_pool, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
-  Materials::init_texture_name_pool(&state->texture_name_pool, &memory, 64, 4);
-  Renderer::init_g_buffer(&memory, state);
-  Renderer::init_l_buffer(&memory, state);
-  Renderer::init_blur_buffers(&memory, state);
-  Renderer::init_shadowmaps(&memory, state);
-  Renderer::init_ubo(&memory, state);
-  World::init(&memory, state);
+  Materials::init_texture_name_pool(&state->texture_name_pool, &asset_memory_pool, 64, 4);
+  Renderer::init_g_buffer(&asset_memory_pool, state);
+  Renderer::init_l_buffer(&asset_memory_pool, state);
+  Renderer::init_blur_buffers(&asset_memory_pool, state);
+  Renderer::init_shadowmaps(&asset_memory_pool, state);
+  Renderer::init_ubo(state);
+  World::init(&asset_memory_pool, &entity_memory_pool, state);
 
   Materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 
   Gui::init_gui_state(
     &state->gui_state,
-    &memory,
+    &asset_memory_pool,
     &state->shader_assets,
     &state->input_state,
     state->window_info.width, state->window_info.height
@@ -260,19 +268,13 @@ int main() {
     state->window_info.window
   );
 
-#if 0
-  memory.asset_memory_pool.print();
-  memory.entity_memory_pool.print();
-  memory.temp_memory_pool.print();
-#endif
-
 #if USE_CACHELINE_SIZE_DISPLAY
   log_info("Cache line size: %dB", cacheline_get_size());
 #endif
 
   END_TIMER(init);
 
-  run_main_loop(&memory, state);
+  run_main_loop(state);
 
   loading_thread_1.join();
   loading_thread_2.join();
@@ -281,6 +283,9 @@ int main() {
   loading_thread_5.join();
 
   Renderer::destroy_window();
+  Memory::destroy_memory_pool(&state_memory_pool);
+  Memory::destroy_memory_pool(&asset_memory_pool);
+  Memory::destroy_memory_pool(&entity_memory_pool);
 
   log_info("Bye!");
 

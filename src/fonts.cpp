@@ -89,7 +89,7 @@ void Fonts::load_glyphs(
 
 Fonts::FontAsset* Fonts::init_font_asset(
   Fonts::FontAsset *font_asset,
-  Memory *memory,
+  MemoryPool *memory_pool,
   Materials::TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
@@ -100,7 +100,7 @@ Fonts::FontAsset* Fonts::init_font_asset(
   font_asset->font_size = font_size;
 
   font_asset->characters = Array<Fonts::Character>(
-    &memory->asset_memory_pool,
+    memory_pool,
     Fonts::CHAR_MAX_CODEPOINT_TO_LOAD + 1,
     "characters"
   );

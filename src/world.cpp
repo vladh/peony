@@ -147,12 +147,15 @@ void World::update_light_position(State *state, real32 amount) {
 
 void World::create_entities_from_entity_template(
   PeonyFileParser::EntityTemplate *entity_template,
-  Memory *memory,
+  MemoryPool *asset_memory_pool,
   EntitySets::EntitySet *entity_set,
   Array<Models::ModelAsset> *model_assets,
   Array<Shaders::ShaderAsset> *shader_assets,
   State *state
 ) {
+  // TODO: Make `init_entity()` function and use it here like
+  // we did with the other ones.
+  // TODO: Figure out parent system.
   Entities::Entity *entity = EntitySets::add_entity_to_set(
     entity_set,
     entity_template->entity_debug_name
@@ -163,7 +166,7 @@ void World::create_entities_from_entity_template(
   if (strlen(entity_template->builtin_model_name) == 0) {
     model_asset = Models::init_model_asset(
       (Models::ModelAsset*)(model_assets->push()),
-      memory,
+      asset_memory_pool,
       Models::ModelSource::file,
       entity_template->entity_debug_name,
       entity_template->model_path,
@@ -174,7 +177,7 @@ void World::create_entities_from_entity_template(
     if (strcmp(entity_template->builtin_model_name, "axes") == 0) {
       model_asset = Models::init_model_asset(
         (Models::ModelAsset*)(model_assets->push()),
-        memory,
+        asset_memory_pool,
         Models::ModelSource::data,
         (real32*)AXES_VERTICES, 6,
         nullptr, 0,
@@ -190,7 +193,7 @@ void World::create_entities_from_entity_template(
       uint32 *ocean_index_data;
 
       Util::make_plane(
-        &memory->asset_memory_pool,
+        asset_memory_pool,
         200, 200,
         800, 800,
         &ocean_n_vertices, &ocean_n_indices,
@@ -199,7 +202,7 @@ void World::create_entities_from_entity_template(
 
       model_asset = Models::init_model_asset(
         (Models::ModelAsset*)(model_assets->push()),
-        memory,
+        asset_memory_pool,
         Models::ModelSource::data,
         ocean_vertex_data, ocean_n_vertices,
         ocean_index_data, ocean_n_indices,
@@ -257,13 +260,12 @@ void World::create_entities_from_entity_template(
     PeonyFileParser::MaterialTemplate *material_template =
       &entity_template->material_templates[idx_material];
     Materials::Material *material = Materials::init_material(
-      model_asset->materials.push(), memory
+      model_asset->materials.push(), asset_memory_pool
     );
 
     if (strlen(material_template->shader_asset_vert_path) > 0) {
       material->shader_asset = Shaders::init_shader_asset(
         (Shaders::ShaderAsset*)(shader_assets->push()),
-        memory,
         entity_template->entity_debug_name,
         Shaders::ShaderType::standard,
         material_template->shader_asset_vert_path,
@@ -274,7 +276,6 @@ void World::create_entities_from_entity_template(
     if (strlen(material_template->depth_shader_asset_vert_path) > 0) {
       material->depth_shader_asset = Shaders::init_shader_asset(
         (Shaders::ShaderAsset*)(shader_assets->push()),
-        memory,
         entity_template->entity_debug_name,
         Shaders::ShaderType::depth,
         material_template->depth_shader_asset_vert_path,
@@ -343,13 +344,13 @@ void World::create_entities_from_entity_template(
 }
 
 
-void World::create_internal_entities(Memory *memory, State *state) {
+void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
   Models::ModelAsset *model_asset;
   Materials::Material *material;
 
   state->standard_depth_shader_asset = Shaders::init_shader_asset(
     (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    memory, "standard_depth", Shaders::ShaderType::depth,
+    "standard_depth", Shaders::ShaderType::depth,
     "standard_depth.vert", "standard_depth.frag",
     "standard_depth.geom"
   );
@@ -360,7 +361,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   uint32 *skysphere_index_data;
 
   Util::make_sphere(
-    &memory->asset_memory_pool,
+    memory_pool,
     64, 64,
     &skysphere_n_vertices, &skysphere_n_indices,
     &skysphere_vertex_data, &skysphere_index_data
@@ -369,7 +370,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Lighting screenquad
   model_asset = Models::init_model_asset(
     (Models::ModelAsset*)(state->model_assets.push()),
-    memory,
+    memory_pool,
     Models::ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
@@ -378,10 +379,10 @@ void World::create_internal_entities(Memory *memory, State *state) {
     Renderer::RenderPass::lighting,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_lighting")->handle
   );
-  material = Materials::init_material(model_asset->materials.push(), memory);
+  material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
     (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    memory, "lighting", Shaders::ShaderType::standard,
+    "lighting", Shaders::ShaderType::standard,
     "lighting.vert", "lighting.frag", ""
   );
   Materials::add_texture_to_material(
@@ -406,7 +407,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Preblur screenquad
   model_asset = Models::init_model_asset(
     (Models::ModelAsset*)(state->model_assets.push()),
-    memory,
+    memory_pool,
     Models::ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
@@ -415,10 +416,10 @@ void World::create_internal_entities(Memory *memory, State *state) {
     Renderer::RenderPass::preblur,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_preblur")->handle
   );
-  material = Materials::init_material(model_asset->materials.push(), memory);
+  material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
     (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    memory, "blur", Shaders::ShaderType::standard,
+    "blur", Shaders::ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Materials::add_texture_to_material(
@@ -428,7 +429,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Blur 1 screenquad
   model_asset = Models::init_model_asset(
     (Models::ModelAsset*)(state->model_assets.push()),
-    memory,
+    memory_pool,
     Models::ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
@@ -437,10 +438,10 @@ void World::create_internal_entities(Memory *memory, State *state) {
     Renderer::RenderPass::blur1,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur1")->handle
   );
-  material = Materials::init_material(model_asset->materials.push(), memory);
+  material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
     (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    memory, "blur", Shaders::ShaderType::standard,
+    "blur", Shaders::ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Materials::add_texture_to_material(material, *state->blur2_texture, "source_texture");
@@ -448,7 +449,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Blur 2 screenquad
   model_asset = Models::init_model_asset(
     (Models::ModelAsset*)(state->model_assets.push()),
-    memory,
+    memory_pool,
     Models::ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
@@ -457,10 +458,10 @@ void World::create_internal_entities(Memory *memory, State *state) {
     Renderer::RenderPass::blur2,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur2")->handle
   );
-  material = Materials::init_material(model_asset->materials.push(), memory);
+  material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
     (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    memory, "blur", Shaders::ShaderType::standard,
+    "blur", Shaders::ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Materials::add_texture_to_material(material, *state->blur1_texture, "source_texture");
@@ -468,7 +469,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
   // Postprocessing screenquad
   model_asset = Models::init_model_asset(
     (Models::ModelAsset*)(state->model_assets.push()),
-    memory,
+    memory_pool,
     Models::ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
@@ -477,10 +478,10 @@ void World::create_internal_entities(Memory *memory, State *state) {
     Renderer::RenderPass::postprocessing,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_postprocessing")->handle
   );
-  material = Materials::init_material(model_asset->materials.push(), memory);
+  material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
     (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    memory, "postprocessing", Shaders::ShaderType::standard,
+    "postprocessing", Shaders::ShaderType::standard,
     "postprocessing.vert", "postprocessing.frag", ""
   );
   Materials::add_texture_to_material(
@@ -501,7 +502,7 @@ void World::create_internal_entities(Memory *memory, State *state) {
 
     model_asset = Models::init_model_asset(
       (Models::ModelAsset*)(state->model_assets.push()),
-      memory,
+      memory_pool,
       Models::ModelSource::data,
       skysphere_vertex_data, skysphere_n_vertices,
       skysphere_index_data, skysphere_n_indices,
@@ -519,10 +520,10 @@ void World::create_internal_entities(Memory *memory, State *state) {
       glm::vec3(75.0f)
     );
 
-    material = Materials::init_material(model_asset->materials.push(), memory);
+    material = Materials::init_material(model_asset->materials.push(), memory_pool);
     material->shader_asset = Shaders::init_shader_asset(
       (Shaders::ShaderAsset*)(state->shader_assets.push()),
-      memory, "skysphere", Shaders::ShaderType::standard,
+      "skysphere", Shaders::ShaderType::standard,
       "skysphere.vert", "skysphere.frag", ""
     );
 #endif
@@ -530,11 +531,17 @@ void World::create_internal_entities(Memory *memory, State *state) {
 }
 
 
-void World::init(Memory *memory, State *state) {
-  create_internal_entities(memory, state);
+void World::init(
+  MemoryPool *asset_memory_pool,
+  MemoryPool *entity_memory_pool,
+  State *state
+) {
+  MemoryPool temp_memory_pool = {};
+  create_internal_entities(entity_memory_pool, state);
 
   PeonyFileParser::EntityTemplate *entity_templates =
-    (PeonyFileParser::EntityTemplate*)memory->temp_memory_pool.push(
+    (PeonyFileParser::EntityTemplate*)Memory::push(
+      &temp_memory_pool,
       sizeof(PeonyFileParser::EntityTemplate) *
         PeonyFileParser::MAX_N_FILE_ENTRIES,
       "entity_templates"
@@ -548,22 +555,23 @@ void World::init(Memory *memory, State *state) {
     /* PeonyFileParser::print_entity_template(&entity_templates[idx_entity]); */
     create_entities_from_entity_template(
       &entity_templates[idx_entity],
-      memory,
+      asset_memory_pool,
       &state->entity_set,
       &state->model_assets,
       &state->shader_assets,
       state
     );
   }
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void World::check_all_model_assets_loaded(Memory *memory, State *state) {
+void World::check_all_model_assets_loaded(State *state) {
   for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
     Models::ModelAsset *model_asset = state->model_assets[idx];
     Models::prepare_for_draw(
       model_asset,
-      memory,
       &state->persistent_pbo,
       &state->texture_name_pool,
       &state->task_queue,
@@ -577,13 +585,13 @@ void World::check_all_model_assets_loaded(Memory *memory, State *state) {
 }
 
 
-void World::update(Memory *memory, State *state) {
+void World::update(State *state) {
   Cameras::update_matrices(
     state->camera_active,
     state->window_info.width,
     state->window_info.height
   );
-  check_all_model_assets_loaded(memory, state);
+  check_all_model_assets_loaded(state);
 
   for (
     uint32 idx = 1;

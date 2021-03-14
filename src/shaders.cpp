@@ -86,14 +86,14 @@ uint32 Shaders::make_program(
 }
 
 
-const char* Shaders::load_file(Memory *memory, const char *path) {
+const char* Shaders::load_file(MemoryPool *memory_pool, const char *path) {
   char full_path[256]; // TODO: Fix unsafe strings?
   strcpy(full_path, SHADER_DIR);
   strcat(full_path, path);
   uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
   uint32 f2_size = Util::get_file_size(full_path);
-  char *file_memory = (char*)memory->temp_memory_pool.push(
-    f1_size + f2_size + 1, full_path
+  char *file_memory = (char*)Memory::push(
+    memory_pool, f1_size + f2_size + 1, full_path
   );
   Util::load_file(file_memory, SHADER_COMMON_PATH);
   Util::load_file(file_memory + f1_size, full_path);
@@ -101,15 +101,15 @@ const char* Shaders::load_file(Memory *memory, const char *path) {
 }
 
 
-const char* Shaders::load_frag_file(Memory *memory, const char *path) {
+const char* Shaders::load_frag_file(MemoryPool *memory_pool, const char *path) {
   char full_path[256]; // TODO: Fix unsafe strings?
   strcpy(full_path, SHADER_DIR);
   strcat(full_path, path);
   uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
   uint32 f2_size = Util::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
   uint32 f3_size = Util::get_file_size(full_path);
-  char *file_memory = (char*)memory->temp_memory_pool.push(
-    f1_size + f2_size + f3_size + 1, full_path
+  char *file_memory = (char*)Memory::push(
+    memory_pool, f1_size + f2_size + f3_size + 1, full_path
   );
   Util::load_file(file_memory, SHADER_COMMON_PATH);
   Util::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
@@ -308,50 +308,50 @@ void Shaders::load_uniforms(Shaders::ShaderAsset *shader_asset) {
 }
 
 
-void Shaders::load_shader_asset(
-  Shaders::ShaderAsset *shader_asset,
-  Memory *memory
-) {
+void Shaders::load_shader_asset(Shaders::ShaderAsset *shader_asset) {
+  MemoryPool temp_memory_pool = {};
   shader_asset->did_set_texture_uniforms = false;
 
   if (strlen(shader_asset->geom_path) > 0) {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,
-        load_file(memory, shader_asset->vert_path), GL_VERTEX_SHADER
+        load_file(&temp_memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
       ),
       make_shader(
         shader_asset->frag_path,
-        load_frag_file(memory, shader_asset->frag_path), GL_FRAGMENT_SHADER
+        load_frag_file(&temp_memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
       ),
       make_shader(
         shader_asset->geom_path,
-        load_file(memory, shader_asset->geom_path), GL_GEOMETRY_SHADER
+        load_file(&temp_memory_pool, shader_asset->geom_path), GL_GEOMETRY_SHADER
       )
     );
   } else {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,
-        load_file(memory, shader_asset->vert_path), GL_VERTEX_SHADER
+        load_file(&temp_memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
       ),
       make_shader(
         shader_asset->frag_path,
-        load_frag_file(memory, shader_asset->frag_path), GL_FRAGMENT_SHADER
+        load_frag_file(&temp_memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
       )
     );
   }
 
   load_uniforms(shader_asset);
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
 Shaders::ShaderAsset* Shaders::init_shader_asset(
   Shaders::ShaderAsset *shader_asset,
-  Memory *memory, const char *new_name, ShaderType new_type,
+  const char *new_name, ShaderType new_type,
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {
-  shader_asset->name = new_name;
+  strcpy(shader_asset->name, new_name);
   shader_asset->type = new_type;
   shader_asset->n_texture_units = 0;
   shader_asset->did_set_texture_uniforms = false;
@@ -360,6 +360,6 @@ Shaders::ShaderAsset* Shaders::init_shader_asset(
   strcpy(shader_asset->vert_path, vert_path);
   strcpy(shader_asset->frag_path, frag_path);
   strcpy(shader_asset->geom_path, geom_path);
-  load_shader_asset(shader_asset, memory);
+  load_shader_asset(shader_asset);
   return shader_asset;
 }

@@ -13,7 +13,7 @@ namespace Shaders {
   enum class ShaderType {none, standard, depth};
 
   struct ShaderAsset {
-    const char *name;
+    char name[256]; // TODO: Fix unsafe strings?
     char vert_path[256]; // TODO: Fix unsafe strings?
     char frag_path[256]; // TODO: Fix unsafe strings?
     char geom_path[256]; // TODO: Fix unsafe strings?
@@ -47,8 +47,8 @@ namespace Shaders {
   uint32 make_program(
     uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
   );
-  const char* load_file(Memory *memory, const char *path);
-  const char* load_frag_file(Memory *memory, const char *path);
+  const char* load_file(MemoryPool *memory_pool, const char *path);
+  const char* load_frag_file(MemoryPool *memory_pool, const char *path);
   int32 get_uniform_location(ShaderAsset *shader_asset, const char *name);
   void set_int(ShaderAsset *shader_asset, const char *name, uint32 value);
   void set_bool(ShaderAsset *shader_asset, const char *name, bool value);
@@ -66,10 +66,10 @@ namespace Shaders {
     GLenum texture_unit_type
   );
   void load_uniforms(ShaderAsset *shader_asset);
-  void load_shader_asset(ShaderAsset *shader_asset, Memory *memory);
+  void load_shader_asset(ShaderAsset *shader_asset);
   ShaderAsset* init_shader_asset(
     ShaderAsset *shader_asset,
-    Memory *memory, const char *name, ShaderType type,
+    const char *name, ShaderType type,
     const char *vert_path, const char *frag_path, const char *geom_path
   );
 }

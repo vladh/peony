@@ -73,7 +73,8 @@ namespace Materials {
     Shaders::ShaderAsset *shader_asset;
     Shaders::ShaderAsset *depth_shader_asset;
     Array<Texture> textures;
-    Array<const char*> texture_uniform_names;
+    char texture_uniform_names[256][256]; // TODO: Fix unsafe strings.
+    uint32 idx_texture_uniform_names;
 
     // Hardcoded values for when we can't load a texture.
     glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
@@ -110,7 +111,7 @@ namespace Materials {
   );
   Material* init_material(
     Material *material,
-    Memory *memory
+    MemoryPool *memory_pool
   );
   void add_texture_to_material(
     Material *material,
@@ -140,7 +141,7 @@ namespace Materials {
   );
   TextureNamePool* init_texture_name_pool(
     TextureNamePool *pool,
-    Memory *memory,
+    MemoryPool *memory_pool,
     uint32 n_textures,
     uint32 mipmap_max_level
   );

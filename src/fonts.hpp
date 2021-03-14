@@ -36,7 +36,7 @@ namespace Fonts {
   );
   FontAsset* init_font_asset(
     FontAsset *font_asset,
-    Memory *memory,
+    MemoryPool *memory_pool,
     Materials::TextureAtlas *texture_atlas,
     FT_Library *ft_library,
     const char *name,

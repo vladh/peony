@@ -20,7 +20,7 @@ Entities::Entity* EntitySets::add_entity_to_set(
   Entities::EntityHandle new_handle = make_handle(entity_set);
   Entities::Entity *new_entity = entity_set->entities->get(new_handle);
   new_entity->handle = new_handle;
-  new_entity->debug_name = debug_name;
+  strcpy(new_entity->debug_name, debug_name);
   return new_entity;
 }
 

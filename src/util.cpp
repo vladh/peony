@@ -39,7 +39,7 @@ namespace Util {
   }
 
 
-  const char* load_file(MemoryPool *pool, const char *path) {
+  const char* load_file(MemoryPool *memory_pool, const char *path) {
     FILE *f = fopen(path, "rb");
     if (!f) {
       log_error("Could not open file %s.", path);
@@ -49,7 +49,7 @@ namespace Util {
     uint32 file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
 
-    char *string = (char*)pool->push(file_size + 1, path);
+    char *string = (char*)Memory::push(memory_pool, file_size + 1, path);
     size_t result = fread(string, file_size, 1, f);
     fclose(f);
     if (result != 1) {
@@ -166,11 +166,11 @@ namespace Util {
     uint32 vertex_data_length = (n_x_segments + 1) * (n_z_segments + 1) * 8;
     uint32 index_data_length = (n_x_segments) * (n_z_segments) * 6;
 
-    *vertex_data = (real32*)memory_pool->push(
-      sizeof(real32) * vertex_data_length, "plane_vertex_data"
+    *vertex_data = (real32*)Memory::push(
+      memory_pool, sizeof(real32) * vertex_data_length, "plane_vertex_data"
     );
-    *index_data = (uint32*)memory_pool->push(
-      sizeof(uint32) * index_data_length, "plane_index_data"
+    *index_data = (uint32*)Memory::push(
+      memory_pool, sizeof(uint32) * index_data_length, "plane_index_data"
     );
 
     for (uint32 idx_x = 0; idx_x <= n_x_segments; idx_x++) {
@@ -235,11 +235,11 @@ namespace Util {
     uint32 vertex_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 8;
     uint32 index_data_length = (n_x_segments + 1) * (n_y_segments) * 2;
 
-    *vertex_data = (real32*)memory_pool->push(
-      sizeof(real32) * vertex_data_length, "sphere_vertex_data"
+    *vertex_data = (real32*)Memory::push(
+      memory_pool, sizeof(real32) * vertex_data_length, "sphere_vertex_data"
     );
-    *index_data = (uint32*)memory_pool->push(
-      sizeof(uint32) * index_data_length, "sphere_index_data"
+    *index_data = (uint32*)Memory::push(
+      memory_pool, sizeof(uint32) * index_data_length, "sphere_index_data"
     );
 
     for (uint32 y = 0; y <= n_y_segments; y++) {

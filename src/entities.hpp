@@ -10,7 +10,7 @@ namespace Entities {
 
   struct Entity {
     EntityHandle handle;
-    const char *debug_name;
+    char debug_name[256]; // TODO: Fix unsafe strings.
     static EntityHandle no_entity_handle;
   };
 

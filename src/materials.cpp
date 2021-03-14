@@ -189,12 +189,10 @@ glm::ivec2 Materials::push_space_to_texture_atlas(
 
 Materials::Material* Materials::init_material(
   Materials::Material *material,
-  Memory *memory
+  MemoryPool *memory_pool
 ) {
   material->textures =
-    Array<Texture>(&memory->entity_memory_pool, 16, "textures");
-  material->texture_uniform_names =
-    Array<const char*>(&memory->entity_memory_pool, 16, "textures");
+    Array<Texture>(memory_pool, 16, "textures");
 
   return material;
 };
@@ -207,7 +205,10 @@ void Materials::add_texture_to_material(
     material->is_screensize_dependent = true;
   }
   material->textures.push(texture);
-  material->texture_uniform_names.push(uniform_name);
+  strcpy(
+    material->texture_uniform_names[material->idx_texture_uniform_names++],
+    uniform_name
+  );
 }
 
 
@@ -332,7 +333,7 @@ void* Materials::get_memory_for_persistent_pbo_idx(
 
 Materials::TextureNamePool* Materials::init_texture_name_pool(
   Materials::TextureNamePool *pool,
-  Memory *memory,
+  MemoryPool *memory_pool,
   uint32 n_textures,
   uint32 mipmap_max_level
 ) {
@@ -343,8 +344,10 @@ Materials::TextureNamePool* Materials::init_texture_name_pool(
   pool->sizes[pool->n_sizes++] = 512;
   pool->sizes[pool->n_sizes++] = 2048;
 
-  pool->texture_names = (uint32*)memory->asset_memory_pool.push(
-    sizeof(uint32) * pool->n_textures * pool->n_sizes, "texture_names"
+  pool->texture_names = (uint32*)Memory::push(
+    memory_pool,
+    sizeof(uint32) * pool->n_textures * pool->n_sizes,
+    "texture_names"
   );
 
   glGenTextures(
