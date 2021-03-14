@@ -58,12 +58,12 @@ Renderer::RenderPassFlag Renderer::render_pass_from_string(const char* str) {
 }
 
 
-void Renderer::resize_renderer_buffers(Memory *memory, State *state) {
+void Renderer::resize_renderer_buffers(MemoryPool *memory_pool, State *state) {
   // TODO: Only regenerate once we're done resizing, not for every little bit
   // of the resize.
-  init_g_buffer(memory, state);
-  init_l_buffer(memory, state);
-  init_blur_buffers(memory, state);
+  init_g_buffer(memory_pool, state);
+  init_l_buffer(memory_pool, state);
+  init_blur_buffers(memory_pool, state);
 
   for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
     Models::ModelAsset *model_asset = state->model_assets[idx];
@@ -108,7 +108,7 @@ void Renderer::resize_renderer_buffers(Memory *memory, State *state) {
 }
 
 
-void Renderer::init_ubo(Memory *memory, State *state) {
+void Renderer::init_ubo(State *state) {
   glGenBuffers(1, &state->ubo_shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
@@ -117,7 +117,7 @@ void Renderer::init_ubo(Memory *memory, State *state) {
 }
 
 
-void Renderer::init_shadowmaps(Memory *memory, State *state) {
+void Renderer::init_shadowmaps(MemoryPool *memory_pool, State *state) {
   // Cube
   glGenFramebuffers(1, &state->cube_shadowmaps_framebuffer);
   glGenTextures(1, &state->cube_shadowmaps);
@@ -144,8 +144,8 @@ void Renderer::init_shadowmaps(Memory *memory, State *state) {
   }
 
   state->cube_shadowmaps_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "cube_shadowmaps_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "cube_shadowmaps_texture"
     ),
     GL_TEXTURE_CUBE_MAP_ARRAY,
     Materials::TextureType::shadowmap, state->cube_shadowmaps,
@@ -179,8 +179,8 @@ void Renderer::init_shadowmaps(Memory *memory, State *state) {
   }
 
   state->texture_shadowmaps_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "texture_shadowmaps_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "texture_shadowmaps_texture"
     ),
     GL_TEXTURE_2D_ARRAY,
     Materials::TextureType::shadowmap, state->texture_shadowmaps,
@@ -189,7 +189,7 @@ void Renderer::init_shadowmaps(Memory *memory, State *state) {
 }
 
 
-void Renderer::init_g_buffer(Memory *memory, State *state) {
+void Renderer::init_g_buffer(MemoryPool *memory_pool, State *state) {
   glGenFramebuffers(1, &state->g_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
 
@@ -204,29 +204,29 @@ void Renderer::init_g_buffer(Memory *memory, State *state) {
   glGenTextures(1, &g_pbr_texture_name);
 
   state->g_position_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "g_position_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "g_position_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::g_position, g_position_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_normal_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "g_normal_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "g_normal_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::g_normal, g_normal_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_albedo_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "g_albedo_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "g_albedo_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::g_albedo, g_albedo_texture_name,
     state->window_info.width, state->window_info.height, 4
   );
   state->g_pbr_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "g_pbr_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "g_pbr_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::g_pbr, g_pbr_texture_name,
     state->window_info.width, state->window_info.height, 4
@@ -307,15 +307,15 @@ void Renderer::init_g_buffer(Memory *memory, State *state) {
 }
 
 
-void Renderer::init_l_buffer(Memory *memory, State *state) {
+void Renderer::init_l_buffer(MemoryPool *memory_pool, State *state) {
   glGenFramebuffers(1, &state->l_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->l_buffer);
 
   uint32 l_color_texture_name;
   glGenTextures(1, &l_color_texture_name);
   state->l_color_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "l_color_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "l_color_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::l_color, l_color_texture_name,
     state->window_info.width, state->window_info.height, 4
@@ -338,8 +338,8 @@ void Renderer::init_l_buffer(Memory *memory, State *state) {
   uint32 l_bright_color_texture_name;
   glGenTextures(1, &l_bright_color_texture_name);
   state->l_bright_color_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "l_bright_color_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "l_bright_color_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::l_bright_color, l_bright_color_texture_name,
     state->window_info.width, state->window_info.height, 4
@@ -377,8 +377,8 @@ void Renderer::init_l_buffer(Memory *memory, State *state) {
   uint32 l_depth_texture_name;
   glGenTextures(1, &l_depth_texture_name);
   state->l_depth_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "l_depth_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "l_depth_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::l_depth, l_depth_texture_name,
     state->window_info.width, state->window_info.height, 1
@@ -405,14 +405,14 @@ void Renderer::init_l_buffer(Memory *memory, State *state) {
 }
 
 
-void Renderer::init_blur_buffers(Memory *memory, State *state) {
+void Renderer::init_blur_buffers(MemoryPool *memory_pool, State *state) {
   glGenFramebuffers(1, &state->blur1_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
   uint32 blur1_texture_name;
   glGenTextures(1, &blur1_texture_name);
   state->blur1_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "blur1_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "blur1_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::blur1, blur1_texture_name,
     state->window_info.width, state->window_info.height, 4
@@ -437,8 +437,8 @@ void Renderer::init_blur_buffers(Memory *memory, State *state) {
   uint32 blur2_texture_name;
   glGenTextures(1, &blur2_texture_name);
   state->blur2_texture = Materials::init_texture(
-    (Materials::Texture*)memory->asset_memory_pool.push(
-      sizeof(Materials::Texture), "blur2_texture"
+    (Materials::Texture*)Memory::push(
+      memory_pool, sizeof(Materials::Texture), "blur2_texture"
     ),
     GL_TEXTURE_2D, Materials::TextureType::blur2, blur2_texture_name,
     state->window_info.width, state->window_info.height, 4
@@ -480,7 +480,7 @@ void Renderer::update_drawing_options(State *state, GLFWwindow *window) {
 
 
 void Renderer::copy_scene_data_to_ubo(
-  Memory *memory, State *state,
+  State *state,
   uint32 current_shadow_light_idx,
   uint32 current_shadow_light_type,
   bool32 is_blur_horizontal
@@ -568,15 +568,15 @@ void Renderer::copy_scene_data_to_ubo(
 }
 
 
-void Renderer::copy_scene_data_to_ubo(Memory *memory, State *state) {
-  copy_scene_data_to_ubo(memory, state, 0, 0, false);
+void Renderer::copy_scene_data_to_ubo(State *state) {
+  copy_scene_data_to_ubo(state, 0, 0, false);
 }
 
 
 void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
-  Memory *memory = memory_and_state->memory;
+  MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
   log_info(
     "Window is now: %d x %d", state->window_info.width, state->window_info.height
   );
@@ -595,7 +595,7 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
   Gui::update_screen_dimensions(
     &state->gui_state, state->window_info.width, state->window_info.height
   );
-  resize_renderer_buffers(memory, state);
+  resize_renderer_buffers(asset_memory_pool, state);
 }
 
 
@@ -741,16 +741,15 @@ void Renderer::destroy_window() {
 }
 
 
-void Renderer::reload_shaders(Memory *memory, State *state) {
+void Renderer::reload_shaders(State *state) {
   for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
     Shaders::ShaderAsset *shader_asset = state->shader_assets[idx];
-    Shaders::load_shader_asset(shader_asset, memory);
+    Shaders::load_shader_asset(shader_asset);
   }
 }
 
 
 void Renderer::render_scene(
-  Memory *memory,
   State *state,
   Renderer::RenderPassFlag render_pass,
   Renderer::RenderMode render_mode
@@ -777,9 +776,7 @@ void Renderer::set_heading(
 }
 
 
-void Renderer::render_scene_ui(
-  Memory *memory, State *state
-) {
+void Renderer::render_scene_ui(State *state) {
   char debug_text[1 << 14];
 
   Gui::start_drawing(&state->gui_state);
@@ -858,7 +855,7 @@ void Renderer::render_scene_ui(
     if (Gui::draw_button(
       &state->gui_state, container, "Reload shaders"
     )) {
-      reload_shaders(memory, state);
+      reload_shaders(state);
       set_heading(state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
@@ -884,8 +881,8 @@ void Renderer::render_scene_ui(
 }
 
 
-void Renderer::render(Memory *memory, State *state) {
-  Renderer::copy_scene_data_to_ubo(memory, state);
+void Renderer::render(State *state) {
+  Renderer::copy_scene_data_to_ubo(state);
 
   // Clear framebuffers
   {
@@ -950,10 +947,10 @@ void Renderer::render(Memory *memory, State *state) {
         glClear(GL_DEPTH_BUFFER_BIT);
 
         Renderer::copy_scene_data_to_ubo(
-          memory, state, idx_light, light_type_to_int(light_component->type), false
+          state, idx_light, light_type_to_int(light_component->type), false
         );
         render_scene(
-          memory, state,
+          state,
           Renderer::RenderPass::shadowcaster,
           Renderer::RenderMode::depth
         );
@@ -1006,10 +1003,10 @@ void Renderer::render(Memory *memory, State *state) {
         glClear(GL_DEPTH_BUFFER_BIT);
 
         Renderer::copy_scene_data_to_ubo(
-          memory, state, idx_light, light_type_to_int(light_component->type), false
+          state, idx_light, light_type_to_int(light_component->type), false
         );
         render_scene(
-          memory, state,
+          state,
           Renderer::RenderPass::shadowcaster,
           Renderer::RenderMode::depth
         );
@@ -1030,7 +1027,7 @@ void Renderer::render(Memory *memory, State *state) {
     }
     glBindFramebuffer(GL_FRAMEBUFFER, state->g_buffer);
     render_scene(
-      memory, state,
+      state,
       Renderer::RenderPass::deferred,
       Renderer::RenderMode::regular
     );
@@ -1056,7 +1053,7 @@ void Renderer::render(Memory *memory, State *state) {
   {
     glDisable(GL_DEPTH_TEST);
     render_scene(
-      memory, state,
+      state,
       Renderer::RenderPass::lighting,
       Renderer::RenderMode::regular
     );
@@ -1076,7 +1073,7 @@ void Renderer::render(Memory *memory, State *state) {
       glDepthRange(0.9999f, 1.0f);
 
       render_scene(
-        memory, state,
+        state,
         Renderer::RenderPass::forward_skybox,
         Renderer::RenderMode::regular
       );
@@ -1093,14 +1090,14 @@ void Renderer::render(Memory *memory, State *state) {
       }
 
       render_scene(
-        memory, state,
+        state,
         Renderer::RenderPass::forward_depth,
         Renderer::RenderMode::regular
       );
 
       glDisable(GL_DEPTH_TEST);
       render_scene(
-        memory, state,
+        state,
         Renderer::RenderPass::forward_nodepth,
         Renderer::RenderMode::regular
       );
@@ -1117,28 +1114,28 @@ void Renderer::render(Memory *memory, State *state) {
   // Blur pass
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-    Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, true);
+    Renderer::copy_scene_data_to_ubo(state, 0, 0, true);
     render_scene(
-      memory, state, Renderer::RenderPass::preblur, Renderer::RenderMode::regular
+      state, Renderer::RenderPass::preblur, Renderer::RenderMode::regular
     );
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-    Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, false);
+    Renderer::copy_scene_data_to_ubo(state, 0, 0, false);
     render_scene(
-      memory, state, Renderer::RenderPass::blur2, Renderer::RenderMode::regular
+      state, Renderer::RenderPass::blur2, Renderer::RenderMode::regular
     );
 
     for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-      Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, true);
+      Renderer::copy_scene_data_to_ubo(state, 0, 0, true);
       render_scene(
-        memory, state, Renderer::RenderPass::blur1, Renderer::RenderMode::regular
+        state, Renderer::RenderPass::blur1, Renderer::RenderMode::regular
       );
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-      Renderer::copy_scene_data_to_ubo(memory, state, 0, 0, false);
+      Renderer::copy_scene_data_to_ubo(state, 0, 0, false);
       render_scene(
-        memory, state, Renderer::RenderPass::blur1, Renderer::RenderMode::regular
+        state, Renderer::RenderPass::blur1, Renderer::RenderMode::regular
       );
     }
   }
@@ -1148,7 +1145,7 @@ void Renderer::render(Memory *memory, State *state) {
   // Postprocessing pass
   {
     render_scene(
-      memory, state,
+      state,
       Renderer::RenderPass::postprocessing,
       Renderer::RenderMode::regular
     );
@@ -1158,7 +1155,7 @@ void Renderer::render(Memory *memory, State *state) {
   {
     glEnable(GL_BLEND);
     if (!state->should_hide_ui) {
-      render_scene_ui(memory, state);
+      render_scene_ui(state);
     }
     glDisable(GL_BLEND);
   }

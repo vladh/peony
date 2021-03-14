@@ -700,18 +700,17 @@ bool32 Gui::draw_button(
 
 Gui::GuiState* Gui::init_gui_state(
   GuiState* gui_state,
-  Memory *memory,
+  MemoryPool *memory_pool,
   Array<Shaders::ShaderAsset> *shader_assets,
   Input::InputState *input_state,
   uint32 window_width, uint32 window_height
 ) {
   gui_state->font_assets = Array<Fonts::FontAsset>(
-    &memory->asset_memory_pool, 8, "font_assets"
+    memory_pool, 8, "font_assets"
   );
   gui_state->containers = Array<GuiContainer>(
-    &memory->asset_memory_pool, 32, "gui_containers"
+    memory_pool, 32, "gui_containers"
   );
-  gui_state->memory = memory;
   gui_state->input_state = input_state;
   gui_state->window_dimensions = glm::vec2(window_width, window_height);
   Materials::init_texture_atlas(&gui_state->texture_atlas, glm::ivec2(2000, 2000));
@@ -720,7 +719,7 @@ Gui::GuiState* Gui::init_gui_state(
   {
     gui_state->shader_asset = Shaders::init_shader_asset(
       (Shaders::ShaderAsset*)(shader_assets->push()),
-      gui_state->memory, "gui_generic", Shaders::ShaderType::standard,
+      "gui_generic", Shaders::ShaderType::standard,
       "gui_generic.vert", "gui_generic.frag", ""
     );
   }
@@ -736,25 +735,25 @@ Gui::GuiState* Gui::init_gui_state(
 
     Fonts::init_font_asset(
       (Fonts::FontAsset*)(gui_state->font_assets.push()),
-      gui_state->memory, &gui_state->texture_atlas,
+      memory_pool, &gui_state->texture_atlas,
       &ft_library, "body", GUI_MAIN_FONT_REGULAR, 18
     );
 
     Fonts::init_font_asset(
       (Fonts::FontAsset*)(gui_state->font_assets.push()),
-      gui_state->memory, &gui_state->texture_atlas,
+      memory_pool, &gui_state->texture_atlas,
       &ft_library, "body-bold", GUI_MAIN_FONT_BOLD, 18
     );
 
     Fonts::init_font_asset(
       (Fonts::FontAsset*)(gui_state->font_assets.push()),
-      gui_state->memory, &gui_state->texture_atlas,
+      memory_pool, &gui_state->texture_atlas,
       &ft_library, "heading", GUI_MAIN_FONT_REGULAR, 42
     );
 
     Fonts::init_font_asset(
       (Fonts::FontAsset*)(gui_state->font_assets.push()),
-      gui_state->memory, &gui_state->texture_atlas,
+      memory_pool, &gui_state->texture_atlas,
       &ft_library, "title", GUI_MAIN_FONT_REGULAR, 64
     );
 

@@ -95,11 +95,13 @@ void Models::setup_mesh_vertex_buffers_for_file_source(
   glVertexAttribPointer(
     location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords)
   );
+
+  Memory::destroy_memory_pool(&mesh->temp_memory_pool);
 }
 
 
 void Models::load_mesh(
-  Models::Mesh *mesh, Memory *memory, aiMesh *mesh_data, const aiScene *scene,
+  Models::Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
   glm::mat4 transform, Pack indices_pack
 ) {
   mesh->transform = transform;
@@ -115,9 +117,8 @@ void Models::load_mesh(
   // This is probably quite wasteful, but I haven't figured out a way to
   // elegantly use the data from assimp directly, and I don't think it's
   // possible.
-  // TODO: Change to a memory pool we can somehow clear later.
   mesh->vertices = Array<Vertex>(
-    &memory->asset_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
+    &mesh->temp_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
   );
 
   if (!mesh_data->mNormals) {
@@ -160,8 +161,7 @@ void Models::load_mesh(
 
   mesh->n_indices = n_indices;
   mesh->indices = Array<uint32>(
-    // TODO: Change to a memory pool we can somehow clear later.
-    &memory->asset_memory_pool, n_indices, "mesh_indices"
+    &mesh->temp_memory_pool, n_indices, "mesh_indices"
   );
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
@@ -175,7 +175,7 @@ void Models::load_mesh(
 
 void Models::load_node(
   Models::ModelAsset *model_asset,
-  Memory *memory, aiNode *node, const aiScene *scene,
+  aiNode *node, const aiScene *scene,
   glm::mat4 accumulated_transform, Pack indices_pack
 ) {
   glm::mat4 node_transform = Util::aimatrix4x4_to_glm(&node->mTransformation);
@@ -185,7 +185,6 @@ void Models::load_node(
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     load_mesh(
       model_asset->meshes.push(),
-      memory,
       mesh_data, scene,
       transform,
       indices_pack
@@ -199,16 +198,13 @@ void Models::load_node(
     // to a uint8.
     pack_push(&new_indices_pack, (uint8)idx);
     load_node(
-      model_asset,
-      memory, node->mChildren[idx], scene, transform, new_indices_pack
+      model_asset, node->mChildren[idx], scene, transform, new_indices_pack
     );
   }
 }
 
 
-void Models::load_model_asset(
-  Models::ModelAsset *model_asset, Memory *memory
-) {
+void Models::load_model_asset(Models::ModelAsset *model_asset) {
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
@@ -239,8 +235,7 @@ void Models::load_model_asset(
     }
 
     load_node(
-      model_asset,
-      memory, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+      model_asset, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
     );
 
     aiReleaseImport(scene);
@@ -310,7 +305,7 @@ void Models::bind_texture_uniforms_for_mesh(Models::Mesh *mesh) {
 
     for (uint32 idx = 0; idx < material->textures.size; idx++) {
       Materials::Texture *texture = material->textures[idx];
-      const char *uniform_name = *material->texture_uniform_names[idx];
+      const char *uniform_name = material->texture_uniform_names[idx];
 #if 1
       log_info(
         "Setting uniforms: (uniform_name %s) "
@@ -426,7 +421,6 @@ void Models::create_entities(
 
 void Models::prepare_for_draw(
   Models::ModelAsset *model_asset,
-  Memory *memory,
   Materials::PersistentPbo *persistent_pbo,
   Materials::TextureNamePool *texture_name_pool,
   Queue<Tasks::Task> *task_queue,
@@ -442,7 +436,7 @@ void Models::prepare_for_draw(
     !model_asset->is_mesh_data_loading_done
   ) {
     model_asset->is_mesh_data_loading_in_progress = true;
-    task_queue->push({Tasks::TaskType::load_model, model_asset, nullptr, memory});
+    task_queue->push({Tasks::TaskType::load_model, model_asset, nullptr});
   }
 
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
@@ -518,7 +512,7 @@ void Models::prepare_for_draw(
       if (should_try_to_copy_textures) {
         model_asset->is_texture_copying_to_pbo_in_progress = true;
         task_queue->push({
-          Tasks::TaskType::copy_textures_to_pbo, model_asset, persistent_pbo, nullptr
+          Tasks::TaskType::copy_textures_to_pbo, model_asset, persistent_pbo
         });
       } else {
         model_asset->is_texture_copying_to_pbo_done = true;
@@ -598,23 +592,23 @@ void Models::prepare_for_draw(
 
 Models::ModelAsset* Models::init_model_asset(
   ModelAsset *model_asset,
-  Memory *memory,
+  MemoryPool *memory_pool,
   ModelSource model_source,
   const char *name,
   const char *path,
   Renderer::RenderPassFlag render_pass,
   Entities::EntityHandle entity_handle
 ) {
-  model_asset->name = name;
+  strcpy(model_asset->name, name);
   model_asset->model_source = model_source;
   model_asset->render_pass = render_pass;
   model_asset->entity_handle = entity_handle;
 
   model_asset->meshes = Array<Models::Mesh>(
-    &memory->asset_memory_pool, MAX_N_MESHES, "meshes"
+    memory_pool, MAX_N_MESHES, "meshes"
   );
   model_asset->materials = Array<Materials::Material>(
-    &memory->asset_memory_pool, MAX_N_MATERIALS, "materials"
+    memory_pool, MAX_N_MATERIALS, "materials"
   );
 
   strcpy(model_asset->path, path);
@@ -627,7 +621,7 @@ Models::ModelAsset* Models::init_model_asset(
 
 Models::ModelAsset* Models::init_model_asset(
   ModelAsset *model_asset,
-  Memory *memory,
+  MemoryPool *memory_pool,
   ModelSource model_source,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
@@ -636,16 +630,16 @@ Models::ModelAsset* Models::init_model_asset(
   Renderer::RenderPassFlag render_pass,
   Entities::EntityHandle entity_handle
 ) {
-  model_asset->name = name;
+  strcpy(model_asset->name, name);
   model_asset->model_source = model_source;
   model_asset->render_pass = render_pass;
   model_asset->entity_handle = entity_handle;
 
   model_asset->meshes = Array<Models::Mesh>(
-    &memory->asset_memory_pool, MAX_N_MESHES, "meshes"
+    memory_pool, MAX_N_MESHES, "meshes"
   );
   model_asset->materials = Array<Materials::Material>(
-    &memory->asset_memory_pool, MAX_N_MATERIALS, "materials"
+    memory_pool, MAX_N_MATERIALS, "materials"
   );
 
   Models::Mesh *mesh = model_asset->meshes.push();

@@ -1,7 +1,6 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
-class Memory;
 namespace Models {
   struct ModelAsset;
 };
@@ -13,7 +12,6 @@ namespace Tasks {
     TaskType type;
     Models::ModelAsset *model_asset;
     Materials::PersistentPbo *persistent_pbo;
-    Memory *memory;
   };
 
   static const char* task_type_to_str(TaskType type);
@@ -22,11 +20,10 @@ namespace Tasks {
     Task *task,
     TaskType type,
     Models::ModelAsset *model_asset,
-    Materials::PersistentPbo *persistent_pbo,
-    Memory *memory
+    Materials::PersistentPbo *persistent_pbo
   );
   void run_loading_loop(
-    std::mutex *mutex, Memory *memory, State *state, uint32 idx_thread
+    std::mutex *mutex, State *state, uint32 idx_thread
   );
 };
 

@@ -75,20 +75,20 @@ namespace Renderer {
 
   const char* render_pass_to_string(RenderPassFlag render_pass);
   RenderPassFlag render_pass_from_string(const char* str);
-  void resize_renderer_buffers(Memory *memory, State *state);
-  void init_ubo(Memory *memory, State *state);
-  void init_shadowmaps(Memory *memory, State *state);
-  void init_g_buffer(Memory *memory, State *state);
-  void init_l_buffer(Memory *memory, State *state);
-  void init_blur_buffers(Memory *memory, State *state);
+  void resize_renderer_buffers(MemoryPool *memory_pool, State *state);
+  void init_ubo(State *state);
+  void init_shadowmaps(MemoryPool *memory_pool, State *state);
+  void init_g_buffer(MemoryPool *memory_pool, State *state);
+  void init_l_buffer(MemoryPool *memory_pool, State *state);
+  void init_blur_buffers(MemoryPool *memory_pool, State *state);
   void update_drawing_options(State *state, GLFWwindow *window);
   void copy_scene_data_to_ubo(
-    Memory *memory, State *state,
+    State *state,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
     bool32 is_blur_horizontal
   );
-  void copy_scene_data_to_ubo(Memory *memory, State *state);
+  void copy_scene_data_to_ubo(State *state);
   void init_window(WindowInfo *window_info);
   void destroy_window();
   void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -97,9 +97,8 @@ namespace Renderer {
   void key_callback(
     GLFWwindow* window, int key, int scancode, int action, int mods
   );
-  void reload_shaders(Memory *memory, State *state);
+  void reload_shaders(State *state);
   void render_scene(
-    Memory *memory,
     State *state,
     Renderer::RenderPassFlag render_pass,
     Renderer::RenderMode render_mode
@@ -110,9 +109,9 @@ namespace Renderer {
     real32 fadeout_duration, real32 fadeout_delay
   );
   void render_scene_ui(
-    Memory *memory, State *state
+    State *state
   );
-  void render(Memory *memory, State *state);
+  void render(State *state);
 }
 
 #endif

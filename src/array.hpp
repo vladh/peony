@@ -59,33 +59,21 @@ public:
   }
 
   Array(
-    MemoryPool *pool, uint32 max_size, const char *debug_name
+    MemoryPool *memory_pool, uint32 max_size, const char *debug_name
   ) :
     max_size(max_size)
   {
-    this->items = (T*)pool->push(sizeof(T) * this->max_size, debug_name);
+    this->items = (T*)Memory::push(memory_pool, sizeof(T) * this->max_size, debug_name);
   }
 
   Array(
-    MemoryPool *pool, uint32 max_size, const char *debug_name,
+    MemoryPool *memory_pool, uint32 max_size, const char *debug_name,
     bool32 is_sparse
   ) :
     max_size(max_size),
     is_sparse(is_sparse)
   {
-    this->items = (T*)pool->push(sizeof(T) * this->max_size, debug_name);
-  }
-
-  Array(
-    MemoryPool *pool,
-    uint32 size,
-    uint32 max_size,
-    T *items
-  ) :
-    size(size),
-    max_size(max_size),
-    items(items)
-  {
+    this->items = (T*)Memory::push(memory_pool, sizeof(T) * this->max_size, debug_name);
   }
 
   // TODO: Remove.

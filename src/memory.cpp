@@ -1,25 +1,94 @@
-Memory::Memory(
-) :
-  state_memory_size(sizeof(State)),
-  asset_memory_pool("assets", MB_TO_B(64)),
-  entity_memory_pool("entities", MB_TO_B(64)),
-  temp_memory_pool("temp", MB_TO_B(256))
-{
-  this->state_memory = (State*)malloc(this->state_memory_size);
-  memset(this->state_memory, 0, this->state_memory_size);
+void Memory::reset_memory_pool(MemoryPool *pool) {
+#if USE_MEMORY_DEBUG_LOGS
+  log_info("Resetting memory pool \"%s\"", pool->name);
+#endif
+  pool->used = 0;
+  pool->n_items = 0;
+}
+
+
+void Memory::zero_out_memory_pool(MemoryPool *pool) {
+  memset(pool->memory, 0, pool->size);
+  pool->used = 0;
+  pool->n_items = 0;
+}
+
+
+void* Memory::push(
+  MemoryPool *pool,
+  size_t item_size,
+  const char *item_debug_name
+) {
+  // If we had just init'd an empty pool, let's just give it some size.
+  if (pool->size == 0) {
+    pool->size = MB_TO_B(256);
+  }
+
+  // If we haven't allocated anything in the pool, let's allocate something now.
+  if (pool->memory == nullptr) {
+#if USE_MEMORY_DEBUG_LOGS
+    log_info(
+      "Allocating memory pool: %.2fMB (%dB)",
+      B_TO_MB((real64)pool->size),
+      pool->size
+    );
+#endif
+
+    pool->memory = (uint8*)malloc(pool->size);
+    memset(pool->memory, 0, pool->size);
+  }
+  assert(pool->used + item_size <= pool->size);
+
+#if USE_MEMORYPOOL_ITEM_DEBUG
+  assert(pool->n_items < N_MAX_MEMORYPOOL_ITEMS);
+  pool->item_debug_names[pool->n_items] = item_debug_name;
+  pool->item_debug_sizes[pool->n_items] = item_size;
+#endif
+
+  void *new_memory = pool->memory + pool->used;
+  pool->used += item_size;
+  pool->n_items++;
 
 #if USE_MEMORY_DEBUG_LOGS
   log_info(
-    "Allocating memory for state: %.2fMB (%dB)",
-    B_TO_MB((real64)this->state_memory_size), this->state_memory_size
+    "Pusing to memory pool: %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
+    B_TO_MB((real64)item_size),
+    item_size, item_debug_name,
+    B_TO_MB((real64)pool->used),
+    pool->used
   );
+#endif
+
+  return new_memory;
+}
+
+
+void Memory::print_memory_pool(MemoryPool *pool) {
+  log_info("MemoryPool:");
+  log_info("  Used: %.2fMB (%dB)", B_TO_MB((real64)pool->used), pool->used);
+  log_info("  Size: %.2fMB (%dB)", B_TO_MB((real64)pool->size), pool->size);
+  log_info("  Items:");
+  if (pool->n_items == 0) {
+    log_info("    (none)");
+  }
+#if USE_MEMORYPOOL_ITEM_DEBUG
+  for (uint32 idx = 0; idx < pool->n_items; idx++) {
+    log_info(
+      "    %02d. %s, %.2fMB (%dB)",
+      idx,
+      pool->item_debug_names[idx],
+      B_TO_MB((real64)pool->item_debug_sizes[idx]),
+      pool->item_debug_sizes[idx]
+    );
+  }
 #endif
 }
 
 
-Memory::~Memory() {
+void Memory::destroy_memory_pool(MemoryPool *memory_pool) {
 #if USE_MEMORY_DEBUG_LOGS
-  log_info("~Memory()");
+  log_info("destroy_memory_pool");
 #endif
-  free(this->state_memory);
+  reset_memory_pool(memory_pool);
+  free(memory_pool->memory);
 }

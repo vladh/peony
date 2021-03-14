@@ -9,16 +9,20 @@ namespace World {
   void update_light_position(State *state, real32 amount);
   void create_entities_from_entity_template(
     PeonyFileParser::EntityTemplate *entity_template,
-    Memory *memory,
+    MemoryPool *memory_pool,
     EntitySets::EntitySet *entity_set,
     Array<Models::ModelAsset> *model_assets,
     Array<Shaders::ShaderAsset> *shader_assets,
     State *state
   );
-  void create_internal_entities(Memory *memory, State *state);
-  void init(Memory *memory, State *state);
-  void check_all_model_assets_loaded(Memory *memory, State *state);
-  void update(Memory *memory, State *state);
+  void create_internal_entities(MemoryPool *memory_pool, State *state);
+  void init(
+    MemoryPool *asset_memory_pool,
+    MemoryPool *entity_memory_pool,
+    State *state
+  );
+  void check_all_model_assets_loaded(State *state);
+  void update(State *state);
 };
 
 #endif

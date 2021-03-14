@@ -100,11 +100,16 @@ public:
   Materials::Texture *blur1_texture;
   Materials::Texture *blur2_texture;
 
-  State(Memory *memory, WindowInfo window_info);
+  State(
+    MemoryPool *asset_memory_pool,
+    MemoryPool *entity_memory_pool,
+    WindowInfo window_info
+  );
 };
 
 struct MemoryAndState {
-  Memory *memory;
+  MemoryPool *asset_memory_pool;
+  MemoryPool *entity_memory_pool;
   State *state;
 };
 
