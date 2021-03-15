@@ -14,12 +14,6 @@ struct Task {
 namespace Tasks {
   static const char* task_type_to_str(TaskType type);
   void run_task(Task *task);
-  Task* init_task(
-    Task *task,
-    TaskType type,
-    ModelAsset *model_asset,
-    PersistentPbo *persistent_pbo
-  );
   void run_loading_loop(
     std::mutex *mutex, State *state, uint32 idx_thread
   );

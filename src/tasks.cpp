@@ -8,19 +8,6 @@ const char* Tasks::task_type_to_str(TaskType type) {
 }
 
 
-Task* Tasks::init_task(
-  Task *task,
-  TaskType type,
-  ModelAsset *model_asset,
-  PersistentPbo *persistent_pbo
-) {
-  task->type = type;
-  task->model_asset = model_asset;
-  task->persistent_pbo = persistent_pbo;
-  return task;
-}
-
-
 void Tasks::run_task(Task *task) {
   START_TIMER(run_task);
   if (task->type == TaskType::load_model) {
