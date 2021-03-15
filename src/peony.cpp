@@ -71,7 +71,7 @@ void process_input(GLFWwindow *window, State *state) {
   }
 
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_C)) {
-    state->is_cursor_disabled = !state->is_cursor_disabled;
+    state->is_cursor_enabled = !state->is_cursor_enabled;
     Renderer::update_drawing_options(state, window);
   }
 
@@ -199,11 +199,10 @@ int main() {
     return -1;
   }
 
-  State *state = new(
+  State *state = init_state(
     (State*)Memory::push(
       &state_memory_pool, sizeof(State), "state"
-    )
-  ) State(
+    ),
     &asset_memory_pool,
     &entity_memory_pool,
     window_info

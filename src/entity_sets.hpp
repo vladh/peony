@@ -5,8 +5,8 @@ struct Mesh;
 
 struct EntitySet {
   // NOTE: 0 is an invalid handle.
-  EntityHandle last_handle = 1;
   Array<Entity> *entities;
+  EntityHandle last_handle;
 };
 
 struct LightComponentSet {
@@ -43,18 +43,10 @@ namespace EntitySets {
     EntitySet *entity_set,
     const char *debug_name
   );
-  EntitySet* init_entity_set(
-    EntitySet *entity_set,
-    Array<Entity> *entities
-  );
 
   LightComponent* get_light_component_from_set(
     LightComponentSet *light_component_set,
     EntityHandle handle
-  );
-  LightComponentSet* init_light_component_set(
-    LightComponentSet *light_component_set,
-    Array<LightComponent> *components
   );
 
   SpatialComponent* get_spatial_component_from_set(
@@ -65,27 +57,15 @@ namespace EntitySets {
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
-  SpatialComponentSet* init_spatial_component_set(
-    SpatialComponentSet *spatial_component_set,
-    Array<SpatialComponent> *components
-  );
 
   DrawableComponent* get_drawable_component_from_set(
     DrawableComponentSet *drawable_component_set,
     EntityHandle handle
   );
-  DrawableComponentSet* init_drawable_component_set(
-    DrawableComponentSet *drawable_component_set,
-    Array<DrawableComponent> *components
-  );
 
   BehaviorComponent* get_behavior_component_from_set(
     BehaviorComponentSet *behavior_component_set,
     EntityHandle handle
-  );
-  BehaviorComponentSet* init_behavior_component_set(
-    BehaviorComponentSet *behavior_component_set,
-    Array<BehaviorComponent> *components
   );
 
   void draw(
