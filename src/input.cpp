@@ -138,8 +138,8 @@ void Input::reset_n_key_state_changes_this_frame(
 }
 
 
-Input::InputState* Input::init_input_state(
-  Input::InputState *input_state,
+InputState* Input::init_input_state(
+  InputState *input_state,
   GLFWwindow *window
 ) {
   input_state->window = window;

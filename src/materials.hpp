@@ -2,87 +2,88 @@
 #define TEXTURES_HPP
 
 constexpr uint32 N_MAX_TEXTURE_POOL_SIZES = 6;
-constexpr char TEXTURE_DIR[] = "resources/textures/";
+
+struct TextureNamePool {
+  uint32 mipmap_max_level = 0;
+  uint32 n_textures = 0;
+  uint32 n_sizes = 0;
+  uint32 sizes[N_MAX_TEXTURE_POOL_SIZES] = {0};
+  uint32 idx_next[N_MAX_TEXTURE_POOL_SIZES] = {0};
+  uint32 *texture_names = nullptr;
+};
+
+struct PersistentPbo {
+  uint32 pbo = 0;
+  void *memory = nullptr;
+  int32 width = 0;
+  int32 height = 0;
+  int32 n_components = 0;
+  uint16 texture_count = 0;
+  uint32 texture_size = 0;
+  uint32 total_size = 0;
+  uint16 next_idx = 0;
+};
+
+struct TextureAtlas {
+  glm::ivec2 size;
+  glm::ivec2 next_position;
+  glm::ivec2 max_allocated_position_per_axis;
+  uint32 texture_name;
+};
+
+enum class TextureType {
+  none,
+  albedo,
+  metallic,
+  roughness,
+  ao,
+  normal,
+  shadowmap,
+  other,
+
+  // Screensize-dependent textures
+  g_position,
+  g_normal,
+  g_albedo,
+  g_pbr,
+  l_color,
+  l_bright_color,
+  l_depth,
+  blur1,
+  blur2
+};
+
+struct Texture {
+  GLenum target;
+  TextureType type;
+  char path[256]; // TODO: Fix unsafe strings?
+  uint32 texture_name = 0;
+  int32 width = 0;
+  int32 height = 0;
+  int32 n_components = 0;
+  uint16 pbo_idx_for_copy;
+  bool32 is_screensize_dependent = false;
+};
+
+struct Material {
+  bool32 have_textures_been_generated = false;
+  bool32 is_screensize_dependent = false;
+  ShaderAsset *shader_asset;
+  ShaderAsset *depth_shader_asset;
+  Array<Texture> textures;
+  char texture_uniform_names[256][256]; // TODO: Fix unsafe strings.
+  uint32 idx_texture_uniform_names;
+
+  // Hardcoded values for when we can't load a texture.
+  glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+  real32 metallic_static = -1.0f;
+  real32 roughness_static = -1.0f;
+  real32 ao_static = -1.0f;
+  bool32 should_use_normal_map = false;
+};
 
 namespace Materials {
-  struct TextureNamePool {
-    uint32 mipmap_max_level = 0;
-    uint32 n_textures = 0;
-    uint32 n_sizes = 0;
-    uint32 sizes[N_MAX_TEXTURE_POOL_SIZES] = {0};
-    uint32 idx_next[N_MAX_TEXTURE_POOL_SIZES] = {0};
-    uint32 *texture_names = nullptr;
-  };
-
-  struct PersistentPbo {
-    uint32 pbo = 0;
-    void *memory = nullptr;
-    int32 width = 0;
-    int32 height = 0;
-    int32 n_components = 0;
-    uint16 texture_count = 0;
-    uint32 texture_size = 0;
-    uint32 total_size = 0;
-    uint16 next_idx = 0;
-  };
-
-  struct TextureAtlas {
-    glm::ivec2 size;
-    glm::ivec2 next_position;
-    glm::ivec2 max_allocated_position_per_axis;
-    uint32 texture_name;
-  };
-
-  enum class TextureType {
-    none,
-    albedo,
-    metallic,
-    roughness,
-    ao,
-    normal,
-    shadowmap,
-    other,
-
-    // Screensize-dependent textures
-    g_position,
-    g_normal,
-    g_albedo,
-    g_pbr,
-    l_color,
-    l_bright_color,
-    l_depth,
-    blur1,
-    blur2
-  };
-
-  struct Texture {
-    GLenum target;
-    TextureType type;
-    char path[256]; // TODO: Fix unsafe strings?
-    uint32 texture_name = 0;
-    int32 width = 0;
-    int32 height = 0;
-    int32 n_components = 0;
-    uint16 pbo_idx_for_copy;
-    bool32 is_screensize_dependent = false;
-  };
-
-  struct Material {
-    bool32 have_textures_been_generated = false;
-    bool32 is_screensize_dependent = false;
-    Shaders::ShaderAsset *shader_asset;
-    Shaders::ShaderAsset *depth_shader_asset;
-    Array<Texture> textures;
-    char texture_uniform_names[256][256]; // TODO: Fix unsafe strings.
-    uint32 idx_texture_uniform_names;
-
-    // Hardcoded values for when we can't load a texture.
-    glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
-    real32 metallic_static = -1.0f;
-    real32 roughness_static = -1.0f;
-    real32 ao_static = -1.0f;
-    bool32 should_use_normal_map = false;
-  };
+  constexpr char TEXTURE_DIR[] = "resources/textures/";
 
   Texture* init_texture(
     Texture *texture,
@@ -120,7 +121,7 @@ namespace Materials {
   );
   void copy_material_textures_to_pbo(
     Material *material,
-    Materials::PersistentPbo *persistent_pbo
+    PersistentPbo *persistent_pbo
   );
   void generate_textures_from_pbo(
     Material *material,

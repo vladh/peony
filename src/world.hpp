@@ -3,16 +3,16 @@
 
 namespace World {
   void get_entity_text_representation(
-    char *text, State *state, Entities::Entity *entity, uint8 depth
+    char *text, State *state, Entity *entity, uint8 depth
   );
   void get_scene_text_representation(char *text, State *state);
   void update_light_position(State *state, real32 amount);
   void create_entities_from_entity_template(
-    PeonyFileParser::EntityTemplate *entity_template,
+    EntityTemplate *entity_template,
     MemoryPool *memory_pool,
-    EntitySets::EntitySet *entity_set,
-    Array<Models::ModelAsset> *model_assets,
-    Array<Shaders::ShaderAsset> *shader_assets,
+    EntitySet *entity_set,
+    Array<ModelAsset> *model_assets,
+    Array<ShaderAsset> *shader_assets,
     State *state
   );
   void create_internal_entities(MemoryPool *memory_pool, State *state);

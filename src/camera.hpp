@@ -1,27 +1,27 @@
 #ifndef CAMERA_HPP
 #define CAMERA_HPP
 
+enum class CameraType {perspective, ortho};
+
+struct Camera {
+  glm::mat4 view;
+  glm::vec3 position;
+  real64 pitch;
+  glm::mat4 projection;
+  glm::mat4 ui_projection;
+  real32 exposure;
+  real32 horizontal_fov;
+  real32 vertical_fov;
+  real32 near_clip_dist;
+  real32 far_clip_dist;
+  CameraType type;
+  real64 yaw;
+  glm::vec3 front;
+  glm::vec3 up;
+  real32 speed;
+};
+
 namespace Cameras {
-  enum class CameraType {perspective, ortho};
-
-  struct Camera {
-    glm::mat4 view;
-    glm::vec3 position;
-    real64 pitch;
-    glm::mat4 projection;
-    glm::mat4 ui_projection;
-    real32 exposure;
-    real32 horizontal_fov;
-    real32 vertical_fov;
-    real32 near_clip_dist;
-    real32 far_clip_dist;
-    CameraType type;
-    real64 yaw;
-    glm::vec3 front;
-    glm::vec3 up;
-    real32 speed;
-  };
-
   void move_front_back(
     Camera *camera, real32 sign, real64 dt
   );

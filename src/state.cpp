@@ -22,34 +22,34 @@ State::State(
   background_color(glm::vec4(0.81f, 0.93f, 1.00f, 1.0f)),
 
   shader_assets(
-    Array<Shaders::ShaderAsset>(asset_memory_pool, 512, "shader_assets")
+    Array<ShaderAsset>(asset_memory_pool, 512, "shader_assets")
   ),
   model_assets(
-    Array<Models::ModelAsset>(asset_memory_pool, 512, "model_assets")
+    Array<ModelAsset>(asset_memory_pool, 512, "model_assets")
   ),
 
   entities(
-    Array<Entities::Entity>(
+    Array<Entity>(
       entity_memory_pool, 4096, "entities", true
     )
   ),
   drawable_components(
-    Array<Entities::DrawableComponent>(
+    Array<DrawableComponent>(
       entity_memory_pool, 4096, "drawable_components", true
     )
   ),
   light_components(
-    Array<Entities::LightComponent>(
+    Array<LightComponent>(
       entity_memory_pool, 4096, "light_components", true
     )
   ),
   spatial_components(
-    Array<Entities::SpatialComponent>(
+    Array<SpatialComponent>(
       entity_memory_pool, 4096, "spatial_components", true
     )
   ),
   behavior_components(
-    Array<Entities::BehaviorComponent>(
+    Array<BehaviorComponent>(
       entity_memory_pool, 4096, "behavior_components", true
     )
   ),
@@ -62,7 +62,7 @@ State::State(
   heading_fadeout_delay(2.0f),
 
   task_queue(
-    Queue<Tasks::Task>(entity_memory_pool, 128, "task_queue")
+    Queue<Task>(entity_memory_pool, 128, "task_queue")
   ),
   cube_shadowmap_width(this->window_info.width),
   cube_shadowmap_height(this->window_info.width),

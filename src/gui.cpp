@@ -69,7 +69,7 @@ void Gui::render(GuiState *gui_state) {
 
 
 glm::vec2 Gui::get_text_dimensions(
-  Fonts::FontAsset *font_asset, const char *str
+  FontAsset *font_asset, const char *str
 ) {
   // NOTE: This returns the dimensions around the main body of the text.
   // This does not include descenders.
@@ -96,7 +96,7 @@ glm::vec2 Gui::get_text_dimensions(
       continue;
     }
 
-    Fonts::Character *character = font_asset->characters[c];
+    Character *character = font_asset->characters[c];
 
     if (!character) {
       log_warning("Could not get character: %c", c);
@@ -228,7 +228,7 @@ void Gui::draw_container(
 }
 
 
-Gui::GuiContainer* Gui::make_container(
+GuiContainer* Gui::make_container(
   GuiState *gui_state, const char *title, glm::vec2 position
 ) {
   GuiContainer *container = nullptr;
@@ -290,7 +290,7 @@ void Gui::draw_text(
   glm::vec2 position,
   glm::vec4 color
 ) {
-  Fonts::FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, font_name);
+  FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, font_name);
 
   real32 line_height = Fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
@@ -315,7 +315,7 @@ void Gui::draw_text(
       continue;
     }
 
-    Fonts::Character *character = font_asset->characters[c];
+    Character *character = font_asset->characters[c];
 
     if (!character) {
       log_warning("Could not get character: %c", c);
@@ -698,14 +698,14 @@ bool32 Gui::draw_button(
 }
 
 
-Gui::GuiState* Gui::init_gui_state(
+GuiState* Gui::init_gui_state(
   GuiState* gui_state,
   MemoryPool *memory_pool,
-  Array<Shaders::ShaderAsset> *shader_assets,
-  Input::InputState *input_state,
+  Array<ShaderAsset> *shader_assets,
+  InputState *input_state,
   uint32 window_width, uint32 window_height
 ) {
-  gui_state->font_assets = Array<Fonts::FontAsset>(
+  gui_state->font_assets = Array<FontAsset>(
     memory_pool, 8, "font_assets"
   );
   gui_state->containers = Array<GuiContainer>(
@@ -718,8 +718,8 @@ Gui::GuiState* Gui::init_gui_state(
   // Shaders
   {
     gui_state->shader_asset = Shaders::init_shader_asset(
-      (Shaders::ShaderAsset*)(shader_assets->push()),
-      "gui_generic", Shaders::ShaderType::standard,
+      (ShaderAsset*)(shader_assets->push()),
+      "gui_generic", ShaderType::standard,
       "gui_generic.vert", "gui_generic.frag", ""
     );
   }
@@ -734,25 +734,25 @@ Gui::GuiState* Gui::init_gui_state(
     }
 
     Fonts::init_font_asset(
-      (Fonts::FontAsset*)(gui_state->font_assets.push()),
+      (FontAsset*)(gui_state->font_assets.push()),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "body", GUI_MAIN_FONT_REGULAR, 18
     );
 
     Fonts::init_font_asset(
-      (Fonts::FontAsset*)(gui_state->font_assets.push()),
+      (FontAsset*)(gui_state->font_assets.push()),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "body-bold", GUI_MAIN_FONT_BOLD, 18
     );
 
     Fonts::init_font_asset(
-      (Fonts::FontAsset*)(gui_state->font_assets.push()),
+      (FontAsset*)(gui_state->font_assets.push()),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "heading", GUI_MAIN_FONT_REGULAR, 42
     );
 
     Fonts::init_font_asset(
-      (Fonts::FontAsset*)(gui_state->font_assets.push()),
+      (FontAsset*)(gui_state->font_assets.push()),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "title", GUI_MAIN_FONT_REGULAR, 64
     );
