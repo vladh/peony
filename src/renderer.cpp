@@ -465,10 +465,10 @@ void Renderer::init_blur_buffers(MemoryPool *memory_pool, State *state) {
 
 
 void Renderer::update_drawing_options(State *state, GLFWwindow *window) {
-  if (state->is_cursor_disabled) {
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-  } else {
+  if (state->is_cursor_enabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  } else {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }
 
   if (state->should_use_wireframe) {
@@ -615,13 +615,13 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   glm::vec2 mouse_pos = glm::vec2(x, y);
   Input::update_mouse(&state->input_state, mouse_pos);
 
-  if (state->is_cursor_disabled) {
+  if (state->is_cursor_enabled) {
+    Gui::update_mouse(&state->gui_state);
+  } else {
     Cameras::update_mouse(
       state->camera_active,
       state->input_state.mouse_3d_offset
     );
-  } else {
-    Gui::update_mouse(&state->gui_state);
   }
 }
 

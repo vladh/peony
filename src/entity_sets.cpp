@@ -1,6 +1,10 @@
 EntityHandle EntitySets::make_handle(
   EntitySet *entity_set
 ) {
+  // NOTE: 0 is an invalid handle.
+  if (entity_set->last_handle == 0) {
+    entity_set->last_handle++;
+  }
   return entity_set->last_handle++;
 }
 
@@ -25,29 +29,11 @@ Entity* EntitySets::add_entity_to_set(
 }
 
 
-EntitySet* EntitySets::init_entity_set(
-  EntitySet *entity_set,
-  Array<Entity> *entities
-) {
-  entity_set->entities = entities;
-  return entity_set;
-}
-
-
 LightComponent* EntitySets::get_light_component_from_set(
   LightComponentSet *light_component_set,
   EntityHandle handle
 ) {
   return light_component_set->components->get(handle);
-}
-
-
-LightComponentSet* EntitySets::init_light_component_set(
-  LightComponentSet *light_component_set,
-  Array<LightComponent> *components
-) {
-  light_component_set->components = components;
-  return light_component_set;
 }
 
 
@@ -97,15 +83,6 @@ glm::mat4 EntitySets::make_model_matrix(
 }
 
 
-SpatialComponentSet* EntitySets::init_spatial_component_set(
-  SpatialComponentSet *spatial_component_set,
-  Array<SpatialComponent> *components
-) {
-  spatial_component_set->components = components;
-  return spatial_component_set;
-}
-
-
 DrawableComponent* EntitySets::get_drawable_component_from_set(
   DrawableComponentSet *drawable_component_set,
   EntityHandle handle
@@ -117,16 +94,6 @@ DrawableComponent* EntitySets::get_drawable_component_from_set(
 }
 
 
-DrawableComponentSet* EntitySets::init_drawable_component_set(
-  DrawableComponentSet *drawable_component_set,
-  Array<DrawableComponent> *components
-) {
-  drawable_component_set->components = components;
-  drawable_component_set->last_drawn_shader_program = 0;
-  return drawable_component_set;
-}
-
-
 BehaviorComponent* EntitySets::get_behavior_component_from_set(
   BehaviorComponentSet *behavior_component_set,
   EntityHandle handle
@@ -135,15 +102,6 @@ BehaviorComponent* EntitySets::get_behavior_component_from_set(
     return nullptr;
   }
   return behavior_component_set->components->get(handle);
-}
-
-
-BehaviorComponentSet* EntitySets::init_behavior_component_set(
-  BehaviorComponentSet *behavior_component_set,
-  Array<BehaviorComponent> *components
-) {
-  behavior_component_set->components = components;
-  return behavior_component_set;
 }
 
 

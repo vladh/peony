@@ -10,8 +10,7 @@ struct WindowInfo {
   char title[128];
 };
 
-class State {
-public:
+struct State {
   bool32 is_manual_frame_advance_enabled;
   bool32 should_manually_advance_to_next_frame;
   bool32 should_stop;
@@ -31,7 +30,7 @@ public:
   uint32 last_fps;
   uint32 n_frames_since_start;
 
-  bool32 is_cursor_disabled;
+  bool32 is_cursor_enabled;
   bool32 should_limit_fps;
   bool32 should_use_wireframe;
   glm::vec4 background_color;
@@ -99,18 +98,20 @@ public:
   uint32 blur2_buffer;
   Texture *blur1_texture;
   Texture *blur2_texture;
-
-  State(
-    MemoryPool *asset_memory_pool,
-    MemoryPool *entity_memory_pool,
-    WindowInfo window_info
-  );
 };
+
 
 struct MemoryAndState {
   MemoryPool *asset_memory_pool;
   MemoryPool *entity_memory_pool;
   State *state;
 };
+
+State* init_state(
+  State *state,
+  MemoryPool *asset_memory_pool,
+  MemoryPool *entity_memory_pool,
+  WindowInfo window_info
+);
 
 #endif

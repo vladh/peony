@@ -5,7 +5,7 @@
 constexpr uint32 N_MAX_MEMORYPOOL_ITEMS = 1024;
 #endif
 
-class State;
+struct State;
 
 struct MemoryPool {
   uint8 *memory;
