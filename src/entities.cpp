@@ -1,4 +1,4 @@
-const char* Entities::behavior_to_string(Entities::Behavior behavior) {
+const char* Entities::behavior_to_string(Behavior behavior) {
   if (behavior == Behavior::none) {
     return "none";
   } else if (behavior == Behavior::test) {
@@ -10,7 +10,7 @@ const char* Entities::behavior_to_string(Entities::Behavior behavior) {
 }
 
 
-Entities::Behavior Entities::behavior_from_string(const char *str) {
+Behavior Entities::behavior_from_string(const char *str) {
   if (strcmp(str, "none") == 0) {
     return Behavior::none;
   } else if (strcmp(str, "test") == 0) {
@@ -29,7 +29,7 @@ bool32 Entities::is_behavior_component_valid(
 }
 
 
-Entities::BehaviorComponent* Entities::init_behavior_component(
+BehaviorComponent* Entities::init_behavior_component(
   BehaviorComponent *behavior_component,
   EntityHandle entity_handle,
   Behavior behavior
@@ -40,7 +40,7 @@ Entities::BehaviorComponent* Entities::init_behavior_component(
 }
 
 
-const char* Entities::light_type_to_string(Entities::LightType light_type) {
+const char* Entities::light_type_to_string(LightType light_type) {
   if (light_type == LightType::none) {
     return "none";
   } else if (light_type == LightType::point) {
@@ -54,7 +54,7 @@ const char* Entities::light_type_to_string(Entities::LightType light_type) {
 }
 
 
-Entities::LightType Entities::light_type_from_string(const char *str) {
+LightType Entities::light_type_from_string(const char *str) {
   if (strcmp(str, "none") == 0) {
     return LightType::none;
   } else if (strcmp(str, "point") == 0) {
@@ -68,7 +68,7 @@ Entities::LightType Entities::light_type_from_string(const char *str) {
 }
 
 
-uint32 Entities::light_type_to_int(Entities::LightType light_type) {
+uint32 Entities::light_type_to_int(LightType light_type) {
   if (light_type == LightType::point) {
     return 1;
   } else if (light_type == LightType::directional) {
@@ -79,13 +79,13 @@ uint32 Entities::light_type_to_int(Entities::LightType light_type) {
 
 
 bool32 Entities::is_light_component_valid(
-  Entities::LightComponent *light_component
+  LightComponent *light_component
 ) {
   return light_component->type != LightType::none;
 }
 
 
-Entities::LightComponent* Entities::init_light_component(
+LightComponent* Entities::init_light_component(
   LightComponent *light_component,
   EntityHandle entity_handle,
   LightType type,
@@ -103,7 +103,7 @@ Entities::LightComponent* Entities::init_light_component(
 
 
 void Entities::print_spatial_component(
-  Entities::SpatialComponent *spatial_component
+  SpatialComponent *spatial_component
 ) {
   log_info("SpatialComponent:");
   log_info("  entity_handle: %d", spatial_component->entity_handle);
@@ -119,7 +119,7 @@ void Entities::print_spatial_component(
 
 
 bool32 Entities::does_spatial_component_have_dimensions(
-  Entities::SpatialComponent *spatial_component
+  SpatialComponent *spatial_component
 ) {
   return (
     spatial_component->scale.x > 0.0f &&
@@ -130,20 +130,20 @@ bool32 Entities::does_spatial_component_have_dimensions(
 
 
 bool32 Entities::is_spatial_component_valid(
-  Entities::SpatialComponent *spatial_component
+  SpatialComponent *spatial_component
 ) {
   return does_spatial_component_have_dimensions(spatial_component) ||
     spatial_component->parent_entity_handle != Entity::no_entity_handle;
 }
 
 
-Entities::SpatialComponent* Entities::init_spatial_component(
-  Entities::SpatialComponent *spatial_component,
-  Entities::EntityHandle entity_handle,
+SpatialComponent* Entities::init_spatial_component(
+  SpatialComponent *spatial_component,
+  EntityHandle entity_handle,
   glm::vec3 position,
   glm::quat rotation,
   glm::vec3 scale,
-  Entities::EntityHandle parent_entity_handle
+  EntityHandle parent_entity_handle
 ) {
   spatial_component->entity_handle = entity_handle;
   spatial_component->position = position;
@@ -154,9 +154,9 @@ Entities::SpatialComponent* Entities::init_spatial_component(
 }
 
 
-Entities::SpatialComponent* Entities::init_spatial_component(
-  Entities::SpatialComponent *spatial_component,
-  Entities::EntityHandle entity_handle,
+SpatialComponent* Entities::init_spatial_component(
+  SpatialComponent *spatial_component,
+  EntityHandle entity_handle,
   glm::vec3 position,
   glm::quat rotation,
   glm::vec3 scale
@@ -170,17 +170,17 @@ Entities::SpatialComponent* Entities::init_spatial_component(
 
 
 bool32 Entities::is_drawable_component_valid(
-  Entities::DrawableComponent *drawable_component
+  DrawableComponent *drawable_component
 ) {
   return drawable_component->mesh != nullptr;
 }
 
 
-Entities::DrawableComponent* Entities::init_drawable_component(
-  Entities::DrawableComponent *drawable_component,
-  Entities::EntityHandle entity_handle,
-  Models::Mesh *mesh,
-  Renderer::RenderPassFlag target_render_pass
+DrawableComponent* Entities::init_drawable_component(
+  DrawableComponent *drawable_component,
+  EntityHandle entity_handle,
+  Mesh *mesh,
+  RenderPassFlag target_render_pass
 ) {
   if (!mesh) {
     log_fatal("Invalid mesh when creating DrawableComponent.");

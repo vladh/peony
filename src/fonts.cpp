@@ -13,8 +13,8 @@ real32 Fonts::font_unit_to_px(uint32 n) {
 }
 
 
-Fonts::FontAsset* Fonts::get_by_name(
-  Array<Fonts::FontAsset> *assets, const char *name
+FontAsset* Fonts::get_by_name(
+  Array<FontAsset> *assets, const char *name
 ) {
   for (uint32 idx = 0; idx < assets->size; idx++) {
     FontAsset *asset = assets->get(idx);
@@ -28,15 +28,15 @@ Fonts::FontAsset* Fonts::get_by_name(
 
 
 void Fonts::load_glyphs(
-  Fonts::FontAsset *font_asset,
+  FontAsset *font_asset,
   FT_Face face,
-  Materials::TextureAtlas *texture_atlas
+  TextureAtlas *texture_atlas
 ) {
   FT_GlyphSlot glyph = face->glyph;
 
   // TODO: Can we avoid loading all characters twice here?
   for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
-    Fonts::Character *character = font_asset->characters.push();
+    Character *character = font_asset->characters.push();
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
       log_error("Failed to load glyph %s", c);
@@ -63,7 +63,7 @@ void Fonts::load_glyphs(
       continue;
     }
 
-    Fonts::Character *character = font_asset->characters[c];
+    Character *character = font_asset->characters[c];
 
     glm::ivec2 tex_coords = Materials::push_space_to_texture_atlas(
       texture_atlas, character->size
@@ -87,10 +87,10 @@ void Fonts::load_glyphs(
 }
 
 
-Fonts::FontAsset* Fonts::init_font_asset(
-  Fonts::FontAsset *font_asset,
+FontAsset* Fonts::init_font_asset(
+  FontAsset *font_asset,
   MemoryPool *memory_pool,
-  Materials::TextureAtlas *texture_atlas,
+  TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
   const char *path,
@@ -99,9 +99,9 @@ Fonts::FontAsset* Fonts::init_font_asset(
   font_asset->name = name;
   font_asset->font_size = font_size;
 
-  font_asset->characters = Array<Fonts::Character>(
+  font_asset->characters = Array<Character>(
     memory_pool,
-    Fonts::CHAR_MAX_CODEPOINT_TO_LOAD + 1,
+    CHAR_MAX_CODEPOINT_TO_LOAD + 1,
     "characters"
   );
 

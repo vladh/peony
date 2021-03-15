@@ -1,18 +1,18 @@
 void World::get_entity_text_representation(
   char *text,
   State *state,
-  Entities::Entity *entity,
+  Entity *entity,
   uint8 depth
 ) {
-  Entities::EntityHandle handle = entity->handle;
-  Entities::SpatialComponent *spatial_component =
+  EntityHandle handle = entity->handle;
+  SpatialComponent *spatial_component =
     EntitySets::get_spatial_component_from_set(&state->spatial_component_set, handle);
 
   // Children will be drawn under their parents.
   if (
     depth == 0 &&
     Entities::is_spatial_component_valid(spatial_component) &&
-    spatial_component->parent_entity_handle != Entities::Entity::no_entity_handle
+    spatial_component->parent_entity_handle != Entity::no_entity_handle
   ) {
     return;
   }
@@ -81,7 +81,7 @@ void World::get_entity_text_representation(
       child_idx < state->spatial_component_set.components->size;
       child_idx++
     ) {
-      Entities::SpatialComponent *child_spatial_component =
+      SpatialComponent *child_spatial_component =
         state->spatial_component_set.components->get(child_idx);
       if (
         child_spatial_component->parent_entity_handle ==
@@ -91,8 +91,8 @@ void World::get_entity_text_representation(
         if (n_children_found > 5) {
           continue;
         }
-        Entities::EntityHandle child_handle = child_spatial_component->entity_handle;
-        Entities::Entity *child_entity = state->entities.get(child_handle);
+        EntityHandle child_handle = child_spatial_component->entity_handle;
+        Entity *child_entity = state->entities.get(child_handle);
 
         if (text[strlen(text) - 1] != '\n') {
           strcat(text, "\n");
@@ -120,7 +120,7 @@ void World::get_scene_text_representation(char *text, State *state) {
   strcpy(text, "");
 
   for (uint32 idx = 1; idx < state->entities.size; idx++) {
-    Entities::Entity *entity = state->entities[idx];
+    Entity *entity = state->entities[idx];
     get_entity_text_representation(text, state, entity, 0);
   }
 
@@ -132,9 +132,9 @@ void World::get_scene_text_representation(char *text, State *state) {
 
 void World::update_light_position(State *state, real32 amount) {
   for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
-    Entities::LightComponent *light_component =
+    LightComponent *light_component =
       state->light_component_set.components->get(idx);
-    if (light_component -> type == Entities::LightType::directional) {
+    if (light_component -> type == LightType::directional) {
       state->dir_light_angle += amount;
       light_component->direction = glm::vec3(
         sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
@@ -146,28 +146,28 @@ void World::update_light_position(State *state, real32 amount) {
 
 
 void World::create_entities_from_entity_template(
-  PeonyFileParser::EntityTemplate *entity_template,
+  EntityTemplate *entity_template,
   MemoryPool *asset_memory_pool,
-  EntitySets::EntitySet *entity_set,
-  Array<Models::ModelAsset> *model_assets,
-  Array<Shaders::ShaderAsset> *shader_assets,
+  EntitySet *entity_set,
+  Array<ModelAsset> *model_assets,
+  Array<ShaderAsset> *shader_assets,
   State *state
 ) {
   // TODO: Make `init_entity()` function and use it here like
   // we did with the other ones.
   // TODO: Figure out parent system.
-  Entities::Entity *entity = EntitySets::add_entity_to_set(
+  Entity *entity = EntitySets::add_entity_to_set(
     entity_set,
     entity_template->entity_debug_name
   );
 
-  Models::ModelAsset *model_asset = nullptr;
+  ModelAsset *model_asset = nullptr;
 
   if (strlen(entity_template->builtin_model_name) == 0) {
     model_asset = Models::init_model_asset(
-      (Models::ModelAsset*)(model_assets->push()),
+      (ModelAsset*)(model_assets->push()),
       asset_memory_pool,
-      Models::ModelSource::file,
+      ModelSource::file,
       entity_template->entity_debug_name,
       entity_template->model_path,
       entity_template->render_pass,
@@ -176,9 +176,9 @@ void World::create_entities_from_entity_template(
   } else {
     if (strcmp(entity_template->builtin_model_name, "axes") == 0) {
       model_asset = Models::init_model_asset(
-        (Models::ModelAsset*)(model_assets->push()),
+        (ModelAsset*)(model_assets->push()),
         asset_memory_pool,
-        Models::ModelSource::data,
+        ModelSource::data,
         (real32*)AXES_VERTICES, 6,
         nullptr, 0,
         entity_template->entity_debug_name,
@@ -201,9 +201,9 @@ void World::create_entities_from_entity_template(
       );
 
       model_asset = Models::init_model_asset(
-        (Models::ModelAsset*)(model_assets->push()),
+        (ModelAsset*)(model_assets->push()),
         asset_memory_pool,
-        Models::ModelSource::data,
+        ModelSource::data,
         ocean_vertex_data, ocean_n_vertices,
         ocean_index_data, ocean_n_indices,
         entity_template->entity_debug_name,
@@ -257,17 +257,17 @@ void World::create_entities_from_entity_template(
     idx_material < entity_template->n_materials;
     idx_material++
   ) {
-    PeonyFileParser::MaterialTemplate *material_template =
+    MaterialTemplate *material_template =
       &entity_template->material_templates[idx_material];
-    Materials::Material *material = Materials::init_material(
+    Material *material = Materials::init_material(
       model_asset->materials.push(), asset_memory_pool
     );
 
     if (strlen(material_template->shader_asset_vert_path) > 0) {
       material->shader_asset = Shaders::init_shader_asset(
-        (Shaders::ShaderAsset*)(shader_assets->push()),
+        (ShaderAsset*)(shader_assets->push()),
         entity_template->entity_debug_name,
-        Shaders::ShaderType::standard,
+        ShaderType::standard,
         material_template->shader_asset_vert_path,
         material_template->shader_asset_frag_path,
         material_template->shader_asset_geom_path
@@ -275,9 +275,9 @@ void World::create_entities_from_entity_template(
     }
     if (strlen(material_template->depth_shader_asset_vert_path) > 0) {
       material->depth_shader_asset = Shaders::init_shader_asset(
-        (Shaders::ShaderAsset*)(shader_assets->push()),
+        (ShaderAsset*)(shader_assets->push()),
         entity_template->entity_debug_name,
-        Shaders::ShaderType::depth,
+        ShaderType::depth,
         material_template->depth_shader_asset_vert_path,
         material_template->depth_shader_asset_frag_path,
         material_template->depth_shader_asset_geom_path
@@ -294,7 +294,7 @@ void World::create_entities_from_entity_template(
       idx_texture < material_template->n_textures;
       idx_texture++
     ) {
-      Materials::Texture texture;
+      Texture texture;
       Materials::init_texture(
         &texture,
         material_template->texture_types[idx_texture],
@@ -345,12 +345,12 @@ void World::create_entities_from_entity_template(
 
 
 void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
-  Models::ModelAsset *model_asset;
-  Materials::Material *material;
+  ModelAsset *model_asset;
+  Material *material;
 
   state->standard_depth_shader_asset = Shaders::init_shader_asset(
-    (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    "standard_depth", Shaders::ShaderType::depth,
+    (ShaderAsset*)(state->shader_assets.push()),
+    "standard_depth", ShaderType::depth,
     "standard_depth.vert", "standard_depth.frag",
     "standard_depth.geom"
   );
@@ -369,20 +369,20 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 
   // Lighting screenquad
   model_asset = Models::init_model_asset(
-    (Models::ModelAsset*)(state->model_assets.push()),
+    (ModelAsset*)(state->model_assets.push()),
     memory_pool,
-    Models::ModelSource::data,
+    ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
     "screenquad_lighting",
     GL_TRIANGLES,
-    Renderer::RenderPass::lighting,
+    RenderPass::lighting,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_lighting")->handle
   );
   material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
-    (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    "lighting", Shaders::ShaderType::standard,
+    (ShaderAsset*)(state->shader_assets.push()),
+    "lighting", ShaderType::standard,
     "lighting.vert", "lighting.frag", ""
   );
   Materials::add_texture_to_material(
@@ -406,20 +406,20 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 
   // Preblur screenquad
   model_asset = Models::init_model_asset(
-    (Models::ModelAsset*)(state->model_assets.push()),
+    (ModelAsset*)(state->model_assets.push()),
     memory_pool,
-    Models::ModelSource::data,
+    ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
     "screenquad_preblur",
     GL_TRIANGLES,
-    Renderer::RenderPass::preblur,
+    RenderPass::preblur,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_preblur")->handle
   );
   material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
-    (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    "blur", Shaders::ShaderType::standard,
+    (ShaderAsset*)(state->shader_assets.push()),
+    "blur", ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Materials::add_texture_to_material(
@@ -428,60 +428,60 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 
   // Blur 1 screenquad
   model_asset = Models::init_model_asset(
-    (Models::ModelAsset*)(state->model_assets.push()),
+    (ModelAsset*)(state->model_assets.push()),
     memory_pool,
-    Models::ModelSource::data,
+    ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
     "screenquad_blur1",
     GL_TRIANGLES,
-    Renderer::RenderPass::blur1,
+    RenderPass::blur1,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur1")->handle
   );
   material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
-    (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    "blur", Shaders::ShaderType::standard,
+    (ShaderAsset*)(state->shader_assets.push()),
+    "blur", ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Materials::add_texture_to_material(material, *state->blur2_texture, "source_texture");
 
   // Blur 2 screenquad
   model_asset = Models::init_model_asset(
-    (Models::ModelAsset*)(state->model_assets.push()),
+    (ModelAsset*)(state->model_assets.push()),
     memory_pool,
-    Models::ModelSource::data,
+    ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
     "screenquad_blur2",
     GL_TRIANGLES,
-    Renderer::RenderPass::blur2,
+    RenderPass::blur2,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur2")->handle
   );
   material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
-    (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    "blur", Shaders::ShaderType::standard,
+    (ShaderAsset*)(state->shader_assets.push()),
+    "blur", ShaderType::standard,
     "blur.vert", "blur.frag", ""
   );
   Materials::add_texture_to_material(material, *state->blur1_texture, "source_texture");
 
   // Postprocessing screenquad
   model_asset = Models::init_model_asset(
-    (Models::ModelAsset*)(state->model_assets.push()),
+    (ModelAsset*)(state->model_assets.push()),
     memory_pool,
-    Models::ModelSource::data,
+    ModelSource::data,
     (real32*)SCREENQUAD_VERTICES, 6,
     nullptr, 0,
     "screenquad_postprocessing",
     GL_TRIANGLES,
-    Renderer::RenderPass::postprocessing,
+    RenderPass::postprocessing,
     EntitySets::add_entity_to_set(&state->entity_set, "screenquad_postprocessing")->handle
   );
   material = Materials::init_material(model_asset->materials.push(), memory_pool);
   material->shader_asset = Shaders::init_shader_asset(
-    (Shaders::ShaderAsset*)(state->shader_assets.push()),
-    "postprocessing", Shaders::ShaderType::standard,
+    (ShaderAsset*)(state->shader_assets.push()),
+    "postprocessing", ShaderType::standard,
     "postprocessing.vert", "postprocessing.frag", ""
   );
   Materials::add_texture_to_material(
@@ -496,19 +496,19 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
   // Skysphere
   {
 #if 1
-    Entities::Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "skysphere"
     );
 
     model_asset = Models::init_model_asset(
-      (Models::ModelAsset*)(state->model_assets.push()),
+      (ModelAsset*)(state->model_assets.push()),
       memory_pool,
-      Models::ModelSource::data,
+      ModelSource::data,
       skysphere_vertex_data, skysphere_n_vertices,
       skysphere_index_data, skysphere_n_indices,
       "skysphere",
       GL_TRIANGLE_STRIP,
-      Renderer::RenderPass::forward_skybox,
+      RenderPass::forward_skybox,
       entity->handle
     );
 
@@ -522,8 +522,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 
     material = Materials::init_material(model_asset->materials.push(), memory_pool);
     material->shader_asset = Shaders::init_shader_asset(
-      (Shaders::ShaderAsset*)(state->shader_assets.push()),
-      "skysphere", Shaders::ShaderType::standard,
+      (ShaderAsset*)(state->shader_assets.push()),
+      "skysphere", ShaderType::standard,
       "skysphere.vert", "skysphere.frag", ""
     );
 #endif
@@ -539,11 +539,10 @@ void World::init(
   MemoryPool temp_memory_pool = {};
   create_internal_entities(entity_memory_pool, state);
 
-  PeonyFileParser::EntityTemplate *entity_templates =
-    (PeonyFileParser::EntityTemplate*)Memory::push(
+  EntityTemplate *entity_templates =
+    (EntityTemplate*)Memory::push(
       &temp_memory_pool,
-      sizeof(PeonyFileParser::EntityTemplate) *
-        PeonyFileParser::MAX_N_FILE_ENTRIES,
+      sizeof(EntityTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
       "entity_templates"
     );
 
@@ -569,7 +568,7 @@ void World::init(
 
 void World::check_all_model_assets_loaded(State *state) {
   for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    Models::ModelAsset *model_asset = state->model_assets[idx];
+    ModelAsset *model_asset = state->model_assets[idx];
     Models::prepare_for_draw(
       model_asset,
       &state->persistent_pbo,
@@ -598,7 +597,7 @@ void World::update(State *state) {
     idx < state->behavior_component_set.components->size;
     idx++
   ) {
-    Entities::BehaviorComponent *behavior_component =
+    BehaviorComponent *behavior_component =
       state->behavior_component_set.components->get(idx);
 
     if (
@@ -608,9 +607,9 @@ void World::update(State *state) {
       continue;
     }
 
-    Entities::EntityHandle entity_handle = behavior_component->entity_handle;
+    EntityHandle entity_handle = behavior_component->entity_handle;
 
-    Entities::SpatialComponent *spatial_component =
+    SpatialComponent *spatial_component =
       EntitySets::get_spatial_component_from_set(
         &state->spatial_component_set, entity_handle
       );
@@ -619,13 +618,13 @@ void World::update(State *state) {
       continue;
     }
 
-    Entities::Entity *entity = state->entities.get(entity_handle);
+    Entity *entity = state->entities.get(entity_handle);
     if (!entity) {
       log_error("Could not get Entity for BehaviorComponent");
       continue;
     }
 
-    if (behavior_component->behavior == Entities::Behavior::test) {
+    if (behavior_component->behavior == Behavior::test) {
       spatial_component->position = glm::vec3(
         (real32)sin(state->t) * 15.0f,
         (real32)((sin(state->t * 2.0f) + 1.5) * 3.0f),
@@ -636,9 +635,9 @@ void World::update(State *state) {
 
   {
     for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
-      Entities::LightComponent *light_component =
+      LightComponent *light_component =
         state->light_component_set.components->get(idx);
-      Entities::SpatialComponent *spatial_component =
+      SpatialComponent *spatial_component =
         EntitySets::get_spatial_component_from_set(
           &state->spatial_component_set,
           light_component->entity_handle
@@ -651,16 +650,16 @@ void World::update(State *state) {
         continue;
       }
 
-      if (light_component->type == Entities::LightType::point) {
+      if (light_component->type == LightType::point) {
         real64 time_term =
           (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
         real64 x_term = 0.0f + cos(time_term) * 8.0f;
         real64 z_term = 0.0f + sin(time_term) * 8.0f;
         spatial_component->position.x = (real32)x_term;
         spatial_component->position.z = (real32)z_term;
-      } else if (light_component->type == Entities::LightType::directional) {
+      } else if (light_component->type == LightType::directional) {
         spatial_component->position = state->camera_active->position +
-          -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
+          -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
       }
     }
   }

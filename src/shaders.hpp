@@ -1,42 +1,42 @@
 #ifndef SHADERS_HPP
 #define SHADERS_HPP
 
+constexpr uint8 MAX_N_UNIFORMS = 64;
+constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
+constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
+
+enum class ShaderType {none, standard, depth};
+
+struct ShaderAsset {
+  char name[256]; // TODO: Fix unsafe strings?
+  char vert_path[256]; // TODO: Fix unsafe strings?
+  char frag_path[256]; // TODO: Fix unsafe strings?
+  char geom_path[256]; // TODO: Fix unsafe strings?
+  uint32 program;
+  ShaderType type;
+  uint32 n_texture_units;
+  uint32 texture_units[MAX_N_TEXTURE_UNITS];
+  GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
+  bool did_set_texture_uniforms;
+
+  /*
+  Intrinsic uniform: A uniform declared by a shader. We only care
+    about intrinsic uniforms in the Shader struct.
+
+  Active uniforms: A uniform used in a shader, which can be either
+    an intrinsic uniform, or a uniform from another source such as a
+    uniform buffer object.
+  */
+
+  uint32 n_intrinsic_uniforms;
+  int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
+  char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
+};
+
 namespace Shaders {
   constexpr char SHADER_COMMON_PATH[] = "src/shaders/common.glsl";
   constexpr char SHADER_COMMON_FRAGMENT_PATH[] = "src/shaders/common_fragment.glsl";
   constexpr char SHADER_DIR[] = "src/shaders/";
-
-  constexpr uint8 MAX_N_UNIFORMS = 64;
-  constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
-  constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
-
-  enum class ShaderType {none, standard, depth};
-
-  struct ShaderAsset {
-    char name[256]; // TODO: Fix unsafe strings?
-    char vert_path[256]; // TODO: Fix unsafe strings?
-    char frag_path[256]; // TODO: Fix unsafe strings?
-    char geom_path[256]; // TODO: Fix unsafe strings?
-    uint32 program;
-    ShaderType type;
-    uint32 n_texture_units;
-    uint32 texture_units[MAX_N_TEXTURE_UNITS];
-    GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
-    bool did_set_texture_uniforms;
-
-    /*
-    Intrinsic uniform: A uniform declared by a shader. We only care
-      about intrinsic uniforms in the Shader struct.
-
-    Active uniforms: A uniform used in a shader, which can be either
-      an intrinsic uniform, or a uniform from another source such as a
-      uniform buffer object.
-    */
-
-    uint32 n_intrinsic_uniforms;
-    int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
-    char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
-  };
 
   const char* shader_type_to_string(ShaderType shader_type);
   ShaderType shader_type_from_string(const char* str);

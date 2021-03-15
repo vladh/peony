@@ -1,5 +1,5 @@
-Materials::Texture* Materials::init_texture(
-  Materials::Texture *texture,
+Texture* Materials::init_texture(
+  Texture *texture,
   TextureType type,
   const char* path
 ) {
@@ -12,8 +12,8 @@ Materials::Texture* Materials::init_texture(
 }
 
 
-Materials::Texture* Materials::init_texture(
-  Materials::Texture *texture,
+Texture* Materials::init_texture(
+  Texture *texture,
   GLenum target,
   TextureType type,
   uint32 texture_name,
@@ -32,7 +32,7 @@ Materials::Texture* Materials::init_texture(
 }
 
 
-bool32 Materials::is_texture_type_screensize_dependent(Materials::TextureType type) {
+bool32 Materials::is_texture_type_screensize_dependent(TextureType type) {
   return (
     type == TextureType::g_position ||
     type == TextureType::g_normal ||
@@ -47,7 +47,7 @@ bool32 Materials::is_texture_type_screensize_dependent(Materials::TextureType ty
 }
 
 
-const char* Materials::texture_type_to_string(Materials::TextureType texture_type) {
+const char* Materials::texture_type_to_string(TextureType texture_type) {
   if (texture_type == TextureType::none) {
     return "none";
   } else if (texture_type == TextureType::albedo) {
@@ -89,7 +89,7 @@ const char* Materials::texture_type_to_string(Materials::TextureType texture_typ
 }
 
 
-Materials::TextureType Materials::texture_type_from_string(const char* str) {
+TextureType Materials::texture_type_from_string(const char* str) {
   if (strcmp(str, "none") == 0) {
     return TextureType::none;
   } else if (strcmp(str, "albedo") == 0) {
@@ -131,8 +131,8 @@ Materials::TextureType Materials::texture_type_from_string(const char* str) {
 }
 
 
-Materials::TextureAtlas* Materials::init_texture_atlas(
-  Materials::TextureAtlas* atlas,
+TextureAtlas* Materials::init_texture_atlas(
+  TextureAtlas* atlas,
   glm::ivec2 size
 ) {
   atlas->size = size;
@@ -156,7 +156,7 @@ Materials::TextureAtlas* Materials::init_texture_atlas(
 }
 
 glm::ivec2 Materials::push_space_to_texture_atlas(
-  Materials::TextureAtlas* atlas,
+  TextureAtlas* atlas,
   glm::ivec2 space_size
 ) {
   // New space in a texture is first allocated along the x-axis.
@@ -187,8 +187,8 @@ glm::ivec2 Materials::push_space_to_texture_atlas(
 }
 
 
-Materials::Material* Materials::init_material(
-  Materials::Material *material,
+Material* Materials::init_material(
+  Material *material,
   MemoryPool *memory_pool
 ) {
   material->textures =
@@ -199,7 +199,7 @@ Materials::Material* Materials::init_material(
 
 
 void Materials::add_texture_to_material(
-  Materials::Material *material, Texture texture, const char *uniform_name
+  Material *material, Texture texture, const char *uniform_name
 ) {
   if (texture.is_screensize_dependent) {
     material->is_screensize_dependent = true;
@@ -213,8 +213,8 @@ void Materials::add_texture_to_material(
 
 
 void Materials::copy_material_textures_to_pbo(
-  Materials::Material *material,
-  Materials::PersistentPbo *persistent_pbo
+  Material *material,
+  PersistentPbo *persistent_pbo
 ) {
   for (uint32 idx = 0; idx < material->textures.size; idx++) {
     Texture *texture = material->textures[idx];
@@ -237,9 +237,9 @@ void Materials::copy_material_textures_to_pbo(
 
 
 void Materials::generate_textures_from_pbo(
-  Materials::Material *material,
-  Materials::PersistentPbo *persistent_pbo,
-  Materials::TextureNamePool *texture_name_pool
+  Material *material,
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool
 ) {
   if (material->have_textures_been_generated) {
     log_warning("Tried to generate textures but they've already been generated.");
@@ -274,8 +274,8 @@ void Materials::generate_textures_from_pbo(
 }
 
 
-Materials::PersistentPbo* Materials::init_persistent_pbo(
-  Materials::PersistentPbo *ppbo,
+PersistentPbo* Materials::init_persistent_pbo(
+  PersistentPbo *ppbo,
   uint16 texture_count, int32 width, int32 height, int32 n_components
 ) {
   ppbo->texture_count = texture_count;
@@ -331,8 +331,8 @@ void* Materials::get_memory_for_persistent_pbo_idx(
 }
 
 
-Materials::TextureNamePool* Materials::init_texture_name_pool(
-  Materials::TextureNamePool *pool,
+TextureNamePool* Materials::init_texture_name_pool(
+  TextureNamePool *pool,
   MemoryPool *memory_pool,
   uint32 n_textures,
   uint32 mipmap_max_level

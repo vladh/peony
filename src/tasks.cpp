@@ -8,11 +8,11 @@ const char* Tasks::task_type_to_str(TaskType type) {
 }
 
 
-Tasks::Task* Tasks::init_task(
+Task* Tasks::init_task(
   Task *task,
   TaskType type,
-  Models::ModelAsset *model_asset,
-  Materials::PersistentPbo *persistent_pbo
+  ModelAsset *model_asset,
+  PersistentPbo *persistent_pbo
 ) {
   task->type = type;
   task->model_asset = model_asset;
@@ -21,7 +21,7 @@ Tasks::Task* Tasks::init_task(
 }
 
 
-void Tasks::run_task(Tasks::Task *task) {
+void Tasks::run_task(Task *task) {
   START_TIMER(run_task);
   if (task->type == TaskType::load_model) {
     Models::load_model_asset(task->model_asset);
@@ -38,7 +38,7 @@ void Tasks::run_loading_loop(
   std::mutex *mutex, State *state, uint32 idx_thread
 ) {
   while (!state->should_stop) {
-    Tasks::Task *task = nullptr;
+    Task *task = nullptr;
 
     mutex->lock();
     if (state->task_queue.size > 0) {

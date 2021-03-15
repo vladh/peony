@@ -1,9 +1,57 @@
 #ifndef PEONY_FILE_PARSER_HPP
 #define PEONY_FILE_PARSER_HPP
 
+constexpr uint32 MAX_TOKEN_LENGTH = 128;
+constexpr uint32 MAX_N_ARRAY_VALUES = 16;
+
+struct MaterialTemplate {
+  char shader_asset_vert_path[MAX_TOKEN_LENGTH];
+  char shader_asset_frag_path[MAX_TOKEN_LENGTH];
+  char shader_asset_geom_path[MAX_TOKEN_LENGTH];
+  char depth_shader_asset_vert_path[MAX_TOKEN_LENGTH];
+  char depth_shader_asset_frag_path[MAX_TOKEN_LENGTH];
+  char depth_shader_asset_geom_path[MAX_TOKEN_LENGTH];
+
+  glm::vec4 albedo_static;
+  real32 metallic_static;
+  real32 roughness_static;
+  real32 ao_static;
+
+  uint32 n_textures;
+  char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+  TextureType texture_types[MAX_N_ARRAY_VALUES];
+  char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+
+  uint32 n_builtin_textures;
+  char builtin_texture_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+};
+
+struct EntityTemplate {
+  char entity_debug_name[MAX_TOKEN_LENGTH];
+  char model_path[MAX_TOKEN_LENGTH];
+  char builtin_model_name[MAX_TOKEN_LENGTH];
+  uint32 n_materials = 0;
+  MaterialTemplate material_templates[MAX_N_ARRAY_VALUES];
+  RenderPassFlag render_pass;
+  // NOTE: The `entity_handle` and `parent_entity_handle` properties
+  // must be filled in later!
+  SpatialComponent spatial_component;
+  LightComponent light_component;
+  BehaviorComponent behavior_component;
+};
+
+enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};
+
+union PropValue {
+  char string_value[MAX_TOKEN_LENGTH];
+  bool32 boolean_value;
+  real32 number_value;
+  glm::vec2 vec2_value;
+  glm::vec3 vec3_value;
+  glm::vec4 vec4_value;
+};
+
 namespace PeonyFileParser {
-  constexpr uint32 MAX_TOKEN_LENGTH = 128;
-  constexpr uint32 MAX_N_ARRAY_VALUES = 16;
   constexpr uint32 MAX_N_FILE_ENTRIES = 128;
 
   constexpr const char TOKEN_SPACE = ' ';
@@ -25,53 +73,6 @@ namespace PeonyFileParser {
   constexpr size_t BUILTIN_TEXTURE_PREFIX_LENGTH = 17;
   constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
   constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
-
-  struct MaterialTemplate {
-    char shader_asset_vert_path[MAX_TOKEN_LENGTH];
-    char shader_asset_frag_path[MAX_TOKEN_LENGTH];
-    char shader_asset_geom_path[MAX_TOKEN_LENGTH];
-    char depth_shader_asset_vert_path[MAX_TOKEN_LENGTH];
-    char depth_shader_asset_frag_path[MAX_TOKEN_LENGTH];
-    char depth_shader_asset_geom_path[MAX_TOKEN_LENGTH];
-
-    glm::vec4 albedo_static;
-    real32 metallic_static;
-    real32 roughness_static;
-    real32 ao_static;
-
-    uint32 n_textures;
-    char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
-    Materials::TextureType texture_types[MAX_N_ARRAY_VALUES];
-    char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
-
-    uint32 n_builtin_textures;
-    char builtin_texture_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
-  };
-
-  struct EntityTemplate {
-    char entity_debug_name[MAX_TOKEN_LENGTH];
-    char model_path[MAX_TOKEN_LENGTH];
-    char builtin_model_name[MAX_TOKEN_LENGTH];
-    uint32 n_materials = 0;
-    MaterialTemplate material_templates[MAX_N_ARRAY_VALUES];
-    Renderer::RenderPassFlag render_pass;
-    // NOTE: The `entity_handle` and `parent_entity_handle` properties
-    // must be filled in later!
-    Entities::SpatialComponent spatial_component;
-    Entities::LightComponent light_component;
-    Entities::BehaviorComponent behavior_component;
-  };
-
-  enum class PropValueType {unknown, string, boolean, number, vec2, vec3, vec4};
-
-  union PropValue {
-    char string_value[MAX_TOKEN_LENGTH];
-    bool32 boolean_value;
-    real32 number_value;
-    glm::vec2 vec2_value;
-    glm::vec3 vec3_value;
-    glm::vec4 vec4_value;
-  };
 
   void print_material_template(MaterialTemplate *material_template);
   void print_entity_template(EntityTemplate *entity_template);

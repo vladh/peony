@@ -1,54 +1,52 @@
 #ifndef ENTITIES_HPP
 #define ENTITIES_HPP
 
-namespace Models {
-  struct Mesh;
+struct Mesh;
+
+typedef uint32 EntityHandle;
+
+struct Entity {
+  EntityHandle handle;
+  char debug_name[256]; // TODO: Fix unsafe strings.
+  static EntityHandle no_entity_handle;
+};
+
+EntityHandle Entity::no_entity_handle = 0;
+
+enum class Behavior {
+  none, test
+};
+
+struct BehaviorComponent {
+  EntityHandle entity_handle = Entity::no_entity_handle;
+  Behavior behavior = Behavior::none;
+};
+
+enum class LightType {none, point, directional};
+
+struct LightComponent {
+  EntityHandle entity_handle = Entity::no_entity_handle;
+  LightType type = LightType::none;
+  glm::vec3 direction = glm::vec3(0.0f);
+  glm::vec4 color = glm::vec4(0.0f);
+  glm::vec4 attenuation = glm::vec4(0.0f);
+};
+
+struct SpatialComponent {
+  EntityHandle entity_handle = Entity::no_entity_handle;
+  glm::vec3 position = glm::vec3(0.0f);
+  glm::quat rotation = glm::angleAxis(0.0f, glm::vec3(0.0f));
+  glm::vec3 scale = glm::vec3(0.0f);
+  EntityHandle parent_entity_handle = Entity::no_entity_handle;
+};
+
+struct DrawableComponent {
+  EntityHandle entity_handle = Entity::no_entity_handle;
+  Mesh *mesh = nullptr;
+  RenderPassFlag target_render_pass = RenderPass::none;
 };
 
 namespace Entities {
-  typedef uint32 EntityHandle;
-
-  struct Entity {
-    EntityHandle handle;
-    char debug_name[256]; // TODO: Fix unsafe strings.
-    static EntityHandle no_entity_handle;
-  };
-
-  EntityHandle Entity::no_entity_handle = 0;
-
-  enum class Behavior {
-    none, test
-  };
-
-  struct BehaviorComponent {
-    EntityHandle entity_handle = Entity::no_entity_handle;
-    Behavior behavior = Behavior::none;
-  };
-
-  enum class LightType {none, point, directional};
-
-  struct LightComponent {
-    EntityHandle entity_handle = Entity::no_entity_handle;
-    LightType type = LightType::none;
-    glm::vec3 direction = glm::vec3(0.0f);
-    glm::vec4 color = glm::vec4(0.0f);
-    glm::vec4 attenuation = glm::vec4(0.0f);
-  };
-
-  struct SpatialComponent {
-    EntityHandle entity_handle = Entity::no_entity_handle;
-    glm::vec3 position = glm::vec3(0.0f);
-    glm::quat rotation = glm::angleAxis(0.0f, glm::vec3(0.0f));
-    glm::vec3 scale = glm::vec3(0.0f);
-    EntityHandle parent_entity_handle = Entity::no_entity_handle;
-  };
-
-  struct DrawableComponent {
-    EntityHandle entity_handle = Entity::no_entity_handle;
-    Models::Mesh *mesh = nullptr;
-    Renderer::RenderPassFlag target_render_pass = Renderer::RenderPass::none;
-  };
-
   const char* behavior_to_string(Behavior behavior);
   Behavior behavior_from_string(const char *str);
   bool32 is_behavior_component_valid(
@@ -106,8 +104,8 @@ namespace Entities {
   DrawableComponent* init_drawable_component(
     DrawableComponent *drawable_component,
     EntityHandle entity_handle,
-    Models::Mesh *mesh,
-    Renderer::RenderPassFlag target_render_pass
+    Mesh *mesh,
+    RenderPassFlag target_render_pass
   );
 }
 

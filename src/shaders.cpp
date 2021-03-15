@@ -1,4 +1,4 @@
-const char* Shaders::shader_type_to_string(Shaders::ShaderType shader_type) {
+const char* Shaders::shader_type_to_string(ShaderType shader_type) {
   if (shader_type == ShaderType::none) {
     return "none";
   } else if (shader_type == ShaderType::standard) {
@@ -12,7 +12,7 @@ const char* Shaders::shader_type_to_string(Shaders::ShaderType shader_type) {
 }
 
 
-Shaders::ShaderType Shaders::shader_type_from_string(const char* str) {
+ShaderType Shaders::shader_type_from_string(const char* str) {
   if (strcmp(str, "none") == 0) {
     return ShaderType::none;
   } else if (strcmp(str, "standard") == 0) {
@@ -143,9 +143,7 @@ int32 Shaders::get_uniform_location(
 
 
 void Shaders::set_int(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  uint32 value
+  ShaderAsset *shader_asset, const char *uniform_name, uint32 value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -155,18 +153,14 @@ void Shaders::set_int(
 
 
 void Shaders::set_bool(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  bool value
+  ShaderAsset *shader_asset, const char *uniform_name, bool value
 ) {
   set_int(shader_asset, uniform_name, (uint32)value);
 }
 
 
 void Shaders::set_float(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  float value
+  ShaderAsset *shader_asset, const char *uniform_name, float value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -176,9 +170,7 @@ void Shaders::set_float(
 
 
 void Shaders::set_vec2(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  glm::vec2 *value
+  ShaderAsset *shader_asset, const char *uniform_name, glm::vec2 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -188,9 +180,7 @@ void Shaders::set_vec2(
 
 
 void Shaders::set_vec3(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  glm::vec3 *value
+  ShaderAsset *shader_asset, const char *uniform_name, glm::vec3 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -200,9 +190,7 @@ void Shaders::set_vec3(
 
 
 void Shaders::set_vec4(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  glm::vec4 *value
+  ShaderAsset *shader_asset, const char *uniform_name, glm::vec4 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -212,9 +200,7 @@ void Shaders::set_vec4(
 
 
 void Shaders::set_mat2(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  glm::mat2 *mat
+  ShaderAsset *shader_asset, const char *uniform_name, glm::mat2 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -224,9 +210,7 @@ void Shaders::set_mat2(
 
 
 void Shaders::set_mat3(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  glm::mat3 *mat
+  ShaderAsset *shader_asset, const char *uniform_name, glm::mat3 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -236,9 +220,7 @@ void Shaders::set_mat3(
 
 
 void Shaders::set_mat4(
-  Shaders::ShaderAsset *shader_asset,
-  const char *uniform_name,
-  glm::mat4 *mat
+  ShaderAsset *shader_asset, const char *uniform_name, glm::mat4 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -247,13 +229,13 @@ void Shaders::set_mat4(
 }
 
 
-void Shaders::reset_texture_units(Shaders::ShaderAsset *shader_asset) {
+void Shaders::reset_texture_units(ShaderAsset *shader_asset) {
   shader_asset->n_texture_units = 0;
 }
 
 
 uint32 Shaders::add_texture_unit(
-  Shaders::ShaderAsset *shader_asset,
+  ShaderAsset *shader_asset,
   uint32 new_texture_unit,
   GLenum new_texture_unit_type
 ) {
@@ -264,7 +246,7 @@ uint32 Shaders::add_texture_unit(
 }
 
 
-void Shaders::load_uniforms(Shaders::ShaderAsset *shader_asset) {
+void Shaders::load_uniforms(ShaderAsset *shader_asset) {
   for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
     shader_asset->intrinsic_uniform_locations[idx] = -1;
   }
@@ -308,7 +290,7 @@ void Shaders::load_uniforms(Shaders::ShaderAsset *shader_asset) {
 }
 
 
-void Shaders::load_shader_asset(Shaders::ShaderAsset *shader_asset) {
+void Shaders::load_shader_asset(ShaderAsset *shader_asset) {
   MemoryPool temp_memory_pool = {};
   shader_asset->did_set_texture_uniforms = false;
 
@@ -346,8 +328,8 @@ void Shaders::load_shader_asset(Shaders::ShaderAsset *shader_asset) {
 }
 
 
-Shaders::ShaderAsset* Shaders::init_shader_asset(
-  Shaders::ShaderAsset *shader_asset,
+ShaderAsset* Shaders::init_shader_asset(
+  ShaderAsset *shader_asset,
   const char *new_name, ShaderType new_type,
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {

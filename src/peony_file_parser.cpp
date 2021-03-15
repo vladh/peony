@@ -485,7 +485,7 @@ namespace PeonyFileParser {
             );
           }
         } else if (strcmp(prop_name, "render_passes") == 0) {
-          Renderer::RenderPassFlag render_pass = Renderer::RenderPass::none;
+          RenderPassFlag render_pass = RenderPass::none;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
             render_pass = render_pass |
               Renderer::render_pass_from_string(prop_values[idx_value].string_value);

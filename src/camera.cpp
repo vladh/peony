@@ -109,9 +109,9 @@ void Cameras::update_mouse(
 }
 
 
-Cameras::Camera* Cameras::init_camera(
-  Cameras::Camera *camera,
-  Cameras::CameraType new_type,
+Camera* Cameras::init_camera(
+  Camera *camera,
+  CameraType new_type,
   uint32 window_width,
   uint32 window_height
 ) {

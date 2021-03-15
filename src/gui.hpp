@@ -1,6 +1,38 @@
 #ifndef GUI_HPP
 #define GUI_HPP
 
+struct GuiContainer {
+  const char *title;
+  glm::vec2 position;
+  // Dimensions include padding, title bar etc.
+  glm::vec2 dimensions;
+  glm::vec2 content_dimensions;
+  glm::vec2 next_element_position;
+  // The direction defines the main and orthogonal axes.
+  // The main axis is the one elements are successively positioned on.
+  // The main axis has a 1.0f, while the orthogonal axis has a 0.0f.
+  glm::vec2 direction;
+  glm::vec2 padding;
+  real32 title_bar_height;
+  uint32 n_elements;
+  real32 element_margin;
+};
+
+struct GuiState {
+  ShaderAsset *shader_asset;
+  InputState *input_state;
+  GLFWcursor *requested_cursor;
+  Array<FontAsset> font_assets;
+  TextureAtlas texture_atlas;
+  Array<GuiContainer> containers;
+  GuiContainer *container_being_moved;
+  uint32 vao;
+  uint32 vbo;
+  glm::mat4 text_projection;
+  glm::vec2 window_dimensions;
+  uint32 n_vertices_pushed;
+};
+
 namespace Gui {
   constexpr const char *GUI_MAIN_FONT_REGULAR = "resources/fonts/SofiaProRegular.otf";
   constexpr const char *GUI_MAIN_FONT_BOLD = "resources/fonts/SofiaProBold.otf";
@@ -31,38 +63,6 @@ namespace Gui {
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_SIZE = glm::vec2(20.0f);
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_DEFAULT_BORDER = glm::vec2(0.0f);
 
-  struct GuiContainer {
-    const char *title;
-    glm::vec2 position;
-    // Dimensions include padding, title bar etc.
-    glm::vec2 dimensions;
-    glm::vec2 content_dimensions;
-    glm::vec2 next_element_position;
-    // The direction defines the main and orthogonal axes.
-    // The main axis is the one elements are successively positioned on.
-    // The main axis has a 1.0f, while the orthogonal axis has a 0.0f.
-    glm::vec2 direction;
-    glm::vec2 padding;
-    real32 title_bar_height;
-    uint32 n_elements;
-    real32 element_margin;
-  };
-
-  struct GuiState {
-    Shaders::ShaderAsset *shader_asset;
-    Input::InputState *input_state;
-    GLFWcursor *requested_cursor;
-    Array<Fonts::FontAsset> font_assets;
-    Materials::TextureAtlas texture_atlas;
-    Array<GuiContainer> containers;
-    GuiContainer *container_being_moved;
-    uint32 vao;
-    uint32 vbo;
-    glm::mat4 text_projection;
-    glm::vec2 window_dimensions;
-    uint32 n_vertices_pushed;
-  };
-
   void update_screen_dimensions(
     GuiState *gui_state, uint32 window_width, uint32 window_height
   );
@@ -73,9 +73,7 @@ namespace Gui {
   void start_drawing(GuiState *gui_state);
   void push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices);
   void render(GuiState *gui_state);
-  glm::vec2 get_text_dimensions(
-    Fonts::FontAsset *font_asset, const char *str
-  );
+  glm::vec2 get_text_dimensions(FontAsset *font_asset, const char *str);
   glm::vec2 center_bb(
     glm::vec2 container_position,
     glm::vec2 container_dimensions,
@@ -146,8 +144,8 @@ namespace Gui {
   GuiState* init_gui_state(
     GuiState *gui_state,
     MemoryPool *memory_pool,
-    Array<Shaders::ShaderAsset> *shader_assets,
-    Input::InputState *input_state,
+    Array<ShaderAsset> *shader_assets,
+    InputState *input_state,
     uint32 window_width, uint32 window_height
   );
 }

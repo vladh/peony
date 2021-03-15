@@ -174,8 +174,8 @@ void run_main_loop(State *state) {
 
 void check_environment() {
   // Check that an `enum class`'s default value == its first element == 0;
-  Entities::BehaviorComponent test;
-  assert(test.behavior == Entities::Behavior::none);
+  BehaviorComponent test;
+  assert(test.behavior == Behavior::none);
   assert(static_cast<int>(test.behavior) == 0);
 }
 
@@ -257,7 +257,7 @@ int main() {
 
   Cameras::init_camera(
     &state->camera_main,
-    Cameras::CameraType::perspective,
+    CameraType::perspective,
     state->window_info.width,
     state->window_info.height
   );
