@@ -6,7 +6,7 @@ void World::get_entity_text_representation(
 ) {
   EntityHandle handle = entity->handle;
   SpatialComponent *spatial_component =
-    EntitySets::get_spatial_component_from_set(&state->spatial_component_set, handle);
+    state->spatial_component_set.components.get(handle);
 
   // Children will be drawn under their parents.
   if (
@@ -21,22 +21,13 @@ void World::get_entity_text_representation(
     spatial_component
   );
   bool32 has_drawable_component = Entities::is_drawable_component_valid(
-    EntitySets::get_drawable_component_from_set(
-      &state->drawable_component_set,
-      handle
-    )
+    state->drawable_component_set.components.get(handle)
   );
   bool32 has_light_component = Entities::is_light_component_valid(
-    EntitySets::get_light_component_from_set(
-      &state->light_component_set,
-      handle
-    )
+    state->light_component_set.components.get(handle)
   );
   bool32 has_behavior_component = Entities::is_behavior_component_valid(
-    EntitySets::get_behavior_component_from_set(
-      &state->behavior_component_set,
-      handle
-    )
+    state->behavior_component_set.components.get(handle)
   );
 
   for (uint8 level = 0; level < depth; level++) {
@@ -92,9 +83,7 @@ void World::get_entity_text_representation(
           continue;
         }
         EntityHandle child_handle = child_spatial_component->entity_handle;
-        Entity *child_entity = EntitySets::get_entity_from_set(
-          &state->entity_set, child_handle
-        );
+        Entity *child_entity = state->entity_set.entities.get(child_handle);
 
         if (text[strlen(text) - 1] != '\n') {
           strcat(text, "\n");
@@ -608,15 +597,13 @@ void World::update(State *state) {
     EntityHandle entity_handle = behavior_component->entity_handle;
 
     SpatialComponent *spatial_component =
-      EntitySets::get_spatial_component_from_set(
-        &state->spatial_component_set, entity_handle
-      );
+      state->spatial_component_set.components.get(entity_handle);
     if (!spatial_component) {
       log_error("Could not get SpatialComponent for BehaviorComponent");
       continue;
     }
 
-    Entity *entity = EntitySets::get_entity_from_set(&state->entity_set, entity_handle);
+    Entity *entity = state->entity_set.entities.get(entity_handle);
     if (!entity) {
       log_error("Could not get Entity for BehaviorComponent");
       continue;
@@ -636,10 +623,7 @@ void World::update(State *state) {
       LightComponent *light_component =
         state->light_component_set.components.get(idx);
       SpatialComponent *spatial_component =
-        EntitySets::get_spatial_component_from_set(
-          &state->spatial_component_set,
-          light_component->entity_handle
-        );
+        state->spatial_component_set.components.get(light_component->entity_handle);
 
       if (!(
         Entities::is_light_component_valid(light_component) &&

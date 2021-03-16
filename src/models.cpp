@@ -334,41 +334,33 @@ void Models::create_entities(
   BehaviorComponentSet *behavior_component_set
 ) {
   if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
-    SpatialComponent *spatial_component =
-      EntitySets::get_spatial_component_from_set(
-        spatial_component_set,
-        model_asset->spatial_component.entity_handle
-      );
+    SpatialComponent *spatial_component = spatial_component_set->components.get(
+      model_asset->spatial_component.entity_handle
+    );
     assert(spatial_component);
     *spatial_component = model_asset->spatial_component;
   }
 
   if (Entities::is_light_component_valid(&model_asset->light_component)) {
-    LightComponent *light_component =
-      EntitySets::get_light_component_from_set(
-        light_component_set,
-        model_asset->light_component.entity_handle
-      );
+    LightComponent *light_component = light_component_set->components.get(
+      model_asset->light_component.entity_handle
+    );
     assert(light_component);
     *light_component = model_asset->light_component;
   }
 
   if (Entities::is_behavior_component_valid(&model_asset->behavior_component)) {
-    BehaviorComponent *behavior_component =
-      EntitySets::get_behavior_component_from_set(
-        behavior_component_set,
-        model_asset->behavior_component.entity_handle
-      );
+    BehaviorComponent *behavior_component = behavior_component_set->components.get(
+      model_asset->behavior_component.entity_handle
+    );
     assert(behavior_component);
     *behavior_component = model_asset->behavior_component;
   }
 
   if (model_asset->meshes.size == 1) {
-    DrawableComponent *drawable_component =
-      EntitySets::get_drawable_component_from_set(
-        drawable_component_set,
-        model_asset->entity_handle
-      );
+    DrawableComponent *drawable_component = drawable_component_set->components.get(
+      model_asset->entity_handle
+    );
     assert(drawable_component);
     *drawable_component = {
       .entity_handle = model_asset->entity_handle,
@@ -385,11 +377,9 @@ void Models::create_entities(
       );
 
       if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
-        SpatialComponent *spatial_component =
-          EntitySets::get_spatial_component_from_set(
-            spatial_component_set,
-            child_entity->handle
-          );
+        SpatialComponent *spatial_component = spatial_component_set->components.get(
+          child_entity->handle
+        );
         assert(spatial_component);
         *spatial_component = {
           .entity_handle = child_entity->handle,
@@ -400,11 +390,9 @@ void Models::create_entities(
         };
       }
 
-      DrawableComponent *drawable_component =
-        EntitySets::get_drawable_component_from_set(
-          drawable_component_set,
-          child_entity->handle
-        );
+      DrawableComponent *drawable_component = drawable_component_set->components.get(
+        child_entity->handle
+      );
       assert(drawable_component);
       *drawable_component = {
         .entity_handle = child_entity->handle,

@@ -35,37 +35,14 @@ namespace EntitySets {
   EntityHandle make_handle(
     EntitySet *entity_set
   );
-  Entity* get_entity_from_set(
-    EntitySet *entity_set,
-    EntityHandle handle
-  );
   Entity* add_entity_to_set(
     EntitySet *entity_set,
     const char *debug_name
   );
 
-  LightComponent* get_light_component_from_set(
-    LightComponentSet *light_component_set,
-    EntityHandle handle
-  );
-
-  SpatialComponent* get_spatial_component_from_set(
-    SpatialComponentSet *spatial_component_set,
-    EntityHandle handle
-  );
   glm::mat4 make_model_matrix(
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
-  );
-
-  DrawableComponent* get_drawable_component_from_set(
-    DrawableComponentSet *drawable_component_set,
-    EntityHandle handle
-  );
-
-  BehaviorComponent* get_behavior_component_from_set(
-    BehaviorComponentSet *behavior_component_set,
-    EntityHandle handle
   );
 
   void draw(
