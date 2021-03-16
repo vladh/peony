@@ -12,10 +12,10 @@ struct MaterialTemplate {
   char depth_shader_asset_frag_path[MAX_TOKEN_LENGTH];
   char depth_shader_asset_geom_path[MAX_TOKEN_LENGTH];
 
-  glm::vec4 albedo_static;
-  real32 metallic_static;
-  real32 roughness_static;
-  real32 ao_static;
+  glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+  real32 metallic_static = -1.0f;
+  real32 roughness_static = -1.0f;
+  real32 ao_static = -1.0f;
 
   uint32 n_textures;
   char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
@@ -77,7 +77,6 @@ namespace PeonyFileParser {
   void print_material_template(MaterialTemplate *material_template);
   void print_entity_template(EntityTemplate *entity_template);
   void print_value(PropValue value, PropValueType type);
-  void init_material_template();
   bool32 is_char_whitespace(const char target);
   bool32 is_token_whitespace(const char *token);
   bool32 is_char_allowed_in_name(const char target);

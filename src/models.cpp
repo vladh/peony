@@ -370,12 +370,11 @@ void Models::create_entities(
         model_asset->entity_handle
       );
     assert(drawable_component);
-    Entities::init_drawable_component(
-      drawable_component,
-      model_asset->entity_handle,
-      model_asset->meshes[0],
-      model_asset->render_pass
-    );
+    *drawable_component = {
+      .entity_handle = model_asset->entity_handle,
+      .mesh = model_asset->meshes[0],
+      .target_render_pass = model_asset->render_pass,
+    };
   } else if (model_asset->meshes.size > 1) {
     for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
       Mesh *mesh = model_asset->meshes[idx];
@@ -392,14 +391,13 @@ void Models::create_entities(
             child_entity->handle
           );
         assert(spatial_component);
-        Entities::init_spatial_component(
-          spatial_component,
-          child_entity->handle,
-          glm::vec3(0.0f),
-          glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
-          glm::vec3(0.0f),
-          model_asset->entity_handle
-        );
+        *spatial_component = {
+          .entity_handle = child_entity->handle,
+          .position = glm::vec3(0.0f),
+          .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
+          .scale = glm::vec3(0.0f),
+          .parent_entity_handle = model_asset->entity_handle,
+        };
       }
 
       DrawableComponent *drawable_component =
@@ -408,12 +406,11 @@ void Models::create_entities(
           child_entity->handle
         );
       assert(drawable_component);
-      Entities::init_drawable_component(
-        drawable_component,
-        child_entity->handle,
-        mesh,
-        model_asset->render_pass
-      );
+      *drawable_component = {
+        .entity_handle = child_entity->handle,
+        .mesh = mesh,
+        .target_render_pass = model_asset->render_pass,
+      };
     }
   }
 }

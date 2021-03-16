@@ -89,14 +89,6 @@ namespace PeonyFileParser {
   }
 
 
-  void init_material_template(MaterialTemplate *material_template) {
-    material_template->albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
-    material_template->metallic_static = -1.0f;
-    material_template->roughness_static = -1.0f;
-    material_template->ao_static = -1.0f;
-  }
-
-
   bool32 is_char_whitespace(const char target) {
     return target == TOKEN_NEWLINE ||
       target == TOKEN_SPACE;
@@ -478,7 +470,7 @@ namespace PeonyFileParser {
             strcpy(material_file_path, MATERIAL_FILE_DIRECTORY);
             strcat(material_file_path, prop_values[idx_value].string_value);
             strcat(material_file_path, MATERIAL_FILE_EXTENSION);
-            init_material_template(&entity_template->material_templates[idx_value]);
+            entity_template->material_templates[idx_value] = {};
             parse_material_file(
               material_file_path,
               &entity_template->material_templates[idx_value]
