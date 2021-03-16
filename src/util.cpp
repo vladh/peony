@@ -2,7 +2,6 @@ namespace Util {
   unsigned char* load_image(
     const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
   ) {
-    // TODO: Change this to use our custom allocator.
     stbi_set_flip_vertically_on_load(should_flip);
     unsigned char *image_data = stbi_load(
       path, width, height, n_channels, 0
