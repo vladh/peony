@@ -117,7 +117,7 @@ void World::get_entity_text_representation(
 
 
 void World::get_scene_text_representation(char *text, State *state) {
-  strcpy(text, "");
+  text[0] = '\0';
 
   for (uint32 idx = 1; idx < state->entities.size; idx++) {
     Entity *entity = state->entities[idx];
@@ -163,7 +163,7 @@ void World::create_entities_from_entity_template(
 
   ModelAsset *model_asset = nullptr;
 
-  if (strlen(entity_template->builtin_model_name) == 0) {
+  if (entity_template->builtin_model_name[0] == '\0') {
     model_asset = Models::init_model_asset(
       (ModelAsset*)(model_assets->push()),
       asset_memory_pool,
@@ -260,7 +260,7 @@ void World::create_entities_from_entity_template(
       model_asset->materials.push(), asset_memory_pool
     );
 
-    if (strlen(material_template->shader_asset_vert_path) > 0) {
+    if (material_template->shader_asset_vert_path[0] != '\0') {
       material->shader_asset = Shaders::init_shader_asset(
         (ShaderAsset*)(shader_assets->push()),
         entity_template->entity_debug_name,
@@ -270,7 +270,7 @@ void World::create_entities_from_entity_template(
         material_template->shader_asset_geom_path
       );
     }
-    if (strlen(material_template->depth_shader_asset_vert_path) > 0) {
+    if (material_template->depth_shader_asset_vert_path[0] != '\0') {
       material->depth_shader_asset = Shaders::init_shader_asset(
         (ShaderAsset*)(shader_assets->push()),
         entity_template->entity_debug_name,
