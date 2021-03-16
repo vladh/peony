@@ -9,14 +9,6 @@ EntityHandle EntitySets::make_handle(
 }
 
 
-Entity* EntitySets::get_entity_from_set(
-  EntitySet *entity_set,
-  EntityHandle handle
-) {
-  return entity_set->entities.get(handle);
-}
-
-
 Entity* EntitySets::add_entity_to_set(
   EntitySet *entity_set,
   const char *debug_name
@@ -29,25 +21,6 @@ Entity* EntitySets::add_entity_to_set(
 }
 
 
-LightComponent* EntitySets::get_light_component_from_set(
-  LightComponentSet *light_component_set,
-  EntityHandle handle
-) {
-  return light_component_set->components.get(handle);
-}
-
-
-SpatialComponent* EntitySets::get_spatial_component_from_set(
-  SpatialComponentSet *spatial_component_set,
-  EntityHandle handle
-) {
-  if (handle == Entity::no_entity_handle) {
-    return nullptr;
-  }
-  return spatial_component_set->components.get(handle);
-}
-
-
 glm::mat4 EntitySets::make_model_matrix(
   SpatialComponentSet *spatial_component_set,
   SpatialComponent *spatial_component,
@@ -56,8 +29,7 @@ glm::mat4 EntitySets::make_model_matrix(
   glm::mat4 model_matrix = glm::mat4(1.0f);
 
   if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
-    SpatialComponent *parent = get_spatial_component_from_set(
-      spatial_component_set,
+    SpatialComponent *parent = spatial_component_set->components.get(
       spatial_component->parent_entity_handle
     );
     model_matrix = make_model_matrix(spatial_component_set, parent, cache);
@@ -80,28 +52,6 @@ glm::mat4 EntitySets::make_model_matrix(
   }
 
   return model_matrix;
-}
-
-
-DrawableComponent* EntitySets::get_drawable_component_from_set(
-  DrawableComponentSet *drawable_component_set,
-  EntityHandle handle
-) {
-  if (handle == Entity::no_entity_handle) {
-    return nullptr;
-  }
-  return drawable_component_set->components.get(handle);
-}
-
-
-BehaviorComponent* EntitySets::get_behavior_component_from_set(
-  BehaviorComponentSet *behavior_component_set,
-  EntityHandle handle
-) {
-  if (handle == Entity::no_entity_handle) {
-    return nullptr;
-  }
-  return behavior_component_set->components.get(handle);
 }
 
 
@@ -215,8 +165,7 @@ void EntitySets::draw_all(
       continue;
     }
 
-    SpatialComponent *spatial = get_spatial_component_from_set(
-      spatial_component_set,
+    SpatialComponent *spatial = spatial_component_set->components.get(
       drawable->entity_handle
     );
 

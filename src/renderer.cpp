@@ -526,11 +526,9 @@ void Renderer::copy_scene_data_to_ubo(
   for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
     LightComponent *light_component =
       state->light_component_set.components.get(idx);
-    SpatialComponent *spatial_component =
-      EntitySets::get_spatial_component_from_set(
-        &state->spatial_component_set,
-        light_component->entity_handle
-      );
+    SpatialComponent *spatial_component = state->spatial_component_set.components.get(
+      light_component->entity_handle
+    );
 
     if (!(
       Entities::is_light_component_valid(light_component) &&
@@ -918,10 +916,7 @@ void Renderer::render(State *state) {
         LightComponent *light_component =
           state->light_component_set.components.get(idx);
         SpatialComponent *spatial_component =
-          EntitySets::get_spatial_component_from_set(
-            &state->spatial_component_set,
-            light_component->entity_handle
-          );
+          state->spatial_component_set.components.get(light_component->entity_handle);
 
         if (!(
           Entities::is_light_component_valid(light_component) &&
@@ -977,10 +972,7 @@ void Renderer::render(State *state) {
         LightComponent *light_component =
           state->light_component_set.components.get(idx);
         SpatialComponent *spatial_component =
-          EntitySets::get_spatial_component_from_set(
-            &state->spatial_component_set,
-            light_component->entity_handle
-          );
+          state->spatial_component_set.components.get(light_component->entity_handle);
 
         if (!(
           Entities::is_light_component_valid(light_component) &&
