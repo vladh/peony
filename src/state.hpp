@@ -38,11 +38,6 @@ struct State {
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset> model_assets;
 
-  Array<Entity> entities;
-  Array<DrawableComponent> drawable_components;
-  Array<LightComponent> light_components;
-  Array<SpatialComponent> spatial_components;
-  Array<BehaviorComponent> behavior_components;
   GuiState gui_state;
 
   EntitySet entity_set;

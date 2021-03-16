@@ -13,7 +13,7 @@ Entity* EntitySets::get_entity_from_set(
   EntitySet *entity_set,
   EntityHandle handle
 ) {
-  return entity_set->entities->get(handle);
+  return entity_set->entities.get(handle);
 }
 
 
@@ -22,7 +22,7 @@ Entity* EntitySets::add_entity_to_set(
   const char *debug_name
 ) {
   EntityHandle new_handle = make_handle(entity_set);
-  Entity *new_entity = entity_set->entities->get(new_handle);
+  Entity *new_entity = entity_set->entities.get(new_handle);
   new_entity->handle = new_handle;
   strcpy(new_entity->debug_name, debug_name);
   return new_entity;
@@ -33,7 +33,7 @@ LightComponent* EntitySets::get_light_component_from_set(
   LightComponentSet *light_component_set,
   EntityHandle handle
 ) {
-  return light_component_set->components->get(handle);
+  return light_component_set->components.get(handle);
 }
 
 
@@ -44,7 +44,7 @@ SpatialComponent* EntitySets::get_spatial_component_from_set(
   if (handle == Entity::no_entity_handle) {
     return nullptr;
   }
-  return spatial_component_set->components->get(handle);
+  return spatial_component_set->components.get(handle);
 }
 
 
@@ -90,7 +90,7 @@ DrawableComponent* EntitySets::get_drawable_component_from_set(
   if (handle == Entity::no_entity_handle) {
     return nullptr;
   }
-  return drawable_component_set->components->get(handle);
+  return drawable_component_set->components.get(handle);
 }
 
 
@@ -101,7 +101,7 @@ BehaviorComponent* EntitySets::get_behavior_component_from_set(
   if (handle == Entity::no_entity_handle) {
     return nullptr;
   }
-  return behavior_component_set->components->get(handle);
+  return behavior_component_set->components.get(handle);
 }
 
 
@@ -204,8 +204,8 @@ void EntitySets::draw_all(
 ) {
   ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
 
-  for (uint32 idx = 0; idx < drawable_component_set->components->size; idx++) {
-    DrawableComponent *drawable = drawable_component_set->components->get(idx);
+  for (uint32 idx = 0; idx < drawable_component_set->components.size; idx++) {
+    DrawableComponent *drawable = drawable_component_set->components.get(idx);
 
     if (!Entities::is_drawable_component_valid(drawable)) {
       continue;

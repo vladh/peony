@@ -78,11 +78,11 @@ void World::get_entity_text_representation(
     uint32 n_children_found = 0;
     for (
       uint32 child_idx = 1;
-      child_idx < state->spatial_component_set.components->size;
+      child_idx < state->spatial_component_set.components.size;
       child_idx++
     ) {
       SpatialComponent *child_spatial_component =
-        state->spatial_component_set.components->get(child_idx);
+        state->spatial_component_set.components.get(child_idx);
       if (
         child_spatial_component->parent_entity_handle ==
           spatial_component->entity_handle
@@ -92,7 +92,9 @@ void World::get_entity_text_representation(
           continue;
         }
         EntityHandle child_handle = child_spatial_component->entity_handle;
-        Entity *child_entity = state->entities.get(child_handle);
+        Entity *child_entity = EntitySets::get_entity_from_set(
+          &state->entity_set, child_handle
+        );
 
         if (text[strlen(text) - 1] != '\n') {
           strcat(text, "\n");
@@ -119,8 +121,8 @@ void World::get_entity_text_representation(
 void World::get_scene_text_representation(char *text, State *state) {
   text[0] = '\0';
 
-  for (uint32 idx = 1; idx < state->entities.size; idx++) {
-    Entity *entity = state->entities[idx];
+  for (uint32 idx = 1; idx < state->entity_set.entities.size; idx++) {
+    Entity *entity = state->entity_set.entities[idx];
     get_entity_text_representation(text, state, entity, 0);
   }
 
@@ -131,9 +133,9 @@ void World::get_scene_text_representation(char *text, State *state) {
 
 
 void World::update_light_position(State *state, real32 amount) {
-  for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
+  for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
     LightComponent *light_component =
-      state->light_component_set.components->get(idx);
+      state->light_component_set.components.get(idx);
     if (light_component -> type == LightType::directional) {
       state->dir_light_angle += amount;
       light_component->direction = glm::vec3(
@@ -590,11 +592,11 @@ void World::update(State *state) {
 
   for (
     uint32 idx = 1;
-    idx < state->behavior_component_set.components->size;
+    idx < state->behavior_component_set.components.size;
     idx++
   ) {
     BehaviorComponent *behavior_component =
-      state->behavior_component_set.components->get(idx);
+      state->behavior_component_set.components.get(idx);
 
     if (
       !behavior_component ||
@@ -614,7 +616,7 @@ void World::update(State *state) {
       continue;
     }
 
-    Entity *entity = state->entities.get(entity_handle);
+    Entity *entity = EntitySets::get_entity_from_set(&state->entity_set, entity_handle);
     if (!entity) {
       log_error("Could not get Entity for BehaviorComponent");
       continue;
@@ -630,9 +632,9 @@ void World::update(State *state) {
   }
 
   {
-    for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
+    for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
       LightComponent *light_component =
-        state->light_component_set.components->get(idx);
+        state->light_component_set.components.get(idx);
       SpatialComponent *spatial_component =
         EntitySets::get_spatial_component_from_set(
           &state->spatial_component_set,

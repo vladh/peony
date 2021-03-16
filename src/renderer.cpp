@@ -523,9 +523,9 @@ void Renderer::copy_scene_data_to_ubo(
   uint32 n_point_lights = 0;
   uint32 n_directional_lights = 0;
 
-  for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
+  for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
     LightComponent *light_component =
-      state->light_component_set.components->get(idx);
+      state->light_component_set.components.get(idx);
     SpatialComponent *spatial_component =
       EntitySets::get_spatial_component_from_set(
         &state->spatial_component_set,
@@ -805,7 +805,7 @@ void Renderer::render_scene_ui(State *state) {
     sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
     Gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
 
-    sprintf(debug_text, "%d", state->entities.size);
+    sprintf(debug_text, "%d", state->entity_set.entities.size);
     Gui::draw_named_value(&state->gui_state, container, "entities.size", debug_text);
 
     if (Gui::draw_toggle(
@@ -914,9 +914,9 @@ void Renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
+      for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
         LightComponent *light_component =
-          state->light_component_set.components->get(idx);
+          state->light_component_set.components.get(idx);
         SpatialComponent *spatial_component =
           EntitySets::get_spatial_component_from_set(
             &state->spatial_component_set,
@@ -973,9 +973,9 @@ void Renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      for (uint32 idx = 0; idx < state->light_component_set.components->size; idx++) {
+      for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
         LightComponent *light_component =
-          state->light_component_set.components->get(idx);
+          state->light_component_set.components.get(idx);
         SpatialComponent *spatial_component =
           EntitySets::get_spatial_component_from_set(
             &state->spatial_component_set,
