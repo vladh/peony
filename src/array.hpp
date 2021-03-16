@@ -75,9 +75,6 @@ public:
   {
     this->items = (T*)Memory::push(memory_pool, sizeof(T) * this->max_size, debug_name);
   }
-
-  // TODO: Remove.
-  Array() {}
 };
 
 #endif
