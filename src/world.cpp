@@ -223,33 +223,30 @@ void World::create_entities_from_entity_template(
   }
 
   if (Entities::is_spatial_component_valid(&entity_template->spatial_component)) {
-    Entities::init_spatial_component(
-      &model_asset->spatial_component,
-      entity->handle,
-      entity_template->spatial_component.position,
-      entity_template->spatial_component.rotation,
-      entity_template->spatial_component.scale
+    model_asset->spatial_component = {
+      .entity_handle = entity->handle,
+      .position = entity_template->spatial_component.position,
+      .rotation = entity_template->spatial_component.rotation,
+      .scale = entity_template->spatial_component.scale,
       // TODO: Add support for parents! Forgot about this.
-    );
+    };
   }
 
   if (Entities::is_light_component_valid(&entity_template->light_component)) {
-    Entities::init_light_component(
-      &model_asset->light_component,
-      entity->handle,
-      entity_template->light_component.type,
-      entity_template->light_component.direction,
-      entity_template->light_component.color,
-      entity_template->light_component.attenuation
-    );
+    model_asset->light_component = {
+      .entity_handle = entity->handle,
+      .type = entity_template->light_component.type,
+      .direction = entity_template->light_component.direction,
+      .color = entity_template->light_component.color,
+      .attenuation = entity_template->light_component.attenuation,
+    };
   }
 
   if (Entities::is_behavior_component_valid(&entity_template->behavior_component)) {
-    Entities::init_behavior_component(
-      &model_asset->behavior_component,
-      entity->handle,
-      entity_template->behavior_component.behavior
-    );
+    model_asset->behavior_component = {
+      .entity_handle = entity->handle,
+      .behavior = entity_template->behavior_component.behavior,
+    };
   }
 
   for (
@@ -512,13 +509,12 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       entity->handle
     );
 
-    Entities::init_spatial_component(
-      &model_asset->spatial_component,
-      entity->handle,
-      glm::vec3(0.0f),
-      glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
-      glm::vec3(75.0f)
-    );
+    model_asset->spatial_component = {
+      .entity_handle = entity->handle,
+      .position = glm::vec3(0.0f),
+      .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
+      .scale = glm::vec3(75.0f),
+    };
 
     material = Materials::init_material(model_asset->materials.push(), memory_pool);
     material->shader_asset = Shaders::init_shader_asset(
