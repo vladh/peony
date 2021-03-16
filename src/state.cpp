@@ -15,22 +15,6 @@ State* init_state(
     asset_memory_pool, 512, "model_assets"
   );
 
-  state->entities = Array<Entity>(
-    entity_memory_pool, 4096, "entities", true
-  );
-  state->drawable_components = Array<DrawableComponent>(
-    entity_memory_pool, 4096, "drawable_components", true
-  );
-  state->light_components = Array<LightComponent>(
-    entity_memory_pool, 4096, "light_components", true
-  );
-  state->spatial_components = Array<SpatialComponent>(
-    entity_memory_pool, 4096, "spatial_components", true
-  );
-  state->behavior_components = Array<BehaviorComponent>(
-    entity_memory_pool, 4096, "behavior_components", true
-  );
-
   state->heading_opacity = 0.0f;
   state->heading_text = "";
   state->heading_fadeout_duration = 1.0f;
@@ -45,11 +29,31 @@ State* init_state(
   state->shadowmap_far_clip_dist = 200.0f;
   state->dir_light_angle = PI32 / 4.0f;
 
-  state->entity_set = {.entities = &state->entities};
-  state->drawable_component_set = {.components = &state->drawable_components};
-  state->light_component_set = {.components = &state->light_components};
-  state->spatial_component_set = {.components = &state->spatial_components};
-  state->behavior_component_set = {.components = &state->behavior_components};
+  state->entity_set = {
+    .entities = Array<Entity>(
+      entity_memory_pool, 4096, "entities", true
+    )
+  };
+  state->drawable_component_set = {
+    .components = Array<DrawableComponent>(
+      entity_memory_pool, 4096, "drawable_components", true
+    )
+  };
+  state->light_component_set = {
+    .components = Array<LightComponent>(
+      entity_memory_pool, 4096, "light_components", true
+    )
+  };
+  state->spatial_component_set = {
+    .components = Array<SpatialComponent>(
+      entity_memory_pool, 4096, "spatial_components", true
+    )
+  };
+  state->behavior_component_set = {
+    .components = Array<BehaviorComponent>(
+      entity_memory_pool, 4096, "behavior_components", true
+    )
+  };
 
   return state;
 }

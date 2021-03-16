@@ -5,12 +5,12 @@ struct Mesh;
 
 struct EntitySet {
   // NOTE: 0 is an invalid handle.
-  Array<Entity> *entities;
+  Array<Entity> entities;
   EntityHandle last_handle;
 };
 
 struct LightComponentSet {
-  Array<LightComponent> *components;
+  Array<LightComponent> components;
 };
 
 struct ModelMatrixCache {
@@ -19,16 +19,16 @@ struct ModelMatrixCache {
 };
 
 struct SpatialComponentSet {
-  Array<SpatialComponent> *components;
+  Array<SpatialComponent> components;
 };
 
 struct DrawableComponentSet {
-  Array<DrawableComponent> *components;
+  Array<DrawableComponent> components;
   uint32 last_drawn_shader_program;
 };
 
 struct BehaviorComponentSet {
-  Array<BehaviorComponent> *components;
+  Array<BehaviorComponent> components;
 };
 
 namespace EntitySets {
