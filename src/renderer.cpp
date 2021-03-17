@@ -797,10 +797,10 @@ void Renderer::render_scene_ui(State *state) {
       &state->gui_state, "Peony debug info", glm::vec2(25.0f, 25.0f)
     );
 
-    sprintf(debug_text, "%d fps", state->last_fps);
+    sprintf(debug_text, "%d fps", state->perf_counters.last_fps);
     Gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
 
-    sprintf(debug_text, "%.2f ms", state->dt_average * 1000.0f);
+    sprintf(debug_text, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
     Gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
 
     sprintf(debug_text, "%d", state->entity_set.entities.size);
@@ -1103,6 +1103,7 @@ void Renderer::render(State *state) {
 
   glDisable(GL_DEPTH_TEST);
 
+#if 0
   // Blur pass
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
@@ -1131,6 +1132,7 @@ void Renderer::render(State *state) {
       );
     }
   }
+#endif
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

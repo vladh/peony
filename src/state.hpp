@@ -10,6 +10,13 @@ struct WindowInfo {
   char title[128];
 };
 
+struct PerfCounters {
+  real64 dt_average;
+  real64 dt_hist[DT_HIST_LENGTH];
+  uint32 dt_hist_idx;
+  uint32 last_fps;
+};
+
 struct State {
   bool32 is_manual_frame_advance_enabled;
   bool32 should_manually_advance_to_next_frame;
@@ -22,13 +29,10 @@ struct State {
   Camera *camera_active;
   InputState input_state;
 
-  real64 t;
-  real64 dt;
-  real64 dt_average;
-  real64 dt_hist[DT_HIST_LENGTH];
-  uint32 dt_hist_idx;
-  uint32 last_fps;
-  uint32 n_frames_since_start;
+  // NOTE: `t` and `dt` will not change when gameplay is paused.
+  real64 t; // us
+  real64 dt; // us
+  PerfCounters perf_counters;
 
   bool32 is_cursor_enabled;
   bool32 should_limit_fps;

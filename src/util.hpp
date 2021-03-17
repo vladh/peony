@@ -36,6 +36,7 @@ namespace Util {
     const char *message, const void *userParam
   );
   real32 round_to_nearest_multiple(real32 n, real32 multiple_of);
+  real64 get_us_from_duration(chrono::duration<real64> duration);
 };
 
 #endif

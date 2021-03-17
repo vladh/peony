@@ -437,4 +437,9 @@ namespace Util {
   real32 round_to_nearest_multiple(real32 n, real32 multiple_of) {
     return (floor((n) / multiple_of) * multiple_of) + multiple_of;
   }
+
+
+  real64 get_us_from_duration(chrono::duration<real64> duration) {
+    return chrono::duration_cast<chrono::duration<real64>>(duration).count();
+  }
 }

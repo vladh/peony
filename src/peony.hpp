@@ -20,6 +20,7 @@
 #endif
 
 #include <chrono>
+namespace chrono = std::chrono;
 #include <thread>
 #include <mutex>
 

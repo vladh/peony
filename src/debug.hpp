@@ -4,11 +4,11 @@
 #if USE_TIMERS
 
 #define START_TIMER(name) \
-  std::chrono::steady_clock::time_point debug_timerstart_##name = std::chrono::steady_clock::now();
+  chrono::steady_clock::time_point debug_timerstart_##name = chrono::steady_clock::now();
 
 #define END_TIMER_MIN(name, min_duration_ms) \
-  std::chrono::duration<real64, std::milli> debug_timerduration_##name = ( \
-    std::chrono::steady_clock::now() - debug_timerstart_##name \
+  chrono::duration<real64, std::milli> debug_timerduration_##name = ( \
+    chrono::steady_clock::now() - debug_timerstart_##name \
   ); \
   if (debug_timerduration_##name.count() >= min_duration_ms) { \
     log_info("Timer %s took %f", #name, debug_timerduration_##name.count()); \
