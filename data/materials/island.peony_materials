@@ -1,0 +1,7 @@
+> island
+shader_asset.vert_path = standard.vert
+shader_asset.frag_path = standard.frag
+textures.albedo_texture = [albedo, island-texture.png]
+metallic_static = 0.0
+roughness_static = 1.0
+ao_static = 1.0

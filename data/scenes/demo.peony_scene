@@ -26,6 +26,14 @@ light_component.direction = vec3(0.70, -0.70, 0.0)
 light_component.color = vec4(4.0, 4.0, 4.0, 1.0)
 light_component.attenuation = vec4(1.0, 0.0, 0.0, 0.0)
 
+> island
+model_path = island/island.obj
+materials = [island]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(0.0, 0.0, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
 ; > pointlight
 ; model_path = cube.obj
 ; materials = [light]
