@@ -1,8 +1,5 @@
-#ifndef MATH_HPP
-#define MATH_HPP
-
-#define PI32 3.14159265359f
-#define PI 3.14159265358979323846
+#ifndef INTRINSICS_HPP
+#define INTRINSICS_HPP
 
 #define KB_TO_B(value) ((value) * 1024ULL)
 #define MB_TO_B(value) (KB_TO_B(value) * 1024ULL)
@@ -12,7 +9,7 @@
 #define B_TO_MB(value) (B_TO_KB(value) / 1024ULL)
 #define B_TO_GB(value) (B_TO_MB(value) / 1024ULL)
 #define B_TO_TB(value) (B_TO_GB(value) / 1024ULL)
-#define LEN(x) (sizeof(x) / sizeof((x)[0]))
+#define LEN(x) (sizeof((x)) / sizeof((x)[0]))
 // NOTE: This is vulnerable to double evaluation. Be aware or fix.
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))

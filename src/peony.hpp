@@ -51,7 +51,8 @@
 #endif
 
 #include "types.hpp"
-#include "math.hpp"
+#include "constants.hpp"
+#include "intrinsics.hpp"
 #include "debug.hpp"
 #include "log.hpp"
 #include "memory.hpp"

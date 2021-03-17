@@ -1,9 +1,9 @@
 #ifndef PACK_HPP
 #define PACK_HPP
 
-#define PACK_ELEMENT_SIZE 4
-#define PACK_MAX_LENGTH (64 / PACK_ELEMENT_SIZE)
-#define PACK_COUNTER_IDX (PACK_MAX_LENGTH - 1)
+constexpr uint16 PACK_ELEMENT_SIZE = 4;
+constexpr uint16 PACK_MAX_LENGTH  = (64 / PACK_ELEMENT_SIZE);
+constexpr uint16 PACK_COUNTER_IDX  = (PACK_MAX_LENGTH - 1);
 
 typedef uint64 Pack;
 

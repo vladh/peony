@@ -2,7 +2,7 @@
 #define MEMORY_HPP
 
 #if USE_MEMORYPOOL_ITEM_DEBUG
-constexpr uint32 N_MAX_MEMORYPOOL_ITEMS = 1024;
+constexpr uint32 MAX_N_MEMORYPOOL_ITEMS = 1024;
 #endif
 
 struct State;
@@ -13,8 +13,8 @@ struct MemoryPool {
   size_t used;
   uint32 n_items;
 #if USE_MEMORYPOOL_ITEM_DEBUG
-  const char *item_debug_names[N_MAX_MEMORYPOOL_ITEMS];
-  size_t item_debug_sizes[N_MAX_MEMORYPOOL_ITEMS];
+  const char *item_debug_names[MAX_N_MEMORYPOOL_ITEMS];
+  size_t item_debug_sizes[MAX_N_MEMORYPOOL_ITEMS];
 #endif
 };
 

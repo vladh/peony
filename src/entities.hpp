@@ -7,7 +7,7 @@ typedef uint32 EntityHandle;
 
 struct Entity {
   EntityHandle handle;
-  char debug_name[256]; // TODO: Fix unsafe strings.
+  char debug_name[MAX_DEBUG_NAME_LENGTH];
   static EntityHandle no_entity_handle;
 };
 

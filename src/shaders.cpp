@@ -31,8 +31,8 @@ void Shaders::assert_shader_status_ok(uint32 new_shader, const char *path) {
   glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);
 
   if (status != 1) {
-    char message[512];
-    glGetShaderInfoLog(new_shader, 512, NULL, message);
+    char message[MAX_GENEROUS_STRING_LENGTH];
+    glGetShaderInfoLog(new_shader, MAX_GENEROUS_STRING_LENGTH, NULL, message);
     log_info("Compiling shader %s: (status %d) (message %s)", path, status, message);
     log_error("Shader compilation failed");
     exit(EXIT_FAILURE);
@@ -45,8 +45,8 @@ void Shaders::assert_program_status_ok(uint32 new_program) {
   glGetProgramiv(new_program, GL_LINK_STATUS, &status);
 
   if (status != 1) {
-    char message[512];
-    glGetProgramInfoLog(new_program, 512, NULL, message);
+    char message[MAX_GENEROUS_STRING_LENGTH];
+    glGetProgramInfoLog(new_program, MAX_GENEROUS_STRING_LENGTH, NULL, message);
     log_info("Compiling program %d: (status %d) (message %s)", new_program, status, message);
     log_error("Program loading failed");
     exit(EXIT_FAILURE);
@@ -87,8 +87,8 @@ uint32 Shaders::make_program(
 
 
 const char* Shaders::load_file(MemoryPool *memory_pool, const char *path) {
-  char full_path[256]; // TODO: Fix unsafe strings?
-  strcpy(full_path, SHADER_DIR);
+  char full_path[MAX_PATH];
+  strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
   strcat(full_path, path);
   uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
   uint32 f2_size = Util::get_file_size(full_path);
@@ -102,8 +102,8 @@ const char* Shaders::load_file(MemoryPool *memory_pool, const char *path) {
 
 
 const char* Shaders::load_frag_file(MemoryPool *memory_pool, const char *path) {
-  char full_path[256]; // TODO: Fix unsafe strings?
-  strcpy(full_path, SHADER_DIR);
+  char full_path[MAX_PATH];
+  strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
   strcat(full_path, path);
   uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
   uint32 f2_size = Util::get_file_size(SHADER_COMMON_FRAGMENT_PATH);

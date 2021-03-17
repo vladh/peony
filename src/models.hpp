@@ -28,9 +28,9 @@ struct Mesh {
 };
 
 struct ModelAsset {
-  char name[256]; // TODO: Fix unsafe strings?
+  char name[MAX_DEBUG_NAME_LENGTH];
   ModelSource model_source;
-  char path[256]; // TODO: Fix unsafe strings?
+  char path[MAX_PATH];
   Array<Mesh> meshes;
   Array<Material> materials;
   EntityHandle entity_handle;

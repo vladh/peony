@@ -38,7 +38,7 @@ namespace Gui {
   constexpr const char *GUI_MAIN_FONT_BOLD = "resources/fonts/SofiaProBold.otf";
   constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
 
-  constexpr uint32 GUI_N_MAX_VERTICES = 16384;
+  constexpr uint32 GUI_MAX_N_VERTICES = 16384;
   constexpr uint32 GUI_VERTEX_LENGTH = 8;
   constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * GUI_VERTEX_LENGTH;
 
