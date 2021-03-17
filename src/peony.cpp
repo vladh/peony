@@ -90,14 +90,14 @@ void process_input(GLFWwindow *window, State *state) {
 
 
 void run_main_loop(State *state) {
-  std::chrono::steady_clock::time_point second_start = std::chrono::steady_clock::now();
-  std::chrono::steady_clock::time_point frame_start = std::chrono::steady_clock::now();
-  std::chrono::steady_clock::time_point last_frame_start = std::chrono::steady_clock::now();
+  chrono::steady_clock::time_point second_start = chrono::steady_clock::now();
+  chrono::steady_clock::time_point frame_start = chrono::steady_clock::now();
+  chrono::steady_clock::time_point last_frame_start = chrono::steady_clock::now();
   // 1/165 seconds (for 165 fps)
-  std::chrono::nanoseconds frame_duration = std::chrono::nanoseconds(6060606);
-  std::chrono::steady_clock::time_point time_frame_should_end;
+  chrono::nanoseconds frame_duration = chrono::nanoseconds(6060606);
+  chrono::steady_clock::time_point time_frame_should_end;
   uint32 n_frames_this_second = 0;
-  state->n_frames_since_start = 0;
+  uint32 n_frames_since_start = 0;
 
   while (!state->should_stop) {
     glfwPollEvents();
@@ -107,46 +107,44 @@ void run_main_loop(State *state) {
       !state->is_manual_frame_advance_enabled ||
       state->should_manually_advance_to_next_frame
     ) {
-      state->n_frames_since_start++;
+      n_frames_since_start++;
       last_frame_start = frame_start;
-      frame_start = std::chrono::steady_clock::now();
+      frame_start = chrono::steady_clock::now();
       time_frame_should_end = frame_start + frame_duration;
 
       // If we should pause, stop time-based events.
       if (!state->should_pause) {
-        state->dt = std::chrono::duration_cast<std::chrono::duration<real64>>(
-          frame_start - last_frame_start
-        ).count();
+        state->dt = Util::get_us_from_duration(frame_start - last_frame_start);
 
-        state->dt_hist[state->dt_hist_idx] = state->dt;
-        state->dt_hist_idx++;
-        if (state->dt_hist_idx >= DT_HIST_LENGTH) {
-          state->dt_hist_idx = 0;
+        state->perf_counters.dt_hist[state->perf_counters.dt_hist_idx] = state->dt;
+        state->perf_counters.dt_hist_idx++;
+        if (state->perf_counters.dt_hist_idx >= DT_HIST_LENGTH) {
+          state->perf_counters.dt_hist_idx = 0;
         }
         real64 dt_hist_sum = 0.0f;
         for (uint32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
-          dt_hist_sum += state->dt_hist[idx];
+          dt_hist_sum += state->perf_counters.dt_hist[idx];
         }
-        state->dt_average = dt_hist_sum / DT_HIST_LENGTH;
+        state->perf_counters.dt_average = dt_hist_sum / DT_HIST_LENGTH;
 
         state->t += state->dt;
       }
 
       // Count FPS.
       n_frames_this_second++;
-      std::chrono::duration<real64> time_since_second_start = frame_start - second_start;
-      if (time_since_second_start >= std::chrono::seconds(1)) {
+      chrono::duration<real64> time_since_second_start = frame_start - second_start;
+      if (time_since_second_start >= chrono::seconds(1)) {
         second_start = frame_start;
-        state->last_fps = n_frames_this_second;
+        state->perf_counters.last_fps = n_frames_this_second;
         n_frames_this_second = 0;
         if (state->should_hide_ui) {
-          log_info("%.2f ms", state->dt_average * 1000.0f);
+          log_info("%.2f ms", state->perf_counters.dt_average * 1000.0f);
         }
       }
 
       // NOTE: Don't render on the very first frame. This avoids flashing that happens in
       // fullscreen. There is a better way to handle this, but whatever, figure it out later.
-      if (state->n_frames_since_start > 1) {
+      if (n_frames_since_start > 1) {
         World::update(state);
         Renderer::render(state);
       }
