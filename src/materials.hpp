@@ -1,14 +1,15 @@
 #ifndef TEXTURES_HPP
 #define TEXTURES_HPP
 
-constexpr uint32 N_MAX_TEXTURE_POOL_SIZES = 6;
+constexpr uint32 MAX_N_TEXTURE_POOL_SIZES = 6;
+constexpr uint32 MAX_UNIFORM_LENGTH = 256;
 
 struct TextureNamePool {
   uint32 mipmap_max_level = 0;
   uint32 n_textures = 0;
   uint32 n_sizes = 0;
-  uint32 sizes[N_MAX_TEXTURE_POOL_SIZES] = {0};
-  uint32 idx_next[N_MAX_TEXTURE_POOL_SIZES] = {0};
+  uint32 sizes[MAX_N_TEXTURE_POOL_SIZES] = {0};
+  uint32 idx_next[MAX_N_TEXTURE_POOL_SIZES] = {0};
   uint32 *texture_names = nullptr;
 };
 
@@ -56,7 +57,7 @@ enum class TextureType {
 struct Texture {
   GLenum target;
   TextureType type;
-  char path[256]; // TODO: Fix unsafe strings?
+  char path[MAX_PATH]; // TODO: Fix unsafe strings?
   uint32 texture_name = 0;
   int32 width = 0;
   int32 height = 0;
@@ -71,7 +72,7 @@ struct Material {
   ShaderAsset *shader_asset;
   ShaderAsset *depth_shader_asset;
   Array<Texture> textures;
-  char texture_uniform_names[256][256]; // TODO: Fix unsafe strings.
+  char texture_uniform_names[MAX_N_UNIFORMS][MAX_UNIFORM_LENGTH];
   uint32 idx_texture_uniform_names;
 
   // Hardcoded values for when we can't load a texture.

@@ -40,7 +40,7 @@ void* Memory::push(
   assert(pool->used + item_size <= pool->size);
 
 #if USE_MEMORYPOOL_ITEM_DEBUG
-  assert(pool->n_items < N_MAX_MEMORYPOOL_ITEMS);
+  assert(pool->n_items < MAX_N_MEMORYPOOL_ITEMS);
   pool->item_debug_names[pool->n_items] = item_debug_name;
   pool->item_debug_sizes[pool->n_items] = item_size;
 #endif

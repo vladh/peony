@@ -8,10 +8,10 @@ constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
 enum class ShaderType {none, standard, depth};
 
 struct ShaderAsset {
-  char name[256]; // TODO: Fix unsafe strings?
-  char vert_path[256]; // TODO: Fix unsafe strings?
-  char frag_path[256]; // TODO: Fix unsafe strings?
-  char geom_path[256]; // TODO: Fix unsafe strings?
+  char name[MAX_DEBUG_NAME_LENGTH]; // TODO: Fix unsafe strings?
+  char vert_path[MAX_PATH]; // TODO: Fix unsafe strings?
+  char frag_path[MAX_PATH]; // TODO: Fix unsafe strings?
+  char geom_path[MAX_PATH]; // TODO: Fix unsafe strings?
   uint32 program;
   ShaderType type;
   uint32 n_texture_units;

@@ -208,7 +208,7 @@ void Models::load_model_asset(ModelAsset *model_asset) {
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
-  char full_path[256]; // TODO: Fix unsafe strings?
+  char full_path[MAX_PATH];
   strcpy(full_path, MODEL_DIR);
   strcat(full_path, model_asset->path);
 
