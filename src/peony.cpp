@@ -180,6 +180,12 @@ void check_environment() {
 }
 
 
+/* int WinMain( */
+/*   HINSTANCE hInstance, */
+/*   HINSTANCE hPrevInstance, */
+/*   LPSTR lpCmdLine, */
+/*   int nShowCmd */
+/* ) { */
 int main() {
   check_environment();
   srand((uint32)time(NULL));
