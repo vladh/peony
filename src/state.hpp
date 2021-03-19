@@ -39,6 +39,8 @@ struct State {
   bool32 should_use_wireframe;
   glm::vec4 background_color;
 
+  bool32 is_world_loaded;
+
   Array<ShaderAsset> shader_assets;
   Array<ModelAsset> model_assets;
 

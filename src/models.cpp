@@ -404,7 +404,7 @@ void Models::create_entities(
 }
 
 
-void Models::prepare_for_draw(
+bool Models::prepare_for_draw(
   ModelAsset *model_asset,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
@@ -415,6 +415,17 @@ void Models::prepare_for_draw(
   LightComponentSet *light_component_set,
   BehaviorComponentSet *behavior_component_set
 ) {
+  if (
+    model_asset->is_mesh_data_loading_done &&
+    model_asset->is_vertex_buffer_setup_done &&
+    model_asset->is_shader_setting_done &&
+    model_asset->is_texture_copying_to_pbo_done &&
+    model_asset->is_texture_creation_done &&
+    model_asset->is_entity_creation_done
+  ) {
+    return true;
+  }
+
   // Step 1: Load mesh data. This is done on a separate thread.
   if (
     !model_asset->is_mesh_data_loading_in_progress &&
@@ -572,6 +583,8 @@ void Models::prepare_for_draw(
     }
 
   }
+
+  return false;
 }
 
 

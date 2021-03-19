@@ -4,9 +4,16 @@
 struct Mesh;
 
 struct EntitySet {
-  // NOTE: 0 is an invalid handle.
   Array<Entity> entities;
-  EntityHandle last_handle;
+  // The handle of the next entity which has not yet been created.
+  // NOTE: 0 is an invalid handle.
+  EntityHandle next_handle;
+  // Certain entities at the start of our set are internal.
+  // Remember the handle after we're done creating the internal entities,
+  // so we can iterate through the non-internal ones, if we so desire.
+  // This assumes all our internal entities will be contiguous and at the
+  // start of our set.
+  EntityHandle first_non_internal_handle;
 };
 
 struct LightComponentSet {
@@ -32,9 +39,8 @@ struct BehaviorComponentSet {
 };
 
 namespace EntitySets {
-  EntityHandle make_handle(
-    EntitySet *entity_set
-  );
+  EntityHandle make_handle(EntitySet *entity_set);
+  void mark_first_non_internal_handle(EntitySet *entity_set);
   Entity* add_entity_to_set(
     EntitySet *entity_set,
     const char *debug_name

@@ -16,9 +16,13 @@ namespace World {
     State *state
   );
   void create_internal_entities(MemoryPool *memory_pool, State *state);
+  void load_scene(
+    const char *scene_path,
+    MemoryPool *asset_memory_pool,
+    State *state
+  );
   void init(
     MemoryPool *asset_memory_pool,
-    MemoryPool *entity_memory_pool,
     State *state
   );
   void check_all_model_assets_loaded(State *state);

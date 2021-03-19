@@ -803,6 +803,9 @@ void Renderer::render_scene_ui(State *state) {
     sprintf(debug_text, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
     Gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
 
+    sprintf(debug_text, state->is_world_loaded ? "yes" : "no");
+    Gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
+
     sprintf(debug_text, "%d", state->entity_set.entities.size);
     Gui::draw_named_value(&state->gui_state, container, "entities.size", debug_text);
 

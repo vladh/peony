@@ -2,10 +2,15 @@ EntityHandle EntitySets::make_handle(
   EntitySet *entity_set
 ) {
   // NOTE: 0 is an invalid handle.
-  if (entity_set->last_handle == 0) {
-    entity_set->last_handle++;
+  if (entity_set->next_handle == 0) {
+    entity_set->next_handle++;
   }
-  return entity_set->last_handle++;
+  return entity_set->next_handle++;
+}
+
+
+void EntitySets::mark_first_non_internal_handle(EntitySet *entity_set) {
+  entity_set->first_non_internal_handle = entity_set->next_handle;
 }
 
 
