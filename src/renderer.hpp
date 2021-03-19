@@ -75,12 +75,36 @@ namespace Renderer {
 
   const char* render_pass_to_string(RenderPassFlag render_pass);
   RenderPassFlag render_pass_from_string(const char* str);
-  void resize_renderer_buffers(MemoryPool *memory_pool, State *state);
+  void resize_renderer_buffers(
+    MemoryPool *memory_pool,
+    Array<Material> *materials,
+    BuiltinTextures *builtin_textures,
+    uint32 width,
+    uint32 height
+  );
   void init_ubo(State *state);
-  void init_shadowmaps(MemoryPool *memory_pool, State *state);
-  void init_g_buffer(MemoryPool *memory_pool, State *state);
-  void init_l_buffer(MemoryPool *memory_pool, State *state);
-  void init_blur_buffers(MemoryPool *memory_pool, State *state);
+  void init_shadowmaps(
+    MemoryPool *memory_pool,
+    BuiltinTextures *builtin_textures
+  );
+  void init_g_buffer(
+    MemoryPool *memory_pool,
+    BuiltinTextures *builtin_textures,
+    uint32 width,
+    uint32 height
+  );
+  void init_l_buffer(
+    MemoryPool *memory_pool,
+    BuiltinTextures *builtin_textures,
+    uint32 width,
+    uint32 height
+  );
+  void init_blur_buffers(
+    MemoryPool *memory_pool,
+    BuiltinTextures *builtin_textures,
+    uint32 width,
+    uint32 height
+  );
   void update_drawing_options(State *state, GLFWwindow *window);
   void copy_scene_data_to_ubo(
     State *state,
