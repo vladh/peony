@@ -86,7 +86,7 @@ namespace Models {
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set
   );
-  void prepare_for_draw(
+  bool prepare_for_draw(
     ModelAsset *model_asset,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,

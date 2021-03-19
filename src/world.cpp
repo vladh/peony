@@ -144,8 +144,6 @@ void World::create_entities_from_entity_template(
   Array<ShaderAsset> *shader_assets,
   State *state
 ) {
-  // TODO: Make `init_entity()` function and use it here like
-  // we did with the other ones.
   // TODO: Figure out parent system.
   Entity *entity = EntitySets::add_entity_to_set(
     entity_set,
@@ -515,16 +513,20 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
 #endif
   }
+
+  // We've created all internal entities, so we will mark the next position
+  // in the EntitySet, to know that that position is where the non-internal
+  // entities start.
+  EntitySets::mark_first_non_internal_handle(&state->entity_set);
 }
 
 
-void World::init(
+void World::load_scene(
+  const char *scene_path,
   MemoryPool *asset_memory_pool,
-  MemoryPool *entity_memory_pool,
   State *state
 ) {
   MemoryPool temp_memory_pool = {};
-  create_internal_entities(entity_memory_pool, state);
 
   EntityTemplate *entity_templates =
     (EntityTemplate*)Memory::push(
@@ -533,9 +535,7 @@ void World::init(
       "entity_templates"
     );
 
-  uint32 n_entities = PeonyFileParser::parse_scene_file(
-    "data/scenes/demo.peony_scene", entity_templates
-  );
+  uint32 n_entities = PeonyFileParser::parse_scene_file(scene_path, entity_templates);
 
   for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
     /* PeonyFileParser::print_entity_template(&entity_templates[idx_entity]); */
@@ -553,10 +553,19 @@ void World::init(
 }
 
 
+void World::init(
+  MemoryPool *asset_memory_pool,
+  State *state
+) {
+  create_internal_entities(asset_memory_pool, state);
+}
+
+
 void World::check_all_model_assets_loaded(State *state) {
+  bool are_all_done_loading = true;
   for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
     ModelAsset *model_asset = state->model_assets[idx];
-    Models::prepare_for_draw(
+    bool is_done_loading = Models::prepare_for_draw(
       model_asset,
       &state->persistent_pbo,
       &state->texture_name_pool,
@@ -567,7 +576,11 @@ void World::check_all_model_assets_loaded(State *state) {
       &state->light_component_set,
       &state->behavior_component_set
     );
+    if (!is_done_loading) {
+      are_all_done_loading = false;
+    }
   }
+  state->is_world_loaded = are_all_done_loading;
 }
 
 
