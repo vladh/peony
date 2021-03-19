@@ -189,8 +189,7 @@ glm::ivec2 Materials::push_space_to_texture_atlas(
 
 Material* Materials::init_material(
   Material *material,
-  const char *name,
-  MemoryPool *memory_pool
+  const char *name
 ) {
   strcpy(material->name, name);
   material->state = MaterialState::initialized;
@@ -555,12 +554,9 @@ void Materials::create_material_from_template(
   Material *material,
   MaterialTemplate *material_template,
   Array<ShaderAsset> *shader_assets,
-  // TODO: Remove once we've made textures a simple array.
-  MemoryPool *asset_memory_pool,
-  // TODO: Remove. See built-in texture section below.
-  State *state
+  BuiltinTextures *builtin_textures
 ) {
-  init_material(material, material_template->name, asset_memory_pool);
+  init_material(material, material_template->name);
 
   material->albedo_static = material_template->albedo_static;
   material->metallic_static = material_template->metallic_static;
@@ -610,19 +606,19 @@ void Materials::create_material_from_template(
     // NOTE: This list is intentionally not complete until we fix the above.
     if (strcmp(builtin_texture_name, "g_position_texture") == 0) {
       Materials::add_texture_to_material(
-        material, *state->g_position_texture, builtin_texture_name
+        material, *builtin_textures->g_position_texture, builtin_texture_name
       );
     } else if (strcmp(builtin_texture_name, "g_albedo_texture") == 0) {
       Materials::add_texture_to_material(
-        material, *state->g_albedo_texture, builtin_texture_name
+        material, *builtin_textures->g_albedo_texture, builtin_texture_name
       );
     } else if (strcmp(builtin_texture_name, "cube_shadowmaps") == 0) {
       Materials::add_texture_to_material(
-        material, *state->cube_shadowmaps_texture, builtin_texture_name
+        material, *builtin_textures->cube_shadowmaps_texture, builtin_texture_name
       );
     } else if (strcmp(builtin_texture_name, "texture_shadowmaps") == 0) {
       Materials::add_texture_to_material(
-        material, *state->texture_shadowmaps_texture, builtin_texture_name
+        material, *builtin_textures->texture_shadowmaps_texture, builtin_texture_name
       );
     } else {
       log_fatal(

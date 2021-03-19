@@ -22,12 +22,16 @@ State* init_state(
   state->heading_fadeout_delay = 2.0f;
 
   state->task_queue = Queue<Task>(entity_memory_pool, 128, "task_queue");
-  state->cube_shadowmap_width = state->window_info.width;
-  state->cube_shadowmap_height = state->window_info.width;
-  state->texture_shadowmap_width = (uint32)(2560.0f * 4.0f);
-  state->texture_shadowmap_height = (uint32)(1440.0f * 4.0f);
-  state->shadowmap_near_clip_dist = 0.05f;
-  state->shadowmap_far_clip_dist = 200.0f;
+
+  state->builtin_textures = {
+    .cube_shadowmap_width = state->window_info.width,
+    .cube_shadowmap_height = state->window_info.width,
+    .texture_shadowmap_width = (uint32)(2560.0f * 4.0f),
+    .texture_shadowmap_height = (uint32)(1440.0f * 4.0f),
+    .shadowmap_near_clip_dist = 0.05f,
+    .shadowmap_far_clip_dist = 200.0f,
+  };
+
   state->dir_light_angle = PI32 / 4.0f;
 
   state->entity_set = {

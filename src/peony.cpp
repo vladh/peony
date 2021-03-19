@@ -242,10 +242,18 @@ int main() {
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
   Materials::init_texture_name_pool(&state->texture_name_pool, &asset_memory_pool, 64, 4);
-  Renderer::init_g_buffer(&asset_memory_pool, state);
-  Renderer::init_l_buffer(&asset_memory_pool, state);
-  Renderer::init_blur_buffers(&asset_memory_pool, state);
-  Renderer::init_shadowmaps(&asset_memory_pool, state);
+  Renderer::init_g_buffer(
+    &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
+  );
+  Renderer::init_l_buffer(
+    &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
+  );
+  Renderer::init_blur_buffers(
+    &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
+  );
+  Renderer::init_shadowmaps(
+    &asset_memory_pool, &state->builtin_textures
+  );
   Renderer::init_ubo(state);
   World::init(&asset_memory_pool, state);
   World::load_scene(

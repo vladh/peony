@@ -254,11 +254,11 @@ void World::create_entity_loader_from_entity_template(
 }
 
 
-void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
+void World::create_internal_materials(State *state) {
   // lighting
   {
     Material *material = Materials::init_material(
-      state->materials.push(), "lighting", memory_pool
+      state->materials.push(), "lighting"
     );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
@@ -266,29 +266,29 @@ void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
       "lighting.vert", "lighting.frag", ""
     );
     Materials::add_texture_to_material(
-      material, *state->g_position_texture, "g_position_texture"
+      material, *state->builtin_textures.g_position_texture, "g_position_texture"
     );
     Materials::add_texture_to_material(
-      material, *state->g_normal_texture, "g_normal_texture"
+      material, *state->builtin_textures.g_normal_texture, "g_normal_texture"
     );
     Materials::add_texture_to_material(
-      material, *state->g_albedo_texture, "g_albedo_texture"
+      material, *state->builtin_textures.g_albedo_texture, "g_albedo_texture"
     );
     Materials::add_texture_to_material(
-      material, *state->g_pbr_texture, "g_pbr_texture"
+      material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
     );
     Materials::add_texture_to_material(
-      material, *state->cube_shadowmaps_texture, "cube_shadowmaps"
+      material, *state->builtin_textures.cube_shadowmaps_texture, "cube_shadowmaps"
     );
     Materials::add_texture_to_material(
-      material, *state->texture_shadowmaps_texture, "texture_shadowmaps"
+      material, *state->builtin_textures.texture_shadowmaps_texture, "texture_shadowmaps"
     );
   }
 
   // preblur
   {
     Material *material = Materials::init_material(
-      state->materials.push(), "preblur", memory_pool
+      state->materials.push(), "preblur"
     );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
@@ -296,14 +296,14 @@ void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
       "blur.vert", "blur.frag", ""
     );
     Materials::add_texture_to_material(
-      material, *state->l_bright_color_texture, "source_texture"
+      material, *state->builtin_textures.l_bright_color_texture, "source_texture"
     );
   }
 
   // blur1
   {
     Material *material = Materials::init_material(
-      state->materials.push(), "blur1", memory_pool
+      state->materials.push(), "blur1"
     );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
@@ -311,14 +311,14 @@ void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
       "blur.vert", "blur.frag", ""
     );
     Materials::add_texture_to_material(
-      material, *state->blur2_texture, "source_texture"
+      material, *state->builtin_textures.blur2_texture, "source_texture"
     );
   }
 
   // blur2
   {
     Material *material = Materials::init_material(
-      state->materials.push(), "blur2", memory_pool
+      state->materials.push(), "blur2"
     );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
@@ -326,14 +326,14 @@ void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
       "blur.vert", "blur.frag", ""
     );
     Materials::add_texture_to_material(
-      material, *state->blur1_texture, "source_texture"
+      material, *state->builtin_textures.blur1_texture, "source_texture"
     );
   }
 
   // postprocessing
   {
     Material *material = Materials::init_material(
-      state->materials.push(), "postprocessing", memory_pool
+      state->materials.push(), "postprocessing"
     );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
@@ -341,9 +341,11 @@ void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
       "postprocessing.vert", "postprocessing.frag", ""
     );
     Materials::add_texture_to_material(
-      material, *state->l_color_texture, "l_color_texture"
+      material, *state->builtin_textures.l_color_texture, "l_color_texture"
     );
-    Materials::add_texture_to_material(material, *state->blur2_texture, "bloom_texture");
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.blur2_texture, "bloom_texture"
+    );
     // Uncomment to use fog.
     /* Materials::add_texture_to-material( */
     /*   material, *state->l_depth_texture, "l_depth_texture" */
@@ -353,7 +355,7 @@ void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
   // skysphere
   {
     Material *material = Materials::init_material(
-      state->materials.push(), "skysphere", memory_pool
+      state->materials.push(), "skysphere"
     );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
@@ -578,8 +580,7 @@ void World::load_scene(
       state->materials.push(),
       &material_templates[idx],
       &state->shader_assets,
-      asset_memory_pool,
-      state
+      &state->builtin_textures
     );
   }
 
@@ -604,7 +605,7 @@ void World::init(
   MemoryPool *asset_memory_pool,
   State *state
 ) {
-  create_internal_materials(asset_memory_pool, state);
+  create_internal_materials(state);
   create_internal_entities(asset_memory_pool, state);
 }
 

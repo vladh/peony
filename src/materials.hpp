@@ -69,6 +69,38 @@ struct Texture {
   bool32 is_screensize_dependent = false;
 };
 
+struct BuiltinTextures {
+  Texture *g_position_texture;
+  Texture *g_normal_texture;
+  Texture *g_albedo_texture;
+  Texture *g_pbr_texture;
+
+  Texture *l_color_texture;
+  Texture *l_bright_color_texture;
+  Texture *l_depth_texture;
+
+  Texture *blur1_texture;
+  Texture *blur2_texture;
+
+  Texture *cube_shadowmaps_texture;
+  Texture *texture_shadowmaps_texture;
+
+  uint32 g_buffer;
+  uint32 l_buffer;
+  uint32 blur1_buffer;
+  uint32 blur2_buffer;
+  uint32 cube_shadowmaps_framebuffer;
+  uint32 cube_shadowmaps;
+  uint32 texture_shadowmaps_framebuffer;
+  uint32 texture_shadowmaps;
+  uint32 cube_shadowmap_width;
+  uint32 cube_shadowmap_height;
+  uint32 texture_shadowmap_width;
+  uint32 texture_shadowmap_height;
+  real32 shadowmap_near_clip_dist;
+  real32 shadowmap_far_clip_dist;
+};
+
 enum class MaterialState {
   empty,
   initialized,
@@ -127,8 +159,7 @@ namespace Materials {
   );
   Material* init_material(
     Material *material,
-    const char *name,
-    MemoryPool *memory_pool
+    const char *name
   );
   Material* get_material_by_name(
     Array<Material> *materials,
@@ -184,8 +215,7 @@ namespace Materials {
     Material *material,
     MaterialTemplate *material_template,
     Array<ShaderAsset> *shader_assets,
-    MemoryPool *asset_memory_pool,
-    State *state
+    BuiltinTextures *builtin_textures
   );
 }
 
