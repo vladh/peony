@@ -140,7 +140,7 @@ void World::create_entities_from_entity_template(
   EntityTemplate *entity_template,
   MemoryPool *asset_memory_pool,
   EntitySet *entity_set,
-  Array<ModelAsset> *model_assets,
+  EntityLoaderSet *entity_loader_set,
   Array<ShaderAsset> *shader_assets,
   State *state
 ) {
@@ -150,11 +150,12 @@ void World::create_entities_from_entity_template(
     entity_template->entity_debug_name
   );
 
-  ModelAsset *model_asset = nullptr;
+  EntityLoader *entity_loader = entity_loader_set->loaders.get(entity->handle);
+  bool32 did_init_loader = false;
 
   if (entity_template->builtin_model_name[0] == '\0') {
-    model_asset = Models::init_model_asset(
-      (ModelAsset*)(model_assets->push()),
+    Models::init_entity_loader(
+      entity_loader,
       asset_memory_pool,
       ModelSource::file,
       entity_template->entity_debug_name,
@@ -162,10 +163,11 @@ void World::create_entities_from_entity_template(
       entity_template->render_pass,
       entity->handle
     );
+    did_init_loader = true;
   } else {
     if (strcmp(entity_template->builtin_model_name, "axes") == 0) {
-      model_asset = Models::init_model_asset(
-        (ModelAsset*)(model_assets->push()),
+      Models::init_entity_loader(
+        entity_loader,
         asset_memory_pool,
         ModelSource::data,
         (real32*)AXES_VERTICES, 6,
@@ -175,6 +177,7 @@ void World::create_entities_from_entity_template(
         entity_template->render_pass,
         entity->handle
       );
+      did_init_loader = true;
     } else if (strcmp(entity_template->builtin_model_name, "ocean") == 0) {
       uint32 ocean_n_vertices;
       uint32 ocean_n_indices;
@@ -189,8 +192,8 @@ void World::create_entities_from_entity_template(
         &ocean_vertex_data, &ocean_index_data
       );
 
-      model_asset = Models::init_model_asset(
-        (ModelAsset*)(model_assets->push()),
+      Models::init_entity_loader(
+        entity_loader,
         asset_memory_pool,
         ModelSource::data,
         ocean_vertex_data, ocean_n_vertices,
@@ -200,6 +203,7 @@ void World::create_entities_from_entity_template(
         entity_template->render_pass,
         entity->handle
       );
+      did_init_loader = true;
     } else {
       log_fatal(
         "Could not find builtin model: %s", entity_template->builtin_model_name
@@ -207,12 +211,12 @@ void World::create_entities_from_entity_template(
     }
   }
 
-  if (!model_asset) {
-    log_fatal("Found no model asset.");
+  if (!did_init_loader) {
+    log_fatal("Did not find any models to init entity loader with.");
   }
 
   if (Entities::is_spatial_component_valid(&entity_template->spatial_component)) {
-    model_asset->spatial_component = {
+    entity_loader->spatial_component = {
       .entity_handle = entity->handle,
       .position = entity_template->spatial_component.position,
       .rotation = entity_template->spatial_component.rotation,
@@ -222,7 +226,7 @@ void World::create_entities_from_entity_template(
   }
 
   if (Entities::is_light_component_valid(&entity_template->light_component)) {
-    model_asset->light_component = {
+    entity_loader->light_component = {
       .entity_handle = entity->handle,
       .type = entity_template->light_component.type,
       .direction = entity_template->light_component.direction,
@@ -232,7 +236,7 @@ void World::create_entities_from_entity_template(
   }
 
   if (Entities::is_behavior_component_valid(&entity_template->behavior_component)) {
-    model_asset->behavior_component = {
+    entity_loader->behavior_component = {
       .entity_handle = entity->handle,
       .behavior = entity_template->behavior_component.behavior,
     };
@@ -246,7 +250,7 @@ void World::create_entities_from_entity_template(
     MaterialTemplate *material_template =
       &entity_template->material_templates[idx_material];
     Material *material = Materials::init_material(
-      model_asset->materials.push(), asset_memory_pool
+      entity_loader->materials.push(), asset_memory_pool
     );
 
     if (material_template->shader_asset_vert_path[0] != '\0') {
@@ -331,9 +335,6 @@ void World::create_entities_from_entity_template(
 
 
 void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
-  ModelAsset *model_asset;
-  Material *material;
-
   state->standard_depth_shader_asset = Shaders::init_shader_asset(
     (ShaderAsset*)(state->shader_assets.push()),
     "standard_depth", ShaderType::depth,
@@ -354,130 +355,184 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
   );
 
   // Lighting screenquad
-  model_asset = Models::init_model_asset(
-    (ModelAsset*)(state->model_assets.push()),
-    memory_pool,
-    ModelSource::data,
-    (real32*)SCREENQUAD_VERTICES, 6,
-    nullptr, 0,
-    "screenquad_lighting",
-    GL_TRIANGLES,
-    RenderPass::lighting,
-    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_lighting")->handle
-  );
-  material = Materials::init_material(model_asset->materials.push(), memory_pool);
-  material->shader_asset = Shaders::init_shader_asset(
-    (ShaderAsset*)(state->shader_assets.push()),
-    "lighting", ShaderType::standard,
-    "lighting.vert", "lighting.frag", ""
-  );
-  Materials::add_texture_to_material(
-    material, *state->g_position_texture, "g_position_texture"
-  );
-  Materials::add_texture_to_material(
-    material, *state->g_normal_texture, "g_normal_texture"
-  );
-  Materials::add_texture_to_material(
-    material, *state->g_albedo_texture, "g_albedo_texture"
-  );
-  Materials::add_texture_to_material(
-    material, *state->g_pbr_texture, "g_pbr_texture"
-  );
-  Materials::add_texture_to_material(
-    material, *state->cube_shadowmaps_texture, "cube_shadowmaps"
-  );
-  Materials::add_texture_to_material(
-    material, *state->texture_shadowmaps_texture, "texture_shadowmaps"
-  );
+  {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "screenquad_lighting"
+    );
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
+      entity->handle
+    );
+    Models::init_entity_loader(
+      entity_loader,
+      memory_pool,
+      ModelSource::data,
+      (real32*)SCREENQUAD_VERTICES, 6,
+      nullptr, 0,
+      "screenquad_lighting",
+      GL_TRIANGLES,
+      RenderPass::lighting,
+      entity->handle
+    );
+    Material *material = Materials::init_material(
+      entity_loader->materials.push(), memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "lighting", ShaderType::standard,
+      "lighting.vert", "lighting.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_position_texture, "g_position_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_normal_texture, "g_normal_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_albedo_texture, "g_albedo_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_pbr_texture, "g_pbr_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->cube_shadowmaps_texture, "cube_shadowmaps"
+    );
+    Materials::add_texture_to_material(
+      material, *state->texture_shadowmaps_texture, "texture_shadowmaps"
+    );
+  }
 
   // Preblur screenquad
-  model_asset = Models::init_model_asset(
-    (ModelAsset*)(state->model_assets.push()),
-    memory_pool,
-    ModelSource::data,
-    (real32*)SCREENQUAD_VERTICES, 6,
-    nullptr, 0,
-    "screenquad_preblur",
-    GL_TRIANGLES,
-    RenderPass::preblur,
-    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_preblur")->handle
-  );
-  material = Materials::init_material(model_asset->materials.push(), memory_pool);
-  material->shader_asset = Shaders::init_shader_asset(
-    (ShaderAsset*)(state->shader_assets.push()),
-    "blur", ShaderType::standard,
-    "blur.vert", "blur.frag", ""
-  );
-  Materials::add_texture_to_material(
-    material, *state->l_bright_color_texture, "source_texture"
-  );
+  {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "screenquad_preblur"
+    );
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
+      entity->handle
+    );
+    Models::init_entity_loader(
+      entity_loader,
+      memory_pool,
+      ModelSource::data,
+      (real32*)SCREENQUAD_VERTICES, 6,
+      nullptr, 0,
+      "screenquad_preblur",
+      GL_TRIANGLES,
+      RenderPass::preblur,
+      entity->handle
+    );
+    Material *material = Materials::init_material(
+      entity_loader->materials.push(), memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "blur", ShaderType::standard,
+      "blur.vert", "blur.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->l_bright_color_texture, "source_texture"
+    );
+  }
 
   // Blur 1 screenquad
-  model_asset = Models::init_model_asset(
-    (ModelAsset*)(state->model_assets.push()),
-    memory_pool,
-    ModelSource::data,
-    (real32*)SCREENQUAD_VERTICES, 6,
-    nullptr, 0,
-    "screenquad_blur1",
-    GL_TRIANGLES,
-    RenderPass::blur1,
-    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur1")->handle
-  );
-  material = Materials::init_material(model_asset->materials.push(), memory_pool);
-  material->shader_asset = Shaders::init_shader_asset(
-    (ShaderAsset*)(state->shader_assets.push()),
-    "blur", ShaderType::standard,
-    "blur.vert", "blur.frag", ""
-  );
-  Materials::add_texture_to_material(material, *state->blur2_texture, "source_texture");
+  {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "screenquad_blur1"
+    );
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
+      entity->handle
+    );
+    Models::init_entity_loader(
+      entity_loader,
+      memory_pool,
+      ModelSource::data,
+      (real32*)SCREENQUAD_VERTICES, 6,
+      nullptr, 0,
+      "screenquad_blur1",
+      GL_TRIANGLES,
+      RenderPass::blur1,
+      entity->handle
+    );
+    Material *material = Materials::init_material(
+      entity_loader->materials.push(), memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "blur", ShaderType::standard,
+      "blur.vert", "blur.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->blur2_texture, "source_texture"
+    );
+  }
 
   // Blur 2 screenquad
-  model_asset = Models::init_model_asset(
-    (ModelAsset*)(state->model_assets.push()),
-    memory_pool,
-    ModelSource::data,
-    (real32*)SCREENQUAD_VERTICES, 6,
-    nullptr, 0,
-    "screenquad_blur2",
-    GL_TRIANGLES,
-    RenderPass::blur2,
-    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_blur2")->handle
-  );
-  material = Materials::init_material(model_asset->materials.push(), memory_pool);
-  material->shader_asset = Shaders::init_shader_asset(
-    (ShaderAsset*)(state->shader_assets.push()),
-    "blur", ShaderType::standard,
-    "blur.vert", "blur.frag", ""
-  );
-  Materials::add_texture_to_material(material, *state->blur1_texture, "source_texture");
+  {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "screenquad_blur2"
+    );
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
+      entity->handle
+    );
+    Models::init_entity_loader(
+      entity_loader,
+      memory_pool,
+      ModelSource::data,
+      (real32*)SCREENQUAD_VERTICES, 6,
+      nullptr, 0,
+      "screenquad_blur2",
+      GL_TRIANGLES,
+      RenderPass::blur2,
+      entity->handle
+    );
+    Material *material = Materials::init_material(
+      entity_loader->materials.push(), memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "blur", ShaderType::standard,
+      "blur.vert", "blur.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->blur1_texture, "source_texture"
+    );
+  }
 
   // Postprocessing screenquad
-  model_asset = Models::init_model_asset(
-    (ModelAsset*)(state->model_assets.push()),
-    memory_pool,
-    ModelSource::data,
-    (real32*)SCREENQUAD_VERTICES, 6,
-    nullptr, 0,
-    "screenquad_postprocessing",
-    GL_TRIANGLES,
-    RenderPass::postprocessing,
-    EntitySets::add_entity_to_set(&state->entity_set, "screenquad_postprocessing")->handle
-  );
-  material = Materials::init_material(model_asset->materials.push(), memory_pool);
-  material->shader_asset = Shaders::init_shader_asset(
-    (ShaderAsset*)(state->shader_assets.push()),
-    "postprocessing", ShaderType::standard,
-    "postprocessing.vert", "postprocessing.frag", ""
-  );
-  Materials::add_texture_to_material(
-    material, *state->l_color_texture, "l_color_texture"
-  );
-  Materials::add_texture_to_material(material, *state->blur2_texture, "bloom_texture");
-  // Uncomment to use fog.
-  /* Materials::add_texture_to-material( */
-  /*   material, *state->l_depth_texture, "l_depth_texture" */
-  /* ); */
+  {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "screenquad_postprocessing"
+    );
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
+      entity->handle
+    );
+    Models::init_entity_loader(
+      entity_loader,
+      memory_pool,
+      ModelSource::data,
+      (real32*)SCREENQUAD_VERTICES, 6,
+      nullptr, 0,
+      "screenquad_postprocessing",
+      GL_TRIANGLES,
+      RenderPass::postprocessing,
+      entity->handle
+    );
+    Material *material = Materials::init_material(
+      entity_loader->materials.push(), memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "postprocessing", ShaderType::standard,
+      "postprocessing.vert", "postprocessing.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->l_color_texture, "l_color_texture"
+    );
+    Materials::add_texture_to_material(material, *state->blur2_texture, "bloom_texture");
+    // Uncomment to use fog.
+    /* Materials::add_texture_to-material( */
+    /*   material, *state->l_depth_texture, "l_depth_texture" */
+    /* ); */
+  }
 
   // Skysphere
   {
@@ -485,9 +540,12 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "skysphere"
     );
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
+      entity->handle
+    );
 
-    model_asset = Models::init_model_asset(
-      (ModelAsset*)(state->model_assets.push()),
+    Models::init_entity_loader(
+      entity_loader,
       memory_pool,
       ModelSource::data,
       skysphere_vertex_data, skysphere_n_vertices,
@@ -498,14 +556,16 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       entity->handle
     );
 
-    model_asset->spatial_component = {
+    entity_loader->spatial_component = {
       .entity_handle = entity->handle,
       .position = glm::vec3(0.0f),
       .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       .scale = glm::vec3(75.0f),
     };
 
-    material = Materials::init_material(model_asset->materials.push(), memory_pool);
+    Material *material = Materials::init_material(
+      entity_loader->materials.push(), memory_pool
+    );
     material->shader_asset = Shaders::init_shader_asset(
       (ShaderAsset*)(state->shader_assets.push()),
       "skysphere", ShaderType::standard,
@@ -543,7 +603,7 @@ void World::load_scene(
       &entity_templates[idx_entity],
       asset_memory_pool,
       &state->entity_set,
-      &state->model_assets,
+      &state->entity_loader_set,
       &state->shader_assets,
       state
     );
@@ -561,12 +621,15 @@ void World::init(
 }
 
 
-void World::check_all_model_assets_loaded(State *state) {
+void World::check_all_entities_loaded(State *state) {
   bool are_all_done_loading = true;
-  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    ModelAsset *model_asset = state->model_assets[idx];
+  for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
+    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(idx);
+    if (!Entities::is_entity_loader_valid(entity_loader)) {
+      continue;
+    }
     bool is_done_loading = Models::prepare_for_draw(
-      model_asset,
+      entity_loader,
       &state->persistent_pbo,
       &state->texture_name_pool,
       &state->task_queue,
@@ -590,7 +653,7 @@ void World::update(State *state) {
     state->window_info.width,
     state->window_info.height
   );
-  check_all_model_assets_loaded(state);
+  check_all_entities_loaded(state);
 
   for (
     uint32 idx = 1;

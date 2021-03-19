@@ -174,7 +174,7 @@ void Models::load_mesh(
 
 
 void Models::load_node(
-  ModelAsset *model_asset,
+  EntityLoader *entity_loader,
   aiNode *node, const aiScene *scene,
   glm::mat4 accumulated_transform, Pack indices_pack
 ) {
@@ -184,7 +184,7 @@ void Models::load_node(
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     load_mesh(
-      model_asset->meshes.push(),
+      entity_loader->meshes.push(),
       mesh_data, scene,
       transform,
       indices_pack
@@ -198,21 +198,21 @@ void Models::load_node(
     // to a uint8.
     pack_push(&new_indices_pack, (uint8)idx);
     load_node(
-      model_asset, node->mChildren[idx], scene, transform, new_indices_pack
+      entity_loader, node->mChildren[idx], scene, transform, new_indices_pack
     );
   }
 }
 
 
-void Models::load_model_asset(ModelAsset *model_asset) {
+void Models::load_model(EntityLoader *entity_loader) {
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
   char full_path[MAX_PATH];
   strcpy(full_path, MODEL_DIR);
-  strcat(full_path, model_asset->path);
+  strcat(full_path, entity_loader->path);
 
-  if (model_asset->model_source == ModelSource::file) {
+  if (entity_loader->model_source == ModelSource::file) {
     START_TIMER(assimp_import);
     const aiScene *scene = aiImportFile(
       full_path,
@@ -235,23 +235,23 @@ void Models::load_model_asset(ModelAsset *model_asset) {
     }
 
     load_node(
-      model_asset, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+      entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
     );
 
     aiReleaseImport(scene);
   }
 
-  model_asset->is_mesh_data_loading_in_progress = false;
-  model_asset->is_mesh_data_loading_done = true;
+  entity_loader->is_mesh_data_loading_in_progress = false;
+  entity_loader->is_mesh_data_loading_done = true;
 }
 
 
 void Models::copy_textures_to_pbo(
-  ModelAsset *model_asset,
+  EntityLoader *entity_loader,
   PersistentPbo *persistent_pbo
 ) {
-  for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
-    Material *material = model_asset->materials[idx];
+  for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
+    Material *material = entity_loader->materials[idx];
 
     if (material->textures.size > 0) {
       Materials::copy_material_textures_to_pbo(
@@ -260,8 +260,8 @@ void Models::copy_textures_to_pbo(
     }
   }
 
-  model_asset->is_texture_copying_to_pbo_done = true;
-  model_asset->is_texture_copying_to_pbo_in_progress = false;
+  entity_loader->is_texture_copying_to_pbo_done = true;
+  entity_loader->is_texture_copying_to_pbo_in_progress = false;
 }
 
 
@@ -326,57 +326,57 @@ void Models::bind_texture_uniforms_for_mesh(Mesh *mesh) {
 
 
 void Models::create_entities(
-  ModelAsset *model_asset,
+  EntityLoader *entity_loader,
   EntitySet *entity_set,
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
   LightComponentSet *light_component_set,
   BehaviorComponentSet *behavior_component_set
 ) {
-  if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
+  if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
     SpatialComponent *spatial_component = spatial_component_set->components.get(
-      model_asset->spatial_component.entity_handle
+      entity_loader->spatial_component.entity_handle
     );
     assert(spatial_component);
-    *spatial_component = model_asset->spatial_component;
+    *spatial_component = entity_loader->spatial_component;
   }
 
-  if (Entities::is_light_component_valid(&model_asset->light_component)) {
+  if (Entities::is_light_component_valid(&entity_loader->light_component)) {
     LightComponent *light_component = light_component_set->components.get(
-      model_asset->light_component.entity_handle
+      entity_loader->light_component.entity_handle
     );
     assert(light_component);
-    *light_component = model_asset->light_component;
+    *light_component = entity_loader->light_component;
   }
 
-  if (Entities::is_behavior_component_valid(&model_asset->behavior_component)) {
+  if (Entities::is_behavior_component_valid(&entity_loader->behavior_component)) {
     BehaviorComponent *behavior_component = behavior_component_set->components.get(
-      model_asset->behavior_component.entity_handle
+      entity_loader->behavior_component.entity_handle
     );
     assert(behavior_component);
-    *behavior_component = model_asset->behavior_component;
+    *behavior_component = entity_loader->behavior_component;
   }
 
-  if (model_asset->meshes.size == 1) {
+  if (entity_loader->meshes.size == 1) {
     DrawableComponent *drawable_component = drawable_component_set->components.get(
-      model_asset->entity_handle
+      entity_loader->entity_handle
     );
     assert(drawable_component);
     *drawable_component = {
-      .entity_handle = model_asset->entity_handle,
-      .mesh = model_asset->meshes[0],
-      .target_render_pass = model_asset->render_pass,
+      .entity_handle = entity_loader->entity_handle,
+      .mesh = entity_loader->meshes[0],
+      .target_render_pass = entity_loader->render_pass,
     };
-  } else if (model_asset->meshes.size > 1) {
-    for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
-      Mesh *mesh = model_asset->meshes[idx];
+  } else if (entity_loader->meshes.size > 1) {
+    for (uint32 idx = 0; idx < entity_loader->meshes.size; idx++) {
+      Mesh *mesh = entity_loader->meshes[idx];
 
       Entity *child_entity = EntitySets::add_entity_to_set(
         entity_set,
-        model_asset->name
+        entity_loader->name
       );
 
-      if (Entities::is_spatial_component_valid(&model_asset->spatial_component)) {
+      if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
         SpatialComponent *spatial_component = spatial_component_set->components.get(
           child_entity->handle
         );
@@ -386,7 +386,7 @@ void Models::create_entities(
           .position = glm::vec3(0.0f),
           .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
           .scale = glm::vec3(0.0f),
-          .parent_entity_handle = model_asset->entity_handle,
+          .parent_entity_handle = entity_loader->entity_handle,
         };
       }
 
@@ -397,7 +397,7 @@ void Models::create_entities(
       *drawable_component = {
         .entity_handle = child_entity->handle,
         .mesh = mesh,
-        .target_render_pass = model_asset->render_pass,
+        .target_render_pass = entity_loader->render_pass,
       };
     }
   }
@@ -405,7 +405,7 @@ void Models::create_entities(
 
 
 bool Models::prepare_for_draw(
-  ModelAsset *model_asset,
+  EntityLoader *entity_loader,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
   Queue<Task> *task_queue,
@@ -416,51 +416,54 @@ bool Models::prepare_for_draw(
   BehaviorComponentSet *behavior_component_set
 ) {
   if (
-    model_asset->is_mesh_data_loading_done &&
-    model_asset->is_vertex_buffer_setup_done &&
-    model_asset->is_shader_setting_done &&
-    model_asset->is_texture_copying_to_pbo_done &&
-    model_asset->is_texture_creation_done &&
-    model_asset->is_entity_creation_done
+    entity_loader->is_mesh_data_loading_done &&
+    entity_loader->is_vertex_buffer_setup_done &&
+    entity_loader->is_shader_setting_done &&
+    entity_loader->is_texture_copying_to_pbo_done &&
+    entity_loader->is_texture_creation_done &&
+    entity_loader->is_entity_creation_done
   ) {
     return true;
   }
 
   // Step 1: Load mesh data. This is done on a separate thread.
   if (
-    !model_asset->is_mesh_data_loading_in_progress &&
-    !model_asset->is_mesh_data_loading_done
+    !entity_loader->is_mesh_data_loading_in_progress &&
+    !entity_loader->is_mesh_data_loading_done
   ) {
-    model_asset->is_mesh_data_loading_in_progress = true;
-    task_queue->push({TaskType::load_model, model_asset, nullptr});
+    entity_loader->is_mesh_data_loading_in_progress = true;
+    task_queue->push({TaskType::load_model, entity_loader, nullptr});
   }
 
   // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
   if (
-    model_asset->is_mesh_data_loading_done &&
-    !model_asset->is_vertex_buffer_setup_done
+    entity_loader->is_mesh_data_loading_done &&
+    !entity_loader->is_vertex_buffer_setup_done
   ) {
-    for (uint32 idx = 0; idx < model_asset->meshes.size; idx++) {
-      Mesh *mesh = model_asset->meshes[idx];
+    for (uint32 idx = 0; idx < entity_loader->meshes.size; idx++) {
+      Mesh *mesh = entity_loader->meshes[idx];
       setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
     }
-    model_asset->is_vertex_buffer_setup_done = true;
+    entity_loader->is_vertex_buffer_setup_done = true;
   }
 
   if (
-    model_asset->is_mesh_data_loading_done &&
-    model_asset->materials.size > 0
+    entity_loader->is_mesh_data_loading_done &&
+    entity_loader->materials.size > 0
   ) {
     // Step 3: Once the mesh data is loaded, bind materials for their respective meshes.
-    if (model_asset->is_mesh_data_loading_done && !model_asset->is_shader_setting_done) {
+    if (
+      entity_loader->is_mesh_data_loading_done &&
+      !entity_loader->is_shader_setting_done
+    ) {
       for (
         uint32 idx_material = 0;
-        idx_material < model_asset->materials.size;
+        idx_material < entity_loader->materials.size;
         idx_material++
       ) {
-        Material *material = model_asset->materials[idx_material];
-        for (uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++) {
-          Mesh *mesh = model_asset->meshes[idx_mesh];
+        Material *material = entity_loader->materials[idx_material];
+        for (uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++) {
+          Mesh *mesh = entity_loader->meshes[idx_mesh];
           uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
           // For our model's mesh number `mesh_number`, we want to choose
           // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
@@ -469,27 +472,27 @@ bool Models::prepare_for_draw(
           // meshes all get material number 0.
           if (
             mesh_number == idx_material ||
-            (mesh_number >= model_asset->materials.size && idx_material == 0)
+            (mesh_number >= entity_loader->materials.size && idx_material == 0)
           ) {
             mesh->material = material;
           }
         }
       }
-      model_asset->is_shader_setting_done = true;
+      entity_loader->is_shader_setting_done = true;
     }
 
     // Step 4: In parallel with the above, on a second thread, load all textures
-    // for model_asset model from their files and copy them over to the PBO.
+    // for entity_loader model from their files and copy them over to the PBO.
     if (
-      !model_asset->is_texture_copying_to_pbo_done &&
-      !model_asset->is_texture_copying_to_pbo_in_progress
+      !entity_loader->is_texture_copying_to_pbo_done &&
+      !entity_loader->is_texture_copying_to_pbo_in_progress
     ) {
       // NOTE: Make sure we don't spawn threads that do nothing, or queue up
       // useless work for threads! This means only copying textures for meshes
       // that have one or more textures that do not have names yet.
       bool32 should_try_to_copy_textures = false;
-      for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
-        Material *material = model_asset->materials[idx];
+      for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
+        Material *material = entity_loader->materials[idx];
         if (material->textures.size > 0) {
           for (
             uint32 texture_idx = 0;
@@ -506,29 +509,29 @@ bool Models::prepare_for_draw(
       }
 
       if (should_try_to_copy_textures) {
-        model_asset->is_texture_copying_to_pbo_in_progress = true;
+        entity_loader->is_texture_copying_to_pbo_in_progress = true;
         task_queue->push({
-          TaskType::copy_textures_to_pbo, model_asset, persistent_pbo
+          TaskType::copy_textures_to_pbo, entity_loader, persistent_pbo
         });
       } else {
-        model_asset->is_texture_copying_to_pbo_done = true;
-        model_asset->is_texture_creation_done = true;
+        entity_loader->is_texture_copying_to_pbo_done = true;
+        entity_loader->is_texture_creation_done = true;
       }
     }
 
     // Step 5: Once all of the above is complete, copy the texture data from the
     // PBO to the actual textures.
     if (
-      model_asset->is_mesh_data_loading_done &&
-      model_asset->is_vertex_buffer_setup_done &&
-      model_asset->is_shader_setting_done &&
-      model_asset->is_texture_copying_to_pbo_done &&
-      !model_asset->is_texture_creation_done
+      entity_loader->is_mesh_data_loading_done &&
+      entity_loader->is_vertex_buffer_setup_done &&
+      entity_loader->is_shader_setting_done &&
+      entity_loader->is_texture_copying_to_pbo_done &&
+      !entity_loader->is_texture_creation_done
     ) {
       START_TIMER(copy_pbo_to_texture);
 
-      for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
-        Material *material = model_asset->materials[idx];
+      for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
+        Material *material = entity_loader->materials[idx];
 
         if (
           material->textures.size > 0 &&
@@ -542,22 +545,22 @@ bool Models::prepare_for_draw(
         }
       }
 
-      model_asset->is_texture_creation_done = true;
+      entity_loader->is_texture_creation_done = true;
       END_TIMER_MIN(copy_pbo_to_texture, 5);
     }
 
     // Step 6: Bind the texture uniforms.
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
-    if (model_asset->is_texture_creation_done) {
-      for (uint32 idx = 0; idx < model_asset->materials.size; idx++) {
-        Material *material = model_asset->materials[idx];
+    if (entity_loader->is_texture_creation_done) {
+      for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
+        Material *material = entity_loader->materials[idx];
 
         if (
           !material->shader_asset->did_set_texture_uniforms
         ) {
-          for (uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++) {
-            Mesh *mesh = model_asset->meshes[idx_mesh];
+          for (uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++) {
+            Mesh *mesh = entity_loader->meshes[idx_mesh];
             if (!mesh->material->shader_asset->did_set_texture_uniforms) {
               bind_texture_uniforms_for_mesh(mesh);
             }
@@ -568,18 +571,18 @@ bool Models::prepare_for_draw(
 
     // Step 7: Create the entities.
     if (
-      model_asset->is_texture_creation_done &&
-      !model_asset->is_entity_creation_done
+      entity_loader->is_texture_creation_done &&
+      !entity_loader->is_entity_creation_done
     ) {
       create_entities(
-        model_asset,
+        entity_loader,
         entity_set,
         drawable_component_set,
         spatial_component_set,
         light_component_set,
         behavior_component_set
       );
-      model_asset->is_entity_creation_done = true;
+      entity_loader->is_entity_creation_done = true;
     }
 
   }
@@ -588,8 +591,8 @@ bool Models::prepare_for_draw(
 }
 
 
-ModelAsset* Models::init_model_asset(
-  ModelAsset *model_asset,
+EntityLoader* Models::init_entity_loader(
+  EntityLoader *entity_loader,
   MemoryPool *memory_pool,
   ModelSource model_source,
   const char *name,
@@ -597,28 +600,29 @@ ModelAsset* Models::init_model_asset(
   RenderPassFlag render_pass,
   EntityHandle entity_handle
 ) {
-  strcpy(model_asset->name, name);
-  model_asset->model_source = model_source;
-  model_asset->render_pass = render_pass;
-  model_asset->entity_handle = entity_handle;
+  assert(entity_loader);
+  strcpy(entity_loader->name, name);
+  entity_loader->model_source = model_source;
+  entity_loader->render_pass = render_pass;
+  entity_loader->entity_handle = entity_handle;
 
-  model_asset->meshes = Array<Mesh>(
+  entity_loader->meshes = Array<Mesh>(
     memory_pool, MAX_N_MESHES, "meshes"
   );
-  model_asset->materials = Array<Material>(
+  entity_loader->materials = Array<Material>(
     memory_pool, MAX_N_MATERIALS, "materials"
   );
 
-  strcpy(model_asset->path, path);
+  strcpy(entity_loader->path, path);
   // NOTE: We do not load ModelSource::file models here.
   // They will be loaded gradually in `::prepare_for_draw()`.
 
-  return model_asset;
+  return entity_loader;
 }
 
 
-ModelAsset* Models::init_model_asset(
-  ModelAsset *model_asset,
+EntityLoader* Models::init_entity_loader(
+  EntityLoader *entity_loader,
   MemoryPool *memory_pool,
   ModelSource model_source,
   real32 *vertex_data, uint32 n_vertices,
@@ -628,19 +632,20 @@ ModelAsset* Models::init_model_asset(
   RenderPassFlag render_pass,
   EntityHandle entity_handle
 ) {
-  strcpy(model_asset->name, name);
-  model_asset->model_source = model_source;
-  model_asset->render_pass = render_pass;
-  model_asset->entity_handle = entity_handle;
+  assert(entity_loader);
+  strcpy(entity_loader->name, name);
+  entity_loader->model_source = model_source;
+  entity_loader->render_pass = render_pass;
+  entity_loader->entity_handle = entity_handle;
 
-  model_asset->meshes = Array<Mesh>(
+  entity_loader->meshes = Array<Mesh>(
     memory_pool, MAX_N_MESHES, "meshes"
   );
-  model_asset->materials = Array<Material>(
+  entity_loader->materials = Array<Material>(
     memory_pool, MAX_N_MATERIALS, "materials"
   );
 
-  Mesh *mesh = model_asset->meshes.push();
+  Mesh *mesh = entity_loader->meshes.push();
   mesh->transform = glm::mat4(1.0f);
   mesh->material = nullptr;
   mesh->mode = mode;
@@ -651,8 +656,8 @@ ModelAsset* Models::init_model_asset(
   setup_mesh_vertex_buffers_for_data_source(
     mesh, vertex_data, n_vertices, index_data, n_indices
   );
-  model_asset->is_mesh_data_loading_done = true;
-  model_asset->is_vertex_buffer_setup_done = true;
+  entity_loader->is_mesh_data_loading_done = true;
+  entity_loader->is_vertex_buffer_setup_done = true;
 
-  return model_asset;
+  return entity_loader;
 }

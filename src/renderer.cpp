@@ -65,18 +65,18 @@ void Renderer::resize_renderer_buffers(MemoryPool *memory_pool, State *state) {
   init_l_buffer(memory_pool, state);
   init_blur_buffers(memory_pool, state);
 
-  for (uint32 idx = 0; idx < state->model_assets.size; idx++) {
-    ModelAsset *model_asset = state->model_assets[idx];
+  for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[idx];
     for (
-      uint32 idx_mesh = 0; idx_mesh < model_asset->meshes.size; idx_mesh++
+      uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++
     ) {
-      Mesh *mesh = model_asset->meshes[idx_mesh];
+      Mesh *mesh = entity_loader->meshes[idx_mesh];
       if (
         mesh->material->textures.size > 0 &&
         mesh->material->is_screensize_dependent
       ) {
         Material *material = mesh->material;
-        log_info("Found G-buffer dependent mesh in model %s", model_asset->name);
+        log_info("Found G-buffer dependent mesh in model %s", entity_loader->name);
         for(
           uint32 idx_texture = 0; idx_texture < material->textures.size; idx_texture++
         ) {

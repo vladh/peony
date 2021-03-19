@@ -11,7 +11,7 @@ namespace World {
     EntityTemplate *entity_template,
     MemoryPool *memory_pool,
     EntitySet *entity_set,
-    Array<ModelAsset> *model_assets,
+    EntityLoaderSet *entity_loader_set,
     Array<ShaderAsset> *shader_assets,
     State *state
   );
@@ -25,7 +25,7 @@ namespace World {
     MemoryPool *asset_memory_pool,
     State *state
   );
-  void check_all_model_assets_loaded(State *state);
+  void check_all_entities_loaded(State *state);
   void update(State *state);
 };
 

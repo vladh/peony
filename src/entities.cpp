@@ -114,3 +114,8 @@ bool32 Entities::is_drawable_component_valid(
 ) {
   return drawable_component->mesh != nullptr;
 }
+
+
+bool32 Entities::is_entity_loader_valid(EntityLoader *entity_loader) {
+  return entity_loader->model_source != ModelSource::none;
+}

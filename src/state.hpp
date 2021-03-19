@@ -42,11 +42,11 @@ struct State {
   bool32 is_world_loaded;
 
   Array<ShaderAsset> shader_assets;
-  Array<ModelAsset> model_assets;
 
   GuiState gui_state;
 
   EntitySet entity_set;
+  EntityLoaderSet entity_loader_set;
   DrawableComponentSet drawable_component_set;
   LightComponentSet light_component_set;
   SpatialComponentSet spatial_component_set;
