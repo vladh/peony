@@ -136,7 +136,7 @@ void World::update_light_position(State *state, real32 amount) {
 }
 
 
-void World::create_entities_from_entity_template(
+void World::create_entity_loader_from_entity_template(
   EntityTemplate *entity_template,
   MemoryPool *asset_memory_pool,
   EntitySet *entity_set,
@@ -599,7 +599,7 @@ void World::load_scene(
 
   for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
     /* PeonyFileParser::print_entity_template(&entity_templates[idx_entity]); */
-    create_entities_from_entity_template(
+    create_entity_loader_from_entity_template(
       &entity_templates[idx_entity],
       asset_memory_pool,
       &state->entity_set,
@@ -621,7 +621,7 @@ void World::init(
 }
 
 
-void World::check_all_entities_loaded(State *state) {
+bool32 World::check_all_entities_loaded(State *state) {
   bool are_all_done_loading = true;
   for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
     EntityLoader *entity_loader = state->entity_loader_set.loaders.get(idx);
@@ -643,7 +643,7 @@ void World::check_all_entities_loaded(State *state) {
       are_all_done_loading = false;
     }
   }
-  state->is_world_loaded = are_all_done_loading;
+  return are_all_done_loading;
 }
 
 
@@ -653,7 +653,7 @@ void World::update(State *state) {
     state->window_info.width,
     state->window_info.height
   );
-  check_all_entities_loaded(state);
+  state->is_world_loaded = check_all_entities_loaded(state);
 
   for (
     uint32 idx = 1;
@@ -694,31 +694,29 @@ void World::update(State *state) {
     }
   }
 
-  {
-    for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
-      LightComponent *light_component =
-        state->light_component_set.components.get(idx);
-      SpatialComponent *spatial_component =
-        state->spatial_component_set.components.get(light_component->entity_handle);
+  for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
+    LightComponent *light_component =
+      state->light_component_set.components.get(idx);
+    SpatialComponent *spatial_component =
+      state->spatial_component_set.components.get(light_component->entity_handle);
 
-      if (!(
-        Entities::is_light_component_valid(light_component) &&
-        Entities::is_spatial_component_valid(spatial_component)
-      )) {
-        continue;
-      }
+    if (!(
+      Entities::is_light_component_valid(light_component) &&
+      Entities::is_spatial_component_valid(spatial_component)
+    )) {
+      continue;
+    }
 
-      if (light_component->type == LightType::point) {
-        real64 time_term =
-          (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-        real64 x_term = 0.0f + cos(time_term) * 8.0f;
-        real64 z_term = 0.0f + sin(time_term) * 8.0f;
-        spatial_component->position.x = (real32)x_term;
-        spatial_component->position.z = (real32)z_term;
-      } else if (light_component->type == LightType::directional) {
-        spatial_component->position = state->camera_active->position +
-          -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
-      }
+    if (light_component->type == LightType::point) {
+      real64 time_term =
+        (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
+      real64 x_term = 0.0f + cos(time_term) * 8.0f;
+      real64 z_term = 0.0f + sin(time_term) * 8.0f;
+      spatial_component->position.x = (real32)x_term;
+      spatial_component->position.z = (real32)z_term;
+    } else if (light_component->type == LightType::directional) {
+      spatial_component->position = state->camera_active->position +
+        -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
     }
   }
 }

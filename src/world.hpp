@@ -7,7 +7,7 @@ namespace World {
   );
   void get_scene_text_representation(char *text, State *state);
   void update_light_position(State *state, real32 amount);
-  void create_entities_from_entity_template(
+  void create_entity_loader_from_entity_template(
     EntityTemplate *entity_template,
     MemoryPool *memory_pool,
     EntitySet *entity_set,
@@ -25,7 +25,7 @@ namespace World {
     MemoryPool *asset_memory_pool,
     State *state
   );
-  void check_all_entities_loaded(State *state);
+  bool32 check_all_entities_loaded(State *state);
   void update(State *state);
 };
 
