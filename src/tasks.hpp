@@ -3,11 +3,19 @@
 
 struct EntityLoader;
 
-enum class TaskType {load_model, copy_textures_to_pbo};
+enum class TaskType {
+  load_model,
+  copy_textures_to_pbo,
+};
+
+union TaskTarget {
+  Material *material;
+  EntityLoader *entity_loader;
+};
 
 struct Task {
   TaskType type;
-  EntityLoader *entity_loader;
+  TaskTarget target;
   PersistentPbo *persistent_pbo;
 };
 

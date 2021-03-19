@@ -58,12 +58,14 @@ namespace EntitySets {
   void draw(
     DrawableComponentSet *drawable_component_set,
     Mesh *mesh,
+    Material *material,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix
   );
   void draw_in_depth_mode(
     DrawableComponentSet *drawable_component_set,
     Mesh *mesh,
+    Material *material,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
     ShaderAsset *standard_depth_shader_asset
@@ -71,6 +73,7 @@ namespace EntitySets {
   void draw_all(
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
+    Array<Material> *materials,
     RenderPassFlag render_pass,
     RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset

@@ -4,6 +4,9 @@
 constexpr uint32 MAX_N_TEXTURE_POOL_SIZES = 6;
 constexpr uint32 MAX_UNIFORM_LENGTH = 256;
 
+struct MaterialTemplate;
+struct Task;
+
 struct TextureNamePool {
   uint32 mipmap_max_level = 0;
   uint32 n_textures = 0;
@@ -57,7 +60,7 @@ enum class TextureType {
 struct Texture {
   GLenum target;
   TextureType type;
-  char path[MAX_PATH]; // TODO: Fix unsafe strings?
+  char path[MAX_PATH];
   uint32 texture_name = 0;
   int32 width = 0;
   int32 height = 0;
@@ -66,12 +69,23 @@ struct Texture {
   bool32 is_screensize_dependent = false;
 };
 
+enum class MaterialState {
+  empty,
+  initialized,
+  textures_being_copied_to_pbo,
+  textures_copied_to_pbo,
+  complete
+};
+
 struct Material {
+  char name[MAX_TOKEN_LENGTH];
+  MaterialState state;
   bool32 have_textures_been_generated = false;
   bool32 is_screensize_dependent = false;
   ShaderAsset *shader_asset;
   ShaderAsset *depth_shader_asset;
-  Array<Texture> textures;
+  uint32 n_textures;
+  Texture textures[MAX_N_TEXTURES_PER_MATERIAL];
   char texture_uniform_names[MAX_N_UNIFORMS][MAX_UNIFORM_LENGTH];
   uint32 idx_texture_uniform_names;
 
@@ -113,14 +127,19 @@ namespace Materials {
   );
   Material* init_material(
     Material *material,
+    const char *name,
     MemoryPool *memory_pool
+  );
+  Material* get_material_by_name(
+    Array<Material> *materials,
+    const char *name
   );
   void add_texture_to_material(
     Material *material,
     Texture texture,
     const char *uniform_name
   );
-  void copy_material_textures_to_pbo(
+  void copy_textures_to_pbo(
     Material *material,
     PersistentPbo *persistent_pbo
   );
@@ -129,6 +148,7 @@ namespace Materials {
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool
   );
+  void bind_texture_uniforms(Material *material);
   PersistentPbo* init_persistent_pbo(
     PersistentPbo *ppbo,
     uint16 texture_count, int32 width, int32 height, int32 n_components
@@ -150,6 +170,22 @@ namespace Materials {
   uint32 get_new_texture_name(
     TextureNamePool *pool,
     uint32 target_size
+  );
+  const char* material_state_to_string(
+    MaterialState material_state
+  );
+  bool32 prepare_material_and_check_if_done(
+    Material *material,
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool,
+    Queue<Task> *task_queue
+  );
+  void create_material_from_template(
+    Material *material,
+    MaterialTemplate *material_template,
+    Array<ShaderAsset> *shader_assets,
+    MemoryPool *asset_memory_pool,
+    State *state
   );
 }
 

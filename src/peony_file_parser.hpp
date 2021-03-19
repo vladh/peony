@@ -1,10 +1,10 @@
 #ifndef PEONY_FILE_PARSER_HPP
 #define PEONY_FILE_PARSER_HPP
 
-constexpr uint32 MAX_TOKEN_LENGTH = 128;
 constexpr uint32 MAX_N_ARRAY_VALUES = 16;
 
 struct MaterialTemplate {
+  char name[MAX_TOKEN_LENGTH];
   char shader_asset_vert_path[MAX_TOKEN_LENGTH];
   char shader_asset_frag_path[MAX_TOKEN_LENGTH];
   char shader_asset_geom_path[MAX_TOKEN_LENGTH];
@@ -31,7 +31,7 @@ struct EntityTemplate {
   char model_path[MAX_TOKEN_LENGTH];
   char builtin_model_name[MAX_TOKEN_LENGTH];
   uint32 n_materials = 0;
-  MaterialTemplate material_templates[MAX_N_ARRAY_VALUES];
+  char material_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
   RenderPassFlag render_pass;
   // NOTE: The `entity_handle` and `parent_entity_handle` properties
   // must be filled in later!
@@ -74,6 +74,7 @@ namespace PeonyFileParser {
   constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
   constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
 
+  void get_material_path(char *dest, const char *name);
   void print_material_template(MaterialTemplate *material_template);
   void print_entity_template(EntityTemplate *entity_template);
   void print_value(PropValue value, PropValueType type);

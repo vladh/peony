@@ -12,6 +12,8 @@ void Models::setup_mesh_vertex_buffers_for_data_source(
     = (8)
   ]
   */
+  assert(vertex_data && n_vertices > 0);
+
   uint32 vertex_size = sizeof(real32) * 8;
   uint32 index_size = sizeof(uint32);
 
@@ -58,6 +60,8 @@ void Models::setup_mesh_vertex_buffers_for_data_source(
 void Models::setup_mesh_vertex_buffers_for_file_source(
   Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
 ) {
+  assert(vertices->size > 0);
+
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
   glGenBuffers(1, &mesh->ebo);
@@ -106,7 +110,6 @@ void Models::load_mesh(
 ) {
   mesh->transform = transform;
   glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(transform)));
-  mesh->material = nullptr;
   mesh->mode = GL_TRIANGLES;
 
   mesh->indices_pack = indices_pack;
@@ -241,87 +244,7 @@ void Models::load_model(EntityLoader *entity_loader) {
     aiReleaseImport(scene);
   }
 
-  entity_loader->is_mesh_data_loading_in_progress = false;
-  entity_loader->is_mesh_data_loading_done = true;
-}
-
-
-void Models::copy_textures_to_pbo(
-  EntityLoader *entity_loader,
-  PersistentPbo *persistent_pbo
-) {
-  for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
-    Material *material = entity_loader->materials[idx];
-
-    if (material->textures.size > 0) {
-      Materials::copy_material_textures_to_pbo(
-        material, persistent_pbo
-      );
-    }
-  }
-
-  entity_loader->is_texture_copying_to_pbo_done = true;
-  entity_loader->is_texture_copying_to_pbo_in_progress = false;
-}
-
-
-void Models::bind_texture_uniforms_for_mesh(Mesh *mesh) {
-  Material *material = mesh->material;
-  ShaderAsset *shader_asset = material->shader_asset;
-
-  if (shader_asset->type != ShaderType::depth) {
-    glUseProgram(shader_asset->program);
-
-    for (
-      uint32 uniform_idx = 0;
-      uniform_idx < shader_asset->n_intrinsic_uniforms;
-      uniform_idx++
-    ) {
-      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-      if (strcmp(uniform_name, "should_use_normal_map") == 0) {
-        Shaders::set_bool(
-          shader_asset, "should_use_normal_map", material->should_use_normal_map
-        );
-      } else if (strcmp(uniform_name, "albedo_static") == 0) {
-        Shaders::set_vec4(
-          shader_asset, "albedo_static", &material->albedo_static
-        );
-      } else if (strcmp(uniform_name, "metallic_static") == 0) {
-        Shaders::set_float(
-          shader_asset, "metallic_static", material->metallic_static
-        );
-      } else if (strcmp(uniform_name, "roughness_static") == 0) {
-        Shaders::set_float(
-          shader_asset, "roughness_static", material->roughness_static
-        );
-      } else if (strcmp(uniform_name, "ao_static") == 0) {
-        Shaders::set_float(
-          shader_asset, "ao_static", material->ao_static
-        );
-      }
-    }
-
-    Shaders::reset_texture_units(shader_asset);
-
-    for (uint32 idx = 0; idx < material->textures.size; idx++) {
-      Texture *texture = material->textures[idx];
-      const char *uniform_name = material->texture_uniform_names[idx];
-#if 1
-      log_info(
-        "Setting uniforms: (uniform_name %s) "
-        "(texture->texture_name %d)",
-        uniform_name, texture->texture_name
-      );
-#endif
-      Shaders::set_int(
-        shader_asset,
-        uniform_name,
-        Shaders::add_texture_unit(shader_asset, texture->texture_name, texture->target)
-      );
-    }
-  }
-
-  shader_asset->did_set_texture_uniforms = true;
+  entity_loader->state = EntityLoaderState::mesh_data_loaded;
 }
 
 
@@ -404,7 +327,7 @@ void Models::create_entities(
 }
 
 
-bool Models::prepare_for_draw(
+bool32 Models::prepare_model_and_check_if_done(
   EntityLoader *entity_loader,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
@@ -415,176 +338,69 @@ bool Models::prepare_for_draw(
   LightComponentSet *light_component_set,
   BehaviorComponentSet *behavior_component_set
 ) {
-  if (
-    entity_loader->is_mesh_data_loading_done &&
-    entity_loader->is_vertex_buffer_setup_done &&
-    entity_loader->is_shader_setting_done &&
-    entity_loader->is_texture_copying_to_pbo_done &&
-    entity_loader->is_texture_creation_done &&
-    entity_loader->is_entity_creation_done
-  ) {
+  if (entity_loader->state == EntityLoaderState::initialized) {
+    task_queue->push({
+      .type = TaskType::load_model,
+      .target = {
+        .entity_loader = entity_loader,
+      },
+      .persistent_pbo = nullptr,
+    });
+    entity_loader->state = EntityLoaderState::mesh_data_being_loaded;
+  }
+
+  if (entity_loader->state == EntityLoaderState::mesh_data_being_loaded) {
+    // Wait. The task will progress this for us.
+  }
+
+  if (entity_loader->state == EntityLoaderState::mesh_data_loaded) {
+    // Setup vertex buffers
+    if (entity_loader->model_source == ModelSource::file) {
+      for (uint32 idx = 0; idx < entity_loader->meshes.size; idx++) {
+        Mesh *mesh = entity_loader->meshes[idx];
+        setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
+      }
+    }
+    entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
+  }
+
+  if (entity_loader->state == EntityLoaderState::vertex_buffers_set_up) {
+    // Set material names for each mesh
+    for (
+      uint32 idx_material = 0; idx_material < entity_loader->n_materials; idx_material++
+    ) {
+      for (uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++) {
+        Mesh *mesh = entity_loader->meshes[idx_mesh];
+        uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
+        // For our model's mesh number `mesh_number`, we want to choose
+        // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
+        // we choose the 4th material for mesh number 4.
+        // However, if we have more meshes than materials, the extra
+        // meshes all get material number 0.
+        if (
+          mesh_number == idx_material ||
+          (mesh_number >= entity_loader->n_materials && idx_material == 0)
+        ) {
+          strcpy(mesh->material_name, entity_loader->material_names[idx_material]);
+        }
+      }
+    }
+
+    // Create any entities we might need to create
+    create_entities(
+      entity_loader,
+      entity_set,
+      drawable_component_set,
+      spatial_component_set,
+      light_component_set,
+      behavior_component_set
+    );
+
+    entity_loader->state = EntityLoaderState::complete;
+  }
+
+  if (entity_loader->state == EntityLoaderState::complete) {
     return true;
-  }
-
-  // Step 1: Load mesh data. This is done on a separate thread.
-  if (
-    !entity_loader->is_mesh_data_loading_in_progress &&
-    !entity_loader->is_mesh_data_loading_done
-  ) {
-    entity_loader->is_mesh_data_loading_in_progress = true;
-    task_queue->push({TaskType::load_model, entity_loader, nullptr});
-  }
-
-  // Step 2: Once the mesh data is loaded, set up vertex buffers for these meshes.
-  if (
-    entity_loader->is_mesh_data_loading_done &&
-    !entity_loader->is_vertex_buffer_setup_done
-  ) {
-    for (uint32 idx = 0; idx < entity_loader->meshes.size; idx++) {
-      Mesh *mesh = entity_loader->meshes[idx];
-      setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
-    }
-    entity_loader->is_vertex_buffer_setup_done = true;
-  }
-
-  if (
-    entity_loader->is_mesh_data_loading_done &&
-    entity_loader->materials.size > 0
-  ) {
-    // Step 3: Once the mesh data is loaded, bind materials for their respective meshes.
-    if (
-      entity_loader->is_mesh_data_loading_done &&
-      !entity_loader->is_shader_setting_done
-    ) {
-      for (
-        uint32 idx_material = 0;
-        idx_material < entity_loader->materials.size;
-        idx_material++
-      ) {
-        Material *material = entity_loader->materials[idx_material];
-        for (uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++) {
-          Mesh *mesh = entity_loader->meshes[idx_mesh];
-          uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
-          // For our model's mesh number `mesh_number`, we want to choose
-          // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
-          // we choose the 4th material for mesh number 4.
-          // However, if we have more meshes than materials, the extra
-          // meshes all get material number 0.
-          if (
-            mesh_number == idx_material ||
-            (mesh_number >= entity_loader->materials.size && idx_material == 0)
-          ) {
-            mesh->material = material;
-          }
-        }
-      }
-      entity_loader->is_shader_setting_done = true;
-    }
-
-    // Step 4: In parallel with the above, on a second thread, load all textures
-    // for entity_loader model from their files and copy them over to the PBO.
-    if (
-      !entity_loader->is_texture_copying_to_pbo_done &&
-      !entity_loader->is_texture_copying_to_pbo_in_progress
-    ) {
-      // NOTE: Make sure we don't spawn threads that do nothing, or queue up
-      // useless work for threads! This means only copying textures for meshes
-      // that have one or more textures that do not have names yet.
-      bool32 should_try_to_copy_textures = false;
-      for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
-        Material *material = entity_loader->materials[idx];
-        if (material->textures.size > 0) {
-          for (
-            uint32 texture_idx = 0;
-            texture_idx < material->textures.size;
-            texture_idx++
-          ) {
-            Texture *texture = material->textures[texture_idx];
-            if (!texture->texture_name) {
-              should_try_to_copy_textures = true;
-              break;
-            }
-          }
-        }
-      }
-
-      if (should_try_to_copy_textures) {
-        entity_loader->is_texture_copying_to_pbo_in_progress = true;
-        task_queue->push({
-          TaskType::copy_textures_to_pbo, entity_loader, persistent_pbo
-        });
-      } else {
-        entity_loader->is_texture_copying_to_pbo_done = true;
-        entity_loader->is_texture_creation_done = true;
-      }
-    }
-
-    // Step 5: Once all of the above is complete, copy the texture data from the
-    // PBO to the actual textures.
-    if (
-      entity_loader->is_mesh_data_loading_done &&
-      entity_loader->is_vertex_buffer_setup_done &&
-      entity_loader->is_shader_setting_done &&
-      entity_loader->is_texture_copying_to_pbo_done &&
-      !entity_loader->is_texture_creation_done
-    ) {
-      START_TIMER(copy_pbo_to_texture);
-
-      for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
-        Material *material = entity_loader->materials[idx];
-
-        if (
-          material->textures.size > 0 &&
-          !material->have_textures_been_generated
-        ) {
-          Materials::generate_textures_from_pbo(
-            material,
-            persistent_pbo,
-            texture_name_pool
-          );
-        }
-      }
-
-      entity_loader->is_texture_creation_done = true;
-      END_TIMER_MIN(copy_pbo_to_texture, 5);
-    }
-
-    // Step 6: Bind the texture uniforms.
-    // NOTE: Because the shader might be reloaded at any time, we need to
-    // check whether or not we need to set any uniforms every time.
-    if (entity_loader->is_texture_creation_done) {
-      for (uint32 idx = 0; idx < entity_loader->materials.size; idx++) {
-        Material *material = entity_loader->materials[idx];
-
-        if (
-          !material->shader_asset->did_set_texture_uniforms
-        ) {
-          for (uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++) {
-            Mesh *mesh = entity_loader->meshes[idx_mesh];
-            if (!mesh->material->shader_asset->did_set_texture_uniforms) {
-              bind_texture_uniforms_for_mesh(mesh);
-            }
-          }
-        }
-      }
-    }
-
-    // Step 7: Create the entities.
-    if (
-      entity_loader->is_texture_creation_done &&
-      !entity_loader->is_entity_creation_done
-    ) {
-      create_entities(
-        entity_loader,
-        entity_set,
-        drawable_component_set,
-        spatial_component_set,
-        light_component_set,
-        behavior_component_set
-      );
-      entity_loader->is_entity_creation_done = true;
-    }
-
   }
 
   return false;
@@ -602,6 +418,7 @@ EntityLoader* Models::init_entity_loader(
 ) {
   assert(entity_loader);
   strcpy(entity_loader->name, name);
+  entity_loader->state = EntityLoaderState::initialized;
   entity_loader->model_source = model_source;
   entity_loader->render_pass = render_pass;
   entity_loader->entity_handle = entity_handle;
@@ -609,13 +426,10 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->meshes = Array<Mesh>(
     memory_pool, MAX_N_MESHES, "meshes"
   );
-  entity_loader->materials = Array<Material>(
-    memory_pool, MAX_N_MATERIALS, "materials"
-  );
 
   strcpy(entity_loader->path, path);
   // NOTE: We do not load ModelSource::file models here.
-  // They will be loaded gradually in `::prepare_for_draw()`.
+  // They will be loaded gradually in `::prepare_model_and_check_if_done()`.
 
   return entity_loader;
 }
@@ -641,13 +455,9 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->meshes = Array<Mesh>(
     memory_pool, MAX_N_MESHES, "meshes"
   );
-  entity_loader->materials = Array<Material>(
-    memory_pool, MAX_N_MATERIALS, "materials"
-  );
 
   Mesh *mesh = entity_loader->meshes.push();
   mesh->transform = glm::mat4(1.0f);
-  mesh->material = nullptr;
   mesh->mode = mode;
   mesh->n_vertices = n_vertices;
   mesh->n_indices = n_indices;
@@ -656,8 +466,7 @@ EntityLoader* Models::init_entity_loader(
   setup_mesh_vertex_buffers_for_data_source(
     mesh, vertex_data, n_vertices, index_data, n_indices
   );
-  entity_loader->is_mesh_data_loading_done = true;
-  entity_loader->is_vertex_buffer_setup_done = true;
+  entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
 
   return entity_loader;
 }

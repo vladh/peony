@@ -14,6 +14,7 @@
 #include "log.cpp"
 #include "pack.cpp"
 #include "util.cpp"
+#include "str.cpp"
 #include "tasks.cpp"
 #include "peony_file_parser.cpp"
 #include "materials.cpp"

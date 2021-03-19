@@ -58,6 +58,7 @@ namespace chrono = std::chrono;
 #include "log.hpp"
 #include "memory.hpp"
 #include "util.hpp"
+#include "str.hpp"
 #include "pack.hpp"
 #include "queue.hpp"
 #include "array.hpp"

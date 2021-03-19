@@ -153,7 +153,7 @@ void World::create_entity_loader_from_entity_template(
   EntityLoader *entity_loader = entity_loader_set->loaders.get(entity->handle);
   bool32 did_init_loader = false;
 
-  if (entity_template->builtin_model_name[0] == '\0') {
+  if (Str::is_empty(entity_template->builtin_model_name)) {
     Models::init_entity_loader(
       entity_loader,
       asset_memory_pool,
@@ -242,94 +242,124 @@ void World::create_entity_loader_from_entity_template(
     };
   }
 
-  for (
-    uint32 idx_material = 0;
-    idx_material < entity_template->n_materials;
-    idx_material++
-  ) {
-    MaterialTemplate *material_template =
-      &entity_template->material_templates[idx_material];
+  assert(
+    sizeof(entity_loader->material_names) == sizeof(entity_template->material_names)
+  );
+  memcpy(
+    entity_loader->material_names,
+    entity_template->material_names,
+    sizeof(entity_template->material_names)
+  );
+  entity_loader->n_materials = entity_template->n_materials;
+}
+
+
+void World::create_internal_materials(MemoryPool *memory_pool, State *state) {
+  // lighting
+  {
     Material *material = Materials::init_material(
-      entity_loader->materials.push(), asset_memory_pool
+      state->materials.push(), "lighting", memory_pool
     );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "lighting", ShaderType::standard,
+      "lighting.vert", "lighting.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_position_texture, "g_position_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_normal_texture, "g_normal_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_albedo_texture, "g_albedo_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->g_pbr_texture, "g_pbr_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->cube_shadowmaps_texture, "cube_shadowmaps"
+    );
+    Materials::add_texture_to_material(
+      material, *state->texture_shadowmaps_texture, "texture_shadowmaps"
+    );
+  }
 
-    if (material_template->shader_asset_vert_path[0] != '\0') {
-      material->shader_asset = Shaders::init_shader_asset(
-        (ShaderAsset*)(shader_assets->push()),
-        entity_template->entity_debug_name,
-        ShaderType::standard,
-        material_template->shader_asset_vert_path,
-        material_template->shader_asset_frag_path,
-        material_template->shader_asset_geom_path
-      );
-    }
-    if (material_template->depth_shader_asset_vert_path[0] != '\0') {
-      material->depth_shader_asset = Shaders::init_shader_asset(
-        (ShaderAsset*)(shader_assets->push()),
-        entity_template->entity_debug_name,
-        ShaderType::depth,
-        material_template->depth_shader_asset_vert_path,
-        material_template->depth_shader_asset_frag_path,
-        material_template->depth_shader_asset_geom_path
-      );
-    }
+  // preblur
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "preblur", memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "blur", ShaderType::standard,
+      "blur.vert", "blur.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->l_bright_color_texture, "source_texture"
+    );
+  }
 
-    material->albedo_static = material_template->albedo_static;
-    material->metallic_static = material_template->metallic_static;
-    material->roughness_static = material_template->roughness_static;
-    material->ao_static = material_template->ao_static;
+  // blur1
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "blur1", memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "blur", ShaderType::standard,
+      "blur.vert", "blur.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->blur2_texture, "source_texture"
+    );
+  }
 
-    for (
-      uint32 idx_texture = 0;
-      idx_texture < material_template->n_textures;
-      idx_texture++
-    ) {
-      Texture texture;
-      Materials::init_texture(
-        &texture,
-        material_template->texture_types[idx_texture],
-        material_template->texture_paths[idx_texture]
-      );
-      Materials::add_texture_to_material(
-        material,
-        texture,
-        material_template->texture_uniform_names[idx_texture]
-      );
-    }
+  // blur2
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "blur2", memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "blur", ShaderType::standard,
+      "blur.vert", "blur.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->blur1_texture, "source_texture"
+    );
+  }
 
-    for (
-      uint32 idx_texture = 0;
-      idx_texture < material_template->n_builtin_textures;
-      idx_texture++
-    ) {
-      const char *builtin_texture_name =
-        material_template->builtin_texture_names[idx_texture];
-      // TODO: Make the built-in textures some kind of array, that we can
-      // also pass in instead of passing State.
-      // NOTE: This list is intentionally not complete until we fix the above.
-      if (strcmp(builtin_texture_name, "g_position_texture") == 0) {
-        Materials::add_texture_to_material(
-          material, *state->g_position_texture, builtin_texture_name
-        );
-      } else if (strcmp(builtin_texture_name, "g_albedo_texture") == 0) {
-        Materials::add_texture_to_material(
-          material, *state->g_albedo_texture, builtin_texture_name
-        );
-      } else if (strcmp(builtin_texture_name, "cube_shadowmaps") == 0) {
-        Materials::add_texture_to_material(
-          material, *state->cube_shadowmaps_texture, builtin_texture_name
-        );
-      } else if (strcmp(builtin_texture_name, "texture_shadowmaps") == 0) {
-        Materials::add_texture_to_material(
-          material, *state->texture_shadowmaps_texture, builtin_texture_name
-        );
-      } else {
-        log_fatal(
-          "Attempted to use unsupported built-in texture %s",
-          builtin_texture_name
-        );
-      }
-    }
+  // postprocessing
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "postprocessing", memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "postprocessing", ShaderType::standard,
+      "postprocessing.vert", "postprocessing.frag", ""
+    );
+    Materials::add_texture_to_material(
+      material, *state->l_color_texture, "l_color_texture"
+    );
+    Materials::add_texture_to_material(material, *state->blur2_texture, "bloom_texture");
+    // Uncomment to use fog.
+    /* Materials::add_texture_to-material( */
+    /*   material, *state->l_depth_texture, "l_depth_texture" */
+    /* ); */
+  }
+
+  // skysphere
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "skysphere", memory_pool
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "skysphere", ShaderType::standard,
+      "skysphere.vert", "skysphere.frag", ""
+    );
   }
 }
 
@@ -373,32 +403,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       RenderPass::lighting,
       entity->handle
     );
-    Material *material = Materials::init_material(
-      entity_loader->materials.push(), memory_pool
-    );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
-      "lighting", ShaderType::standard,
-      "lighting.vert", "lighting.frag", ""
-    );
-    Materials::add_texture_to_material(
-      material, *state->g_position_texture, "g_position_texture"
-    );
-    Materials::add_texture_to_material(
-      material, *state->g_normal_texture, "g_normal_texture"
-    );
-    Materials::add_texture_to_material(
-      material, *state->g_albedo_texture, "g_albedo_texture"
-    );
-    Materials::add_texture_to_material(
-      material, *state->g_pbr_texture, "g_pbr_texture"
-    );
-    Materials::add_texture_to_material(
-      material, *state->cube_shadowmaps_texture, "cube_shadowmaps"
-    );
-    Materials::add_texture_to_material(
-      material, *state->texture_shadowmaps_texture, "texture_shadowmaps"
-    );
+    strcpy(entity_loader->material_names[0], "lighting");
+    entity_loader->n_materials = 1;
   }
 
   // Preblur screenquad
@@ -420,17 +426,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       RenderPass::preblur,
       entity->handle
     );
-    Material *material = Materials::init_material(
-      entity_loader->materials.push(), memory_pool
-    );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
-      "blur", ShaderType::standard,
-      "blur.vert", "blur.frag", ""
-    );
-    Materials::add_texture_to_material(
-      material, *state->l_bright_color_texture, "source_texture"
-    );
+    strcpy(entity_loader->material_names[0], "preblur");
+    entity_loader->n_materials = 1;
   }
 
   // Blur 1 screenquad
@@ -452,17 +449,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       RenderPass::blur1,
       entity->handle
     );
-    Material *material = Materials::init_material(
-      entity_loader->materials.push(), memory_pool
-    );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
-      "blur", ShaderType::standard,
-      "blur.vert", "blur.frag", ""
-    );
-    Materials::add_texture_to_material(
-      material, *state->blur2_texture, "source_texture"
-    );
+    strcpy(entity_loader->material_names[0], "blur1");
+    entity_loader->n_materials = 1;
   }
 
   // Blur 2 screenquad
@@ -484,17 +472,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       RenderPass::blur2,
       entity->handle
     );
-    Material *material = Materials::init_material(
-      entity_loader->materials.push(), memory_pool
-    );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
-      "blur", ShaderType::standard,
-      "blur.vert", "blur.frag", ""
-    );
-    Materials::add_texture_to_material(
-      material, *state->blur1_texture, "source_texture"
-    );
+    strcpy(entity_loader->material_names[0], "blur2");
+    entity_loader->n_materials = 1;
   }
 
   // Postprocessing screenquad
@@ -516,22 +495,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       RenderPass::postprocessing,
       entity->handle
     );
-    Material *material = Materials::init_material(
-      entity_loader->materials.push(), memory_pool
-    );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
-      "postprocessing", ShaderType::standard,
-      "postprocessing.vert", "postprocessing.frag", ""
-    );
-    Materials::add_texture_to_material(
-      material, *state->l_color_texture, "l_color_texture"
-    );
-    Materials::add_texture_to_material(material, *state->blur2_texture, "bloom_texture");
-    // Uncomment to use fog.
-    /* Materials::add_texture_to-material( */
-    /*   material, *state->l_depth_texture, "l_depth_texture" */
-    /* ); */
+    strcpy(entity_loader->material_names[0], "postprocessing");
+    entity_loader->n_materials = 1;
   }
 
   // Skysphere
@@ -543,7 +508,6 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
       entity->handle
     );
-
     Models::init_entity_loader(
       entity_loader,
       memory_pool,
@@ -555,22 +519,14 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
       RenderPass::forward_skybox,
       entity->handle
     );
-
     entity_loader->spatial_component = {
       .entity_handle = entity->handle,
       .position = glm::vec3(0.0f),
       .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       .scale = glm::vec3(75.0f),
     };
-
-    Material *material = Materials::init_material(
-      entity_loader->materials.push(), memory_pool
-    );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
-      "skysphere", ShaderType::standard,
-      "skysphere.vert", "skysphere.frag", ""
-    );
+    strcpy(entity_loader->material_names[0], "skysphere");
+    entity_loader->n_materials = 1;
 #endif
   }
 
@@ -586,19 +542,49 @@ void World::load_scene(
   MemoryPool *asset_memory_pool,
   State *state
 ) {
+  // Get some memory for everything we need
   MemoryPool temp_memory_pool = {};
+  EntityTemplate *entity_templates = (EntityTemplate*)Memory::push(
+    &temp_memory_pool,
+    sizeof(EntityTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
+    "entity_templates"
+  );
+  MaterialTemplate *material_templates = (MaterialTemplate*)Memory::push(
+    &temp_memory_pool,
+    sizeof(MaterialTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
+    "material_templates"
+  );
+  char used_materials[MAX_N_MATERIALS][MAX_TOKEN_LENGTH] = {0};
+  uint32 n_used_materials = 0;
 
-  EntityTemplate *entity_templates =
-    (EntityTemplate*)Memory::push(
-      &temp_memory_pool,
-      sizeof(EntityTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
-      "entity_templates"
+  // Get EntityTemplates and MaterialTemplates
+  uint32 n_entities = PeonyFileParser::parse_scene_file(
+    scene_path,
+    entity_templates,
+    used_materials,
+    &n_used_materials
+  );
+
+  for (uint32 idx = 0; idx < n_used_materials; idx++) {
+    material_templates[idx] = {};
+    char path[MAX_PATH];
+    PeonyFileParser::get_material_path(path, used_materials[idx]);
+    PeonyFileParser::parse_material_file(path, &material_templates[idx]);
+  }
+
+  // Create materials
+  for (uint32 idx = 0; idx < n_used_materials; idx++) {
+    Materials::create_material_from_template(
+      state->materials.push(),
+      &material_templates[idx],
+      &state->shader_assets,
+      asset_memory_pool,
+      state
     );
+  }
 
-  uint32 n_entities = PeonyFileParser::parse_scene_file(scene_path, entity_templates);
-
+  // Create entities
   for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
-    /* PeonyFileParser::print_entity_template(&entity_templates[idx_entity]); */
     create_entity_loader_from_entity_template(
       &entity_templates[idx_entity],
       asset_memory_pool,
@@ -609,6 +595,7 @@ void World::load_scene(
     );
   }
 
+  // Clean up
   Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
@@ -617,18 +604,30 @@ void World::init(
   MemoryPool *asset_memory_pool,
   State *state
 ) {
+  create_internal_materials(asset_memory_pool, state);
   create_internal_entities(asset_memory_pool, state);
 }
 
 
 bool32 World::check_all_entities_loaded(State *state) {
   bool are_all_done_loading = true;
+
+  for (uint32 idx = 0; idx < state->materials.size; idx++) {
+    Material *material = state->materials[idx];
+    Materials::prepare_material_and_check_if_done(
+      material,
+      &state->persistent_pbo,
+      &state->texture_name_pool,
+      &state->task_queue
+    );
+  }
+
   for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
     EntityLoader *entity_loader = state->entity_loader_set.loaders.get(idx);
     if (!Entities::is_entity_loader_valid(entity_loader)) {
       continue;
     }
-    bool is_done_loading = Models::prepare_for_draw(
+    bool is_done_loading = Models::prepare_model_and_check_if_done(
       entity_loader,
       &state->persistent_pbo,
       &state->texture_name_pool,

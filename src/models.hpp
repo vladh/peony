@@ -1,11 +1,14 @@
 #ifndef MODELS_HPP
 #define MODELS_HPP
 
-// NOTE:
-// * ModelSource::none: Invalid.
-// * ModelSource::data: Loaded on initialisation, from given vertex data.
-// * ModelSource::file: Loaded on demand, from file.
-enum class ModelSource {none, file, data};
+enum class ModelSource {
+  // Invalid.
+  none,
+  // Loaded on initialisation, from given vertex data.
+  file,
+  // Loaded on demand, from file.
+  data
+};
 
 struct Vertex {
   glm::vec3 position;
@@ -16,7 +19,7 @@ struct Vertex {
 struct Mesh {
   MemoryPool temp_memory_pool;
   glm::mat4 transform;
-  Material *material;
+  char material_name[MAX_TOKEN_LENGTH];
   Pack indices_pack;
   uint32 n_vertices;
   uint32 n_indices;
@@ -28,25 +31,28 @@ struct Mesh {
   Array<uint32> indices;
 };
 
+enum class EntityLoaderState {
+  empty,
+  initialized,
+  mesh_data_being_loaded,
+  mesh_data_loaded,
+  vertex_buffers_set_up,
+  complete
+};
+
 struct EntityLoader {
   char name[MAX_DEBUG_NAME_LENGTH];
   ModelSource model_source;
   char path[MAX_PATH];
+  char material_names[MAX_N_MATERIALS_PER_MODEL][MAX_TOKEN_LENGTH];
+  uint32 n_materials;
   Array<Mesh> meshes;
-  Array<Material> materials;
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
   RenderPassFlag render_pass;
-  bool32 is_mesh_data_loading_in_progress = false;
-  bool32 is_texture_copying_to_pbo_done = false;
-  bool32 is_texture_copying_to_pbo_in_progress = false;
-  bool32 is_mesh_data_loading_done = false;
-  bool32 is_shader_setting_done = false;
-  bool32 is_texture_creation_done = false;
-  bool32 is_vertex_buffer_setup_done = false;
-  bool32 is_entity_creation_done = false;
+  EntityLoaderState state;
 };
 
 namespace Models {
@@ -74,11 +80,6 @@ namespace Models {
   void load_model(
     EntityLoader *entity_loader
   );
-  void copy_textures_to_pbo(
-    EntityLoader *entity_loader,
-    PersistentPbo *persistent_pbo
-  );
-  void bind_texture_uniforms_for_mesh(Mesh *mesh);
   void create_entities(
     EntityLoader *entity_loader,
     EntitySet *entity_set,
@@ -87,7 +88,7 @@ namespace Models {
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set
   );
-  bool prepare_for_draw(
+  bool32 prepare_model_and_check_if_done(
     EntityLoader *entity_loader,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,

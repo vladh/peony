@@ -65,44 +65,32 @@ void Renderer::resize_renderer_buffers(MemoryPool *memory_pool, State *state) {
   init_l_buffer(memory_pool, state);
   init_blur_buffers(memory_pool, state);
 
-  for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[idx];
-    for (
-      uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++
-    ) {
-      Mesh *mesh = entity_loader->meshes[idx_mesh];
-      if (
-        mesh->material->textures.size > 0 &&
-        mesh->material->is_screensize_dependent
-      ) {
-        Material *material = mesh->material;
-        log_info("Found G-buffer dependent mesh in model %s", entity_loader->name);
-        for(
-          uint32 idx_texture = 0; idx_texture < material->textures.size; idx_texture++
-        ) {
-          Texture *texture = material->textures[idx_texture];
-          if (texture->type == TextureType::g_position) {
-            material->textures.set(idx_texture, state->g_position_texture);
-          } else if (texture->type == TextureType::g_normal) {
-            material->textures.set(idx_texture, state->g_normal_texture);
-          } else if (texture->type == TextureType::g_albedo) {
-            material->textures.set(idx_texture, state->g_albedo_texture);
-          } else if (texture->type == TextureType::g_pbr) {
-            material->textures.set(idx_texture, state->g_pbr_texture);
-          } else if (texture->type == TextureType::l_color) {
-            material->textures.set(idx_texture, state->l_color_texture);
-          } else if (texture->type == TextureType::l_bright_color) {
-            material->textures.set(idx_texture, state->l_bright_color_texture);
-          } else if (texture->type == TextureType::l_depth) {
-            material->textures.set(idx_texture, state->l_depth_texture);
-          } else if (texture->type == TextureType::blur1) {
-            material->textures.set(idx_texture, state->blur1_texture);
-          } else if (texture->type == TextureType::blur2) {
-            material->textures.set(idx_texture, state->blur2_texture);
-          }
+  for (uint32 idx = 0; idx < state->materials.size; idx++) {
+    Material *material = state->materials[idx];
+    if (material->n_textures > 0 && material->is_screensize_dependent) {
+      for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
+        Texture *texture = &material->textures[idx_texture];
+        if (texture->type == TextureType::g_position) {
+          material->textures[idx_texture] = *state->g_position_texture;
+        } else if (texture->type == TextureType::g_normal) {
+          material->textures[idx_texture] = *state->g_normal_texture;
+        } else if (texture->type == TextureType::g_albedo) {
+          material->textures[idx_texture] = *state->g_albedo_texture;
+        } else if (texture->type == TextureType::g_pbr) {
+          material->textures[idx_texture] = *state->g_pbr_texture;
+        } else if (texture->type == TextureType::l_color) {
+          material->textures[idx_texture] = *state->l_color_texture;
+        } else if (texture->type == TextureType::l_bright_color) {
+          material->textures[idx_texture] = *state->l_bright_color_texture;
+        } else if (texture->type == TextureType::l_depth) {
+          material->textures[idx_texture] = *state->l_depth_texture;
+        } else if (texture->type == TextureType::blur1) {
+          material->textures[idx_texture] = *state->blur1_texture;
+        } else if (texture->type == TextureType::blur2) {
+          material->textures[idx_texture] = *state->blur2_texture;
         }
-        Models::bind_texture_uniforms_for_mesh(mesh);
       }
+      Materials::bind_texture_uniforms(material);
     }
   }
 }
@@ -755,6 +743,7 @@ void Renderer::render_scene(
   EntitySets::draw_all(
     &state->drawable_component_set,
     &state->spatial_component_set,
+    &state->materials,
     render_pass,
     render_mode,
     state->standard_depth_shader_asset

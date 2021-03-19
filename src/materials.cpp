@@ -189,13 +189,26 @@ glm::ivec2 Materials::push_space_to_texture_atlas(
 
 Material* Materials::init_material(
   Material *material,
+  const char *name,
   MemoryPool *memory_pool
 ) {
-  material->textures =
-    Array<Texture>(memory_pool, 16, "textures");
-
+  strcpy(material->name, name);
+  material->state = MaterialState::initialized;
   return material;
 };
+
+
+Material* Materials::get_material_by_name(
+  Array<Material> *materials,
+  const char *name
+) {
+  for (uint32 idx = 0; idx < materials->size; idx++) {
+    if (Str::are_equal(materials->get(idx)->name, name)) {
+      return materials->get(idx);
+    }
+  }
+  return nullptr;
+}
 
 
 void Materials::add_texture_to_material(
@@ -204,7 +217,7 @@ void Materials::add_texture_to_material(
   if (texture.is_screensize_dependent) {
     material->is_screensize_dependent = true;
   }
-  material->textures.push(texture);
+  material->textures[material->n_textures++] = texture;
   strcpy(
     material->texture_uniform_names[material->idx_texture_uniform_names++],
     uniform_name
@@ -212,12 +225,12 @@ void Materials::add_texture_to_material(
 }
 
 
-void Materials::copy_material_textures_to_pbo(
+void Materials::copy_textures_to_pbo(
   Material *material,
   PersistentPbo *persistent_pbo
 ) {
-  for (uint32 idx = 0; idx < material->textures.size; idx++) {
-    Texture *texture = material->textures[idx];
+  for (uint32 idx = 0; idx < material->n_textures; idx++) {
+    Texture *texture = &material->textures[idx];
     if (texture->texture_name) {
       continue;
     }
@@ -233,6 +246,7 @@ void Materials::copy_material_textures_to_pbo(
     );
     Util::free_image(image_data);
   }
+  material->state = MaterialState::textures_copied_to_pbo;
 }
 
 
@@ -246,8 +260,8 @@ void Materials::generate_textures_from_pbo(
   }
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
 
-  for (uint32 idx = 0; idx < material->textures.size; idx++) {
-    Texture *texture = material->textures[idx];
+  for (uint32 idx = 0; idx < material->n_textures; idx++) {
+    Texture *texture = &material->textures[idx];
     if (texture->texture_name != 0) {
       continue;
     }
@@ -271,6 +285,65 @@ void Materials::generate_textures_from_pbo(
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   material->have_textures_been_generated = true;
+}
+
+
+void Materials::bind_texture_uniforms(Material *material) {
+  ShaderAsset *shader_asset = material->shader_asset;
+
+  if (shader_asset->type != ShaderType::depth) {
+    glUseProgram(shader_asset->program);
+
+    for (
+      uint32 uniform_idx = 0;
+      uniform_idx < shader_asset->n_intrinsic_uniforms;
+      uniform_idx++
+    ) {
+      const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
+      if (strcmp(uniform_name, "should_use_normal_map") == 0) {
+        Shaders::set_bool(
+          shader_asset, "should_use_normal_map", material->should_use_normal_map
+        );
+      } else if (strcmp(uniform_name, "albedo_static") == 0) {
+        Shaders::set_vec4(
+          shader_asset, "albedo_static", &material->albedo_static
+        );
+      } else if (strcmp(uniform_name, "metallic_static") == 0) {
+        Shaders::set_float(
+          shader_asset, "metallic_static", material->metallic_static
+        );
+      } else if (strcmp(uniform_name, "roughness_static") == 0) {
+        Shaders::set_float(
+          shader_asset, "roughness_static", material->roughness_static
+        );
+      } else if (strcmp(uniform_name, "ao_static") == 0) {
+        Shaders::set_float(
+          shader_asset, "ao_static", material->ao_static
+        );
+      }
+    }
+
+    Shaders::reset_texture_units(shader_asset);
+
+    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+      Texture *texture = &material->textures[idx];
+      const char *uniform_name = material->texture_uniform_names[idx];
+#if 1
+      log_info(
+        "Setting uniforms: (uniform_name %s) "
+        "(texture->texture_name %d)",
+        uniform_name, texture->texture_name
+      );
+#endif
+      Shaders::set_int(
+        shader_asset,
+        uniform_name,
+        Shaders::add_texture_unit(shader_asset, texture->texture_name, texture->target)
+      );
+    }
+  }
+
+  shader_asset->did_set_texture_uniforms = true;
 }
 
 
@@ -393,4 +466,169 @@ uint32 Materials::get_new_texture_name(
     target_size
   );
   return 0;
+}
+
+
+const char* Materials::material_state_to_string(
+  MaterialState material_state
+) {
+  if (material_state == MaterialState::empty) {
+    return "empty";
+  } else if (material_state == MaterialState::initialized) {
+    return "initialized";
+  } else if (material_state == MaterialState::textures_being_copied_to_pbo) {
+    return "textures being copied to pbo";
+  } else if (material_state == MaterialState::textures_copied_to_pbo) {
+    return "textures copied to pbo";
+  } else if (material_state == MaterialState::complete) {
+    return "complete";
+  } else {
+    return "<unknown>";
+  }
+}
+
+
+bool32 Materials::prepare_material_and_check_if_done(
+  Material *material,
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool,
+  Queue<Task> *task_queue
+) {
+  if (material->state == MaterialState::empty) {
+    log_warning("Empty material '%s'. This should never happen.", material->name);
+    return false;
+  }
+
+  if (material->state == MaterialState::initialized) {
+    // NOTE: We only have to copy stuff if we have one or more textures that
+    // don't have names yet.
+    bool32 should_try_to_copy_textures = false;
+    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+      Texture *texture = &material->textures[idx];
+      if (!texture->texture_name) {
+        should_try_to_copy_textures = true;
+      }
+    }
+
+    if (should_try_to_copy_textures) {
+      material->state = MaterialState::textures_being_copied_to_pbo;
+      task_queue->push({
+        .type = TaskType::copy_textures_to_pbo,
+        .target = {
+          .material = material,
+        },
+        .persistent_pbo = persistent_pbo,
+      });
+    } else {
+      material->state = MaterialState::textures_copied_to_pbo;
+    }
+  }
+
+  if (material->state == MaterialState::textures_being_copied_to_pbo) {
+    // Wait. The task will progress our status.
+  }
+
+  if (material->state == MaterialState::textures_copied_to_pbo) {
+    Materials::generate_textures_from_pbo(
+      material,
+      persistent_pbo,
+      texture_name_pool
+    );
+    material->state = MaterialState::complete;
+  }
+
+  if (material->state == MaterialState::complete) {
+    // NOTE: Because the shader might be reloaded at any time, we need to
+    // check whether or not we need to set any uniforms every time.
+    if (!material->shader_asset->did_set_texture_uniforms) {
+      bind_texture_uniforms(material);
+    }
+
+    return true;
+  }
+
+  return false;
+}
+
+
+void Materials::create_material_from_template(
+  Material *material,
+  MaterialTemplate *material_template,
+  Array<ShaderAsset> *shader_assets,
+  // TODO: Remove once we've made textures a simple array.
+  MemoryPool *asset_memory_pool,
+  // TODO: Remove. See built-in texture section below.
+  State *state
+) {
+  init_material(material, material_template->name, asset_memory_pool);
+
+  material->albedo_static = material_template->albedo_static;
+  material->metallic_static = material_template->metallic_static;
+  material->roughness_static = material_template->roughness_static;
+  material->ao_static = material_template->ao_static;
+
+  if (!Str::is_empty(material_template->shader_asset_vert_path)) {
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(shader_assets->push()),
+      material_template->name,
+      ShaderType::standard,
+      material_template->shader_asset_vert_path,
+      material_template->shader_asset_frag_path,
+      material_template->shader_asset_geom_path
+    );
+  }
+  if (!Str::is_empty(material_template->depth_shader_asset_vert_path)) {
+    material->depth_shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(shader_assets->push()),
+      material_template->name,
+      ShaderType::depth,
+      material_template->depth_shader_asset_vert_path,
+      material_template->depth_shader_asset_frag_path,
+      material_template->depth_shader_asset_geom_path
+    );
+  }
+
+  for (uint32 idx = 0; idx < material_template->n_textures; idx++) {
+    Texture texture;
+    Materials::init_texture(
+      &texture,
+      material_template->texture_types[idx],
+      material_template->texture_paths[idx]
+    );
+    Materials::add_texture_to_material(
+      material,
+      texture,
+      material_template->texture_uniform_names[idx]
+    );
+  }
+
+  for (uint32 idx = 0; idx < material_template->n_builtin_textures; idx++) {
+    const char *builtin_texture_name =
+      material_template->builtin_texture_names[idx];
+    // TODO: Make the built-in textures some kind of array, that we can
+    // also pass in instead of passing State.
+    // NOTE: This list is intentionally not complete until we fix the above.
+    if (strcmp(builtin_texture_name, "g_position_texture") == 0) {
+      Materials::add_texture_to_material(
+        material, *state->g_position_texture, builtin_texture_name
+      );
+    } else if (strcmp(builtin_texture_name, "g_albedo_texture") == 0) {
+      Materials::add_texture_to_material(
+        material, *state->g_albedo_texture, builtin_texture_name
+      );
+    } else if (strcmp(builtin_texture_name, "cube_shadowmaps") == 0) {
+      Materials::add_texture_to_material(
+        material, *state->cube_shadowmaps_texture, builtin_texture_name
+      );
+    } else if (strcmp(builtin_texture_name, "texture_shadowmaps") == 0) {
+      Materials::add_texture_to_material(
+        material, *state->texture_shadowmaps_texture, builtin_texture_name
+      );
+    } else {
+      log_fatal(
+        "Attempted to use unsupported built-in texture %s",
+        builtin_texture_name
+      );
+    }
+  }
 }
