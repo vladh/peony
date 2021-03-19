@@ -11,9 +11,6 @@ State* init_state(
   state->shader_assets = Array<ShaderAsset>(
     asset_memory_pool, 512, "shader_assets"
   );
-  state->model_assets = Array<ModelAsset>(
-    asset_memory_pool, 512, "model_assets"
-  );
 
   state->heading_opacity = 0.0f;
   state->heading_text = "";
@@ -32,6 +29,11 @@ State* init_state(
   state->entity_set = {
     .entities = Array<Entity>(
       entity_memory_pool, 4096, "entities", true
+    )
+  };
+  state->entity_loader_set = {
+    .loaders = Array<EntityLoader>(
+      entity_memory_pool, 512, "entity_loaders", true
     )
   };
   state->drawable_component_set = {

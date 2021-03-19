@@ -2,9 +2,10 @@
 #define MODELS_HPP
 
 // NOTE:
+// * ModelSource::none: Invalid.
 // * ModelSource::data: Loaded on initialisation, from given vertex data.
 // * ModelSource::file: Loaded on demand, from file.
-enum class ModelSource {file, data};
+enum class ModelSource {none, file, data};
 
 struct Vertex {
   glm::vec3 position;
@@ -27,7 +28,7 @@ struct Mesh {
   Array<uint32> indices;
 };
 
-struct ModelAsset {
+struct EntityLoader {
   char name[MAX_DEBUG_NAME_LENGTH];
   ModelSource model_source;
   char path[MAX_PATH];
@@ -66,20 +67,20 @@ namespace Models {
     glm::mat4 transform, Pack indices_pack
   );
   void load_node(
-    ModelAsset *model_asset,
+    EntityLoader *entity_loader,
     aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
-  void load_model_asset(
-    ModelAsset *model_asset
+  void load_model(
+    EntityLoader *entity_loader
   );
   void copy_textures_to_pbo(
-    ModelAsset *model_asset,
+    EntityLoader *entity_loader,
     PersistentPbo *persistent_pbo
   );
   void bind_texture_uniforms_for_mesh(Mesh *mesh);
   void create_entities(
-    ModelAsset *model_asset,
+    EntityLoader *entity_loader,
     EntitySet *entity_set,
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
@@ -87,7 +88,7 @@ namespace Models {
     BehaviorComponentSet *behavior_component_set
   );
   bool prepare_for_draw(
-    ModelAsset *model_asset,
+    EntityLoader *entity_loader,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue,
@@ -97,8 +98,8 @@ namespace Models {
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set
   );
-  ModelAsset* init_model_asset(
-    ModelAsset *model_asset,
+  EntityLoader* init_entity_loader(
+    EntityLoader *entity_loader,
     MemoryPool *memory_pool,
     ModelSource model_source,
     const char *name,
@@ -106,8 +107,8 @@ namespace Models {
     RenderPassFlag render_pass,
     EntityHandle entity_handle
   );
-  ModelAsset* init_model_asset(
-    ModelAsset *model_asset,
+  EntityLoader* init_entity_loader(
+    EntityLoader *entity_loader,
     MemoryPool *memory_pool,
     ModelSource model_source,
     real32 *vertex_data, uint32 n_vertices,

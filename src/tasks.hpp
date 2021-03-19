@@ -1,13 +1,13 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
-struct ModelAsset;
+struct EntityLoader;
 
 enum class TaskType {load_model, copy_textures_to_pbo};
 
 struct Task {
   TaskType type;
-  ModelAsset *model_asset;
+  EntityLoader *entity_loader;
   PersistentPbo *persistent_pbo;
 };
 

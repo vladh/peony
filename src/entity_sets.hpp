@@ -16,6 +16,10 @@ struct EntitySet {
   EntityHandle first_non_internal_handle;
 };
 
+struct EntityLoaderSet {
+  Array<EntityLoader> loaders;
+};
+
 struct LightComponentSet {
   Array<LightComponent> components;
 };

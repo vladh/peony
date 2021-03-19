@@ -73,6 +73,8 @@ namespace Entities {
   bool32 is_drawable_component_valid(
     DrawableComponent *drawable_component
   );
+
+  bool32 is_entity_loader_valid(EntityLoader *entity_loader);
 }
 
 #endif

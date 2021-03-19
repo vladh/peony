@@ -11,9 +11,9 @@ const char* Tasks::task_type_to_str(TaskType type) {
 void Tasks::run_task(Task *task) {
   START_TIMER(run_task);
   if (task->type == TaskType::load_model) {
-    Models::load_model_asset(task->model_asset);
+    Models::load_model(task->entity_loader);
   } else if (task->type ==  TaskType::copy_textures_to_pbo) {
-    Models::copy_textures_to_pbo(task->model_asset, task->persistent_pbo);
+    Models::copy_textures_to_pbo(task->entity_loader, task->persistent_pbo);
   } else {
     log_error("Don't know how to run task with type %d", task->type);
   }
@@ -38,14 +38,14 @@ void Tasks::run_loading_loop(
         "[Thread #%d] Running task %s for model %s",
         idx_thread,
         Tasks::task_type_to_str(task->type),
-        task->model_asset->name
+        task->entity_loader->name
       );
       Tasks::run_task(task);
       log_info(
         "[Thread #%d] Finished task %s for model %s",
         idx_thread,
         Tasks::task_type_to_str(task->type),
-        task->model_asset->name
+        task->entity_loader->name
       );
     }
 
