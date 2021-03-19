@@ -42,6 +42,7 @@ struct State {
   bool32 is_world_loaded;
 
   Array<ShaderAsset> shader_assets;
+  Array<Material> materials;
 
   GuiState gui_state;
 

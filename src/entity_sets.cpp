@@ -63,10 +63,11 @@ glm::mat4 EntitySets::make_model_matrix(
 void EntitySets::draw(
   DrawableComponentSet *drawable_component_set,
   Mesh *mesh,
+  Material *material,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix
 ) {
-  ShaderAsset *shader_asset = mesh->material->shader_asset;
+  ShaderAsset *shader_asset = material->shader_asset;
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
   if (shader_asset->program != drawable_component_set->last_drawn_shader_program) {
@@ -112,14 +113,15 @@ void EntitySets::draw(
 void EntitySets::draw_in_depth_mode(
   DrawableComponentSet *drawable_component_set,
   Mesh *mesh,
+  Material *material,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
   ShaderAsset *standard_depth_shader_asset
 ) {
   ShaderAsset *shader_asset = standard_depth_shader_asset;
 
-  if (mesh->material->depth_shader_asset) {
-    shader_asset = mesh->material->depth_shader_asset;
+  if (material->depth_shader_asset) {
+    shader_asset = material->depth_shader_asset;
   }
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
@@ -153,6 +155,7 @@ void EntitySets::draw_in_depth_mode(
 void EntitySets::draw_all(
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
+  Array<Material> *materials,
   RenderPassFlag render_pass,
   RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset
@@ -169,6 +172,12 @@ void EntitySets::draw_all(
     if (!(render_pass & drawable->target_render_pass)) {
       continue;
     }
+
+    Material *material = Materials::get_material_by_name(
+      materials, drawable->mesh->material_name
+    );
+
+    assert(material);
 
     SpatialComponent *spatial = spatial_component_set->components.get(
       drawable->entity_handle
@@ -201,6 +210,7 @@ void EntitySets::draw_all(
       draw_in_depth_mode(
         drawable_component_set,
         drawable->mesh,
+        material,
         &model_matrix,
         &model_normal_matrix,
         standard_depth_shader_asset
@@ -209,6 +219,7 @@ void EntitySets::draw_all(
       draw(
         drawable_component_set,
         drawable->mesh,
+        material,
         &model_matrix,
         &model_normal_matrix
       );

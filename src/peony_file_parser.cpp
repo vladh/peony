@@ -1,33 +1,41 @@
 namespace PeonyFileParser {
+  void get_material_path(char *path, const char *name) {
+    strcpy(path, MATERIAL_FILE_DIRECTORY);
+    strcat(path, name);
+    strcat(path, MATERIAL_FILE_EXTENSION);
+  }
+
   void print_material_template(MaterialTemplate *material_template) {
-    log_info("shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
-    log_info("shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
-    log_info("shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
+    log_info("MaterialTemplate");
+    log_info("  name: %s", material_template->name);
+    log_info("  shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
+    log_info("  shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
+    log_info("  shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
     log_info(
-      "depth_shader_asset_vert_path: %s",
+      "  depth_shader_asset_vert_path: %s",
       material_template->depth_shader_asset_vert_path
     );
     log_info(
-      "depth_shader_asset_frag_path: %s",
+      "  depth_shader_asset_frag_path: %s",
       material_template->depth_shader_asset_frag_path
     );
     log_info(
-      "depth_shader_asset_geom_path: %s",
+      "  depth_shader_asset_geom_path: %s",
       material_template->depth_shader_asset_geom_path
     );
-    log_info("albedo_static:");
+    log_info("  albedo_static:");
     log_vec4(&material_template->albedo_static);
-    log_info("metallic_static: %f", material_template->metallic_static);
-    log_info("roughness_static: %f", material_template->roughness_static);
-    log_info("ao_static: %f", material_template->ao_static);
-    log_info("n_textures: %d", material_template->n_textures);
+    log_info("  metallic_static: %f", material_template->metallic_static);
+    log_info("  roughness_static: %f", material_template->roughness_static);
+    log_info("  ao_static: %f", material_template->ao_static);
+    log_info("  n_textures: %d", material_template->n_textures);
     for (
       uint32 idx_texture = 0;
       idx_texture < material_template->n_textures;
       idx_texture++
     ) {
       log_info(
-        "texture %s (%s, %s)",
+        "  texture %s (%s, %s)",
         material_template->texture_uniform_names[idx_texture],
         Materials::texture_type_to_string(
           material_template->texture_types[idx_texture]
@@ -35,14 +43,14 @@ namespace PeonyFileParser {
         material_template->texture_paths[idx_texture]
       );
     }
-    log_info("n_builtin_textures: %d", material_template->n_builtin_textures);
+    log_info("  n_builtin_textures: %d", material_template->n_builtin_textures);
     for (
       uint32 idx_texture = 0;
       idx_texture < material_template->n_builtin_textures;
       idx_texture++
     ) {
       log_info(
-        "built-in texture %s",
+        "  built-in texture %s",
         material_template->builtin_texture_names[idx_texture]
       );
     }
@@ -50,20 +58,16 @@ namespace PeonyFileParser {
 
 
   void print_entity_template(EntityTemplate *entity_template) {
-    log_info("name: %s", entity_template->entity_debug_name);
-    log_info("model_path: %s", entity_template->model_path);
-    log_info("builtin_model_name: %s", entity_template->builtin_model_name);
-    log_info("n_materials: %d", entity_template->n_materials);
-    log_info("{");
-    for (
-      uint32 idx_material = 0;
-      idx_material < entity_template->n_materials;
-      idx_material++
-    ) {
-      print_material_template(&entity_template->material_templates[idx_material]);
+    log_info("EntityTemplate");
+    log_info("  name: %s", entity_template->entity_debug_name);
+    log_info("  model_path: %s", entity_template->model_path);
+    log_info("  builtin_model_name: %s", entity_template->builtin_model_name);
+    log_info("  n_materials: %d", entity_template->n_materials);
+    log_info("  material_names:");
+    for (uint32 idx = 0; idx < entity_template->n_materials; idx++) {
+      log_info(entity_template->material_names[idx]);
     }
-    log_info("}");
-    log_info("render_pass: %d", entity_template->render_pass);
+    log_info("  render_pass: %d", entity_template->render_pass);
     Entities::print_spatial_component(&entity_template->spatial_component);
   }
 
@@ -333,6 +337,7 @@ namespace PeonyFileParser {
     while (get_non_trivial_token(token, f)) {
       if (token[0] == TOKEN_HEADER_START) {
         parse_header(token, f);
+        strcpy(material_template->name, token);
       } else if (is_token_name(token)) {
         n_values = parse_property(
           token, f, prop_name, prop_value_types, prop_values
@@ -421,7 +426,10 @@ namespace PeonyFileParser {
 
 
   uint32 parse_scene_file(
-    const char *path, EntityTemplate *entity_templates
+    const char *path,
+    EntityTemplate *entity_templates,
+    char used_materials[MAX_N_MATERIALS][MAX_TOKEN_LENGTH],
+    uint32 *n_used_materials
   ) {
     int32 idx_entity = -1;
 
@@ -443,6 +451,7 @@ namespace PeonyFileParser {
       if (token[0] == TOKEN_HEADER_START) {
         idx_entity++;
         entity_template = &entity_templates[idx_entity];
+        *entity_template = {};
         parse_header(token, f);
         strcpy(
           entity_template->entity_debug_name,
@@ -466,14 +475,13 @@ namespace PeonyFileParser {
         } else if (strcmp(prop_name, "materials") == 0) {
           entity_template->n_materials = n_values;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
-            char material_file_path[MAX_TOKEN_LENGTH];
-            strcpy(material_file_path, MATERIAL_FILE_DIRECTORY);
-            strcat(material_file_path, prop_values[idx_value].string_value);
-            strcat(material_file_path, MATERIAL_FILE_EXTENSION);
-            entity_template->material_templates[idx_value] = {};
-            parse_material_file(
-              material_file_path,
-              &entity_template->material_templates[idx_value]
+            strcpy(
+              used_materials[(*n_used_materials)++],
+              prop_values[idx_value].string_value
+            );
+            strcpy(
+              entity_template->material_names[idx_value],
+              prop_values[idx_value].string_value
             );
           }
         } else if (strcmp(prop_name, "render_passes") == 0) {

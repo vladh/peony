@@ -15,6 +15,7 @@ namespace World {
     Array<ShaderAsset> *shader_assets,
     State *state
   );
+  void create_internal_materials(MemoryPool *memory_pool, State *state);
   void create_internal_entities(MemoryPool *memory_pool, State *state);
   void load_scene(
     const char *scene_path,

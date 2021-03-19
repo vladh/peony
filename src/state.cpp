@@ -12,6 +12,10 @@ State* init_state(
     asset_memory_pool, 512, "shader_assets"
   );
 
+  state->materials = Array<Material>(
+    asset_memory_pool, MAX_N_MATERIALS, "materials"
+  );
+
   state->heading_opacity = 0.0f;
   state->heading_text = "";
   state->heading_fadeout_duration = 1.0f;

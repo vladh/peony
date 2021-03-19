@@ -294,7 +294,7 @@ void Shaders::load_shader_asset(ShaderAsset *shader_asset) {
   MemoryPool temp_memory_pool = {};
   shader_asset->did_set_texture_uniforms = false;
 
-  if (shader_asset->geom_path[0] != '\0') {
+  if (!Str::is_empty(shader_asset->geom_path)) {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,
