@@ -44,7 +44,6 @@ struct BehaviorComponentSet {
 
 namespace EntitySets {
   EntityHandle make_handle(EntitySet *entity_set);
-  void mark_first_non_internal_handle(EntitySet *entity_set);
   Entity* add_entity_to_set(
     EntitySet *entity_set,
     const char *debug_name

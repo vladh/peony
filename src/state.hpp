@@ -43,6 +43,7 @@ struct State {
 
   Array<ShaderAsset> shader_assets;
   Array<Material> materials;
+  uint32 first_non_internal_material_idx;
 
   GuiState gui_state;
 
