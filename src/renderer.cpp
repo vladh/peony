@@ -913,10 +913,17 @@ void Renderer::render_scene_ui(State *state) {
     }
 
     if (Gui::draw_button(
-      &state->gui_state, container, "Unload materials"
+      &state->gui_state, container, "Destroy materials"
     )) {
-      World::destroy_noninternal_materials(state);
-      set_heading(state, "Materials unloaded.", 1.0f, 1.0f, 1.0f);
+      World::destroy_non_internal_materials(state);
+      set_heading(state, "Materials destroyed.", 1.0f, 1.0f, 1.0f);
+    }
+
+    if (Gui::draw_button(
+      &state->gui_state, container, "Destroy entities"
+    )) {
+      World::destroy_non_internal_entities(state);
+      set_heading(state, "Entities destroyed.", 1.0f, 1.0f, 1.0f);
     }
 
     if (Gui::draw_button(

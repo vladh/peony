@@ -72,6 +72,7 @@ namespace Models {
     Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
     glm::mat4 transform, Pack indices_pack
   );
+  void destroy_mesh(Mesh *mesh);
   void load_node(
     EntityLoader *entity_loader,
     aiNode *node, const aiScene *scene,

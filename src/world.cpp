@@ -577,7 +577,7 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 }
 
 
-void World::destroy_noninternal_materials(State *state) {
+void World::destroy_non_internal_materials(State *state) {
   for (
     uint32 idx = state->first_non_internal_material_idx;
     idx < state->materials.size;
@@ -585,10 +585,46 @@ void World::destroy_noninternal_materials(State *state) {
   ) {
     Materials::destroy_material(state->materials[idx]);
   }
-  // This is a bit goofy, maybe we can improve it later.
-  state->materials.size = state->first_non_internal_material_idx;
+
+  state->materials.delete_elements_after_index(
+    state->first_non_internal_material_idx
+  );
 }
 
+
+void World::destroy_non_internal_entities(State *state) {
+  for (
+    uint32 idx = state->entity_set.first_non_internal_handle;
+    idx < state->entity_set.entities.size;
+    idx++
+  ) {
+    Entities::destroy_drawable_component(
+      state->drawable_component_set.components[idx]
+    );
+    memset(state->entity_set.entities[idx], 0, sizeof(Entity));
+    memset(state->light_component_set.components[idx], 0, sizeof(LightComponent));
+    memset(state->spatial_component_set.components[idx], 0, sizeof(SpatialComponent));
+    memset(state->drawable_component_set.components[idx], 0, sizeof(DrawableComponent));
+    memset(state->behavior_component_set.components[idx], 0, sizeof(BehaviorComponent));
+  }
+
+  state->entity_set.next_handle = state->entity_set.first_non_internal_handle;
+  state->entity_set.entities.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
+  state->light_component_set.components.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
+  state->spatial_component_set.components.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
+  state->drawable_component_set.components.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
+  state->behavior_component_set.components.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
+}
 
 void World::load_scene(
   const char *scene_path,

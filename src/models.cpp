@@ -176,6 +176,13 @@ void Models::load_mesh(
 }
 
 
+void Models::destroy_mesh(Mesh *mesh) {
+  glDeleteVertexArrays(1, &mesh->vao);
+  glDeleteBuffers(1, &mesh->vbo);
+  glDeleteBuffers(1, &mesh->ebo);
+}
+
+
 void Models::load_node(
   EntityLoader *entity_loader,
   aiNode *node, const aiScene *scene,
