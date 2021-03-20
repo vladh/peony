@@ -430,6 +430,13 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->render_pass = render_pass;
   entity_loader->entity_handle = entity_handle;
 
+  // TODO: When we destroy meshes, we don't free them up in this array,
+  // which means eventually we'll run out of space in it. We should fix that.
+  // We could also do this in a better way in general, because it's not
+  // immediately obvious that this array is created in the memory pool,
+  // outside of the entity_loader, and that it persists after the entity_loader
+  // is destroyed, in order for the Meshes to be preserved in the
+  // DrawableComponents.
   entity_loader->meshes = Array<Mesh>(
     memory_pool, MAX_N_MESHES, "meshes"
   );

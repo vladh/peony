@@ -8,6 +8,8 @@ State* init_state(
 
   state->background_color = glm::vec4(0.81f, 0.93f, 1.00f, 1.0f);
 
+  // TODO: When we destroy shader assets, we don't free them up in this array,
+  // which means eventually we'll run out of space in it. We should fix that.
   state->shader_assets = Array<ShaderAsset>(
     asset_memory_pool, 512, "shader_assets"
   );
