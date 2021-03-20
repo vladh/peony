@@ -18,7 +18,8 @@ namespace World {
   );
   void create_internal_materials(State *state);
   void create_internal_entities(MemoryPool *memory_pool, State *state);
-  void destroy_noninternal_materials(State *state);
+  void destroy_non_internal_materials(State *state);
+  void destroy_non_internal_entities(State *state);
   void load_scene(
     const char *scene_path,
     MemoryPool *asset_memory_pool,

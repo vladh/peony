@@ -119,3 +119,11 @@ bool32 Entities::is_drawable_component_valid(
 bool32 Entities::is_entity_loader_valid(EntityLoader *entity_loader) {
   return entity_loader->model_source != ModelSource::none;
 }
+
+
+void Entities::destroy_drawable_component(DrawableComponent *drawable_component) {
+  if (!is_drawable_component_valid(drawable_component)) {
+    return;
+  }
+  Models::destroy_mesh(drawable_component->mesh);
+}

@@ -75,6 +75,8 @@ namespace Entities {
   );
 
   bool32 is_entity_loader_valid(EntityLoader *entity_loader);
+
+  void destroy_drawable_component(DrawableComponent *drawable_component);
 }
 
 #endif
