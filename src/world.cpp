@@ -255,6 +255,18 @@ void World::create_entity_loader_from_entity_template(
 
 
 void World::create_internal_materials(State *state) {
+  // unknown
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "unknown"
+    );
+    material->shader_asset = Shaders::init_shader_asset(
+      (ShaderAsset*)(state->shader_assets.push()),
+      "unknown", ShaderType::standard,
+      "base.vert", "unknown.frag", ""
+    );
+  }
+
   // lighting
   {
     Material *material = Materials::init_material(
