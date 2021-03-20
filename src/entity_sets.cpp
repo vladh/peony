@@ -177,7 +177,9 @@ void EntitySets::draw_all(
       materials, drawable->mesh->material_name
     );
 
-    assert(material);
+    if (!material) {
+      material = Materials::get_material_by_name(materials, "unknown");
+    }
 
     SpatialComponent *spatial = spatial_component_set->components.get(
       drawable->entity_handle
