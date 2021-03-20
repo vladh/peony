@@ -154,6 +154,7 @@ void Renderer::init_shadowmaps(
     TextureType::shadowmap, builtin_textures->cube_shadowmaps,
     builtin_textures->cube_shadowmap_width, builtin_textures->cube_shadowmap_height, 1
   );
+  builtin_textures->cube_shadowmaps_texture->is_builtin = true;
 
   // Texture
   glGenFramebuffers(1, &builtin_textures->texture_shadowmaps_framebuffer);
@@ -191,6 +192,7 @@ void Renderer::init_shadowmaps(
     builtin_textures->texture_shadowmap_width,
     builtin_textures->texture_shadowmap_height, 1
   );
+  builtin_textures->texture_shadowmaps_texture->is_builtin = true;
 }
 
 
@@ -220,6 +222,8 @@ void Renderer::init_g_buffer(
     GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name,
     width, height, 4
   );
+  builtin_textures->g_position_texture->is_builtin = true;
+
   builtin_textures->g_normal_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "g_normal_texture"
@@ -227,6 +231,8 @@ void Renderer::init_g_buffer(
     GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name,
     width, height, 4
   );
+  builtin_textures->g_normal_texture->is_builtin = true;
+
   builtin_textures->g_albedo_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "g_albedo_texture"
@@ -234,6 +240,8 @@ void Renderer::init_g_buffer(
     GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name,
     width, height, 4
   );
+  builtin_textures->g_albedo_texture->is_builtin = true;
+
   builtin_textures->g_pbr_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "g_pbr_texture"
@@ -241,6 +249,7 @@ void Renderer::init_g_buffer(
     GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name,
     width, height, 4
   );
+  builtin_textures->g_pbr_texture->is_builtin = true;
 
   glBindTexture(GL_TEXTURE_2D, builtin_textures->g_position_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -328,6 +337,7 @@ void Renderer::init_l_buffer(
 
   uint32 l_color_texture_name;
   glGenTextures(1, &l_color_texture_name);
+
   builtin_textures->l_color_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "l_color_texture"
@@ -335,6 +345,8 @@ void Renderer::init_l_buffer(
     GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
     width, height, 4
   );
+  builtin_textures->l_color_texture->is_builtin = true;
+
   glBindTexture(GL_TEXTURE_2D, builtin_textures->l_color_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -352,6 +364,7 @@ void Renderer::init_l_buffer(
 
   uint32 l_bright_color_texture_name;
   glGenTextures(1, &l_bright_color_texture_name);
+
   builtin_textures->l_bright_color_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "l_bright_color_texture"
@@ -359,6 +372,8 @@ void Renderer::init_l_buffer(
     GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
     width, height, 4
   );
+  builtin_textures->l_bright_color_texture->is_builtin = true;
+
   glBindTexture(GL_TEXTURE_2D, builtin_textures->l_bright_color_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -392,6 +407,7 @@ void Renderer::init_l_buffer(
 #else
   uint32 l_depth_texture_name;
   glGenTextures(1, &l_depth_texture_name);
+
   builtin_textures->l_depth_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "l_depth_texture"
@@ -399,6 +415,8 @@ void Renderer::init_l_buffer(
     GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
     width, height, 1
   );
+  builtin_textures->l_depth_texture->is_builtin = true;
+
   glBindTexture(GL_TEXTURE_2D, builtin_textures->l_depth_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -431,6 +449,7 @@ void Renderer::init_blur_buffers(
   glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->blur1_buffer);
   uint32 blur1_texture_name;
   glGenTextures(1, &blur1_texture_name);
+
   builtin_textures->blur1_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "blur1_texture"
@@ -438,6 +457,8 @@ void Renderer::init_blur_buffers(
     GL_TEXTURE_2D, TextureType::blur1, blur1_texture_name,
     width, height, 4
   );
+  builtin_textures->blur1_texture->is_builtin = true;
+
   glBindTexture(GL_TEXTURE_2D, builtin_textures->blur1_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -457,6 +478,7 @@ void Renderer::init_blur_buffers(
   glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->blur2_buffer);
   uint32 blur2_texture_name;
   glGenTextures(1, &blur2_texture_name);
+
   builtin_textures->blur2_texture = Materials::init_texture(
     (Texture*)Memory::push(
       memory_pool, sizeof(Texture), "blur2_texture"
@@ -464,6 +486,8 @@ void Renderer::init_blur_buffers(
     GL_TEXTURE_2D, TextureType::blur2, blur2_texture_name,
     width, height, 4
   );
+  builtin_textures->blur2_texture->is_builtin = true;
+
   glBindTexture(GL_TEXTURE_2D, builtin_textures->blur2_texture->texture_name);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -886,6 +910,13 @@ void Renderer::render_scene_ui(State *state) {
     )) {
       reload_shaders(state);
       set_heading(state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
+    }
+
+    if (Gui::draw_button(
+      &state->gui_state, container, "Unload materials"
+    )) {
+      World::destroy_noninternal_materials(state);
+      set_heading(state, "Materials unloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (Gui::draw_button(

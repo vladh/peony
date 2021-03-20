@@ -577,6 +577,19 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 }
 
 
+void World::destroy_noninternal_materials(State *state) {
+  for (
+    uint32 idx = state->first_non_internal_material_idx;
+    idx < state->materials.size;
+    idx++
+  ) {
+    Materials::destroy_material(state->materials[idx]);
+  }
+  // This is a bit goofy, maybe we can improve it later.
+  state->materials.size = state->first_non_internal_material_idx;
+}
+
+
 void World::load_scene(
   const char *scene_path,
   MemoryPool *asset_memory_pool,

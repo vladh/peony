@@ -72,6 +72,7 @@ namespace Shaders {
     const char *name, ShaderType type,
     const char *vert_path, const char *frag_path, const char *geom_path
   );
+  void destroy_shader_asset(ShaderAsset *shader_asset);
 }
 
 #endif
