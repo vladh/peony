@@ -68,6 +68,8 @@ uint32 Shaders::make_program(uint32 vertex_shader, uint32 fragment_shader) {
   glAttachShader(new_program, vertex_shader);
   glAttachShader(new_program, fragment_shader);
   glLinkProgram(new_program);
+  glDetachShader(new_program, vertex_shader);
+  glDetachShader(new_program, fragment_shader);
   assert_program_status_ok(new_program);
   return new_program;
 }
@@ -81,6 +83,9 @@ uint32 Shaders::make_program(
   glAttachShader(new_program, fragment_shader);
   glAttachShader(new_program, geometry_shader);
   glLinkProgram(new_program);
+  glDetachShader(new_program, vertex_shader);
+  glDetachShader(new_program, fragment_shader);
+  glDetachShader(new_program, geometry_shader);
   assert_program_status_ok(new_program);
   return new_program;
 }
@@ -344,4 +349,9 @@ ShaderAsset* Shaders::init_shader_asset(
   strcpy(shader_asset->geom_path, geom_path);
   load_shader_asset(shader_asset);
   return shader_asset;
+}
+
+
+void Shaders::destroy_shader_asset(ShaderAsset *shader_asset) {
+  glDeleteProgram(shader_asset->program);
 }

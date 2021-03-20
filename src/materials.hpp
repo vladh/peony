@@ -67,6 +67,10 @@ struct Texture {
   int32 n_components = 0;
   uint16 pbo_idx_for_copy;
   bool32 is_screensize_dependent = false;
+  // ASSUMPTION: A builtin texture can belong to multiple materials,
+  // but a non-builtin texture can belong to only one material.
+  // If we delete a material, we delete all its non-builtin textures.
+  bool32 is_builtin = false;
 };
 
 struct BuiltinTextures {
@@ -146,6 +150,7 @@ namespace Materials {
     int32 height,
     int32 n_components
   );
+  void destroy_texture(Texture *texture);
   bool32 is_texture_type_screensize_dependent(TextureType type);
   const char* texture_type_to_string(TextureType texture_type);
   TextureType texture_type_from_string(const char* str);
@@ -161,6 +166,7 @@ namespace Materials {
     Material *material,
     const char *name
   );
+  void destroy_material(Material *material);
   Material* get_material_by_name(
     Array<Material> *materials,
     const char *name

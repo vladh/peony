@@ -32,6 +32,12 @@ Texture* Materials::init_texture(
 }
 
 
+void Materials::destroy_texture(Texture *texture) {
+  log_info("Destroying texture of type %s", texture_type_to_string(texture->type));
+  glDeleteTextures(1, &texture->texture_name);
+}
+
+
 bool32 Materials::is_texture_type_screensize_dependent(TextureType type) {
   return (
     type == TextureType::g_position ||
@@ -195,6 +201,24 @@ Material* Materials::init_material(
   material->state = MaterialState::initialized;
   return material;
 };
+
+
+void Materials::destroy_material(Material *material) {
+  Shaders::destroy_shader_asset(material->shader_asset);
+
+  if (material->depth_shader_asset) {
+    Shaders::destroy_shader_asset(material->depth_shader_asset);
+  }
+
+  for (uint32 idx = 0; idx < material->n_textures; idx++) {
+    Texture *texture = &material->textures[idx];
+    if (!texture->is_builtin) {
+      destroy_texture(texture);
+    }
+  }
+
+  memset(material, 0, sizeof(Material));
+}
 
 
 Material* Materials::get_material_by_name(
