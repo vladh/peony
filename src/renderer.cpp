@@ -906,6 +906,16 @@ void Renderer::render_scene_ui(State *state) {
 #endif
   }
 
+  {
+#if 1
+    GuiContainer *container = Gui::make_container(
+      &state->gui_state, "Materials", glm::vec2(state->window_info.width - 600.0f, 25.0f)
+    );
+    World::get_materials_text_representation(debug_text, state);
+    Gui::draw_body_text(&state->gui_state, container, debug_text);
+#endif
+  }
+
   Gui::render(&state->gui_state);
 }
 

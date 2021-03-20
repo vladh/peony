@@ -9,11 +9,6 @@ EntityHandle EntitySets::make_handle(
 }
 
 
-void EntitySets::mark_first_non_internal_handle(EntitySet *entity_set) {
-  entity_set->first_non_internal_handle = entity_set->next_handle;
-}
-
-
 Entity* EntitySets::add_entity_to_set(
   EntitySet *entity_set,
   const char *debug_name
@@ -177,7 +172,7 @@ void EntitySets::draw_all(
       materials, drawable->mesh->material_name
     );
 
-    if (!material) {
+    if (!material || material->state != MaterialState::complete) {
       material = Materials::get_material_by_name(materials, "unknown");
     }
 

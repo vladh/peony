@@ -116,7 +116,28 @@ void World::get_scene_text_representation(char *text, State *state) {
   }
 
   if (text[strlen(text) - 1] == '\n') {
-    text[strlen(text) - 1] = 0;
+    text[strlen(text) - 1] = '\0';
+  }
+}
+
+
+void World::get_materials_text_representation(char *text, State *state) {
+  text[0] = '\0';
+
+  strcat(text, "Internal:\n");
+
+  for (uint32 idx = 0; idx < state->materials.size; idx++) {
+    Material *material = state->materials[idx];
+    strcat(text, "- ");
+    strcat(text, material->name);
+    strcat(text, "\n");
+    if (idx == state->first_non_internal_material_idx - 1) {
+      strcat(text, "Non-internal: \n");
+    }
+  }
+
+  if (text[strlen(text) - 1] == '\n') {
+    text[strlen(text) - 1] = '\0';
   }
 }
 
@@ -375,6 +396,11 @@ void World::create_internal_materials(State *state) {
       "skysphere.vert", "skysphere.frag", ""
     );
   }
+
+
+  // We've created all internal materials, so we will mark the next position
+  // in the array of materials, so we know where non-internal materials start.
+  state->first_non_internal_material_idx = state->materials.size;
 }
 
 
@@ -547,7 +573,7 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
   // We've created all internal entities, so we will mark the next position
   // in the EntitySet, to know that that position is where the non-internal
   // entities start.
-  EntitySets::mark_first_non_internal_handle(&state->entity_set);
+  state->entity_set.first_non_internal_handle = state->entity_set.next_handle;
 }
 
 
@@ -627,12 +653,15 @@ bool32 World::check_all_entities_loaded(State *state) {
 
   for (uint32 idx = 0; idx < state->materials.size; idx++) {
     Material *material = state->materials[idx];
-    Materials::prepare_material_and_check_if_done(
+    bool is_done_loading = Materials::prepare_material_and_check_if_done(
       material,
       &state->persistent_pbo,
       &state->texture_name_pool,
       &state->task_queue
     );
+    if (!is_done_loading) {
+      are_all_done_loading = false;
+    }
   }
 
   for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
@@ -655,6 +684,7 @@ bool32 World::check_all_entities_loaded(State *state) {
       are_all_done_loading = false;
     }
   }
+
   return are_all_done_loading;
 }
 
