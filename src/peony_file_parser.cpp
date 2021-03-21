@@ -144,22 +144,22 @@ namespace PeonyFileParser {
     PropValue *prop_value
   ) {
     // NOTE: Type names the can start a value: vec2, vec3, vec4
-    if (strcmp(token, "vec2") == 0) {
+    if (Str::eq(token, "vec2")) {
       *prop_value_type = PropValueType::vec2;
       parse_vec2(token, f, &prop_value->vec2_value);
-    } else if (strcmp(token, "vec3") == 0) {
+    } else if (Str::eq(token, "vec3")) {
       *prop_value_type = PropValueType::vec3;
       parse_vec3(token, f, &prop_value->vec3_value);
-    } else if (strcmp(token, "vec4") == 0) {
+    } else if (Str::eq(token, "vec4")) {
       *prop_value_type = PropValueType::vec4;
       parse_vec4(token, f, &prop_value->vec4_value);
-    } else if (strcmp(token, "true") == 0) {
+    } else if (Str::eq(token, "true")) {
       *prop_value_type = PropValueType::boolean;
       prop_value->boolean_value = true;
-    } else if (strcmp(token, "false") == 0) {
+    } else if (Str::eq(token, "false")) {
       *prop_value_type = PropValueType::boolean;
       prop_value->boolean_value = false;
-    } else if (strcmp(token, "0.0") == 0 || strtod(token, nullptr) != 0.0f) {
+    } else if (Str::eq(token, "0.0") || strtod(token, nullptr) != 0.0f) {
       // NOTE: `strtod()` returns 0.0 if parsing fails, so we need to check
       // if our value actually was 0.0;
       *prop_value_type = PropValueType::number;
@@ -343,45 +343,45 @@ namespace PeonyFileParser {
           token, f, prop_name, prop_value_types, prop_values
         );
 
-        if (strcmp(prop_name, "shader_asset.vert_path") == 0) {
+        if (Str::eq(prop_name, "shader_asset.vert_path")) {
           strcpy(
             material_template->shader_asset_vert_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "shader_asset.frag_path") == 0) {
+        } else if (Str::eq(prop_name, "shader_asset.frag_path")) {
           strcpy(
             material_template->shader_asset_frag_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "shader_asset.geom_path") == 0) {
+        } else if (Str::eq(prop_name, "shader_asset.geom_path")) {
           strcpy(
             material_template->shader_asset_geom_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "depth_shader_asset.vert_path") == 0) {
+        } else if (Str::eq(prop_name, "depth_shader_asset.vert_path")) {
           strcpy(
             material_template->depth_shader_asset_vert_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "depth_shader_asset.frag_path") == 0) {
+        } else if (Str::eq(prop_name, "depth_shader_asset.frag_path")) {
           strcpy(
             material_template->depth_shader_asset_frag_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "depth_shader_asset.geom_path") == 0) {
+        } else if (Str::eq(prop_name, "depth_shader_asset.geom_path")) {
           strcpy(
             material_template->depth_shader_asset_geom_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "albedo_static") == 0) {
+        } else if (Str::eq(prop_name, "albedo_static")) {
           material_template->albedo_static = prop_values[0].vec4_value;
-        } else if (strcmp(prop_name, "metallic_static") == 0) {
+        } else if (Str::eq(prop_name, "metallic_static")) {
           material_template->metallic_static =
             prop_values[0].number_value;
-        } else if (strcmp(prop_name, "roughness_static") == 0) {
+        } else if (Str::eq(prop_name, "roughness_static")) {
           material_template->roughness_static =
             prop_values[0].number_value;
-        } else if (strcmp(prop_name, "ao_static") == 0) {
+        } else if (Str::eq(prop_name, "ao_static")) {
           material_template->ao_static =
             prop_values[0].number_value;
         } else if (
@@ -462,17 +462,17 @@ namespace PeonyFileParser {
           token, f, prop_name, prop_value_types, prop_values
         );
 
-        if (strcmp(prop_name, "model_path") == 0) {
+        if (Str::eq(prop_name, "model_path")) {
           strcpy(
             entity_template->model_path,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "builtin_model_name") == 0) {
+        } else if (Str::eq(prop_name, "builtin_model_name")) {
           strcpy(
             entity_template->builtin_model_name,
             prop_values[0].string_value
           );
-        } else if (strcmp(prop_name, "materials") == 0) {
+        } else if (Str::eq(prop_name, "materials")) {
           entity_template->n_materials = n_values;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
             strcpy(
@@ -484,16 +484,16 @@ namespace PeonyFileParser {
               prop_values[idx_value].string_value
             );
           }
-        } else if (strcmp(prop_name, "render_passes") == 0) {
+        } else if (Str::eq(prop_name, "render_passes")) {
           RenderPassFlag render_pass = RenderPass::none;
           for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
             render_pass = render_pass |
               Renderer::render_pass_from_string(prop_values[idx_value].string_value);
           }
           entity_template->render_pass = render_pass;
-        } else if (strcmp(prop_name, "spatial_component.position") == 0) {
+        } else if (Str::eq(prop_name, "spatial_component.position")) {
           entity_template->spatial_component.position = prop_values[0].vec3_value;
-        } else if (strcmp(prop_name, "spatial_component.rotation") == 0) {
+        } else if (Str::eq(prop_name, "spatial_component.rotation")) {
           entity_template->spatial_component.rotation =
             glm::angleAxis(
               glm::radians(prop_values[0].vec4_value[0]),
@@ -503,18 +503,18 @@ namespace PeonyFileParser {
                 prop_values[0].vec4_value[3]
               )
             );
-        } else if (strcmp(prop_name, "spatial_component.scale") == 0) {
+        } else if (Str::eq(prop_name, "spatial_component.scale")) {
           entity_template->spatial_component.scale = prop_values[0].vec3_value;
-        } else if (strcmp(prop_name, "light_component.type") == 0) {
+        } else if (Str::eq(prop_name, "light_component.type")) {
           entity_template->light_component.type =
             Entities::light_type_from_string(prop_values[0].string_value);
-        } else if (strcmp(prop_name, "light_component.direction") == 0) {
+        } else if (Str::eq(prop_name, "light_component.direction")) {
           entity_template->light_component.direction = prop_values[0].vec3_value;
-        } else if (strcmp(prop_name, "light_component.color") == 0) {
+        } else if (Str::eq(prop_name, "light_component.color")) {
           entity_template->light_component.color = prop_values[0].vec4_value;
-        } else if (strcmp(prop_name, "light_component.attenuation") == 0) {
+        } else if (Str::eq(prop_name, "light_component.attenuation")) {
           entity_template->light_component.attenuation = prop_values[0].vec4_value;
-        } else if (strcmp(prop_name, "behavior_component.behavior") == 0) {
+        } else if (Str::eq(prop_name, "behavior_component.behavior")) {
           entity_template->behavior_component.behavior =
             Entities::behavior_from_string(prop_values[0].string_value);
         } else {

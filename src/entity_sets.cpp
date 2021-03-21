@@ -62,7 +62,7 @@ void EntitySets::draw(
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix
 ) {
-  ShaderAsset *shader_asset = material->shader_asset;
+  ShaderAsset *shader_asset = &material->shader_asset;
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.
   if (shader_asset->program != drawable_component_set->last_drawn_shader_program) {
@@ -115,8 +115,8 @@ void EntitySets::draw_in_depth_mode(
 ) {
   ShaderAsset *shader_asset = standard_depth_shader_asset;
 
-  if (material->depth_shader_asset) {
-    shader_asset = material->depth_shader_asset;
+  if (Shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
+    shader_asset = &material->depth_shader_asset;
   }
 
   // If our shader program has changed since our last mesh, tell OpenGL about it.

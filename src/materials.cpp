@@ -204,10 +204,10 @@ Material* Materials::init_material(
 
 
 void Materials::destroy_material(Material *material) {
-  Shaders::destroy_shader_asset(material->shader_asset);
+  Shaders::destroy_shader_asset(&material->shader_asset);
 
-  if (material->depth_shader_asset) {
-    Shaders::destroy_shader_asset(material->depth_shader_asset);
+  if (Shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
+    Shaders::destroy_shader_asset(&material->depth_shader_asset);
   }
 
   for (uint32 idx = 0; idx < material->n_textures; idx++) {
@@ -226,7 +226,7 @@ Material* Materials::get_material_by_name(
   const char *name
 ) {
   for (uint32 idx = 0; idx < materials->size; idx++) {
-    if (Str::are_equal(materials->get(idx)->name, name)) {
+    if (Str::eq(materials->get(idx)->name, name)) {
       return materials->get(idx);
     }
   }
@@ -312,7 +312,7 @@ void Materials::generate_textures_from_pbo(
 
 
 void Materials::bind_texture_uniforms(Material *material) {
-  ShaderAsset *shader_asset = material->shader_asset;
+  ShaderAsset *shader_asset = &material->shader_asset;
 
   if (shader_asset->type != ShaderType::depth) {
     glUseProgram(shader_asset->program);
@@ -563,7 +563,7 @@ bool32 Materials::prepare_material_and_check_if_done(
   if (material->state == MaterialState::complete) {
     // NOTE: Because the shader might be reloaded at any time, we need to
     // check whether or not we need to set any uniforms every time.
-    if (!material->shader_asset->did_set_texture_uniforms) {
+    if (!material->shader_asset.did_set_texture_uniforms) {
       bind_texture_uniforms(material);
     }
 
@@ -577,7 +577,6 @@ bool32 Materials::prepare_material_and_check_if_done(
 void Materials::create_material_from_template(
   Material *material,
   MaterialTemplate *material_template,
-  Array<ShaderAsset> *shader_assets,
   BuiltinTextures *builtin_textures
 ) {
   init_material(material, material_template->name);
@@ -588,8 +587,8 @@ void Materials::create_material_from_template(
   material->ao_static = material_template->ao_static;
 
   if (!Str::is_empty(material_template->shader_asset_vert_path)) {
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(shader_assets->push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       material_template->name,
       ShaderType::standard,
       material_template->shader_asset_vert_path,
@@ -598,8 +597,8 @@ void Materials::create_material_from_template(
     );
   }
   if (!Str::is_empty(material_template->depth_shader_asset_vert_path)) {
-    material->depth_shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(shader_assets->push()),
+     Shaders::init_shader_asset(
+      &material->depth_shader_asset,
       material_template->name,
       ShaderType::depth,
       material_template->depth_shader_asset_vert_path,

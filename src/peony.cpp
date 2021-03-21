@@ -267,7 +267,6 @@ int main() {
   Gui::init_gui_state(
     &state->gui_state,
     &asset_memory_pool,
-    &state->shader_assets,
     &state->input_state,
     state->window_info.width, state->window_info.height
   );

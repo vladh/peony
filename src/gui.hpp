@@ -19,7 +19,7 @@ struct GuiContainer {
 };
 
 struct GuiState {
-  ShaderAsset *shader_asset;
+  ShaderAsset shader_asset;
   InputState *input_state;
   GLFWcursor *requested_cursor;
   Array<FontAsset> font_assets;
@@ -144,7 +144,6 @@ namespace Gui {
   GuiState* init_gui_state(
     GuiState *gui_state,
     MemoryPool *memory_pool,
-    Array<ShaderAsset> *shader_assets,
     InputState *input_state,
     uint32 window_width, uint32 window_height
   );

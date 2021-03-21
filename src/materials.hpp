@@ -118,8 +118,8 @@ struct Material {
   MaterialState state;
   bool32 have_textures_been_generated = false;
   bool32 is_screensize_dependent = false;
-  ShaderAsset *shader_asset;
-  ShaderAsset *depth_shader_asset;
+  ShaderAsset shader_asset;
+  ShaderAsset depth_shader_asset;
   uint32 n_textures;
   Texture textures[MAX_N_TEXTURES_PER_MATERIAL];
   char texture_uniform_names[MAX_N_UNIFORMS][MAX_UNIFORM_LENGTH];
@@ -220,7 +220,6 @@ namespace Materials {
   void create_material_from_template(
     Material *material,
     MaterialTemplate *material_template,
-    Array<ShaderAsset> *shader_assets,
     BuiltinTextures *builtin_textures
   );
 }
