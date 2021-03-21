@@ -57,10 +57,8 @@ void Models::setup_mesh_vertex_buffers_for_data_source(
 }
 
 
-void Models::setup_mesh_vertex_buffers_for_file_source(
-  Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
-) {
-  assert(vertices->size > 0);
+void Models::setup_mesh_vertex_buffers_for_file_source(Mesh *mesh) {
+  assert(mesh->n_vertices > 0);
 
   glGenVertexArrays(1, &mesh->vao);
   glGenBuffers(1, &mesh->vbo);
@@ -70,14 +68,14 @@ void Models::setup_mesh_vertex_buffers_for_file_source(
 
   glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
   glBufferData(
-    GL_ARRAY_BUFFER, sizeof(Vertex) * vertices->size,
-    vertices->get_items_ptr(), GL_STATIC_DRAW
+    GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->n_vertices,
+    mesh->vertices, GL_STATIC_DRAW
   );
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
   glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * indices->size,
-    indices->get_items_ptr(), GL_STATIC_DRAW
+    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * mesh->n_indices,
+    mesh->indices, GL_STATIC_DRAW
   );
 
   uint32 location;
@@ -120,18 +118,19 @@ void Models::load_mesh(
   // This is probably quite wasteful, but I haven't figured out a way to
   // elegantly use the data from assimp directly, and I don't think it's
   // possible.
-  mesh->vertices = Array<Vertex>(
-    &mesh->temp_memory_pool, mesh_data->mNumVertices, "mesh_vertices"
-  );
-
   if (!mesh_data->mNormals) {
     log_warning("Model does not have normals.");
   }
 
   mesh->n_vertices = mesh_data->mNumVertices;
+  mesh->vertices = (Vertex*)Memory::push(
+    &mesh->temp_memory_pool,
+    mesh->n_vertices * sizeof(Vertex),
+    "mesh_vertices"
+  );
 
   for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
-    Vertex *vertex = mesh->vertices.push();
+    Vertex *vertex = &mesh->vertices[idx];
 
     glm::vec3 position;
     position.x = mesh_data->mVertices[idx].x;
@@ -163,14 +162,21 @@ void Models::load_mesh(
   }
 
   mesh->n_indices = n_indices;
-  mesh->indices = Array<uint32>(
-    &mesh->temp_memory_pool, n_indices, "mesh_indices"
+  mesh->indices = (uint32*)Memory::push(
+    &mesh->temp_memory_pool,
+    mesh->n_indices * sizeof(uint32),
+    "mesh_indices"
   );
+  uint32 idx_index = 0;
 
   for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
     aiFace face = mesh_data->mFaces[idx_face];
-    for (uint32 idx_index = 0; idx_index < face.mNumIndices; idx_index++) {
-      mesh->indices.push(face.mIndices[idx_index]);
+    for (
+      uint32 idx_face_index = 0;
+      idx_face_index < face.mNumIndices;
+      idx_face_index++
+    ) {
+      mesh->indices[idx_index++] = face.mIndices[idx_face_index];
     }
   }
 }
@@ -193,8 +199,10 @@ void Models::load_node(
 
   for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
+    Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
+    *mesh = {};
     load_mesh(
-      entity_loader->meshes.push(),
+      mesh,
       mesh_data, scene,
       transform,
       indices_pack
@@ -287,7 +295,7 @@ void Models::create_entities(
     *behavior_component = entity_loader->behavior_component;
   }
 
-  if (entity_loader->meshes.size == 1) {
+  if (entity_loader->n_meshes == 1) {
     DrawableComponent *drawable_component = drawable_component_set->components.get(
       entity_loader->entity_handle
     );
@@ -297,9 +305,9 @@ void Models::create_entities(
       .mesh = entity_loader->meshes[0],
       .target_render_pass = entity_loader->render_pass,
     };
-  } else if (entity_loader->meshes.size > 1) {
-    for (uint32 idx = 0; idx < entity_loader->meshes.size; idx++) {
-      Mesh *mesh = entity_loader->meshes[idx];
+  } else if (entity_loader->n_meshes > 1) {
+    for (uint32 idx = 0; idx < entity_loader->n_meshes; idx++) {
+      Mesh *mesh = &entity_loader->meshes[idx];
 
       Entity *child_entity = EntitySets::add_entity_to_set(
         entity_set,
@@ -326,7 +334,7 @@ void Models::create_entities(
       assert(drawable_component);
       *drawable_component = {
         .entity_handle = child_entity->handle,
-        .mesh = mesh,
+        .mesh = *mesh,
         .target_render_pass = entity_loader->render_pass,
       };
     }
@@ -363,9 +371,9 @@ bool32 Models::prepare_model_and_check_if_done(
   if (entity_loader->state == EntityLoaderState::mesh_data_loaded) {
     // Setup vertex buffers
     if (entity_loader->model_source == ModelSource::file) {
-      for (uint32 idx = 0; idx < entity_loader->meshes.size; idx++) {
-        Mesh *mesh = entity_loader->meshes[idx];
-        setup_mesh_vertex_buffers_for_file_source(mesh, &mesh->vertices, &mesh->indices);
+      for (uint32 idx = 0; idx < entity_loader->n_meshes; idx++) {
+        Mesh *mesh = &entity_loader->meshes[idx];
+        setup_mesh_vertex_buffers_for_file_source(mesh);
       }
     }
     entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
@@ -376,8 +384,8 @@ bool32 Models::prepare_model_and_check_if_done(
     for (
       uint32 idx_material = 0; idx_material < entity_loader->n_materials; idx_material++
     ) {
-      for (uint32 idx_mesh = 0; idx_mesh < entity_loader->meshes.size; idx_mesh++) {
-        Mesh *mesh = entity_loader->meshes[idx_mesh];
+      for (uint32 idx_mesh = 0; idx_mesh < entity_loader->n_meshes; idx_mesh++) {
+        Mesh *mesh = &entity_loader->meshes[idx_mesh];
         uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
         // For our model's mesh number `mesh_number`, we want to choose
         // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
@@ -430,17 +438,6 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->render_pass = render_pass;
   entity_loader->entity_handle = entity_handle;
 
-  // TODO: When we destroy meshes, we don't free them up in this array,
-  // which means eventually we'll run out of space in it. We should fix that.
-  // We could also do this in a better way in general, because it's not
-  // immediately obvious that this array is created in the memory pool,
-  // outside of the entity_loader, and that it persists after the entity_loader
-  // is destroyed, in order for the Meshes to be preserved in the
-  // DrawableComponents.
-  entity_loader->meshes = Array<Mesh>(
-    memory_pool, MAX_N_MESHES, "meshes"
-  );
-
   strcpy(entity_loader->path, path);
   // NOTE: We do not load ModelSource::file models here.
   // They will be loaded gradually in `::prepare_model_and_check_if_done()`.
@@ -466,11 +463,8 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->render_pass = render_pass;
   entity_loader->entity_handle = entity_handle;
 
-  entity_loader->meshes = Array<Mesh>(
-    memory_pool, MAX_N_MESHES, "meshes"
-  );
-
-  Mesh *mesh = entity_loader->meshes.push();
+  Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
+  *mesh = {};
   mesh->transform = glm::mat4(1.0f);
   mesh->mode = mode;
   mesh->n_vertices = n_vertices;
@@ -483,4 +477,24 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
 
   return entity_loader;
+}
+
+
+bool32 Models::is_mesh_valid(Mesh *mesh) {
+  return mesh->vao > 0;
+}
+
+
+bool32 Models::is_drawable_component_valid(
+  DrawableComponent *drawable_component
+) {
+  return is_mesh_valid(&drawable_component->mesh);
+}
+
+
+void Models::destroy_drawable_component(DrawableComponent *drawable_component) {
+  if (!is_drawable_component_valid(drawable_component)) {
+    return;
+  }
+  destroy_mesh(&drawable_component->mesh);
 }

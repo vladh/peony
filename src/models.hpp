@@ -21,14 +21,14 @@ struct Mesh {
   glm::mat4 transform;
   char material_name[MAX_TOKEN_LENGTH];
   Pack indices_pack;
-  uint32 n_vertices;
-  uint32 n_indices;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
   GLenum mode;
-  Array<Vertex> vertices;
-  Array<uint32> indices;
+  Vertex *vertices;
+  uint32 *indices;
+  uint32 n_vertices;
+  uint32 n_indices;
 };
 
 enum class EntityLoaderState {
@@ -46,7 +46,8 @@ struct EntityLoader {
   char path[MAX_PATH];
   char material_names[MAX_N_MATERIALS_PER_MODEL][MAX_TOKEN_LENGTH];
   uint32 n_materials;
-  Array<Mesh> meshes;
+  Mesh meshes[MAX_N_MESHES];
+  uint32 n_meshes;
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
@@ -55,8 +56,13 @@ struct EntityLoader {
   EntityLoaderState state;
 };
 
+struct DrawableComponent {
+  EntityHandle entity_handle = Entity::no_entity_handle;
+  Mesh mesh;
+  RenderPassFlag target_render_pass = RenderPass::none;
+};
+
 namespace Models {
-  constexpr uint32 MAX_N_MESHES = 2048;
   constexpr uint8 MAX_N_MATERIALS = 128;
   constexpr char MODEL_DIR[] = "resources/models/";
 
@@ -65,9 +71,7 @@ namespace Models {
     real32 *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
   );
-  void setup_mesh_vertex_buffers_for_file_source(
-    Mesh *mesh, Array<Vertex> *vertices, Array<uint32> *indices
-  );
+  void setup_mesh_vertex_buffers_for_file_source(Mesh *mesh);
   void load_mesh(
     Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
     glm::mat4 transform, Pack indices_pack
@@ -119,6 +123,13 @@ namespace Models {
     GLenum mode,
     RenderPassFlag render_pass,
     EntityHandle entity_handle
+  );
+  bool32 is_mesh_valid(Mesh *mesh);
+  bool32 is_drawable_component_valid(
+    DrawableComponent *drawable_component
+  );
+  void destroy_drawable_component(
+    DrawableComponent *drawable_component
   );
 }
 

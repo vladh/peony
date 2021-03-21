@@ -20,7 +20,7 @@ void World::get_entity_text_representation(
   bool32 has_spatial_component = Entities::is_spatial_component_valid(
     spatial_component
   );
-  bool32 has_drawable_component = Entities::is_drawable_component_valid(
+  bool32 has_drawable_component = Models::is_drawable_component_valid(
     state->drawable_component_set.components.get(handle)
   );
   bool32 has_light_component = Entities::is_light_component_valid(
@@ -597,7 +597,7 @@ void World::destroy_non_internal_entities(State *state) {
     idx < state->entity_set.entities.size;
     idx++
   ) {
-    Entities::destroy_drawable_component(
+    Models::destroy_drawable_component(
       state->drawable_component_set.components[idx]
     );
     memset(state->entity_set.entities[idx], 0, sizeof(Entity));

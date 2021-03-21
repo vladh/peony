@@ -160,7 +160,7 @@ void EntitySets::draw_all(
   for (uint32 idx = 0; idx < drawable_component_set->components.size; idx++) {
     DrawableComponent *drawable = drawable_component_set->components.get(idx);
 
-    if (!Entities::is_drawable_component_valid(drawable)) {
+    if (!Models::is_drawable_component_valid(drawable)) {
       continue;
     }
 
@@ -169,7 +169,7 @@ void EntitySets::draw_all(
     }
 
     Material *material = Materials::get_material_by_name(
-      materials, drawable->mesh->material_name
+      materials, drawable->mesh.material_name
     );
 
     if (!material || material->state != MaterialState::complete) {
@@ -206,7 +206,7 @@ void EntitySets::draw_all(
     if (render_mode == RenderMode::depth) {
       draw_in_depth_mode(
         drawable_component_set,
-        drawable->mesh,
+        &drawable->mesh,
         material,
         &model_matrix,
         &model_normal_matrix,
@@ -215,7 +215,7 @@ void EntitySets::draw_all(
     } else {
       draw(
         drawable_component_set,
-        drawable->mesh,
+        &drawable->mesh,
         material,
         &model_matrix,
         &model_normal_matrix
