@@ -17,4 +17,13 @@
 #define DEG_TO_RAD(deg) ((deg) * PI / 180.0)
 #define RAD_TO_DEG(rad) ((rad) * 180.0 / PI)
 
+#define each_range_named(it, start, end) \
+  for ( \
+    uint32 it = start; \
+    it < end; \
+    it++ \
+  )
+
+#define each_range(start, end) each_range_named(it, start, end)
+
 #endif
