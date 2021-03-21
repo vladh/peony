@@ -197,7 +197,7 @@ void Models::load_node(
   glm::mat4 node_transform = Util::aimatrix4x4_to_glm(&node->mTransformation);
   glm::mat4 transform = accumulated_transform * node_transform;
 
-  for (uint32 idx = 0; idx < node->mNumMeshes; idx++) {
+  for_range (0, node->mNumMeshes) {
     aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
     Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
     *mesh = {};
@@ -209,7 +209,7 @@ void Models::load_node(
     );
   }
 
-  for (uint32 idx = 0; idx < node->mNumChildren; idx++) {
+  for_range (0, node->mNumChildren) {
     Pack new_indices_pack = indices_pack;
     // NOTE: We can only store 4 bits per pack element. Our indices can be way bigger than
     // that, but that's fine. We don't need that much precision. Just smash the number down
