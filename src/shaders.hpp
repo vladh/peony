@@ -50,6 +50,7 @@ namespace Shaders {
   const char* load_file(MemoryPool *memory_pool, const char *path);
   const char* load_frag_file(MemoryPool *memory_pool, const char *path);
   int32 get_uniform_location(ShaderAsset *shader_asset, const char *name);
+  bool32 is_shader_asset_valid(ShaderAsset *shader_asset);
   void set_int(ShaderAsset *shader_asset, const char *name, uint32 value);
   void set_bool(ShaderAsset *shader_asset, const char *name, bool value);
   void set_float(ShaderAsset *shader_asset, const char *name, float value);

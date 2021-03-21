@@ -13,7 +13,6 @@ namespace World {
     MemoryPool *memory_pool,
     EntitySet *entity_set,
     EntityLoaderSet *entity_loader_set,
-    Array<ShaderAsset> *shader_assets,
     State *state
   );
   void create_internal_materials(State *state);

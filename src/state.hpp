@@ -41,7 +41,6 @@ struct State {
 
   bool32 is_world_loaded;
 
-  Array<ShaderAsset> shader_assets;
   Array<Material> materials;
   uint32 first_non_internal_material_idx;
 
@@ -65,7 +64,7 @@ struct State {
 
   real32 dir_light_angle;
 
-  ShaderAsset *standard_depth_shader_asset;
+  ShaderAsset standard_depth_shader_asset;
 
   uint32 ubo_shader_common;
   ShaderCommon shader_common;

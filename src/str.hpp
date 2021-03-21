@@ -3,7 +3,7 @@
 
 namespace Str {
   bool32 is_empty(const char *str);
-  bool32 are_equal(const char *str1, const char *str2);
+  bool32 eq(const char *str1, const char *str2);
 };
 
 #endif

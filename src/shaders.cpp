@@ -147,6 +147,11 @@ int32 Shaders::get_uniform_location(
 }
 
 
+bool32 Shaders::is_shader_asset_valid(ShaderAsset *shader_asset) {
+  return shader_asset->program > 0;
+}
+
+
 void Shaders::set_int(
   ShaderAsset *shader_asset, const char *uniform_name, uint32 value
 ) {
@@ -338,6 +343,7 @@ ShaderAsset* Shaders::init_shader_asset(
   const char *new_name, ShaderType new_type,
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {
+  *shader_asset = {};
   strcpy(shader_asset->name, new_name);
   shader_asset->type = new_type;
   shader_asset->n_texture_units = 0;

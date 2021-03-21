@@ -791,10 +791,14 @@ void Renderer::destroy_window() {
 
 
 void Renderer::reload_shaders(State *state) {
-  for (uint32 idx = 0; idx < state->shader_assets.size; idx++) {
-    ShaderAsset *shader_asset = state->shader_assets[idx];
-    Shaders::load_shader_asset(shader_asset);
+  for (uint32 idx = 0; idx < state->materials.size; idx++) {
+    Material *material = state->materials[idx];
+    Shaders::load_shader_asset(&material->shader_asset);
+    if (Shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
+      Shaders::load_shader_asset(&material->depth_shader_asset);
+    }
   }
+  Shaders::load_shader_asset(&state->standard_depth_shader_asset);
 }
 
 
@@ -809,7 +813,7 @@ void Renderer::render_scene(
     &state->materials,
     render_pass,
     render_mode,
-    state->standard_depth_shader_asset
+    &state->standard_depth_shader_asset
   );
 }
 

@@ -162,7 +162,6 @@ void World::create_entity_loader_from_entity_template(
   MemoryPool *asset_memory_pool,
   EntitySet *entity_set,
   EntityLoaderSet *entity_loader_set,
-  Array<ShaderAsset> *shader_assets,
   State *state
 ) {
   // TODO: Figure out parent system.
@@ -281,8 +280,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "unknown"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "unknown", ShaderType::standard,
       "base.vert", "unknown.frag", ""
     );
@@ -293,8 +292,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "lighting"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "lighting", ShaderType::standard,
       "lighting.vert", "lighting.frag", ""
     );
@@ -323,8 +322,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "preblur"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
@@ -338,8 +337,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "blur1"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
@@ -353,8 +352,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "blur2"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
@@ -368,8 +367,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "postprocessing"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "postprocessing", ShaderType::standard,
       "postprocessing.vert", "postprocessing.frag", ""
     );
@@ -390,8 +389,8 @@ void World::create_internal_materials(State *state) {
     Material *material = Materials::init_material(
       state->materials.push(), "skysphere"
     );
-    material->shader_asset = Shaders::init_shader_asset(
-      (ShaderAsset*)(state->shader_assets.push()),
+    Shaders::init_shader_asset(
+      &material->shader_asset,
       "skysphere", ShaderType::standard,
       "skysphere.vert", "skysphere.frag", ""
     );
@@ -405,8 +404,8 @@ void World::create_internal_materials(State *state) {
 
 
 void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
-  state->standard_depth_shader_asset = Shaders::init_shader_asset(
-    (ShaderAsset*)(state->shader_assets.push()),
+  Shaders::init_shader_asset(
+    &state->standard_depth_shader_asset,
     "standard_depth", ShaderType::depth,
     "standard_depth.vert", "standard_depth.frag",
     "standard_depth.geom"
@@ -666,7 +665,6 @@ void World::load_scene(
     Materials::create_material_from_template(
       state->materials.push(),
       &material_templates[idx],
-      &state->shader_assets,
       &state->builtin_textures
     );
   }
@@ -678,7 +676,6 @@ void World::load_scene(
       asset_memory_pool,
       &state->entity_set,
       &state->entity_loader_set,
-      &state->shader_assets,
       state
     );
   }
