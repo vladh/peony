@@ -40,12 +40,6 @@ struct SpatialComponent {
   EntityHandle parent_entity_handle = Entity::no_entity_handle;
 };
 
-struct DrawableComponent {
-  EntityHandle entity_handle = Entity::no_entity_handle;
-  Mesh *mesh = nullptr;
-  RenderPassFlag target_render_pass = RenderPass::none;
-};
-
 namespace Entities {
   const char* behavior_to_string(Behavior behavior);
   Behavior behavior_from_string(const char *str);
@@ -70,13 +64,7 @@ namespace Entities {
     SpatialComponent *spatial_component
   );
 
-  bool32 is_drawable_component_valid(
-    DrawableComponent *drawable_component
-  );
-
   bool32 is_entity_loader_valid(EntityLoader *entity_loader);
-
-  void destroy_drawable_component(DrawableComponent *drawable_component);
 }
 
 #endif

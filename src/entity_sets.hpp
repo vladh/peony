@@ -2,6 +2,7 @@
 #define ENTITY_SETS_HPP
 
 struct Mesh;
+struct DrawableComponent;
 
 struct EntitySet {
   Array<Entity> entities;
