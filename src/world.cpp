@@ -159,7 +159,6 @@ void World::update_light_position(State *state, real32 amount) {
 
 void World::create_entity_loader_from_entity_template(
   EntityTemplate *entity_template,
-  MemoryPool *asset_memory_pool,
   EntitySet *entity_set,
   EntityLoaderSet *entity_loader_set,
   State *state
@@ -176,7 +175,6 @@ void World::create_entity_loader_from_entity_template(
   if (Str::is_empty(entity_template->builtin_model_name)) {
     Models::init_entity_loader(
       entity_loader,
-      asset_memory_pool,
       ModelSource::file,
       entity_template->entity_debug_name,
       entity_template->model_path,
@@ -188,9 +186,8 @@ void World::create_entity_loader_from_entity_template(
     if (strcmp(entity_template->builtin_model_name, "axes") == 0) {
       Models::init_entity_loader(
         entity_loader,
-        asset_memory_pool,
         ModelSource::data,
-        (real32*)AXES_VERTICES, 6,
+        (Vertex*)AXES_VERTICES, 6,
         nullptr, 0,
         entity_template->entity_debug_name,
         GL_LINES,
@@ -201,11 +198,13 @@ void World::create_entity_loader_from_entity_template(
     } else if (strcmp(entity_template->builtin_model_name, "ocean") == 0) {
       uint32 ocean_n_vertices;
       uint32 ocean_n_indices;
-      real32 *ocean_vertex_data;
+      Vertex *ocean_vertex_data;
       uint32 *ocean_index_data;
 
+      MemoryPool temp_memory_pool = {};
+
       Util::make_plane(
-        asset_memory_pool,
+        &temp_memory_pool,
         200, 200,
         800, 800,
         &ocean_n_vertices, &ocean_n_indices,
@@ -214,7 +213,6 @@ void World::create_entity_loader_from_entity_template(
 
       Models::init_entity_loader(
         entity_loader,
-        asset_memory_pool,
         ModelSource::data,
         ocean_vertex_data, ocean_n_vertices,
         ocean_index_data, ocean_n_indices,
@@ -224,6 +222,8 @@ void World::create_entity_loader_from_entity_template(
         entity->handle
       );
       did_init_loader = true;
+
+      Memory::destroy_memory_pool(&temp_memory_pool);
     } else {
       log_fatal(
         "Could not find builtin model: %s", entity_template->builtin_model_name
@@ -403,7 +403,9 @@ void World::create_internal_materials(State *state) {
 }
 
 
-void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
+void World::create_internal_entities(State *state) {
+  MemoryPool temp_memory_pool = {};
+
   Shaders::init_shader_asset(
     &state->standard_depth_shader_asset,
     "standard_depth", ShaderType::depth,
@@ -413,11 +415,11 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
 
   uint32 skysphere_n_vertices;
   uint32 skysphere_n_indices;
-  real32 *skysphere_vertex_data;
+  Vertex *skysphere_vertex_data;
   uint32 *skysphere_index_data;
 
   Util::make_sphere(
-    memory_pool,
+    &temp_memory_pool,
     64, 64,
     &skysphere_n_vertices, &skysphere_n_indices,
     &skysphere_vertex_data, &skysphere_index_data
@@ -433,9 +435,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
     Models::init_entity_loader(
       entity_loader,
-      memory_pool,
       ModelSource::data,
-      (real32*)SCREENQUAD_VERTICES, 6,
+      (Vertex*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_lighting",
       GL_TRIANGLES,
@@ -456,9 +457,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
     Models::init_entity_loader(
       entity_loader,
-      memory_pool,
       ModelSource::data,
-      (real32*)SCREENQUAD_VERTICES, 6,
+      (Vertex*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_preblur",
       GL_TRIANGLES,
@@ -479,9 +479,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
     Models::init_entity_loader(
       entity_loader,
-      memory_pool,
       ModelSource::data,
-      (real32*)SCREENQUAD_VERTICES, 6,
+      (Vertex*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_blur1",
       GL_TRIANGLES,
@@ -502,9 +501,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
     Models::init_entity_loader(
       entity_loader,
-      memory_pool,
       ModelSource::data,
-      (real32*)SCREENQUAD_VERTICES, 6,
+      (Vertex*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_blur2",
       GL_TRIANGLES,
@@ -525,9 +523,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
     Models::init_entity_loader(
       entity_loader,
-      memory_pool,
       ModelSource::data,
-      (real32*)SCREENQUAD_VERTICES, 6,
+      (Vertex*)SCREENQUAD_VERTICES, 6,
       nullptr, 0,
       "screenquad_postprocessing",
       GL_TRIANGLES,
@@ -549,7 +546,6 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
     );
     Models::init_entity_loader(
       entity_loader,
-      memory_pool,
       ModelSource::data,
       skysphere_vertex_data, skysphere_n_vertices,
       skysphere_index_data, skysphere_n_indices,
@@ -573,6 +569,8 @@ void World::create_internal_entities(MemoryPool *memory_pool, State *state) {
   // in the EntitySet, to know that that position is where the non-internal
   // entities start.
   state->entity_set.first_non_internal_handle = state->entity_set.next_handle;
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
@@ -627,7 +625,6 @@ void World::destroy_non_internal_entities(State *state) {
 
 void World::load_scene(
   const char *scene_path,
-  MemoryPool *asset_memory_pool,
   State *state
 ) {
   // Get some memory for everything we need
@@ -673,7 +670,6 @@ void World::load_scene(
   for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
     create_entity_loader_from_entity_template(
       &entity_templates[idx_entity],
-      asset_memory_pool,
       &state->entity_set,
       &state->entity_loader_set,
       state
@@ -685,12 +681,9 @@ void World::load_scene(
 }
 
 
-void World::init(
-  MemoryPool *asset_memory_pool,
-  State *state
-) {
+void World::init(State *state) {
   create_internal_materials(state);
-  create_internal_entities(asset_memory_pool, state);
+  create_internal_entities(state);
 }
 
 

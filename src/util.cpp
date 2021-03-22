@@ -155,18 +155,16 @@ namespace Util {
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    real32 **vertex_data, uint32 **index_data
+    Vertex **vertex_data, uint32 **index_data
   ) {
-    uint32 idx_vertices = 0;
-    uint32 idx_indices = 0;
     *n_vertices = 0;
     *n_indices = 0;
 
-    uint32 vertex_data_length = (n_x_segments + 1) * (n_z_segments + 1) * 8;
+    uint32 n_total_vertices = (n_x_segments + 1) * (n_z_segments + 1);
     uint32 index_data_length = (n_x_segments) * (n_z_segments) * 6;
 
-    *vertex_data = (real32*)Memory::push(
-      memory_pool, sizeof(real32) * vertex_data_length, "plane_vertex_data"
+    *vertex_data = (Vertex*)Memory::push(
+      memory_pool, sizeof(Vertex) * n_total_vertices, "plane_vertex_data"
     );
     *index_data = (uint32*)Memory::push(
       memory_pool, sizeof(uint32) * index_data_length, "plane_index_data"
@@ -180,19 +178,11 @@ namespace Util {
         real32 y_pos = 0;
         real32 z_pos = z_segment * z_size - (z_size / 2);
 
-        // Position
-        (*vertex_data)[idx_vertices++] = x_pos;
-        (*vertex_data)[idx_vertices++] = y_pos;
-        (*vertex_data)[idx_vertices++] = z_pos;
-        // Normal
-        (*vertex_data)[idx_vertices++] = 0.0f;
-        (*vertex_data)[idx_vertices++] = 1.0f;
-        (*vertex_data)[idx_vertices++] = 0.0f;
-        // Tex coords
-        (*vertex_data)[idx_vertices++] = x_segment;
-        (*vertex_data)[idx_vertices++] = z_segment;
-
-        (*n_vertices)++;
+        (*vertex_data)[(*n_vertices)++] = {
+          .position = {x_pos, y_pos, z_pos},
+          .normal = {0.0f, 1.0f, 0.0f},
+          .tex_coords = {x_segment, z_segment},
+        };
       }
     }
 
@@ -201,20 +191,18 @@ namespace Util {
     for (uint32 idx_x = 0; idx_x < n_x_segments; idx_x++) {
       for (uint32 idx_z = 0; idx_z < n_z_segments; idx_z++) {
         // This current vertex.
-        (*index_data)[idx_indices++] = (idx_x * (n_z_segments + 1)) + idx_z;
+        (*index_data)[(*n_indices)++] = (idx_x * (n_z_segments + 1)) + idx_z;
         // Next row, right of this one.
-        (*index_data)[idx_indices++] = ((idx_x + 1) * (n_z_segments + 1)) + idx_z + 1;
+        (*index_data)[(*n_indices)++] = ((idx_x + 1) * (n_z_segments + 1)) + idx_z + 1;
         // Next row, under this one.
-        (*index_data)[idx_indices++] = ((idx_x + 1) * (n_z_segments + 1)) + idx_z;
+        (*index_data)[(*n_indices)++] = ((idx_x + 1) * (n_z_segments + 1)) + idx_z;
 
         // This current vertex.
-        (*index_data)[idx_indices++] = (idx_x * (n_z_segments + 1)) + idx_z;
+        (*index_data)[(*n_indices)++] = (idx_x * (n_z_segments + 1)) + idx_z;
         // This row, right of this one.
-        (*index_data)[idx_indices++] = (idx_x * (n_z_segments + 1)) + idx_z + 1;
+        (*index_data)[(*n_indices)++] = (idx_x * (n_z_segments + 1)) + idx_z + 1;
         // Next row, right of this one.
-        (*index_data)[idx_indices++] = ((idx_x + 1) * (n_z_segments + 1)) + idx_z + 1;
-
-        (*n_indices) += 6;
+        (*index_data)[(*n_indices)++] = ((idx_x + 1) * (n_z_segments + 1)) + idx_z + 1;
       }
     }
   }
@@ -224,18 +212,16 @@ namespace Util {
     MemoryPool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    real32 **vertex_data, uint32 **index_data
+    Vertex **vertex_data, uint32 **index_data
   ) {
-    uint32 idx_vertices = 0;
-    uint32 idx_indices = 0;
     *n_vertices = 0;
     *n_indices = 0;
 
-    uint32 vertex_data_length = (n_x_segments + 1) * (n_y_segments + 1) * 8;
+    uint32 total_n_vertices = (n_x_segments + 1) * (n_y_segments + 1);
     uint32 index_data_length = (n_x_segments + 1) * (n_y_segments) * 2;
 
-    *vertex_data = (real32*)Memory::push(
-      memory_pool, sizeof(real32) * vertex_data_length, "sphere_vertex_data"
+    *vertex_data = (Vertex*)Memory::push(
+      memory_pool, sizeof(Vertex) * total_n_vertices, "sphere_vertex_data"
     );
     *index_data = (uint32*)Memory::push(
       memory_pool, sizeof(uint32) * index_data_length, "sphere_index_data"
@@ -249,19 +235,11 @@ namespace Util {
         real32 y_pos = cos(y_segment * PI32);
         real32 z_pos = sin(x_segment * 2.0f * PI32) * sin(y_segment * PI32);
 
-        // Position
-        (*vertex_data)[idx_vertices++] = x_pos;
-        (*vertex_data)[idx_vertices++] = y_pos;
-        (*vertex_data)[idx_vertices++] = z_pos;
-        // Normal
-        (*vertex_data)[idx_vertices++] = x_pos;
-        (*vertex_data)[idx_vertices++] = y_pos;
-        (*vertex_data)[idx_vertices++] = z_pos;
-        // Tex coords
-        (*vertex_data)[idx_vertices++] = x_segment;
-        (*vertex_data)[idx_vertices++] = y_segment;
-
-        (*n_vertices)++;
+        (*vertex_data)[(*n_vertices)++] = {
+          .position = {x_pos, y_pos, z_pos},
+          .normal = {x_pos, y_pos, z_pos},
+          .tex_coords = {x_segment, y_segment},
+        };
       }
     }
 
@@ -269,16 +247,14 @@ namespace Util {
       if (y % 2 == 0) {
         /* for (int32 x = n_x_segments; x >= 0; x--) { */
         for (uint32 x = 0; x <= n_x_segments; x++) {
-          (*index_data)[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
-          (*index_data)[idx_indices++] = y * (n_x_segments + 1) + x;
-          (*n_indices) += 2;
+          (*index_data)[(*n_indices)++] = (y + 1) * (n_x_segments + 1) + x;
+          (*index_data)[(*n_indices)++] = y * (n_x_segments + 1) + x;
         }
       } else {
         /* for (uint32 x = 0; x <= n_x_segments; x++) { */
         for (int32 x = n_x_segments; x >= 0; x--) {
-          (*index_data)[idx_indices++] = y * (n_x_segments + 1) + x;
-          (*index_data)[idx_indices++] = (y + 1) * (n_x_segments + 1) + x;
-          (*n_indices) += 2;
+          (*index_data)[(*n_indices)++] = y * (n_x_segments + 1) + x;
+          (*index_data)[(*n_indices)++] = (y + 1) * (n_x_segments + 1) + x;
         }
       }
     }

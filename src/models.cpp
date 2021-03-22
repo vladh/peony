@@ -1,11 +1,11 @@
 void Models::setup_mesh_vertex_buffers(
   Mesh *mesh,
-  real32 *vertex_data, uint32 n_vertices,
+  Vertex *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices
 ) {
   assert(vertex_data && n_vertices > 0);
 
-  uint32 vertex_size = sizeof(real32) * 8;
+  uint32 vertex_size = sizeof(Vertex);
   uint32 index_size = sizeof(uint32);
 
   glGenVertexArrays(1, &mesh->vao);
@@ -31,19 +31,36 @@ void Models::setup_mesh_vertex_buffers(
   location = 0;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)(0)
+    location, 3, GL_FLOAT, GL_FALSE, vertex_size,
+    (void*)offsetof(Vertex, position)
   );
 
   location = 1;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)(3 * sizeof(real32))
+    location, 3, GL_FLOAT, GL_FALSE, vertex_size,
+    (void*)offsetof(Vertex, normal)
   );
 
   location = 2;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    location, 2, GL_FLOAT, GL_FALSE, vertex_size, (void*)(6 * sizeof(real32))
+    location, 2, GL_FLOAT, GL_FALSE, vertex_size,
+    (void*)offsetof(Vertex, tex_coords)
+  );
+
+  location = 3;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, MAX_N_BONES, GL_INT, GL_FALSE, vertex_size,
+    (void*)offsetof(Vertex, bone_ids)
+  );
+
+  location = 4;
+  glEnableVertexAttribArray(location);
+  glVertexAttribPointer(
+    location, MAX_N_BONES, GL_FLOAT, GL_FALSE, vertex_size,
+    (void*)offsetof(Vertex, bone_weights)
   );
 }
 
@@ -327,7 +344,7 @@ bool32 Models::prepare_model_and_check_if_done(
         Mesh *mesh = &entity_loader->meshes[idx];
         setup_mesh_vertex_buffers(
           mesh,
-          (real32*)mesh->vertices, mesh->n_vertices,
+          mesh->vertices, mesh->n_vertices,
           mesh->indices, mesh->n_indices
         );
         Memory::destroy_memory_pool(&mesh->temp_memory_pool);
@@ -381,7 +398,6 @@ bool32 Models::prepare_model_and_check_if_done(
 
 EntityLoader* Models::init_entity_loader(
   EntityLoader *entity_loader,
-  MemoryPool *memory_pool,
   ModelSource model_source,
   const char *name,
   const char *path,
@@ -405,9 +421,8 @@ EntityLoader* Models::init_entity_loader(
 
 EntityLoader* Models::init_entity_loader(
   EntityLoader *entity_loader,
-  MemoryPool *memory_pool,
   ModelSource model_source,
-  real32 *vertex_data, uint32 n_vertices,
+  Vertex *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices,
   const char *name,
   GLenum mode,
