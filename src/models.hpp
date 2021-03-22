@@ -1,6 +1,11 @@
 #ifndef MODELS_HPP
 #define MODELS_HPP
 
+struct BoneInfo {
+  char name[MAX_BONE_NAME_LENGTH];
+  glm::mat4 offset;
+};
+
 enum class ModelSource {
   // Invalid.
   none,
@@ -14,8 +19,9 @@ struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
   glm::vec2 tex_coords;
-  int32 bone_ids[MAX_N_BONES] = {-1};
-  real32 bone_weights[MAX_N_BONES];
+  // -1 is an invalid ID
+  int32 bone_idxs[MAX_N_BONES_PER_VERTEX] = {-1};
+  real32 bone_weights[MAX_N_BONES_PER_VERTEX];
 };
 
 struct Mesh {
@@ -23,6 +29,8 @@ struct Mesh {
   glm::mat4 transform;
   char material_name[MAX_TOKEN_LENGTH];
   Pack indices_pack;
+  BoneInfo bone_info[MAX_N_BONES];
+  uint32 n_bones;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;

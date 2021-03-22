@@ -5,7 +5,7 @@
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 #define USE_CACHELINE_SIZE_DISPLAY false
-#define USE_FULLSCREEN true
+#define USE_FULLSCREEN false
 #define USE_WINDOWED_FULLSCREEN true
 #define TARGET_MONITOR 0
 
@@ -193,7 +193,7 @@ int main() {
 
   MemoryPool state_memory_pool = {};
   state_memory_pool.size = sizeof(State);
-  MemoryPool asset_memory_pool = {};
+  MemoryPool asset_memory_pool = {.size = MB_TO_B(1024)};
   MemoryPool entity_memory_pool = {};
 
   WindowInfo window_info;
