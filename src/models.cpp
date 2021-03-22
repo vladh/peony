@@ -1,17 +1,8 @@
-void Models::setup_mesh_vertex_buffers_for_data_source(
+void Models::setup_mesh_vertex_buffers(
   Mesh *mesh,
   real32 *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices
 ) {
-  /*
-  NOTE: The structure of the vertices is as follows.
-  [
-    (3): pos_x, pos_y, pos_z,
-    (3): normal_x, normal_y, normal_z,
-    (2): tex_coords_x, tex_coords_y
-    = (8)
-  ]
-  */
   assert(vertex_data && n_vertices > 0);
 
   uint32 vertex_size = sizeof(real32) * 8;
@@ -57,53 +48,8 @@ void Models::setup_mesh_vertex_buffers_for_data_source(
 }
 
 
-void Models::setup_mesh_vertex_buffers_for_file_source(Mesh *mesh) {
-  assert(mesh->n_vertices > 0);
-
-  glGenVertexArrays(1, &mesh->vao);
-  glGenBuffers(1, &mesh->vbo);
-  glGenBuffers(1, &mesh->ebo);
-
-  glBindVertexArray(mesh->vao);
-
-  glBindBuffer(GL_ARRAY_BUFFER, mesh->vbo);
-  glBufferData(
-    GL_ARRAY_BUFFER, sizeof(Vertex) * mesh->n_vertices,
-    mesh->vertices, GL_STATIC_DRAW
-  );
-
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->ebo);
-  glBufferData(
-    GL_ELEMENT_ARRAY_BUFFER, sizeof(uint32) * mesh->n_indices,
-    mesh->indices, GL_STATIC_DRAW
-  );
-
-  uint32 location;
-
-  location = 0;
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0
-  );
-
-  location = 1;
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal)
-  );
-
-  location = 2;
-  glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tex_coords)
-  );
-
-  Memory::destroy_memory_pool(&mesh->temp_memory_pool);
-}
-
-
 void Models::load_mesh(
-  Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
+  Mesh *mesh, aiMesh *ai_mesh, const aiScene *scene,
   glm::mat4 transform, Pack indices_pack
 ) {
   mesh->transform = transform;
@@ -118,46 +64,52 @@ void Models::load_mesh(
   // This is probably quite wasteful, but I haven't figured out a way to
   // elegantly use the data from assimp directly, and I don't think it's
   // possible.
-  if (!mesh_data->mNormals) {
+  if (!ai_mesh->mNormals) {
     log_warning("Model does not have normals.");
   }
 
-  mesh->n_vertices = mesh_data->mNumVertices;
+  mesh->n_vertices = ai_mesh->mNumVertices;
   mesh->vertices = (Vertex*)Memory::push(
     &mesh->temp_memory_pool,
     mesh->n_vertices * sizeof(Vertex),
     "mesh_vertices"
   );
 
-  for (uint32 idx = 0; idx < mesh_data->mNumVertices; idx++) {
+  for (uint32 idx = 0; idx < ai_mesh->mNumVertices; idx++) {
     Vertex *vertex = &mesh->vertices[idx];
+    *vertex = {};
 
-    glm::vec3 position;
-    position.x = mesh_data->mVertices[idx].x;
-    position.y = mesh_data->mVertices[idx].y;
-    position.z = mesh_data->mVertices[idx].z;
-    vertex->position = glm::vec3(mesh->transform * glm::vec4(position, 1.0));
+    vertex->position = glm::vec3(
+      mesh->transform *
+      glm::vec4(
+        ai_mesh->mVertices[idx].x,
+        ai_mesh->mVertices[idx].y,
+        ai_mesh->mVertices[idx].z,
+        1.0f
+      )
+    );
 
-    glm::vec3 normal;
-    normal.x = mesh_data->mNormals[idx].x;
-    normal.y = mesh_data->mNormals[idx].y;
-    normal.z = mesh_data->mNormals[idx].z;
-    vertex->normal = glm::normalize(normal_matrix * normal);
+    vertex->normal = glm::normalize(
+      normal_matrix *
+      glm::vec3(
+        ai_mesh->mNormals[idx].x,
+        ai_mesh->mNormals[idx].y,
+        ai_mesh->mNormals[idx].z
+      )
+    );
 
-    if (mesh_data->mTextureCoords[0]) {
-      glm::vec2 tex_coords;
-      tex_coords.x = mesh_data->mTextureCoords[0][idx].x;
-      tex_coords.y = 1 - mesh_data->mTextureCoords[0][idx].y;
-      vertex->tex_coords = tex_coords;
-    } else {
-      vertex->tex_coords = glm::vec2(0.0f, 0.0f);
+    if (ai_mesh->mTextureCoords[0]) {
+      vertex->tex_coords = glm::vec2(
+        ai_mesh->mTextureCoords[0][idx].x,
+        1 - ai_mesh->mTextureCoords[0][idx].y
+      );
     }
   }
 
   // Indices
   uint32 n_indices = 0;
-  for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
-    aiFace face = mesh_data->mFaces[idx_face];
+  for (uint32 idx_face = 0; idx_face < ai_mesh->mNumFaces; idx_face++) {
+    aiFace face = ai_mesh->mFaces[idx_face];
     n_indices += face.mNumIndices;
   }
 
@@ -169,8 +121,8 @@ void Models::load_mesh(
   );
   uint32 idx_index = 0;
 
-  for (uint32 idx_face = 0; idx_face < mesh_data->mNumFaces; idx_face++) {
-    aiFace face = mesh_data->mFaces[idx_face];
+  for (uint32 idx_face = 0; idx_face < ai_mesh->mNumFaces; idx_face++) {
+    aiFace face = ai_mesh->mFaces[idx_face];
     for (
       uint32 idx_face_index = 0;
       idx_face_index < face.mNumIndices;
@@ -198,12 +150,12 @@ void Models::load_node(
   glm::mat4 transform = accumulated_transform * node_transform;
 
   for_range (0, node->mNumMeshes) {
-    aiMesh *mesh_data = scene->mMeshes[node->mMeshes[idx]];
+    aiMesh *ai_mesh = scene->mMeshes[node->mMeshes[idx]];
     Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
     *mesh = {};
     load_mesh(
       mesh,
-      mesh_data, scene,
+      ai_mesh, scene,
       transform,
       indices_pack
     );
@@ -373,7 +325,12 @@ bool32 Models::prepare_model_and_check_if_done(
     if (entity_loader->model_source == ModelSource::file) {
       for (uint32 idx = 0; idx < entity_loader->n_meshes; idx++) {
         Mesh *mesh = &entity_loader->meshes[idx];
-        setup_mesh_vertex_buffers_for_file_source(mesh);
+        setup_mesh_vertex_buffers(
+          mesh,
+          (real32*)mesh->vertices, mesh->n_vertices,
+          mesh->indices, mesh->n_indices
+        );
+        Memory::destroy_memory_pool(&mesh->temp_memory_pool);
       }
     }
     entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
@@ -471,9 +428,7 @@ EntityLoader* Models::init_entity_loader(
   mesh->n_indices = n_indices;
   mesh->indices_pack = 0UL;
 
-  setup_mesh_vertex_buffers_for_data_source(
-    mesh, vertex_data, n_vertices, index_data, n_indices
-  );
+  setup_mesh_vertex_buffers(mesh, vertex_data, n_vertices, index_data, n_indices);
   entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
 
   return entity_loader;

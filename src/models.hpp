@@ -14,6 +14,8 @@ struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
   glm::vec2 tex_coords;
+  /* int32 bone_ids[MAX_N_BONES] = {-1}; */
+  /* real32 bone_weights[MAX_N_BONES]; */
 };
 
 struct Mesh {
@@ -66,12 +68,11 @@ namespace Models {
   constexpr uint8 MAX_N_MATERIALS = 128;
   constexpr char MODEL_DIR[] = "resources/models/";
 
-  void setup_mesh_vertex_buffers_for_data_source(
+  void setup_mesh_vertex_buffers(
     Mesh *mesh,
     real32 *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
   );
-  void setup_mesh_vertex_buffers_for_file_source(Mesh *mesh);
   void load_mesh(
     Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
     glm::mat4 transform, Pack indices_pack
