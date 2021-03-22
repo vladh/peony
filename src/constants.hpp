@@ -23,5 +23,6 @@ constexpr uint32 MAX_N_MATERIALS = 256;
 constexpr uint32 MAX_N_MATERIALS_PER_MODEL = 16;
 constexpr uint32 MAX_N_TEXTURES_PER_MATERIAL = 16;
 constexpr uint32 MAX_TOKEN_LENGTH = 128;
+constexpr uint32 MAX_N_BONES = 4;
 
 #endif
