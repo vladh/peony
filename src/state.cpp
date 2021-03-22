@@ -30,14 +30,14 @@ State* init_state(
 
   state->dir_light_angle = PI32 / 4.0f;
 
+  state->entity_loader_set = {
+    .loaders = Array<EntityLoader>(
+      asset_memory_pool, 256, "entity_loaders", true
+    )
+  };
   state->entity_set = {
     .entities = Array<Entity>(
       entity_memory_pool, 4096, "entities", true
-    )
-  };
-  state->entity_loader_set = {
-    .loaders = Array<EntityLoader>(
-      entity_memory_pool, 512, "entity_loaders", true
     )
   };
   state->drawable_component_set = {

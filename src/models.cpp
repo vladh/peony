@@ -52,14 +52,14 @@ void Models::setup_mesh_vertex_buffers(
   location = 3;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    location, MAX_N_BONES, GL_INT, GL_FALSE, vertex_size,
-    (void*)offsetof(Vertex, bone_ids)
+    location, MAX_N_BONES_PER_VERTEX, GL_INT, GL_FALSE, vertex_size,
+    (void*)offsetof(Vertex, bone_idxs)
   );
 
   location = 4;
   glEnableVertexAttribArray(location);
   glVertexAttribPointer(
-    location, MAX_N_BONES, GL_FLOAT, GL_FALSE, vertex_size,
+    location, MAX_N_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, vertex_size,
     (void*)offsetof(Vertex, bone_weights)
   );
 }
@@ -76,11 +76,6 @@ void Models::load_mesh(
   mesh->indices_pack = indices_pack;
 
   // Vertices
-  // NOTE: We're duplicating the vertex and index data because the format
-  // assimp gives us the data in is not something we can directly use.
-  // This is probably quite wasteful, but I haven't figured out a way to
-  // elegantly use the data from assimp directly, and I don't think it's
-  // possible.
   if (!ai_mesh->mNormals) {
     log_warning("Model does not have normals.");
   }
@@ -146,6 +141,33 @@ void Models::load_mesh(
       idx_face_index++
     ) {
       mesh->indices[idx_index++] = face.mIndices[idx_face_index];
+    }
+  }
+
+  // Bones
+  assert(ai_mesh->mNumBones < MAX_N_BONES);
+  for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
+    auto bone = ai_mesh->mBones[idx_bone];
+    int32 idx_in_bone_info = mesh->n_bones;
+    mesh->bone_info[idx_in_bone_info] = {
+      .offset = Util::aimatrix4x4_to_glm(&bone->mOffsetMatrix),
+    };
+    // TODO: Fix string handling, BoneInfo.name is only 32 big.
+    strcpy(mesh->bone_info[idx_in_bone_info].name, bone->mName.C_Str());
+    mesh->n_bones++;
+
+    for_range_named (idx_weight, 0, bone->mNumWeights) {
+      uint32 vertex_idx = bone->mWeights[idx_weight].mVertexId;
+      real32 weight = bone->mWeights[idx_weight].mWeight;
+      assert(vertex_idx < mesh->n_vertices);
+      for_range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
+        // Put it in the next free space, if there is any.
+        if (mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] == -1) {
+          mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] = idx_in_bone_info;
+          mesh->vertices[vertex_idx].bone_weights[idx_vertex_weight] = weight;
+          break;
+        }
+      }
     }
   }
 }
