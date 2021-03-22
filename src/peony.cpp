@@ -255,12 +255,8 @@ int main() {
     &asset_memory_pool, &state->builtin_textures
   );
   Renderer::init_ubo(state);
-  World::init(&asset_memory_pool, state);
-  World::load_scene(
-    "data/scenes/demo.peony_scene",
-    &asset_memory_pool,
-    state
-  );
+  World::init(state);
+  World::load_scene("data/scenes/demo.peony_scene", state);
 
   Materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 

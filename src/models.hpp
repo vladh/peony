@@ -14,8 +14,8 @@ struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
   glm::vec2 tex_coords;
-  /* int32 bone_ids[MAX_N_BONES] = {-1}; */
-  /* real32 bone_weights[MAX_N_BONES]; */
+  int32 bone_ids[MAX_N_BONES] = {-1};
+  real32 bone_weights[MAX_N_BONES];
 };
 
 struct Mesh {
@@ -70,7 +70,7 @@ namespace Models {
 
   void setup_mesh_vertex_buffers(
     Mesh *mesh,
-    real32 *vertex_data, uint32 n_vertices,
+    Vertex *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
   );
   void load_mesh(
@@ -107,7 +107,6 @@ namespace Models {
   );
   EntityLoader* init_entity_loader(
     EntityLoader *entity_loader,
-    MemoryPool *memory_pool,
     ModelSource model_source,
     const char *name,
     const char *path,
@@ -116,9 +115,8 @@ namespace Models {
   );
   EntityLoader* init_entity_loader(
     EntityLoader *entity_loader,
-    MemoryPool *memory_pool,
     ModelSource model_source,
-    real32 *vertex_data, uint32 n_vertices,
+    Vertex *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices,
     const char *name,
     GLenum mode,
