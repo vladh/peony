@@ -1,7 +1,7 @@
 #ifndef MODELS_HPP
 #define MODELS_HPP
 
-struct BoneInfo {
+struct Bone {
   char name[MAX_BONE_NAME_LENGTH];
   glm::mat4 offset;
 };
@@ -29,7 +29,7 @@ struct Mesh {
   glm::mat4 transform;
   char material_name[MAX_TOKEN_LENGTH];
   Pack indices_pack;
-  BoneInfo bone_info[MAX_N_BONES];
+  Bone bone_info[MAX_N_BONES];
   uint32 n_bones;
   uint32 vao;
   uint32 vbo;
