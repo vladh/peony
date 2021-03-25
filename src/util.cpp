@@ -261,6 +261,16 @@ namespace Util {
   }
 
 
+  glm::vec3 aiVector3D_to_glm(aiVector3D *vec) {
+    return glm::vec3(vec->x, vec->y, vec->z);
+  }
+
+
+  glm::quat aiQuaternion_to_glm(aiQuaternion *quat) {
+    return glm::quat(quat->w, quat->x, quat->y, quat->z);
+  }
+
+
   glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4 *from) {
     glm::mat4 to;
 

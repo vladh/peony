@@ -29,6 +29,8 @@ namespace Util {
     uint32 *n_vertices, uint32 *n_indices,
     real32 **vertex_data, uint32 **index_data
   );
+  glm::vec3 aiVector3D_to_glm(aiVector3D *vec);
+  glm::quat aiQuaternion_to_glm(aiQuaternion *quat);
   glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from);
   void print_texture_internalformat_info(GLenum internal_format);
   void APIENTRY debug_message_callback(
