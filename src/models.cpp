@@ -152,27 +152,28 @@ void Models::load_mesh(
   assert(ai_mesh->mNumBones < MAX_N_BONES);
   for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
     auto ai_bone = ai_mesh->mBones[idx_bone];
+    AnimationComponent *animation_component = &entity_loader->animation_component;
     uint32 idx_found_bone = 0;
     bool32 did_find_bone = false;
 
-    for_range_named (idx_entity_loader_bone, 0, entity_loader->n_bones) {
+    for_range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
       if (Str::eq(
-        entity_loader->bones[idx_entity_loader_bone].name, ai_bone->mName.C_Str())
+        animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str())
       ) {
         did_find_bone = true;
-        idx_found_bone = idx_entity_loader_bone;
+        idx_found_bone = idx_animcomp_bone;
         break;
       }
     }
 
     if (!did_find_bone) {
-      idx_found_bone = entity_loader->n_bones;
-      entity_loader->bones[idx_found_bone] = {
+      idx_found_bone = animation_component->n_bones;
+      animation_component->bones[idx_found_bone] = {
         .offset = Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix),
       };
       // TODO: Fix string handling, Bone.name is only 32 bytes big.
-      strcpy(entity_loader->bones[idx_found_bone].name, ai_bone->mName.C_Str());
-      entity_loader->n_bones++;
+      strcpy(animation_component->bones[idx_found_bone].name, ai_bone->mName.C_Str());
+      animation_component->n_bones++;
     }
 
     for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
@@ -281,32 +282,50 @@ void Models::create_entities(
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
   LightComponentSet *light_component_set,
-  BehaviorComponentSet *behavior_component_set
+  BehaviorComponentSet *behavior_component_set,
+  AnimationComponentSet *animation_component_set
 ) {
-  if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
-    SpatialComponent *spatial_component = spatial_component_set->components.get(
-      entity_loader->spatial_component.entity_handle
-    );
-    assert(spatial_component);
-    *spatial_component = entity_loader->spatial_component;
-  }
+  SpatialComponent *spatial_component = spatial_component_set->components.get(
+    entity_loader->entity_handle
+  );
+  memcpy(
+    spatial_component,
+    &entity_loader->spatial_component,
+    sizeof(SpatialComponent)
+  );
+  spatial_component->entity_handle = entity_loader->entity_handle;
 
-  if (Entities::is_light_component_valid(&entity_loader->light_component)) {
-    LightComponent *light_component = light_component_set->components.get(
-      entity_loader->light_component.entity_handle
-    );
-    assert(light_component);
-    *light_component = entity_loader->light_component;
-  }
+  LightComponent *light_component = light_component_set->components.get(
+    entity_loader->entity_handle
+  );
+  memcpy(
+    light_component,
+    &entity_loader->light_component,
+    sizeof(LightComponent)
+  );
+  light_component->entity_handle = entity_loader->entity_handle;
 
-  if (Entities::is_behavior_component_valid(&entity_loader->behavior_component)) {
-    BehaviorComponent *behavior_component = behavior_component_set->components.get(
-      entity_loader->behavior_component.entity_handle
-    );
-    assert(behavior_component);
-    *behavior_component = entity_loader->behavior_component;
-  }
+  BehaviorComponent *behavior_component = behavior_component_set->components.get(
+    entity_loader->entity_handle
+  );
+  memcpy(
+    behavior_component,
+    &entity_loader->behavior_component,
+    sizeof(BehaviorComponent)
+  );
+  behavior_component->entity_handle = entity_loader->entity_handle;
 
+  AnimationComponent *animation_component = animation_component_set->components.get(
+    entity_loader->entity_handle
+  );
+  memcpy(
+    animation_component,
+    &entity_loader->animation_component,
+    sizeof(AnimationComponent)
+  );
+  animation_component->entity_handle = entity_loader->entity_handle;
+
+  // DrawableComponent
   if (entity_loader->n_meshes == 1) {
     DrawableComponent *drawable_component = drawable_component_set->components.get(
       entity_loader->entity_handle
@@ -327,11 +346,10 @@ void Models::create_entities(
       );
 
       if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
-        SpatialComponent *spatial_component = spatial_component_set->components.get(
-          child_entity->handle
-        );
-        assert(spatial_component);
-        *spatial_component = {
+        SpatialComponent *child_spatial_component =
+          spatial_component_set->components.get(child_entity->handle);
+        assert(child_spatial_component);
+        *child_spatial_component = {
           .entity_handle = child_entity->handle,
           .position = glm::vec3(0.0f),
           .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
@@ -363,7 +381,8 @@ bool32 Models::prepare_model_and_check_if_done(
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
   LightComponentSet *light_component_set,
-  BehaviorComponentSet *behavior_component_set
+  BehaviorComponentSet *behavior_component_set,
+  AnimationComponentSet *animation_component_set
 ) {
   if (entity_loader->state == EntityLoaderState::initialized) {
     task_queue->push({
@@ -425,7 +444,8 @@ bool32 Models::prepare_model_and_check_if_done(
       drawable_component_set,
       spatial_component_set,
       light_component_set,
-      behavior_component_set
+      behavior_component_set,
+      animation_component_set
     );
 
     entity_loader->state = EntityLoaderState::complete;

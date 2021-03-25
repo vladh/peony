@@ -43,6 +43,10 @@ struct BehaviorComponentSet {
   Array<BehaviorComponent> components;
 };
 
+struct AnimationComponentSet {
+  Array<AnimationComponent> components;
+};
+
 namespace EntitySets {
   EntityHandle make_handle(EntitySet *entity_set);
   Entity* add_entity_to_set(

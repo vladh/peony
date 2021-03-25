@@ -60,6 +60,11 @@ State* init_state(
       entity_memory_pool, 4096, "behavior_components", true
     )
   };
+  state->animation_component_set = {
+    .components = Array<AnimationComponent>(
+      entity_memory_pool, 4096, "animation_components", true
+    )
+  };
 
   return state;
 }

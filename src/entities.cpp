@@ -29,6 +29,13 @@ bool32 Entities::is_behavior_component_valid(
 }
 
 
+bool32 Entities::is_animation_component_valid(
+  AnimationComponent *animation_component
+) {
+  return animation_component->n_bones > 0;
+}
+
+
 const char* Entities::light_type_to_string(LightType light_type) {
   if (light_type == LightType::none) {
     return "none";

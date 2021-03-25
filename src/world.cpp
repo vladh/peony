@@ -29,6 +29,9 @@ void World::get_entity_text_representation(
   bool32 has_behavior_component = Entities::is_behavior_component_valid(
     state->behavior_component_set.components.get(handle)
   );
+  bool32 has_animation_component = Entities::is_animation_component_valid(
+    state->animation_component_set.components.get(handle)
+  );
 
   for (uint8 level = 0; level < depth; level++) {
     strcat(text, "  ");
@@ -46,7 +49,8 @@ void World::get_entity_text_representation(
     !has_spatial_component &&
     !has_drawable_component &&
     !has_light_component &&
-    !has_behavior_component
+    !has_behavior_component &&
+    !has_animation_component
   ) {
     strcat(text, " (orphan)");
   }
@@ -62,6 +66,9 @@ void World::get_entity_text_representation(
   }
   if (has_behavior_component) {
     strcat(text, " +B");
+  }
+  if (has_animation_component) {
+    strcat(text, " +A");
   }
 
   if (Entities::is_spatial_component_valid(spatial_component)) {
@@ -235,32 +242,24 @@ void World::create_entity_loader_from_entity_template(
     log_fatal("Did not find any models to init entity loader with.");
   }
 
-  if (Entities::is_spatial_component_valid(&entity_template->spatial_component)) {
-    entity_loader->spatial_component = {
-      .entity_handle = entity->handle,
-      .position = entity_template->spatial_component.position,
-      .rotation = entity_template->spatial_component.rotation,
-      .scale = entity_template->spatial_component.scale,
-      // TODO: Add support for parents! Forgot about this.
-    };
-  }
+  // TODO: Add support for parents! Forgot about this.
+  memcpy(
+    &entity_loader->spatial_component,
+    &entity_template->spatial_component,
+    sizeof(SpatialComponent)
+  );
 
-  if (Entities::is_light_component_valid(&entity_template->light_component)) {
-    entity_loader->light_component = {
-      .entity_handle = entity->handle,
-      .type = entity_template->light_component.type,
-      .direction = entity_template->light_component.direction,
-      .color = entity_template->light_component.color,
-      .attenuation = entity_template->light_component.attenuation,
-    };
-  }
+  memcpy(
+    &entity_loader->light_component,
+    &entity_template->light_component,
+    sizeof(LightComponent)
+  );
 
-  if (Entities::is_behavior_component_valid(&entity_template->behavior_component)) {
-    entity_loader->behavior_component = {
-      .entity_handle = entity->handle,
-      .behavior = entity_template->behavior_component.behavior,
-    };
-  }
+  memcpy(
+    &entity_loader->behavior_component,
+    &entity_template->behavior_component,
+    sizeof(BehaviorComponent)
+  );
 
   assert(
     sizeof(entity_loader->material_names) == sizeof(entity_template->material_names)
@@ -717,7 +716,8 @@ bool32 World::check_all_entities_loaded(State *state) {
       &state->drawable_component_set,
       &state->spatial_component_set,
       &state->light_component_set,
-      &state->behavior_component_set
+      &state->behavior_component_set,
+      &state->animation_component_set
     );
     if (!is_done_loading) {
       are_all_done_loading = false;
