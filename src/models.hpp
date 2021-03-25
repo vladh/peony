@@ -29,8 +29,6 @@ struct Mesh {
   glm::mat4 transform;
   char material_name[MAX_TOKEN_LENGTH];
   Pack indices_pack;
-  Bone bone_info[MAX_N_BONES];
-  uint32 n_bones;
   uint32 vao;
   uint32 vbo;
   uint32 ebo;
@@ -58,6 +56,8 @@ struct EntityLoader {
   uint32 n_materials;
   Mesh meshes[MAX_N_MESHES];
   uint32 n_meshes;
+  Bone bones[MAX_N_BONES];
+  uint32 n_bones;
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
@@ -82,8 +82,12 @@ namespace Models {
     uint32 *index_data, uint32 n_indices
   );
   void load_mesh(
-    Mesh *mesh, aiMesh *mesh_data, const aiScene *scene,
-    glm::mat4 transform, Pack indices_pack
+    Mesh *mesh,
+    aiMesh *mesh_data,
+    const aiScene *scene,
+    EntityLoader *entity_loader,
+    glm::mat4 transform,
+    Pack indices_pack
   );
   void destroy_mesh(Mesh *mesh);
   void load_node(

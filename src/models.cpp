@@ -66,8 +66,12 @@ void Models::setup_mesh_vertex_buffers(
 
 
 void Models::load_mesh(
-  Mesh *mesh, aiMesh *ai_mesh, const aiScene *scene,
-  glm::mat4 transform, Pack indices_pack
+  Mesh *mesh,
+  aiMesh *ai_mesh,
+  const aiScene *scene,
+  EntityLoader *entity_loader,
+  glm::mat4 transform,
+  Pack indices_pack
 ) {
   mesh->transform = transform;
   glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(transform)));
@@ -147,23 +151,38 @@ void Models::load_mesh(
   // Bones
   assert(ai_mesh->mNumBones < MAX_N_BONES);
   for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
-    auto bone = ai_mesh->mBones[idx_bone];
-    int32 idx_in_bone_info = mesh->n_bones;
-    mesh->bone_info[idx_in_bone_info] = {
-      .offset = Util::aimatrix4x4_to_glm(&bone->mOffsetMatrix),
-    };
-    // TODO: Fix string handling, Bone.name is only 32 big.
-    strcpy(mesh->bone_info[idx_in_bone_info].name, bone->mName.C_Str());
-    mesh->n_bones++;
+    auto ai_bone = ai_mesh->mBones[idx_bone];
+    uint32 idx_found_bone = 0;
+    bool32 did_find_bone = false;
 
-    for_range_named (idx_weight, 0, bone->mNumWeights) {
-      uint32 vertex_idx = bone->mWeights[idx_weight].mVertexId;
-      real32 weight = bone->mWeights[idx_weight].mWeight;
+    for_range_named (idx_entity_loader_bone, 0, entity_loader->n_bones) {
+      if (Str::eq(
+        entity_loader->bones[idx_entity_loader_bone].name, ai_bone->mName.C_Str())
+      ) {
+        did_find_bone = true;
+        idx_found_bone = idx_entity_loader_bone;
+        break;
+      }
+    }
+
+    if (!did_find_bone) {
+      idx_found_bone = entity_loader->n_bones;
+      entity_loader->bones[idx_found_bone] = {
+        .offset = Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix),
+      };
+      // TODO: Fix string handling, Bone.name is only 32 bytes big.
+      strcpy(entity_loader->bones[idx_found_bone].name, ai_bone->mName.C_Str());
+      entity_loader->n_bones++;
+    }
+
+    for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
+      uint32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
+      real32 weight = ai_bone->mWeights[idx_weight].mWeight;
       assert(vertex_idx < mesh->n_vertices);
       for_range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
         // Put it in the next free space, if there is any.
         if (mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] == -1) {
-          mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] = idx_in_bone_info;
+          mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] = idx_found_bone;
           mesh->vertices[vertex_idx].bone_weights[idx_vertex_weight] = weight;
           break;
         }
@@ -194,7 +213,9 @@ void Models::load_node(
     *mesh = {};
     load_mesh(
       mesh,
-      ai_mesh, scene,
+      ai_mesh,
+      scene,
+      entity_loader,
       transform,
       indices_pack
     );
