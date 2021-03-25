@@ -30,17 +30,17 @@ struct Bone {
 
 struct PositionKey {
   glm::vec3 position;
-  real32 time;
+  real64 time;
 };
 
 struct RotationKey {
   glm::quat rotation;
-  real32 time;
+  real64 time;
 };
 
 struct ScalingKey {
   glm::vec3 scale;
-  real32 time;
+  real64 time;
 };
 
 struct AnimChannel {
@@ -54,8 +54,8 @@ struct AnimChannel {
 
 struct Animation {
   char name[MAX_NODE_NAME_LENGTH];
-  uint32 duration;
-  uint32 ticks_per_second;
+  real64 duration;
+  real64 ticks_per_second;
   // TODO: Make this a pointer to something that lives elsewhere.
   AnimChannel anim_channels[MAX_N_BONES];
   uint32 n_anim_channels;

@@ -151,7 +151,7 @@ void Models::load_mesh(
   // Bones
   assert(ai_mesh->mNumBones < MAX_N_BONES);
   for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
-    auto ai_bone = ai_mesh->mBones[idx_bone];
+    aiBone *ai_bone = ai_mesh->mBones[idx_bone];
     AnimationComponent *animation_component = &entity_loader->animation_component;
     uint32 idx_found_bone = 0;
     bool32 did_find_bone = false;
@@ -239,8 +239,66 @@ void Models::load_animations(
   EntityLoader *entity_loader,
   const aiScene *scene
 ) {
-  for_range (0, scene->mNumAnimations) {
-    log_info("animation %d for %s", idx, entity_loader->name);
+  entity_loader->animation_component.n_animations = scene->mNumAnimations;
+  for_range_named (idx_animation, 0, scene->mNumAnimations) {
+    Animation *animation =
+      &entity_loader->animation_component.animations[idx_animation];
+    aiAnimation *ai_animation = scene->mAnimations[idx_animation];
+    strcpy(animation->name, ai_animation->mName.C_Str());
+    animation->duration = ai_animation->mDuration;
+    animation->ticks_per_second = ai_animation->mTicksPerSecond;
+
+    log_info(
+      "animation %d for %s (dur %f)",
+      idx_animation,
+      entity_loader->name,
+      animation->duration
+    );
+
+    animation->n_anim_channels = ai_animation->mNumChannels;
+    for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
+      aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
+      AnimChannel *channel = &animation->anim_channels[idx_channel];
+      *channel = {
+        .n_position_keys = ai_channel->mNumPositionKeys,
+        .n_rotation_keys = ai_channel->mNumRotationKeys,
+        .n_scaling_keys = ai_channel->mNumScalingKeys,
+      };
+      log_info(
+        "channel %d: %d position, %d rotation, %d scaling",
+        idx_channel,
+        channel->n_position_keys,
+        channel->n_rotation_keys,
+        channel->n_scaling_keys
+      );
+
+      for_range_named (idx_key, 0, ai_channel->mNumPositionKeys) {
+        channel->position_keys[idx_key] = {
+          .position = Util::aiVector3D_to_glm(
+            &ai_channel->mPositionKeys[idx_key].mValue
+          ),
+          .time = ai_channel->mPositionKeys[idx_key].mTime,
+        };
+      }
+
+      for_range_named (idx_key, 0, ai_channel->mNumRotationKeys) {
+        channel->rotation_keys[idx_key] = {
+          .rotation = Util::aiQuaternion_to_glm(
+            &ai_channel->mRotationKeys[idx_key].mValue
+          ),
+          .time = ai_channel->mRotationKeys[idx_key].mTime,
+        };
+      }
+
+      for_range_named (idx_key, 0, ai_channel->mNumScalingKeys) {
+        channel->scaling_keys[idx_key] = {
+          .scale = Util::aiVector3D_to_glm(
+            &ai_channel->mScalingKeys[idx_key].mValue
+          ),
+          .time = ai_channel->mScalingKeys[idx_key].mTime,
+        };
+      }
+    }
   }
 }
 
