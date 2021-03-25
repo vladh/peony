@@ -78,14 +78,12 @@ struct State {
 
 struct MemoryAndState {
   MemoryPool *asset_memory_pool;
-  MemoryPool *entity_memory_pool;
   State *state;
 };
 
 State* init_state(
   State *state,
   MemoryPool *asset_memory_pool,
-  MemoryPool *entity_memory_pool,
   WindowInfo window_info
 );
 

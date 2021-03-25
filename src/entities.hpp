@@ -24,14 +24,49 @@ struct BehaviorComponent {
 };
 
 struct Bone {
-  char name[MAX_BONE_NAME_LENGTH];
+  char name[MAX_NODE_NAME_LENGTH];
   glm::mat4 offset;
+};
+
+struct PositionKey {
+  glm::vec3 position;
+  real32 time;
+};
+
+struct RotationKey {
+  glm::quat rotation;
+  real32 time;
+};
+
+struct ScalingKey {
+  glm::vec3 scale;
+  real32 time;
+};
+
+struct AnimChannel {
+  PositionKey position_keys[MAX_N_ANIM_KEYS];
+  uint32 n_position_keys;
+  RotationKey rotation_keys[MAX_N_ANIM_KEYS];
+  uint32 n_rotation_keys;
+  ScalingKey scaling_keys[MAX_N_ANIM_KEYS];
+  uint32 n_scaling_keys;
+};
+
+struct Animation {
+  char name[MAX_NODE_NAME_LENGTH];
+  uint32 duration;
+  uint32 ticks_per_second;
+  // TODO: Make this a pointer to something that lives elsewhere.
+  AnimChannel anim_channels[MAX_N_BONES];
+  uint32 n_anim_channels;
 };
 
 struct AnimationComponent {
   EntityHandle entity_handle;
   Bone bones[MAX_N_BONES];
   uint32 n_bones;
+  Animation animations[MAX_N_ANIMATIONS];
+  uint32 n_animations;
 };
 
 enum class LightType {none, point, directional};

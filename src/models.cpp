@@ -224,13 +224,23 @@ void Models::load_node(
 
   for_range (0, node->mNumChildren) {
     Pack new_indices_pack = indices_pack;
-    // NOTE: We can only store 4 bits per pack element. Our indices can be way bigger than
-    // that, but that's fine. We don't need that much precision. Just smash the number down
-    // to a uint8.
+    // NOTE: We can only store 4 bits per pack element. Our indices can be way
+    // bigger than that, but that's fine. We don't need that much precision.
+    // Just smash the number down to a uint8.
     pack_push(&new_indices_pack, (uint8)idx);
     load_node(
       entity_loader, node->mChildren[idx], scene, transform, new_indices_pack
     );
+  }
+}
+
+
+void Models::load_animations(
+  EntityLoader *entity_loader,
+  const aiScene *scene
+) {
+  for_range (0, scene->mNumAnimations) {
+    log_info("animation %d for %s", idx, entity_loader->name);
   }
 }
 
@@ -267,6 +277,10 @@ void Models::load_model(EntityLoader *entity_loader) {
 
     load_node(
       entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+    );
+
+    load_animations(
+      entity_loader, scene
     );
 
     aiReleaseImport(scene);
