@@ -152,7 +152,7 @@ void Models::load_mesh(
     mesh->bone_info[idx_in_bone_info] = {
       .offset = Util::aimatrix4x4_to_glm(&bone->mOffsetMatrix),
     };
-    // TODO: Fix string handling, BoneInfo.name is only 32 big.
+    // TODO: Fix string handling, Bone.name is only 32 big.
     strcpy(mesh->bone_info[idx_in_bone_info].name, bone->mName.C_Str());
     mesh->n_bones++;
 
