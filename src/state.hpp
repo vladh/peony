@@ -52,6 +52,7 @@ struct State {
   LightComponentSet light_component_set;
   SpatialComponentSet spatial_component_set;
   BehaviorComponentSet behavior_component_set;
+  AnimationComponentSet animation_component_set;
 
   real32 heading_opacity;
   const char *heading_text;

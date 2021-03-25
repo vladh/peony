@@ -3,6 +3,7 @@
 
 struct Mesh;
 
+// NOTE: 0 is an invalid handle.
 typedef uint32 EntityHandle;
 
 struct Entity {
@@ -18,14 +19,25 @@ enum class Behavior {
 };
 
 struct BehaviorComponent {
-  EntityHandle entity_handle = Entity::no_entity_handle;
+  EntityHandle entity_handle;
   Behavior behavior = Behavior::none;
+};
+
+struct Bone {
+  char name[MAX_BONE_NAME_LENGTH];
+  glm::mat4 offset;
+};
+
+struct AnimationComponent {
+  EntityHandle entity_handle;
+  Bone bones[MAX_N_BONES];
+  uint32 n_bones;
 };
 
 enum class LightType {none, point, directional};
 
 struct LightComponent {
-  EntityHandle entity_handle = Entity::no_entity_handle;
+  EntityHandle entity_handle;
   LightType type = LightType::none;
   glm::vec3 direction = glm::vec3(0.0f);
   glm::vec4 color = glm::vec4(0.0f);
@@ -33,11 +45,11 @@ struct LightComponent {
 };
 
 struct SpatialComponent {
-  EntityHandle entity_handle = Entity::no_entity_handle;
+  EntityHandle entity_handle;
   glm::vec3 position = glm::vec3(0.0f);
   glm::quat rotation = glm::angleAxis(0.0f, glm::vec3(0.0f));
   glm::vec3 scale = glm::vec3(0.0f);
-  EntityHandle parent_entity_handle = Entity::no_entity_handle;
+  EntityHandle parent_entity_handle;
 };
 
 namespace Entities {
@@ -45,6 +57,10 @@ namespace Entities {
   Behavior behavior_from_string(const char *str);
   bool32 is_behavior_component_valid(
     BehaviorComponent *behavior_component
+  );
+
+  bool32 is_animation_component_valid(
+    AnimationComponent *animation_component
   );
 
   const char* light_type_to_string(LightType light_type);

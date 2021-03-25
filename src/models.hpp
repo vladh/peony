@@ -1,11 +1,6 @@
 #ifndef MODELS_HPP
 #define MODELS_HPP
 
-struct Bone {
-  char name[MAX_BONE_NAME_LENGTH];
-  glm::mat4 offset;
-};
-
 enum class ModelSource {
   // Invalid.
   none,
@@ -56,18 +51,17 @@ struct EntityLoader {
   uint32 n_materials;
   Mesh meshes[MAX_N_MESHES];
   uint32 n_meshes;
-  Bone bones[MAX_N_BONES];
-  uint32 n_bones;
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
+  AnimationComponent animation_component;
   RenderPassFlag render_pass;
   EntityLoaderState state;
 };
 
 struct DrawableComponent {
-  EntityHandle entity_handle = Entity::no_entity_handle;
+  EntityHandle entity_handle;
   Mesh mesh;
   RenderPassFlag target_render_pass = RenderPass::none;
 };
@@ -104,7 +98,8 @@ namespace Models {
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     LightComponentSet *light_component_set,
-    BehaviorComponentSet *behavior_component_set
+    BehaviorComponentSet *behavior_component_set,
+    AnimationComponentSet *animation_component_set
   );
   bool32 prepare_model_and_check_if_done(
     EntityLoader *entity_loader,
@@ -115,7 +110,8 @@ namespace Models {
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     LightComponentSet *light_component_set,
-    BehaviorComponentSet *behavior_component_set
+    BehaviorComponentSet *behavior_component_set,
+    AnimationComponentSet *animation_component_set
   );
   EntityLoader* init_entity_loader(
     EntityLoader *entity_loader,
