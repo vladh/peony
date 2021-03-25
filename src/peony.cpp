@@ -193,8 +193,7 @@ int main() {
 
   MemoryPool state_memory_pool = {};
   state_memory_pool.size = sizeof(State);
-  MemoryPool asset_memory_pool = {.size = MB_TO_B(1024)};
-  MemoryPool entity_memory_pool = {};
+  MemoryPool asset_memory_pool = {.size = MB_TO_B(4096)};
 
   WindowInfo window_info;
   START_TIMER(init_window);
@@ -209,7 +208,6 @@ int main() {
       &state_memory_pool, sizeof(State), "state"
     ),
     &asset_memory_pool,
-    &entity_memory_pool,
     window_info
   );
 
@@ -238,7 +236,7 @@ int main() {
 
   Renderer::update_drawing_options(state, window_info.window);
 
-  MemoryAndState memory_and_state = {&asset_memory_pool, &entity_memory_pool, state};
+  MemoryAndState memory_and_state = {&asset_memory_pool, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
   Materials::init_texture_name_pool(&state->texture_name_pool, &asset_memory_pool, 64, 4);
@@ -297,7 +295,6 @@ int main() {
   Renderer::destroy_window();
   Memory::destroy_memory_pool(&state_memory_pool);
   Memory::destroy_memory_pool(&asset_memory_pool);
-  Memory::destroy_memory_pool(&entity_memory_pool);
 
   log_info("Bye!");
 

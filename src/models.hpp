@@ -89,6 +89,10 @@ namespace Models {
     aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
+  void load_animations(
+    EntityLoader *entity_loader,
+    const aiScene *scene
+  );
   void load_model(
     EntityLoader *entity_loader
   );

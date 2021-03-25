@@ -16,6 +16,8 @@ constexpr real64 PI = 3.14159265358979323846;
 #endif
 #endif
 
+constexpr uint32 MAX_N_ENTITIES = 256;
+constexpr uint32 MAX_N_MODELS = 128;
 constexpr uint32 MAX_DEBUG_NAME_LENGTH = 256;
 constexpr uint32 MAX_GENEROUS_STRING_LENGTH = 512;
 constexpr uint32 MAX_N_MESHES = 128;
@@ -25,6 +27,8 @@ constexpr uint32 MAX_N_TEXTURES_PER_MATERIAL = 16;
 constexpr uint32 MAX_TOKEN_LENGTH = 128;
 constexpr uint32 MAX_N_BONES = 128;
 constexpr uint32 MAX_N_BONES_PER_VERTEX = 4;
-constexpr uint32 MAX_BONE_NAME_LENGTH = 32;
+constexpr uint32 MAX_NODE_NAME_LENGTH = 32;
+constexpr uint32 MAX_N_ANIMATIONS = 2;
+constexpr uint32 MAX_N_ANIM_KEYS = 512;
 
 #endif

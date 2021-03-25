@@ -1,7 +1,6 @@
 State* init_state(
   State *state,
   MemoryPool *asset_memory_pool,
-  MemoryPool *entity_memory_pool,
   WindowInfo window_info
 ) {
   state->window_info = window_info;
@@ -17,7 +16,7 @@ State* init_state(
   state->heading_fadeout_duration = 1.0f;
   state->heading_fadeout_delay = 2.0f;
 
-  state->task_queue = Queue<Task>(entity_memory_pool, 128, "task_queue");
+  state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
 
   state->builtin_textures = {
     .cube_shadowmap_width = state->window_info.width,
@@ -32,37 +31,37 @@ State* init_state(
 
   state->entity_loader_set = {
     .loaders = Array<EntityLoader>(
-      asset_memory_pool, 256, "entity_loaders", true
+      asset_memory_pool, MAX_N_MODELS, "entity_loaders", true
     )
   };
   state->entity_set = {
     .entities = Array<Entity>(
-      entity_memory_pool, 4096, "entities", true
+      asset_memory_pool, MAX_N_ENTITIES, "entities", true
     )
   };
   state->drawable_component_set = {
     .components = Array<DrawableComponent>(
-      entity_memory_pool, 4096, "drawable_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true
     )
   };
   state->light_component_set = {
     .components = Array<LightComponent>(
-      entity_memory_pool, 4096, "light_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "light_components", true
     )
   };
   state->spatial_component_set = {
     .components = Array<SpatialComponent>(
-      entity_memory_pool, 4096, "spatial_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true
     )
   };
   state->behavior_component_set = {
     .components = Array<BehaviorComponent>(
-      entity_memory_pool, 4096, "behavior_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true
     )
   };
   state->animation_component_set = {
     .components = Array<AnimationComponent>(
-      entity_memory_pool, 4096, "animation_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "animation_components", true
     )
   };
 
