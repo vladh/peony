@@ -8,9 +8,9 @@ out vec4 frag_color;
 uniform sampler2D atlas_texture;
 
 void main() {
-  float opacity = 1.0f;
+  float opacity = 1.0;
 
-  if (fs_in.tex_coords.x > 0.0 && fs_in.tex_coords.y > 0.0f) {
+  if (fs_in.tex_coords.x > 0.0 && fs_in.tex_coords.y > 0.0) {
     opacity = texture(
       atlas_texture, fs_in.tex_coords
     ).r;

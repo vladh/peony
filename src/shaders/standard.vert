@@ -1,9 +1,12 @@
 uniform mat4 model_matrix;
 uniform mat3 model_normal_matrix;
+uniform mat4 bone_matrices[MAX_N_BONES];
 
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec2 tex_coords;
+layout (location = 3) in ivec4 bone_idxs;
+layout (location = 4) in vec4 bone_weights;
 
 out BLOCK {
   vec3 world_position;
@@ -12,8 +15,16 @@ out BLOCK {
 } vs_out;
 
 void main() {
-  vs_out.world_position = vec3(model_matrix * vec4(position, 1.0));
-  vs_out.normal = normalize(model_normal_matrix * normal);
+  mat4 bone_transform = mat4(1.0);
+
+  /* for (int idx = 0; idx < 4; idx++) { */
+  /*   if (bone_idxs[idx] != -1) { */
+  /*     bone_transform *= bone_matrices[bone_idxs[idx]] * bone_weights[idx]; */
+  /*   } */
+  /* } */
+
+  vs_out.world_position = vec3(bone_transform * model_matrix * vec4(position, 1.0));
+  vs_out.normal = normalize(mat3(bone_transform) * model_normal_matrix * normal);
   vs_out.tex_coords = tex_coords;
   gl_Position = projection * view * vec4(vs_out.world_position, 1.0);
 }

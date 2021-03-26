@@ -19,5 +19,5 @@ in BLOCK {
 // Just setting our one output to pink will set EVERYTHING pink.
 
 void main() {
-  frag_color = vec4(1.0f, 0.0f, 1.0f, 1.0f);
+  frag_color = vec4(1.0, 0.0, 1.0, 1.0);
 }

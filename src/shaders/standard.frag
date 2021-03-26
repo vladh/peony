@@ -66,5 +66,5 @@ void main() {
     ao = ao_static;
   }
 
-  g_pbr = vec4(metallic, roughness, ao, 1.0f);
+  g_pbr = vec4(metallic, roughness, ao, 1.0);
 }
