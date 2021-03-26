@@ -51,8 +51,8 @@ void Models::setup_mesh_vertex_buffers(
 
   location = 3;
   glEnableVertexAttribArray(location);
-  glVertexAttribPointer(
-    location, MAX_N_BONES_PER_VERTEX, GL_INT, GL_FALSE, vertex_size,
+  glVertexAttribIPointer(
+    location, MAX_N_BONES_PER_VERTEX, GL_INT, vertex_size,
     (void*)offsetof(Vertex, bone_idxs)
   );
 

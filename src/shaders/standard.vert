@@ -15,16 +15,23 @@ out BLOCK {
 } vs_out;
 
 void main() {
-  mat4 bone_transform = mat4(1.0);
+  mat4 bone_transform = mat4(0.0);
+  bool did_find_bones = false;
 
-  /* for (int idx = 0; idx < 4; idx++) { */
-  /*   if (bone_idxs[idx] != -1) { */
-  /*     bone_transform *= bone_matrices[bone_idxs[idx]] * bone_weights[idx]; */
-  /*   } */
-  /* } */
+  for (int idx = 0; idx < 4; idx++) {
+    if (bone_idxs[idx] > 0) {
+      did_find_bones = true;
+      bone_transform += bone_matrices[bone_idxs[idx]] * bone_weights[idx];
+    }
+  }
 
-  vs_out.world_position = vec3(bone_transform * model_matrix * vec4(position, 1.0));
-  vs_out.normal = normalize(mat3(bone_transform) * model_normal_matrix * normal);
+  if (did_find_bones) {
+    vs_out.world_position = vec3(bone_transform * model_matrix * vec4(position, 1.0));
+    vs_out.normal = normalize(mat3(bone_transform) * model_normal_matrix * normal);
+  } else {
+    vs_out.world_position = vec3(model_matrix * vec4(position, 1.0));
+    vs_out.normal = normalize(model_normal_matrix * normal);
+  }
   vs_out.tex_coords = tex_coords;
   gl_Position = projection * view * vec4(vs_out.world_position, 1.0);
 }

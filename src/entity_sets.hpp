@@ -73,6 +73,8 @@ namespace EntitySets {
     Material *material,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
+    bool32 have_animations,
+    glm::mat4 *bone_matrices,
     ShaderAsset *standard_depth_shader_asset
   );
   void draw_all(
