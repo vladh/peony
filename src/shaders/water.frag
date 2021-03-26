@@ -211,8 +211,8 @@ void main() {
   // lights, should slightly brighten the water.
   {
     vec3 albedo = color;
-    float metallic = 0.0f;
-    float roughness = 1.0f;
+    float metallic = 0.0;
+    float roughness = 1.0;
 
     for (int idx_light = 1; idx_light < n_directional_lights; idx_light++) {
       float shadow = calculate_directional_shadows(

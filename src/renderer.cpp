@@ -810,6 +810,7 @@ void Renderer::render_scene(
   EntitySets::draw_all(
     &state->drawable_component_set,
     &state->spatial_component_set,
+    &state->animation_component_set,
     &state->materials,
     render_pass,
     render_mode,

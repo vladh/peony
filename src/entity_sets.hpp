@@ -53,20 +53,21 @@ namespace EntitySets {
     EntitySet *entity_set,
     const char *debug_name
   );
-
   glm::mat4 make_model_matrix(
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
-
-  void draw(
-    DrawableComponentSet *drawable_component_set,
-    Mesh *mesh,
-    Material *material,
-    glm::mat4 *model_matrix,
-    glm::mat3 *model_normal_matrix
+  void make_bone_matrices(
+    glm::mat4 *bones_matrices,
+    AnimationComponent *animation_component
   );
-  void draw_in_depth_mode(
+  AnimationComponent* find_animation_component(
+    SpatialComponent *spatial,
+    SpatialComponentSet *spatial_component_set,
+    AnimationComponentSet *animation_component_set
+  );
+  void draw(
+    RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
     Mesh *mesh,
     Material *material,
@@ -77,6 +78,7 @@ namespace EntitySets {
   void draw_all(
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
+    AnimationComponentSet *animation_component_set,
     Array<Material> *materials,
     RenderPassFlag render_pass,
     RenderMode render_mode,
