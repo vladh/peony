@@ -59,7 +59,9 @@ void EntitySets::make_bone_matrices(
   glm::mat4 *bones_matrices,
   AnimationComponent *animation_component
 ) {
-  log_info("Making bone matrices for entity %d", animation_component->entity_handle);
+  for_range (0, animation_component->n_bones) {
+    bones_matrices[idx] = animation_component->bones[idx].offset;
+  }
 }
 
 
@@ -98,6 +100,8 @@ void EntitySets::draw(
   Material *material,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
+  bool32 have_animations,
+  glm::mat4 *bone_matrices,
   ShaderAsset *standard_depth_shader_asset
 ) {
   ShaderAsset *shader_asset = nullptr;
@@ -141,10 +145,14 @@ void EntitySets::draw(
     uniform_idx++
   ) {
     const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-    if (strcmp(uniform_name, "model_matrix") == 0) {
+    if (Str::eq(uniform_name, "model_matrix")) {
       Shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
-    } else if (strcmp(uniform_name, "model_normal_matrix") == 0) {
+    } else if (Str::eq(uniform_name, "model_normal_matrix")) {
       Shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
+    } else if (have_animations && Str::eq(uniform_name, "bone_matrices[0]")) {
+      Shaders::set_mat4_multiple(
+        shader_asset, MAX_N_BONES, "bone_matrices[0]", bone_matrices
+      );
     }
   }
 
@@ -193,6 +201,7 @@ void EntitySets::draw_all(
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
+    bool32 have_animations = false;
     glm::mat4 bone_matrices[MAX_N_BONES];
 
     if (Entities::is_spatial_component_valid(spatial)) {
@@ -221,6 +230,7 @@ void EntitySets::draw_all(
         animation_component_set
       );
       if (animation_component) {
+        have_animations = true;
         EntitySets::make_bone_matrices(bone_matrices, animation_component);
       }
     }
@@ -232,6 +242,8 @@ void EntitySets::draw_all(
       material,
       &model_matrix,
       &model_normal_matrix,
+      have_animations,
+      bone_matrices,
       standard_depth_shader_asset
     );
   }

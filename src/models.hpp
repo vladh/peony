@@ -15,7 +15,7 @@ struct Vertex {
   glm::vec3 normal;
   glm::vec2 tex_coords;
   // -1 is an invalid ID
-  int32 bone_idxs[MAX_N_BONES_PER_VERTEX] = {-1};
+  int32 bone_idxs[MAX_N_BONES_PER_VERTEX] = {-1, -1, -1, -1};
   real32 bone_weights[MAX_N_BONES_PER_VERTEX];
 };
 

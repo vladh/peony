@@ -59,6 +59,9 @@ namespace Shaders {
   void set_vec4(ShaderAsset *shader_asset, const char *name, glm::vec4 *value);
   void set_mat2(ShaderAsset *shader_asset, const char *name, glm::mat2 *mat);
   void set_mat3(ShaderAsset *shader_asset, const char *name, glm::mat3 *mat);
+  void set_mat4_multiple(
+    ShaderAsset *shader_asset, uint32 n, const char *uniform_name, glm::mat4 *mat
+  );
   void set_mat4(ShaderAsset *shader_asset, const char *name, glm::mat4 *mat);
   void reset_texture_units(ShaderAsset *shader_asset);
   uint32 add_texture_unit(

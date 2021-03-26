@@ -229,6 +229,16 @@ void Shaders::set_mat3(
 }
 
 
+void Shaders::set_mat4_multiple(
+  ShaderAsset *shader_asset, uint32 n, const char *uniform_name, glm::mat4 *mat
+) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniformMatrix4fv(location, n, GL_FALSE, glm::value_ptr(*mat));
+  }
+}
+
+
 void Shaders::set_mat4(
   ShaderAsset *shader_asset, const char *uniform_name, glm::mat4 *mat
 ) {
