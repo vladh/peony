@@ -150,30 +150,25 @@ void Models::load_mesh(
 
   // Bones
   assert(ai_mesh->mNumBones < MAX_N_BONES);
+  AnimationComponent *animation_component = &entity_loader->animation_component;
   for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
     aiBone *ai_bone = ai_mesh->mBones[idx_bone];
-    AnimationComponent *animation_component = &entity_loader->animation_component;
     uint32 idx_found_bone = 0;
     bool32 did_find_bone = false;
 
     for_range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
       if (Str::eq(
-        animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str())
-      ) {
+        animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str()
+      )) {
         did_find_bone = true;
         idx_found_bone = idx_animcomp_bone;
         break;
       }
     }
 
+    /* assert(did_find_bone); */
     if (!did_find_bone) {
-      idx_found_bone = animation_component->n_bones;
-      animation_component->bones[idx_found_bone] = {
-        .offset = Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix),
-      };
-      // TODO: Fix string handling, Bone.name is only 32 bytes big.
-      strcpy(animation_component->bones[idx_found_bone].name, ai_bone->mName.C_Str());
-      animation_component->n_bones++;
+      continue;
     }
 
     for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
@@ -182,7 +177,7 @@ void Models::load_mesh(
       assert(vertex_idx < mesh->n_vertices);
       for_range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
         // Put it in the next free space, if there is any.
-        if (mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] == -1) {
+        if (mesh->vertices[vertex_idx].bone_weights[idx_vertex_weight] == 0) {
           mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] = idx_found_bone;
           mesh->vertices[vertex_idx].bone_weights[idx_vertex_weight] = weight;
           break;
@@ -235,23 +230,99 @@ void Models::load_node(
 }
 
 
-void Models::load_animations(
-  EntityLoader *entity_loader,
+bool32 Models::is_bone_only_node(aiNode *node) {
+  if (node->mNumMeshes > 0) {
+    return false;
+  }
+  bool32 have_we_found_it = true;
+  for_range (0, node->mNumChildren) {
+    if (!is_bone_only_node(node->mChildren[idx])) {
+      have_we_found_it = false;
+    }
+  }
+  return have_we_found_it;
+}
+
+
+aiNode* Models::find_root_bone(const aiScene *scene) {
+  // NOTE: To find the root bone, we find the first-level node (direct child
+  // of root node) whose entire descendent tree has no meshes, including the
+  // leaf nodes. Is this a perfect way of finding the root bone? Probably
+  // not. Is it good enough? Sure looks like it! :)
+  aiNode *root_node = scene->mRootNode;
+
+  for_range (0, root_node->mNumChildren) {
+    aiNode *first_level_node = root_node->mChildren[idx];
+    if (is_bone_only_node(first_level_node)) {
+      return first_level_node;
+    }
+  }
+
+  return nullptr;
+}
+
+
+void Models::add_bone_tree_to_animation_component(
+  AnimationComponent *animation_component,
+  aiNode *node,
+  uint32 idx_parent
+) {
+  uint32 idx_new_bone = animation_component->n_bones;
+  animation_component->bones[idx_new_bone] = {
+    .idx_parent = idx_parent,
+    // NOTE: offset is added later, since we don't have the aiBone at this stage.
+    /* .offset = Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix), */
+  };
+  strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
+  animation_component->n_bones++;
+
+  for_range (0, node->mNumChildren) {
+    add_bone_tree_to_animation_component(
+      animation_component,
+      node->mChildren[idx],
+      idx_new_bone
+    );
+  }
+}
+
+
+void Models::load_bones(
+  AnimationComponent *animation_component,
   const aiScene *scene
 ) {
-  entity_loader->animation_component.n_animations = scene->mNumAnimations;
+  aiNode *root_bone = find_root_bone(scene);
+
+  if (!root_bone) {
+    // No bones. Okay!
+    return;
+  }
+
+  // The root will just have its parent marked as itself, to avoid using
+  // a -1 index and so on. This is fine, because the root will always be
+  // index 0, so we can just disregard the parent if we're on index 0.
+  add_bone_tree_to_animation_component(animation_component, root_bone, 0);
+}
+
+
+void Models::load_animations(
+  AnimationComponent *animation_component,
+  const aiScene *scene
+) {
+  animation_component->inverse_global_transform =
+    glm::inverse(Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation));
+
+  animation_component->n_animations = scene->mNumAnimations;
   for_range_named (idx_animation, 0, scene->mNumAnimations) {
     Animation *animation =
-      &entity_loader->animation_component.animations[idx_animation];
+      &animation_component->animations[idx_animation];
     aiAnimation *ai_animation = scene->mAnimations[idx_animation];
     strcpy(animation->name, ai_animation->mName.C_Str());
     animation->duration = ai_animation->mDuration;
     animation->ticks_per_second = ai_animation->mTicksPerSecond;
 
     log_info(
-      "animation %d for %s (dur %f)",
+      "animation %d (dur %f)",
       idx_animation,
-      entity_loader->name,
       animation->duration
     );
 
@@ -333,12 +404,18 @@ void Models::load_model(EntityLoader *entity_loader) {
       return;
     }
 
-    load_node(
-      entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+    AnimationComponent *animation_component = &entity_loader->animation_component;
+
+    load_bones(
+      animation_component, scene
     );
 
     load_animations(
-      entity_loader, scene
+      animation_component, scene
+    );
+
+    load_node(
+      entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
     );
 
     aiReleaseImport(scene);

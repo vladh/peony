@@ -14,8 +14,7 @@ struct Vertex {
   glm::vec3 position;
   glm::vec3 normal;
   glm::vec2 tex_coords;
-  // -1 is an invalid ID
-  int32 bone_idxs[MAX_N_BONES_PER_VERTEX] = {-1, -1, -1, -1};
+  uint32 bone_idxs[MAX_N_BONES_PER_VERTEX];
   real32 bone_weights[MAX_N_BONES_PER_VERTEX];
 };
 
@@ -89,8 +88,19 @@ namespace Models {
     aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
+  bool32 is_bone_only_node(aiNode *node);
+  aiNode* find_root_bone(const aiScene *scene);
+  void add_bone_tree_to_animation_component(
+    AnimationComponent *animation_component,
+    aiNode *node,
+    uint32 idx_parent
+  );
+  void load_bones(
+    AnimationComponent *animation_component,
+    const aiScene *scene
+  );
   void load_animations(
-    EntityLoader *entity_loader,
+    AnimationComponent *animation_component,
     const aiScene *scene
   );
   void load_model(
