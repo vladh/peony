@@ -56,11 +56,27 @@ glm::mat4 EntitySets::make_model_matrix(
 
 
 void EntitySets::make_bone_matrices(
-  glm::mat4 *bones_matrices,
+  glm::mat4 *bone_matrices,
   AnimationComponent *animation_component
 ) {
   for_range (0, animation_component->n_bones) {
-    bones_matrices[idx] = animation_component->bones[idx].offset;
+    Animation *animation = &animation_component->animations[0];
+    AnimChannel *anim_channel = &animation->anim_channels[idx];
+    glm::mat4 translation = glm::translate(
+      glm::mat4(1.0f), anim_channel->position_keys[0].position
+    );
+    glm::mat4 rotation = glm::toMat4(
+      anim_channel->rotation_keys[0].rotation
+    );
+    glm::mat4 scale = glm::scale(
+      glm::mat4(1.0f), anim_channel->scaling_keys[0].scale
+    );
+    bone_matrices[idx] =
+      /* glm::inverse(animation_component->bones[idx].offset) * */
+      /* glm::inverse(animation_component->inverse_global_transform) * */
+      /* glm::mat4(1.0f); */
+      translation * rotation * scale *
+      glm::transpose(animation_component->bones[idx].offset);
   }
 }
 

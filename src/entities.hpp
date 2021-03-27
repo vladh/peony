@@ -25,6 +25,7 @@ struct BehaviorComponent {
 
 struct Bone {
   char name[MAX_NODE_NAME_LENGTH];
+  uint32 idx_parent;
   glm::mat4 offset;
 };
 
@@ -67,6 +68,7 @@ struct AnimationComponent {
   uint32 n_bones;
   Animation animations[MAX_N_ANIMATIONS];
   uint32 n_animations;
+  glm::mat4 inverse_global_transform;
 };
 
 enum class LightType {none, point, directional};
