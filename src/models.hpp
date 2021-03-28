@@ -74,20 +74,6 @@ namespace Models {
     Vertex *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
   );
-  void load_mesh(
-    Mesh *mesh,
-    aiMesh *mesh_data,
-    const aiScene *scene,
-    EntityLoader *entity_loader,
-    glm::mat4 transform,
-    Pack indices_pack
-  );
-  void destroy_mesh(Mesh *mesh);
-  void load_node(
-    EntityLoader *entity_loader,
-    aiNode *node, const aiScene *scene,
-    glm::mat4 accumulated_transform, Pack indices_pack
-  );
   bool32 is_bone_only_node(aiNode *node);
   aiNode* find_root_bone(const aiScene *scene);
   void add_bone_tree_to_animation_component(
@@ -102,6 +88,20 @@ namespace Models {
   void load_animations(
     AnimationComponent *animation_component,
     const aiScene *scene
+  );
+  void load_mesh(
+    Mesh *mesh,
+    aiMesh *mesh_data,
+    const aiScene *scene,
+    EntityLoader *entity_loader,
+    glm::mat4 transform,
+    Pack indices_pack
+  );
+  void destroy_mesh(Mesh *mesh);
+  void load_node(
+    EntityLoader *entity_loader,
+    aiNode *node, const aiScene *scene,
+    glm::mat4 accumulated_transform, Pack indices_pack
   );
   void load_model(
     EntityLoader *entity_loader

@@ -56,27 +56,45 @@ glm::mat4 EntitySets::make_model_matrix(
 
 
 void EntitySets::make_bone_matrices(
-  glm::mat4 *bone_matrices,
+  glm::mat4 *local_bone_matrices,
+  glm::mat4 *final_bone_matrices,
   AnimationComponent *animation_component
 ) {
+  if (animation_component->n_animations == 0) {
+    return;
+  }
+
+  Animation *animation = &animation_component->animations[0];
+
   for_range (0, animation_component->n_bones) {
-    Animation *animation = &animation_component->animations[0];
+    // NOTE: Because bones are sorted such that parents always come first,
+    // it is guaranteed that each node's parent's matrix will always be set
+    // when we get to computing the child.
+    Bone *bone = &animation_component->bones[idx];
+    glm::mat4 parent_transform = glm::mat4(1.0f);
+
+    if (idx > 0) {
+      parent_transform = local_bone_matrices[bone->idx_parent];
+    }
+
     AnimChannel *anim_channel = &animation->anim_channels[idx];
     glm::mat4 translation = glm::translate(
-      glm::mat4(1.0f), anim_channel->position_keys[0].position
+      glm::mat4(1.0f), anim_channel->position_keys[60].position
     );
     glm::mat4 rotation = glm::toMat4(
-      anim_channel->rotation_keys[0].rotation
+      anim_channel->rotation_keys[60].rotation
     );
     glm::mat4 scale = glm::scale(
-      glm::mat4(1.0f), anim_channel->scaling_keys[0].scale
+      glm::mat4(1.0f), anim_channel->scaling_keys[60].scale
     );
-    bone_matrices[idx] =
-      /* glm::inverse(animation_component->bones[idx].offset) * */
-      /* glm::inverse(animation_component->inverse_global_transform) * */
-      /* glm::mat4(1.0f); */
-      translation * rotation * scale *
-      glm::transpose(animation_component->bones[idx].offset);
+    glm::mat4 anim_transform = translation * rotation * scale;
+    local_bone_matrices[idx] =
+       parent_transform * anim_transform;
+    final_bone_matrices[idx] =
+      animation_component->scene_root_transform *
+      local_bone_matrices[idx] *
+      bone->offset *
+      glm::inverse(animation_component->scene_root_transform);
   }
 }
 
@@ -218,7 +236,8 @@ void EntitySets::draw_all(
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
     bool32 have_animations = false;
-    glm::mat4 bone_matrices[MAX_N_BONES];
+    glm::mat4 local_bone_matrices[MAX_N_BONES];
+    glm::mat4 final_bone_matrices[MAX_N_BONES];
 
     if (Entities::is_spatial_component_valid(spatial)) {
       // We only need to calculate the normal matrix if we have non-uniform
@@ -247,7 +266,11 @@ void EntitySets::draw_all(
       );
       if (animation_component) {
         have_animations = true;
-        EntitySets::make_bone_matrices(bone_matrices, animation_component);
+        EntitySets::make_bone_matrices(
+          local_bone_matrices,
+          final_bone_matrices,
+          animation_component
+        );
       }
     }
 
@@ -259,7 +282,7 @@ void EntitySets::draw_all(
       &model_matrix,
       &model_normal_matrix,
       have_animations,
-      bone_matrices,
+      final_bone_matrices,
       standard_depth_shader_asset
     );
   }

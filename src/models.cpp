@@ -65,6 +65,166 @@ void Models::setup_mesh_vertex_buffers(
 }
 
 
+bool32 Models::is_bone_only_node(aiNode *node) {
+  if (node->mNumMeshes > 0) {
+    return false;
+  }
+  bool32 have_we_found_it = true;
+  for_range (0, node->mNumChildren) {
+    if (!is_bone_only_node(node->mChildren[idx])) {
+      have_we_found_it = false;
+    }
+  }
+  return have_we_found_it;
+}
+
+
+aiNode* Models::find_root_bone(const aiScene *scene) {
+  // NOTE: To find the root bone, we find the first-level node (direct child
+  // of root node) whose entire descendent tree has no meshes, including the
+  // leaf nodes. Is this a perfect way of finding the root bone? Probably
+  // not. Is it good enough? Sure looks like it! :)
+  aiNode *root_node = scene->mRootNode;
+
+  for_range (0, root_node->mNumChildren) {
+    aiNode *first_level_node = root_node->mChildren[idx];
+    if (is_bone_only_node(first_level_node)) {
+      return first_level_node;
+    }
+  }
+
+  return nullptr;
+}
+
+
+void Models::add_bone_tree_to_animation_component(
+  AnimationComponent *animation_component,
+  aiNode *node,
+  uint32 idx_parent
+) {
+  uint32 idx_new_bone = animation_component->n_bones;
+  animation_component->bones[idx_new_bone] = {
+    .idx_parent = idx_parent,
+    .transform = Util::aimatrix4x4_to_glm(&node->mTransformation),
+    // NOTE: offset is added later, since we don't have the aiBone at this stage.
+  };
+  strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
+  animation_component->n_bones++;
+
+  for_range (0, node->mNumChildren) {
+    add_bone_tree_to_animation_component(
+      animation_component,
+      node->mChildren[idx],
+      idx_new_bone
+    );
+  }
+}
+
+
+void Models::load_bones(
+  AnimationComponent *animation_component,
+  const aiScene *scene
+) {
+  aiNode *root_bone = find_root_bone(scene);
+
+  if (!root_bone) {
+    // No bones. Okay!
+    return;
+  }
+
+  // The root will just have its parent marked as itself, to avoid using
+  // a -1 index and so on. This is fine, because the root will always be
+  // index 0, so we can just disregard the parent if we're on index 0.
+  add_bone_tree_to_animation_component(animation_component, root_bone, 0);
+}
+
+
+void Models::load_animations(
+  AnimationComponent *animation_component,
+  const aiScene *scene
+) {
+  animation_component->scene_root_transform =
+    Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
+
+  animation_component->n_animations = scene->mNumAnimations;
+  for_range_named (idx_animation, 0, scene->mNumAnimations) {
+    Animation *animation =
+      &animation_component->animations[idx_animation];
+    aiAnimation *ai_animation = scene->mAnimations[idx_animation];
+
+    animation->duration = ai_animation->mDuration;
+    animation->ticks_per_second = ai_animation->mTicksPerSecond;
+    strcpy(animation->name, ai_animation->mName.C_Str());
+
+    log_info(
+      "animation %d (dur %f)",
+      idx_animation,
+      animation->duration
+    );
+
+    animation->n_anim_channels = ai_animation->mNumChannels;
+    for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
+      aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
+
+      uint32 found_bone_idx = 0;
+      bool32 did_find_bone = false;
+
+      for_range_named(idx_bone, 0, animation_component->n_bones) {
+        if (Str::eq(
+          ai_channel->mNodeName.C_Str(), animation_component->bones[idx_bone].name
+        )) {
+          found_bone_idx = idx_bone;
+          did_find_bone = true;
+        }
+      }
+
+      assert(did_find_bone);
+
+      AnimChannel *channel = &animation->anim_channels[found_bone_idx];
+      *channel = {
+        .n_position_keys = ai_channel->mNumPositionKeys,
+        .n_rotation_keys = ai_channel->mNumRotationKeys,
+        .n_scaling_keys = ai_channel->mNumScalingKeys,
+      };
+      log_info(
+        "channel %d: %d position, %d rotation, %d scaling",
+        idx_channel,
+        channel->n_position_keys,
+        channel->n_rotation_keys,
+        channel->n_scaling_keys
+      );
+
+      for_range_named (idx_key, 0, ai_channel->mNumPositionKeys) {
+        channel->position_keys[idx_key] = {
+          .position = Util::aiVector3D_to_glm(
+            &ai_channel->mPositionKeys[idx_key].mValue
+          ),
+          .time = ai_channel->mPositionKeys[idx_key].mTime,
+        };
+      }
+
+      for_range_named (idx_key, 0, ai_channel->mNumRotationKeys) {
+        channel->rotation_keys[idx_key] = {
+          .rotation = Util::aiQuaternion_to_glm(
+            &ai_channel->mRotationKeys[idx_key].mValue
+          ),
+          .time = ai_channel->mRotationKeys[idx_key].mTime,
+        };
+      }
+
+      for_range_named (idx_key, 0, ai_channel->mNumScalingKeys) {
+        channel->scaling_keys[idx_key] = {
+          .scale = Util::aiVector3D_to_glm(
+            &ai_channel->mScalingKeys[idx_key].mValue
+          ),
+          .time = ai_channel->mScalingKeys[idx_key].mTime,
+        };
+      }
+    }
+  }
+}
+
+
 void Models::load_mesh(
   Mesh *mesh,
   aiMesh *ai_mesh,
@@ -166,10 +326,14 @@ void Models::load_mesh(
       }
     }
 
-    /* assert(did_find_bone); */
-    if (!did_find_bone) {
-      continue;
-    }
+    assert(did_find_bone);
+
+    // NOTE: We really only need to do this once, but I honestly can't be
+    // bothered to add some mechanism to check if we already set it, it would
+    // just make things more complicated. We set it multiple times, whatever.
+    // It's the same value anyway.
+    animation_component->bones[idx_found_bone].offset =
+      Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix);
 
     for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
       uint32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
@@ -226,150 +390,6 @@ void Models::load_node(
     load_node(
       entity_loader, node->mChildren[idx], scene, transform, new_indices_pack
     );
-  }
-}
-
-
-bool32 Models::is_bone_only_node(aiNode *node) {
-  if (node->mNumMeshes > 0) {
-    return false;
-  }
-  bool32 have_we_found_it = true;
-  for_range (0, node->mNumChildren) {
-    if (!is_bone_only_node(node->mChildren[idx])) {
-      have_we_found_it = false;
-    }
-  }
-  return have_we_found_it;
-}
-
-
-aiNode* Models::find_root_bone(const aiScene *scene) {
-  // NOTE: To find the root bone, we find the first-level node (direct child
-  // of root node) whose entire descendent tree has no meshes, including the
-  // leaf nodes. Is this a perfect way of finding the root bone? Probably
-  // not. Is it good enough? Sure looks like it! :)
-  aiNode *root_node = scene->mRootNode;
-
-  for_range (0, root_node->mNumChildren) {
-    aiNode *first_level_node = root_node->mChildren[idx];
-    if (is_bone_only_node(first_level_node)) {
-      return first_level_node;
-    }
-  }
-
-  return nullptr;
-}
-
-
-void Models::add_bone_tree_to_animation_component(
-  AnimationComponent *animation_component,
-  aiNode *node,
-  uint32 idx_parent
-) {
-  uint32 idx_new_bone = animation_component->n_bones;
-  animation_component->bones[idx_new_bone] = {
-    .idx_parent = idx_parent,
-    // NOTE: offset is added later, since we don't have the aiBone at this stage.
-    /* .offset = Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix), */
-  };
-  strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
-  animation_component->n_bones++;
-
-  for_range (0, node->mNumChildren) {
-    add_bone_tree_to_animation_component(
-      animation_component,
-      node->mChildren[idx],
-      idx_new_bone
-    );
-  }
-}
-
-
-void Models::load_bones(
-  AnimationComponent *animation_component,
-  const aiScene *scene
-) {
-  aiNode *root_bone = find_root_bone(scene);
-
-  if (!root_bone) {
-    // No bones. Okay!
-    return;
-  }
-
-  // The root will just have its parent marked as itself, to avoid using
-  // a -1 index and so on. This is fine, because the root will always be
-  // index 0, so we can just disregard the parent if we're on index 0.
-  add_bone_tree_to_animation_component(animation_component, root_bone, 0);
-}
-
-
-void Models::load_animations(
-  AnimationComponent *animation_component,
-  const aiScene *scene
-) {
-  animation_component->inverse_global_transform =
-    glm::inverse(Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation));
-
-  animation_component->n_animations = scene->mNumAnimations;
-  for_range_named (idx_animation, 0, scene->mNumAnimations) {
-    Animation *animation =
-      &animation_component->animations[idx_animation];
-    aiAnimation *ai_animation = scene->mAnimations[idx_animation];
-    strcpy(animation->name, ai_animation->mName.C_Str());
-    animation->duration = ai_animation->mDuration;
-    animation->ticks_per_second = ai_animation->mTicksPerSecond;
-
-    log_info(
-      "animation %d (dur %f)",
-      idx_animation,
-      animation->duration
-    );
-
-    animation->n_anim_channels = ai_animation->mNumChannels;
-    for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
-      aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
-      AnimChannel *channel = &animation->anim_channels[idx_channel];
-      *channel = {
-        .n_position_keys = ai_channel->mNumPositionKeys,
-        .n_rotation_keys = ai_channel->mNumRotationKeys,
-        .n_scaling_keys = ai_channel->mNumScalingKeys,
-      };
-      log_info(
-        "channel %d: %d position, %d rotation, %d scaling",
-        idx_channel,
-        channel->n_position_keys,
-        channel->n_rotation_keys,
-        channel->n_scaling_keys
-      );
-
-      for_range_named (idx_key, 0, ai_channel->mNumPositionKeys) {
-        channel->position_keys[idx_key] = {
-          .position = Util::aiVector3D_to_glm(
-            &ai_channel->mPositionKeys[idx_key].mValue
-          ),
-          .time = ai_channel->mPositionKeys[idx_key].mTime,
-        };
-      }
-
-      for_range_named (idx_key, 0, ai_channel->mNumRotationKeys) {
-        channel->rotation_keys[idx_key] = {
-          .rotation = Util::aiQuaternion_to_glm(
-            &ai_channel->mRotationKeys[idx_key].mValue
-          ),
-          .time = ai_channel->mRotationKeys[idx_key].mTime,
-        };
-      }
-
-      for_range_named (idx_key, 0, ai_channel->mNumScalingKeys) {
-        channel->scaling_keys[idx_key] = {
-          .scale = Util::aiVector3D_to_glm(
-            &ai_channel->mScalingKeys[idx_key].mValue
-          ),
-          .time = ai_channel->mScalingKeys[idx_key].mTime,
-        };
-      }
-    }
   }
 }
 

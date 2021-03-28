@@ -58,7 +58,8 @@ namespace EntitySets {
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
   void make_bone_matrices(
-    glm::mat4 *bone_matrices,
+    glm::mat4 *local_bone_matrices,
+    glm::mat4 *final_bone_matrices,
     AnimationComponent *animation_component
   );
   AnimationComponent* find_animation_component(
