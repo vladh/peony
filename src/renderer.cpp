@@ -808,13 +808,15 @@ void Renderer::render_scene(
   RenderMode render_mode
 ) {
   EntitySets::draw_all(
+    &state->entity_set,
     &state->drawable_component_set,
     &state->spatial_component_set,
     &state->animation_component_set,
     &state->materials,
     render_pass,
     render_mode,
-    &state->standard_depth_shader_asset
+    &state->standard_depth_shader_asset,
+    state->t
   );
 }
 
