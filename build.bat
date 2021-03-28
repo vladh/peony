@@ -14,6 +14,7 @@ if not defined DevEnvDir (
 :: -GL - Enable whole program optimisation
 :: -GS - Add debugging info to object files
 :: -MTd - Use the multithreaded, static version of the runtime library and define _DEBUG
+:: -MP4 - Use 4 CPU cores
 :: -O2 - Maximise speed
 :: -Oi - Generate intrinsic functions to run faster
 :: -W4 - Show most warnings
@@ -33,6 +34,7 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 -FC ^
 -GS ^
 -MTd ^
+-MP4 ^
 -W4 ^
 -WL ^
 -Z7 ^
