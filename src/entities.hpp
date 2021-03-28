@@ -46,12 +46,15 @@ struct ScalingKey {
 };
 
 struct AnimChannel {
-  PositionKey position_keys[MAX_N_ANIM_KEYS];
   uint32 n_position_keys;
-  RotationKey rotation_keys[MAX_N_ANIM_KEYS];
   uint32 n_rotation_keys;
-  ScalingKey scaling_keys[MAX_N_ANIM_KEYS];
   uint32 n_scaling_keys;
+  uint32 last_position_key;
+  uint32 last_rotation_key;
+  uint32 last_scaling_key;
+  PositionKey position_keys[MAX_N_ANIM_KEYS];
+  RotationKey rotation_keys[MAX_N_ANIM_KEYS];
+  ScalingKey scaling_keys[MAX_N_ANIM_KEYS];
 };
 
 struct Animation {

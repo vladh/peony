@@ -10,7 +10,7 @@ spatial_component.scale = vec3(0.05, 0.05, 0.05)
 model_path = vampire.dae
 materials = [vampire]
 render_passes = [deferred, shadowcaster]
-spatial_component.position = vec3(0.0, 0.0, 0.0)
+spatial_component.position = vec3(-1.0, 5.7, 5.0)
 spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
 

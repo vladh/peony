@@ -25,13 +25,12 @@ void main() {
     }
   }
 
-  if (did_find_bones) {
-    vs_out.world_position = vec3(model_matrix * bone_transform * vec4(position, 1.0));
-    vs_out.normal = normalize(model_normal_matrix * mat3(bone_transform) * normal);
-  } else {
-    vs_out.world_position = vec3(model_matrix * vec4(position, 1.0));
-    vs_out.normal = normalize(model_normal_matrix * normal);
+  if (!did_find_bones) {
+    bone_transform = mat4(1.0f);
   }
+
+  vs_out.world_position = vec3(model_matrix * bone_transform * vec4(position, 1.0));
+  vs_out.normal = normalize(model_normal_matrix * mat3(bone_transform) * normal);
   vs_out.tex_coords = tex_coords;
   gl_Position = projection * view * vec4(vs_out.world_position, 1.0);
 }

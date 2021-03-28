@@ -55,16 +55,70 @@ glm::mat4 EntitySets::make_model_matrix(
 }
 
 
+uint32 EntitySets::get_anim_channel_position_index_for_t(
+  AnimChannel *anim_channel, real64 t
+) {
+  for_range (anim_channel->last_position_key, anim_channel->n_position_keys - 1) {
+    if (t < anim_channel->position_keys[idx + 1].time) {
+      anim_channel->last_position_key = idx;
+      if (idx == anim_channel->n_position_keys - 2) {
+        anim_channel->last_position_key = 0;
+      }
+      return idx;
+    }
+  }
+  log_fatal("Could not get anim channel position index.");
+  return 0;
+}
+
+
+uint32 EntitySets::get_anim_channel_rotation_index_for_t(
+  AnimChannel *anim_channel, real64 t
+) {
+  for_range (anim_channel->last_rotation_key, anim_channel->n_rotation_keys - 1) {
+    if (t < anim_channel->rotation_keys[idx + 1].time) {
+      anim_channel->last_rotation_key = idx;
+      if (idx == anim_channel->n_rotation_keys - 2) {
+        anim_channel->last_rotation_key = 0;
+      }
+      return idx;
+    }
+  }
+  log_fatal("Could not get anim channel rotation index.");
+  return 0;
+}
+
+
+uint32 EntitySets::get_anim_channel_scaling_index_for_t(
+  AnimChannel *anim_channel, real64 t
+) {
+  for_range (anim_channel->last_scaling_key, anim_channel->n_scaling_keys - 1) {
+    if (t < anim_channel->scaling_keys[idx + 1].time) {
+      anim_channel->last_scaling_key = idx;
+      if (idx == anim_channel->n_scaling_keys - 2) {
+        anim_channel->last_scaling_key = 0;
+      }
+      return idx;
+    }
+  }
+  log_fatal("Could not get anim channel scaling index.");
+  return 0;
+}
+
+
 void EntitySets::make_bone_matrices(
   glm::mat4 *local_bone_matrices,
   glm::mat4 *final_bone_matrices,
-  AnimationComponent *animation_component
+  AnimationComponent *animation_component,
+  real64 t
 ) {
   if (animation_component->n_animations == 0) {
     return;
   }
 
   Animation *animation = &animation_component->animations[0];
+  real64 duration_in_sec = animation->ticks_per_second * animation->duration;
+  real64 animation_timepoint = fmod(t, duration_in_sec);
 
   for_range (0, animation_component->n_bones) {
     // NOTE: Because bones are sorted such that parents always come first,
@@ -78,15 +132,28 @@ void EntitySets::make_bone_matrices(
     }
 
     AnimChannel *anim_channel = &animation->anim_channels[idx];
+
+    uint32 idx_position = get_anim_channel_position_index_for_t(
+      anim_channel, animation_timepoint
+    );
     glm::mat4 translation = glm::translate(
-      glm::mat4(1.0f), anim_channel->position_keys[60].position
+      glm::mat4(1.0f), anim_channel->position_keys[idx_position].position
+    );
+
+    uint32 idx_rotation = get_anim_channel_rotation_index_for_t(
+      anim_channel, animation_timepoint
     );
     glm::mat4 rotation = glm::toMat4(
-      anim_channel->rotation_keys[60].rotation
+      anim_channel->rotation_keys[idx_rotation].rotation
+    );
+
+    uint32 idx_scaling = get_anim_channel_scaling_index_for_t(
+      anim_channel, animation_timepoint
     );
     glm::mat4 scale = glm::scale(
-      glm::mat4(1.0f), anim_channel->scaling_keys[60].scale
+      glm::mat4(1.0f), anim_channel->scaling_keys[idx_scaling].scale
     );
+
     glm::mat4 anim_transform = translation * rotation * scale;
     local_bone_matrices[idx] =
        parent_transform * anim_transform;
@@ -200,17 +267,22 @@ void EntitySets::draw(
 
 
 void EntitySets::draw_all(
+  EntitySet *entity_set,
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
   AnimationComponentSet *animation_component_set,
   Array<Material> *materials,
   RenderPassFlag render_pass,
   RenderMode render_mode,
-  ShaderAsset *standard_depth_shader_asset
+  ShaderAsset *standard_depth_shader_asset,
+  real64 t
 ) {
   ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
 
   for (uint32 idx = 0; idx < drawable_component_set->components.size; idx++) {
+    /* Entity *entity = entity_set->entities.get(idx); */
+    /* log_info("Drawing %s", entity->debug_name); */
+
     DrawableComponent *drawable = drawable_component_set->components.get(idx);
 
     if (!Models::is_drawable_component_valid(drawable)) {
@@ -266,10 +338,17 @@ void EntitySets::draw_all(
       );
       if (animation_component) {
         have_animations = true;
+
+        // TODO: This function is a bit heavy, and it needs a lot of space
+        // allocated for all the matrices. Can we do this differently?
+        // Should we preallocate some space for these matrices on the heap?
+        // We should definitely remove the matrix inversion inside the
+        // function. What else can we do to make it more lightweight?
         EntitySets::make_bone_matrices(
           local_bone_matrices,
           final_bone_matrices,
-          animation_component
+          animation_component,
+          t
         );
       }
     }
