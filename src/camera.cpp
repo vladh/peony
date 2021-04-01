@@ -122,7 +122,7 @@ Camera* Cameras::init_camera(
   camera->front = glm::vec3(0.0f, 0.0f, 0.0f);
   camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
   camera->speed = 5.0f;
-  camera->horizontal_fov = 90.0f;
+  camera->horizontal_fov = 60.0f;
   camera->vertical_fov = 0.0f; // Filled in later
   camera->near_clip_dist = 0.1f;
   camera->far_clip_dist = 100.0f;
