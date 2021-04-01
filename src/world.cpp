@@ -789,13 +789,11 @@ void World::update(State *state) {
     }
 
     if (light_component->type == LightType::point) {
-      real64 time_term =
-        (sin(state->t / 1.5f) + 1.0f) / 2.0f * (PI / 2.0f) + (PI / 2.0f);
-      real64 x_term = 0.0f + cos(time_term) * 8.0f;
-      real64 z_term = 0.0f + sin(time_term) * 8.0f;
-      spatial_component->position.x = (real32)x_term;
-      spatial_component->position.z = (real32)z_term;
-    } else if (light_component->type == LightType::directional) {
+      light_component->color.b = ((real32)sin(state->t) + 1.0f) / 2.0f * 50.0f;
+    }
+
+    // For the sun! :)
+    if (light_component->type == LightType::directional) {
       spatial_component->position = state->camera_active->position +
         -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
     }
