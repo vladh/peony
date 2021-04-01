@@ -57,14 +57,23 @@ namespace EntitySets {
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
-  uint32 get_anim_channel_position_index_for_t(
+  uint32 get_anim_channel_position_index_for_animation_timepoint(
     AnimChannel *anim_channel, real64 t
   );
-  uint32 get_anim_channel_rotation_index_for_t(
+  uint32 get_anim_channel_rotation_index_for_animation_timepoint(
     AnimChannel *anim_channel, real64 t
   );
-  uint32 get_anim_channel_scaling_index_for_t(
+  uint32 get_anim_channel_scaling_index_for_animation_timepoint(
     AnimChannel *anim_channel, real64 t
+  );
+  void make_bone_translation(
+    AnimChannel *anim_channel, real64 t, glm::mat4 *translation
+  );
+  void make_bone_rotation(
+    AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *translation
+  );
+  void make_bone_scaling(
+    AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *scaling
   );
   void make_bone_matrices(
     glm::mat4 *local_bone_matrices,
