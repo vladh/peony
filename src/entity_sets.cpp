@@ -45,7 +45,8 @@ glm::mat4 EntitySets::make_model_matrix(
     } else {
       model_matrix = glm::translate(model_matrix, spatial_component->position);
       model_matrix = glm::scale(model_matrix, spatial_component->scale);
-      model_matrix = model_matrix * glm::toMat4(spatial_component->rotation);
+      model_matrix = model_matrix *
+        glm::toMat4(glm::normalize(spatial_component->rotation));
       cache->last_model_matrix = model_matrix;
       cache->last_model_matrix_spatial_component = spatial_component;
     }
@@ -55,20 +56,20 @@ glm::mat4 EntitySets::make_model_matrix(
 }
 
 
-uint32 EntitySets::get_anim_channel_position_index_for_t(
-  AnimChannel *anim_channel, real64 t
+uint32 EntitySets::get_anim_channel_position_index_for_animation_timepoint(
+  AnimChannel *anim_channel, real64 animation_timepoint
 ) {
   uint32 idx = anim_channel->last_position_key;
   do {
     if (
-      t > anim_channel->position_keys[idx].time &&
-      t < anim_channel->position_keys[idx + 1].time
+      animation_timepoint > anim_channel->position_keys[idx].time &&
+      animation_timepoint < anim_channel->position_keys[idx + 1].time
     ) {
       anim_channel->last_position_key = idx;
       return idx;
     }
     idx++;
-    if (idx == anim_channel->n_position_keys - 2) {
+    if (idx == anim_channel->n_position_keys - 1) {
       idx = 0;
     }
   } while (idx != anim_channel->last_position_key);
@@ -76,20 +77,20 @@ uint32 EntitySets::get_anim_channel_position_index_for_t(
 }
 
 
-uint32 EntitySets::get_anim_channel_rotation_index_for_t(
-  AnimChannel *anim_channel, real64 t
+uint32 EntitySets::get_anim_channel_rotation_index_for_animation_timepoint(
+  AnimChannel *anim_channel, real64 animation_timepoint
 ) {
   uint32 idx = anim_channel->last_rotation_key;
   do {
     if (
-      t > anim_channel->rotation_keys[idx].time &&
-      t < anim_channel->rotation_keys[idx + 1].time
+      animation_timepoint > anim_channel->rotation_keys[idx].time &&
+      animation_timepoint < anim_channel->rotation_keys[idx + 1].time
     ) {
       anim_channel->last_rotation_key = idx;
       return idx;
     }
     idx++;
-    if (idx == anim_channel->n_rotation_keys - 2) {
+    if (idx == anim_channel->n_rotation_keys - 1) {
       idx = 0;
     }
   } while (idx != anim_channel->last_rotation_key);
@@ -97,24 +98,100 @@ uint32 EntitySets::get_anim_channel_rotation_index_for_t(
 }
 
 
-uint32 EntitySets::get_anim_channel_scaling_index_for_t(
-  AnimChannel *anim_channel, real64 t
+uint32 EntitySets::get_anim_channel_scaling_index_for_animation_timepoint(
+  AnimChannel *anim_channel, real64 animation_timepoint
 ) {
   uint32 idx = anim_channel->last_scaling_key;
   do {
     if (
-      t > anim_channel->scaling_keys[idx].time &&
-      t < anim_channel->scaling_keys[idx + 1].time
+      animation_timepoint > anim_channel->scaling_keys[idx].time &&
+      animation_timepoint < anim_channel->scaling_keys[idx + 1].time
     ) {
       anim_channel->last_scaling_key = idx;
       return idx;
     }
     idx++;
-    if (idx == anim_channel->n_scaling_keys - 2) {
+    if (idx == anim_channel->n_scaling_keys - 1) {
       idx = 0;
     }
   } while (idx != anim_channel->last_scaling_key);
   return 0;
+}
+
+
+void EntitySets::make_bone_translation(
+  AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *translation
+) {
+  if (anim_channel->n_position_keys == 1) {
+    *translation = glm::translate(
+      glm::mat4(1.0f), anim_channel->position_keys[0].position
+    );
+    return;
+  }
+
+  uint32 idx_position = get_anim_channel_position_index_for_animation_timepoint(
+    anim_channel, animation_timepoint
+  );
+  real64 prev_keyframe = anim_channel->position_keys[idx_position].time;
+  real64 next_keyframe = anim_channel->position_keys[idx_position + 1].time;
+
+  *translation = glm::translate(
+    glm::mat4(1.0f),
+    glm::mix(
+      anim_channel->position_keys[idx_position].position,
+      anim_channel->position_keys[idx_position + 1].position,
+      (animation_timepoint - prev_keyframe) / (next_keyframe - prev_keyframe)
+    )
+  );
+}
+
+
+void EntitySets::make_bone_rotation(
+  AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *rotation
+) {
+  if (anim_channel->n_rotation_keys == 1) {
+    *rotation = glm::toMat4(glm::normalize(anim_channel->rotation_keys[0].rotation));
+    return;
+  }
+
+  uint32 idx_rotation = get_anim_channel_rotation_index_for_animation_timepoint(
+    anim_channel, animation_timepoint
+  );
+  real64 prev_keyframe = anim_channel->rotation_keys[idx_rotation].time;
+  real64 next_keyframe = anim_channel->rotation_keys[idx_rotation + 1].time;
+
+  *rotation = glm::toMat4(glm::normalize(glm::slerp(
+    anim_channel->rotation_keys[idx_rotation].rotation,
+    anim_channel->rotation_keys[idx_rotation + 1].rotation,
+    (real32)((animation_timepoint - prev_keyframe) / (next_keyframe - prev_keyframe))
+  )));
+}
+
+
+void EntitySets::make_bone_scaling(
+  AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *scaling
+) {
+  if (anim_channel->n_scaling_keys == 1) {
+    *scaling = glm::scale(
+      glm::mat4(1.0f), anim_channel->scaling_keys[0].scale
+    );
+    return;
+  }
+
+  uint32 idx_scaling = get_anim_channel_scaling_index_for_animation_timepoint(
+    anim_channel, animation_timepoint
+  );
+  real64 prev_keyframe = anim_channel->scaling_keys[idx_scaling].time;
+  real64 next_keyframe = anim_channel->scaling_keys[idx_scaling + 1].time;
+
+  *scaling = glm::scale(
+    glm::mat4(1.0f),
+    glm::mix(
+      anim_channel->scaling_keys[idx_scaling].scale,
+      anim_channel->scaling_keys[idx_scaling + 1].scale,
+      (animation_timepoint - prev_keyframe) / (next_keyframe - prev_keyframe)
+    )
+  );
 }
 
 
@@ -140,7 +217,7 @@ void EntitySets::make_bone_matrices(
     glm::mat4 parent_transform = glm::mat4(1.0f);
     glm::mat4 translation = glm::mat4(1.0f);
     glm::mat4 rotation = glm::mat4(1.0f);
-    glm::mat4 scale = glm::mat4(1.0f);
+    glm::mat4 scaling = glm::mat4(1.0f);
 
     if (idx > 0) {
       parent_transform = local_bone_matrices[bone->idx_parent];
@@ -149,33 +226,18 @@ void EntitySets::make_bone_matrices(
     AnimChannel *anim_channel = &animation->anim_channels[idx];
 
     if (anim_channel->n_position_keys > 0) {
-      uint32 idx_position = get_anim_channel_position_index_for_t(
-        anim_channel, animation_timepoint
-      );
-      translation = glm::translate(
-        glm::mat4(1.0f), anim_channel->position_keys[idx_position].position
-      );
+      make_bone_translation(anim_channel, animation_timepoint, &translation);
     }
 
     if (anim_channel->n_rotation_keys > 0) {
-      uint32 idx_rotation = get_anim_channel_rotation_index_for_t(
-        anim_channel, animation_timepoint
-      );
-      rotation = glm::toMat4(
-        anim_channel->rotation_keys[idx_rotation].rotation
-      );
+      make_bone_rotation(anim_channel, animation_timepoint, &rotation);
     }
 
     if (anim_channel->n_scaling_keys > 0) {
-      uint32 idx_scaling = get_anim_channel_scaling_index_for_t(
-        anim_channel, animation_timepoint
-      );
-      scale = glm::scale(
-        glm::mat4(1.0f), anim_channel->scaling_keys[idx_scaling].scale
-      );
+      make_bone_scaling(anim_channel, animation_timepoint, &scaling);
     }
 
-    glm::mat4 anim_transform = translation * rotation * scale;
+    glm::mat4 anim_transform = translation * rotation * scaling;
     local_bone_matrices[idx] = parent_transform * anim_transform;
     final_bone_matrices[idx] =
       animation_component->scene_root_transform *
