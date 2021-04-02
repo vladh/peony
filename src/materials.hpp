@@ -220,7 +220,8 @@ namespace Materials {
   void create_material_from_template(
     Material *material,
     MaterialTemplate *material_template,
-    BuiltinTextures *builtin_textures
+    BuiltinTextures *builtin_textures,
+    MemoryPool *memory_pool
   );
 }
 

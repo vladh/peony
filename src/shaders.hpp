@@ -70,9 +70,13 @@ namespace Shaders {
     GLenum texture_unit_type
   );
   void load_uniforms(ShaderAsset *shader_asset);
-  void load_shader_asset(ShaderAsset *shader_asset);
+  void load_shader_asset(
+    ShaderAsset *shader_asset,
+    MemoryPool *memory_pool
+  );
   ShaderAsset* init_shader_asset(
     ShaderAsset *shader_asset,
+    MemoryPool *memory_pool,
     const char *name, ShaderType type,
     const char *vert_path, const char *frag_path, const char *geom_path
   );

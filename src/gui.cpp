@@ -704,6 +704,8 @@ GuiState* Gui::init_gui_state(
   InputState *input_state,
   uint32 window_width, uint32 window_height
 ) {
+  MemoryPool temp_memory_pool = {};
+
   gui_state->font_assets = Array<FontAsset>(
     memory_pool, 8, "font_assets"
   );
@@ -718,6 +720,7 @@ GuiState* Gui::init_gui_state(
   {
      Shaders::init_shader_asset(
       &gui_state->shader_asset,
+      &temp_memory_pool,
       "gui_generic", ShaderType::standard,
       "gui_generic.vert", "gui_generic.frag", ""
     );
@@ -793,6 +796,8 @@ GuiState* Gui::init_gui_state(
       location, 4, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(4 * sizeof(real32))
     );
   }
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 
   return gui_state;
 }

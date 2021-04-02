@@ -168,7 +168,8 @@ void World::create_entity_loader_from_entity_template(
   EntityTemplate *entity_template,
   EntitySet *entity_set,
   EntityLoaderSet *entity_loader_set,
-  State *state
+  State *state,
+  MemoryPool *memory_pool
 ) {
   // TODO: Figure out parent system.
   Entity *entity = EntitySets::add_entity_to_set(
@@ -208,10 +209,8 @@ void World::create_entity_loader_from_entity_template(
       Vertex *ocean_vertex_data;
       uint32 *ocean_index_data;
 
-      MemoryPool temp_memory_pool = {};
-
       Util::make_plane(
-        &temp_memory_pool,
+        memory_pool,
         200, 200,
         800, 800,
         &ocean_n_vertices, &ocean_n_indices,
@@ -229,8 +228,6 @@ void World::create_entity_loader_from_entity_template(
         entity->handle
       );
       did_init_loader = true;
-
-      Memory::destroy_memory_pool(&temp_memory_pool);
     } else {
       log_fatal(
         "Could not find builtin model: %s", entity_template->builtin_model_name
@@ -274,6 +271,8 @@ void World::create_entity_loader_from_entity_template(
 
 
 void World::create_internal_materials(State *state) {
+  MemoryPool temp_memory_pool = {};
+
   // unknown
   {
     Material *material = Materials::init_material(
@@ -281,6 +280,7 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "unknown", ShaderType::standard,
       "base.vert", "unknown.frag", ""
     );
@@ -293,6 +293,7 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "lighting", ShaderType::standard,
       "lighting.vert", "lighting.frag", ""
     );
@@ -316,6 +317,7 @@ void World::create_internal_materials(State *state) {
     );
   }
 
+#if USE_BLOOM
   // preblur
   {
     Material *material = Materials::init_material(
@@ -323,6 +325,7 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
@@ -338,6 +341,7 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
@@ -353,6 +357,7 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "blur", ShaderType::standard,
       "blur.vert", "blur.frag", ""
     );
@@ -360,6 +365,7 @@ void World::create_internal_materials(State *state) {
       material, *state->builtin_textures.blur1_texture, "source_texture"
     );
   }
+#endif
 
   // postprocessing
   {
@@ -368,15 +374,18 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "postprocessing", ShaderType::standard,
       "postprocessing.vert", "postprocessing.frag", ""
     );
     Materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "l_color_texture"
     );
+#if USE_BLOOM
     Materials::add_texture_to_material(
       material, *state->builtin_textures.blur2_texture, "bloom_texture"
     );
+#endif
     // Uncomment to use fog.
     /* Materials::add_texture_to-material( */
     /*   material, *state->l_depth_texture, "l_depth_texture" */
@@ -390,6 +399,7 @@ void World::create_internal_materials(State *state) {
     );
     Shaders::init_shader_asset(
       &material->shader_asset,
+      &temp_memory_pool,
       "skysphere", ShaderType::standard,
       "skysphere.vert", "skysphere.frag", ""
     );
@@ -399,6 +409,8 @@ void World::create_internal_materials(State *state) {
   // We've created all internal materials, so we will mark the next position
   // in the array of materials, so we know where non-internal materials start.
   state->first_non_internal_material_idx = state->materials.size;
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
@@ -407,6 +419,7 @@ void World::create_internal_entities(State *state) {
 
   Shaders::init_shader_asset(
     &state->standard_depth_shader_asset,
+    &temp_memory_pool,
     "standard_depth", ShaderType::depth,
     "standard_depth.vert", "standard_depth.frag",
     "standard_depth.geom"
@@ -446,6 +459,7 @@ void World::create_internal_entities(State *state) {
     entity_loader->n_materials = 1;
   }
 
+#if USE_BLOOM
   // Preblur screenquad
   {
     Entity *entity = EntitySets::add_entity_to_set(
@@ -511,6 +525,7 @@ void World::create_internal_entities(State *state) {
     strcpy(entity_loader->material_names[0], "blur2");
     entity_loader->n_materials = 1;
   }
+#endif
 
   // Postprocessing screenquad
   {
@@ -661,7 +676,8 @@ void World::load_scene(
     Materials::create_material_from_template(
       state->materials.push(),
       &material_templates[idx],
-      &state->builtin_textures
+      &state->builtin_textures,
+      &temp_memory_pool
     );
   }
 
@@ -671,7 +687,8 @@ void World::load_scene(
       &entity_templates[idx_entity],
       &state->entity_set,
       &state->entity_loader_set,
-      state
+      state,
+      &temp_memory_pool
     );
   }
 

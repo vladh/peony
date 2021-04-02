@@ -142,6 +142,7 @@ void Renderer::init_shadowmaps(
     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->cube_shadowmaps, 0
   );
 
+  // #slow
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     log_fatal("Framebuffer not complete!");
   }
@@ -179,6 +180,7 @@ void Renderer::init_shadowmaps(
     GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->texture_shadowmaps, 0
   );
 
+  // #slow
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
     log_fatal("Framebuffer not complete!");
   }
@@ -445,6 +447,9 @@ void Renderer::init_blur_buffers(
   uint32 width,
   uint32 height
 ) {
+#if USE_BLOOM
+  return;
+#endif
   glGenFramebuffers(1, &builtin_textures->blur1_buffer);
   glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->blur1_buffer);
   uint32 blur1_texture_name;
@@ -791,14 +796,28 @@ void Renderer::destroy_window() {
 
 
 void Renderer::reload_shaders(State *state) {
+  MemoryPool temp_memory_pool = {};
+
   for (uint32 idx = 0; idx < state->materials.size; idx++) {
     Material *material = state->materials[idx];
-    Shaders::load_shader_asset(&material->shader_asset);
+    Shaders::load_shader_asset(
+      &material->shader_asset,
+      &temp_memory_pool
+    );
     if (Shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
-      Shaders::load_shader_asset(&material->depth_shader_asset);
+      Shaders::load_shader_asset(
+        &material->depth_shader_asset,
+        &temp_memory_pool
+      );
     }
   }
-  Shaders::load_shader_asset(&state->standard_depth_shader_asset);
+
+  Shaders::load_shader_asset(
+    &state->standard_depth_shader_asset,
+    &temp_memory_pool
+  );
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
@@ -1208,7 +1227,7 @@ void Renderer::render(State *state) {
 
   glDisable(GL_DEPTH_TEST);
 
-#if 0
+#if USE_BLOOM
   // Blur pass
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);

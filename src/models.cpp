@@ -156,11 +156,13 @@ void Models::load_animations(
     animation->ticks_per_second = ai_animation->mTicksPerSecond;
     strcpy(animation->name, ai_animation->mName.C_Str());
 
+#if USE_ANIMATION_DEBUG
     log_info(
       "animation %d (dur %f)",
       idx_animation,
       animation->duration
     );
+#endif
 
     animation->n_anim_channels = ai_animation->mNumChannels;
     for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
@@ -186,6 +188,7 @@ void Models::load_animations(
         .n_rotation_keys = ai_channel->mNumRotationKeys,
         .n_scaling_keys = ai_channel->mNumScalingKeys,
       };
+#if USE_ANIMATION_DEBUG
       log_info(
         "channel %d: %d position, %d rotation, %d scaling",
         idx_channel,
@@ -193,6 +196,7 @@ void Models::load_animations(
         channel->n_rotation_keys,
         channel->n_scaling_keys
       );
+#endif
 
       for_range_named (idx_key, 0, ai_channel->mNumPositionKeys) {
         channel->position_keys[idx_key] = {

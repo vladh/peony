@@ -1,6 +1,6 @@
 void Memory::reset_memory_pool(MemoryPool *pool) {
 #if USE_MEMORY_DEBUG_LOGS
-  log_info("Resetting memory pool \"%s\"", pool->name);
+  log_info("Resetting memory pool");
 #endif
   pool->used = 0;
   pool->n_items = 0;
@@ -34,7 +34,15 @@ void* Memory::push(
     );
 #endif
 
+#if USE_MEMORY_DEBUG_LOGS
+    auto t0 = debug_start_timer();
+#endif
     pool->memory = (uint8*)malloc(pool->size);
+#if USE_MEMORY_DEBUG_LOGS
+    real64 dur = debug_end_timer(t0);
+    log_info("Malloc took %.0fms", dur);
+#endif
+
     memset(pool->memory, 0, pool->size);
   }
   assert(pool->used + item_size <= pool->size);

@@ -29,6 +29,6 @@ constexpr uint32 MAX_N_BONES = 128;
 constexpr uint32 MAX_N_BONES_PER_VERTEX = 4;
 constexpr uint32 MAX_NODE_NAME_LENGTH = 32;
 constexpr uint32 MAX_N_ANIMATIONS = 2;
-constexpr uint32 MAX_N_ANIM_KEYS = 512;
+constexpr uint32 MAX_N_ANIM_KEYS = 256;
 
 #endif

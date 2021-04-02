@@ -12,8 +12,10 @@ out vec4 frag_color;
 void main() {
   vec3 color = texture(l_color_texture, fs_in.tex_coords).rgb;
 
+#if USE_BLOOM
   vec3 bloom = texture(bloom_texture, fs_in.tex_coords).rgb;
   color += bloom / 15.0;
+#endif
 
   // float depth = texture(l_depth_texture, fs_in.tex_coords).r;
   // float linear_depth = linearize_depth(

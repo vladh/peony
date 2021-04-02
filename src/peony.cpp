@@ -5,8 +5,11 @@
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 #define USE_CACHELINE_SIZE_DISPLAY false
-#define USE_FULLSCREEN true
+#define USE_FULLSCREEN false
 #define USE_WINDOWED_FULLSCREEN true
+#define USE_ANIMATION_DEBUG false
+#define USE_SHADER_DEBUG false
+#define USE_BLOOM false
 #define TARGET_MONITOR 0
 
 #include "peony.hpp"
@@ -189,16 +192,12 @@ int main() {
   check_environment();
   srand((uint32)time(NULL));
 
-  START_TIMER(init);
-
   MemoryPool state_memory_pool = {};
   state_memory_pool.size = sizeof(State);
   MemoryPool asset_memory_pool = {.size = MB_TO_B(4096)};
 
   WindowInfo window_info;
-  START_TIMER(init_window);
   Renderer::init_window(&window_info);
-  END_TIMER(init_window);
   if (!window_info.window) {
     return -1;
   }
@@ -281,8 +280,6 @@ int main() {
 #if USE_CACHELINE_SIZE_DISPLAY
   log_info("Cache line size: %dB", cacheline_get_size());
 #endif
-
-  END_TIMER(init);
 
   run_main_loop(state);
 
