@@ -9,7 +9,8 @@ const char* Tasks::task_type_to_str(TaskType type) {
 
 
 void Tasks::run_task(Task *task) {
-  START_TIMER(run_task);
+  auto t0 = debug_start_timer();
+
   if (task->type == TaskType::load_model) {
     Models::load_model(task->target.entity_loader);
   } else if (task->type ==  TaskType::copy_textures_to_pbo) {
@@ -17,7 +18,9 @@ void Tasks::run_task(Task *task) {
   } else {
     log_error("Don't know how to run task with type %d", task->type);
   }
-  END_TIMER(run_task);
+
+  real64 duration = debug_end_timer(t0);
+  log_info("Task %s took %.0fms", task_type_to_str(task->type), duration);
 }
 
 
@@ -34,11 +37,12 @@ void Tasks::run_loading_loop(
     mutex->unlock();
 
     if (task) {
+#if 0
       if (task->type == TaskType::load_model) {
         log_info(
           "[Thread #%d] Running task %s for model %s",
           idx_thread,
-          Tasks::task_type_to_str(task->type),
+          task_type_to_str(task->type),
           task->target.entity_loader->name
         );
       }
@@ -46,18 +50,20 @@ void Tasks::run_loading_loop(
         log_info(
           "[Thread #%d] Running task %s for material %s",
           idx_thread,
-          Tasks::task_type_to_str(task->type),
+          task_type_to_str(task->type),
           task->target.material->name
         );
       }
+#endif
 
-      Tasks::run_task(task);
+      run_task(task);
 
+#if 0
       if (task->type == TaskType::load_model) {
         log_info(
           "[Thread #%d] Finished task %s for model %s",
           idx_thread,
-          Tasks::task_type_to_str(task->type),
+          task_type_to_str(task->type),
           task->target.entity_loader->name
         );
       }
@@ -65,10 +71,11 @@ void Tasks::run_loading_loop(
         log_info(
           "[Thread #%d] Finished task %s for material %s",
           idx_thread,
-          Tasks::task_type_to_str(task->type),
+          task_type_to_str(task->type),
           task->target.material->name
         );
       }
+#endif
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));

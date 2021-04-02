@@ -34,7 +34,7 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 -FC ^
 -GS ^
 -MTd ^
--MP4 ^
+-MP18 ^
 -W4 ^
 -WL ^
 -Z7 ^
@@ -56,6 +56,7 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 
 set CommonLinkerFlags=/LIBPATH:"C:/opt/lib/" ^
 -INCREMENTAL:NO ^
+-CGTHREADS:8 ^
 -DEBUG:FULL ^
 -opt:ref ^
 /NODEFAULTLIB:msvcrt.lib ^

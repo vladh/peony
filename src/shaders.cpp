@@ -310,46 +310,44 @@ void Shaders::load_uniforms(ShaderAsset *shader_asset) {
 }
 
 
-void Shaders::load_shader_asset(ShaderAsset *shader_asset) {
-  MemoryPool temp_memory_pool = {};
+void Shaders::load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
   shader_asset->did_set_texture_uniforms = false;
 
   if (!Str::is_empty(shader_asset->geom_path)) {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,
-        load_file(&temp_memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
+        load_file(memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
       ),
       make_shader(
         shader_asset->frag_path,
-        load_frag_file(&temp_memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
+        load_frag_file(memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
       ),
       make_shader(
         shader_asset->geom_path,
-        load_file(&temp_memory_pool, shader_asset->geom_path), GL_GEOMETRY_SHADER
+        load_file(memory_pool, shader_asset->geom_path), GL_GEOMETRY_SHADER
       )
     );
   } else {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,
-        load_file(&temp_memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
+        load_file(memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
       ),
       make_shader(
         shader_asset->frag_path,
-        load_frag_file(&temp_memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
+        load_frag_file(memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
       )
     );
   }
 
   load_uniforms(shader_asset);
-
-  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
 ShaderAsset* Shaders::init_shader_asset(
   ShaderAsset *shader_asset,
+  MemoryPool *memory_pool,
   const char *new_name, ShaderType new_type,
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {
@@ -363,7 +361,7 @@ ShaderAsset* Shaders::init_shader_asset(
   strcpy(shader_asset->vert_path, vert_path);
   strcpy(shader_asset->frag_path, frag_path);
   strcpy(shader_asset->geom_path, geom_path);
-  load_shader_asset(shader_asset);
+  load_shader_asset(shader_asset, memory_pool);
   return shader_asset;
 }
 

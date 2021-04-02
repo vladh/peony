@@ -12,7 +12,8 @@ namespace World {
     EntityTemplate *entity_template,
     EntitySet *entity_set,
     EntityLoaderSet *entity_loader_set,
-    State *state
+    State *state,
+    MemoryPool *memory_pool
   );
   void create_internal_materials(State *state);
   void create_internal_entities(State *state);

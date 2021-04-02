@@ -351,7 +351,7 @@ void Materials::bind_texture_uniforms(Material *material) {
     for (uint32 idx = 0; idx < material->n_textures; idx++) {
       Texture *texture = &material->textures[idx];
       const char *uniform_name = material->texture_uniform_names[idx];
-#if 1
+#if USE_SHADER_DEBUG
       log_info(
         "Setting uniforms: (uniform_name %s) "
         "(texture->texture_name %d)",
@@ -577,7 +577,8 @@ bool32 Materials::prepare_material_and_check_if_done(
 void Materials::create_material_from_template(
   Material *material,
   MaterialTemplate *material_template,
-  BuiltinTextures *builtin_textures
+  BuiltinTextures *builtin_textures,
+  MemoryPool *memory_pool
 ) {
   init_material(material, material_template->name);
 
@@ -589,6 +590,7 @@ void Materials::create_material_from_template(
   if (!Str::is_empty(material_template->shader_asset_vert_path)) {
     Shaders::init_shader_asset(
       &material->shader_asset,
+      memory_pool,
       material_template->name,
       ShaderType::standard,
       material_template->shader_asset_vert_path,
@@ -599,6 +601,7 @@ void Materials::create_material_from_template(
   if (!Str::is_empty(material_template->depth_shader_asset_vert_path)) {
      Shaders::init_shader_asset(
       &material->depth_shader_asset,
+      memory_pool,
       material_template->name,
       ShaderType::depth,
       material_template->depth_shader_asset_vert_path,
