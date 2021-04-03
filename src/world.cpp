@@ -753,66 +753,22 @@ void World::update(State *state) {
   );
   state->is_world_loaded = check_all_entities_loaded(state);
 
-  for (
-    uint32 idx = 1;
-    idx < state->behavior_component_set.components.size;
-    idx++
-  ) {
-    BehaviorComponent *behavior_component =
-      state->behavior_component_set.components.get(idx);
+  EntitySets::update_animation_components(
+    &state->animation_component_set,
+    &state->spatial_component_set,
+    state->t
+  );
 
-    if (
-      !behavior_component ||
-      !Entities::is_behavior_component_valid(behavior_component)
-    ) {
-      continue;
-    }
+  EntitySets::update_behavior_components(
+    &state->behavior_component_set,
+    &state->spatial_component_set,
+    state->t
+  );
 
-    EntityHandle entity_handle = behavior_component->entity_handle;
-
-    SpatialComponent *spatial_component =
-      state->spatial_component_set.components.get(entity_handle);
-    if (!spatial_component) {
-      log_error("Could not get SpatialComponent for BehaviorComponent");
-      continue;
-    }
-
-    Entity *entity = state->entity_set.entities.get(entity_handle);
-    if (!entity) {
-      log_error("Could not get Entity for BehaviorComponent");
-      continue;
-    }
-
-    if (behavior_component->behavior == Behavior::test) {
-      spatial_component->position = glm::vec3(
-        (real32)sin(state->t) * 15.0f,
-        (real32)((sin(state->t * 2.0f) + 1.5) * 3.0f),
-        (real32)cos(state->t) * 15.0f
-      );
-    }
-  }
-
-  for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
-    LightComponent *light_component =
-      state->light_component_set.components.get(idx);
-    SpatialComponent *spatial_component =
-      state->spatial_component_set.components.get(light_component->entity_handle);
-
-    if (!(
-      Entities::is_light_component_valid(light_component) &&
-      Entities::is_spatial_component_valid(spatial_component)
-    )) {
-      continue;
-    }
-
-    if (light_component->type == LightType::point) {
-      light_component->color.b = ((real32)sin(state->t) + 1.0f) / 2.0f * 50.0f;
-    }
-
-    // For the sun! :)
-    if (light_component->type == LightType::directional) {
-      spatial_component->position = state->camera_active->position +
-        -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
-    }
-  }
+  EntitySets::update_light_components(
+    &state->light_component_set,
+    &state->spatial_component_set,
+    state->t,
+    state->camera_active->position
+  );
 }

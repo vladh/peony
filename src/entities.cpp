@@ -32,7 +32,8 @@ bool32 Entities::is_behavior_component_valid(
 bool32 Entities::is_animation_component_valid(
   AnimationComponent *animation_component
 ) {
-  return animation_component->n_bones > 0;
+  return animation_component->n_bones > 0 &&
+    animation_component->n_animations > 0;
 }
 
 

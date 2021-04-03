@@ -105,7 +105,6 @@ void Models::add_bone_tree_to_animation_component(
   uint32 idx_new_bone = animation_component->n_bones;
   animation_component->bones[idx_new_bone] = {
     .idx_parent = idx_parent,
-    .transform = Util::aimatrix4x4_to_glm(&node->mTransformation),
     // NOTE: offset is added later, since we don't have the aiBone at this stage.
   };
   strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
@@ -145,6 +144,8 @@ void Models::load_animations(
 ) {
   animation_component->scene_root_transform =
     Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
+  animation_component->inverse_scene_root_transform =
+    glm::inverse(animation_component->scene_root_transform);
 
   animation_component->n_animations = scene->mNumAnimations;
   for_range_named (idx_animation, 0, scene->mNumAnimations) {

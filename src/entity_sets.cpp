@@ -56,6 +56,100 @@ glm::mat4 EntitySets::make_model_matrix(
 }
 
 
+void EntitySets::update_animation_components(
+  AnimationComponentSet *animation_component_set,
+  SpatialComponentSet *spatial_component_set,
+  real64 t
+) {
+  for (
+    uint32 idx = 1;
+    idx < animation_component_set->components.size;
+    idx++
+  ) {
+    AnimationComponent *animation_component =
+      animation_component_set->components.get(idx);
+
+    if (!Entities::is_animation_component_valid(animation_component)) {
+      continue;
+    }
+
+    make_bone_matrices(animation_component, t);
+  }
+}
+
+
+void EntitySets::update_behavior_components(
+  BehaviorComponentSet *behavior_component_set,
+  SpatialComponentSet *spatial_component_set,
+  real64 t
+) {
+  for (
+    uint32 idx = 1;
+    idx < behavior_component_set->components.size;
+    idx++
+  ) {
+    BehaviorComponent *behavior_component =
+      behavior_component_set->components.get(idx);
+
+    if (
+      !behavior_component ||
+      !Entities::is_behavior_component_valid(behavior_component)
+    ) {
+      continue;
+    }
+
+    EntityHandle entity_handle = behavior_component->entity_handle;
+
+    SpatialComponent *spatial_component =
+      spatial_component_set->components.get(entity_handle);
+    if (!spatial_component) {
+      log_error("Could not get SpatialComponent for BehaviorComponent");
+      continue;
+    }
+
+    if (behavior_component->behavior == Behavior::test) {
+      spatial_component->position = glm::vec3(
+        (real32)sin(t) * 15.0f,
+        (real32)((sin(t * 2.0f) + 1.5) * 3.0f),
+        (real32)cos(t) * 15.0f
+      );
+    }
+  }
+}
+
+
+void EntitySets::update_light_components(
+  LightComponentSet *light_component_set,
+  SpatialComponentSet *spatial_component_set,
+  real64 t,
+  glm::vec3 camera_position
+) {
+  for (uint32 idx = 0; idx < light_component_set->components.size; idx++) {
+    LightComponent *light_component =
+      light_component_set->components.get(idx);
+    SpatialComponent *spatial_component =
+      spatial_component_set->components.get(light_component->entity_handle);
+
+    if (!(
+      Entities::is_light_component_valid(light_component) &&
+      Entities::is_spatial_component_valid(spatial_component)
+    )) {
+      continue;
+    }
+
+    if (light_component->type == LightType::point) {
+      light_component->color.b = ((real32)sin(t) + 1.0f) / 2.0f * 50.0f;
+    }
+
+    // For the sun! :)
+    if (light_component->type == LightType::directional) {
+      spatial_component->position = camera_position +
+        -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
+    }
+  }
+}
+
+
 uint32 EntitySets::get_anim_channel_position_index_for_animation_timepoint(
   AnimChannel *anim_channel, real64 animation_timepoint
 ) {
@@ -196,14 +290,10 @@ void EntitySets::make_bone_scaling(
 
 
 void EntitySets::make_bone_matrices(
-  glm::mat4 *local_bone_matrices,
-  glm::mat4 *final_bone_matrices,
   AnimationComponent *animation_component,
   real64 t
 ) {
-  if (animation_component->n_animations == 0) {
-    return;
-  }
+  glm::mat4 local_bone_matrices[MAX_N_BONES];
 
   Animation *animation = &animation_component->animations[0];
   real64 duration_in_sec = animation->ticks_per_second * animation->duration;
@@ -239,11 +329,11 @@ void EntitySets::make_bone_matrices(
 
     glm::mat4 anim_transform = translation * rotation * scaling;
     local_bone_matrices[idx] = parent_transform * anim_transform;
-    final_bone_matrices[idx] =
+    animation_component->bone_matrices[idx] =
       animation_component->scene_root_transform *
       local_bone_matrices[idx] *
       bone->offset *
-      glm::inverse(animation_component->scene_root_transform);
+      animation_component->inverse_scene_root_transform;
   }
 }
 
@@ -283,7 +373,6 @@ void EntitySets::draw(
   Material *material,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
-  bool32 have_animations,
   glm::mat4 *bone_matrices,
   ShaderAsset *standard_depth_shader_asset
 ) {
@@ -332,7 +421,7 @@ void EntitySets::draw(
       Shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
     } else if (Str::eq(uniform_name, "model_normal_matrix")) {
       Shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
-    } else if (have_animations && Str::eq(uniform_name, "bone_matrices[0]")) {
+    } else if (bone_matrices && Str::eq(uniform_name, "bone_matrices[0]")) {
       Shaders::set_mat4_multiple(
         shader_asset, MAX_N_BONES, "bone_matrices[0]", bone_matrices
       );
@@ -362,9 +451,6 @@ void EntitySets::draw_all(
   ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
 
   for (uint32 idx = 0; idx < drawable_component_set->components.size; idx++) {
-    /* Entity *entity = entity_set->entities.get(idx); */
-    /* log_info("Drawing %s", entity->debug_name); */
-
     DrawableComponent *drawable = drawable_component_set->components.get(idx);
 
     if (!Models::is_drawable_component_valid(drawable)) {
@@ -374,6 +460,11 @@ void EntitySets::draw_all(
     if (!(render_pass & drawable->target_render_pass)) {
       continue;
     }
+
+#if 0
+    Entity *entity = entity_set->entities.get(idx);
+    log_info("Drawing %s", entity->debug_name);
+#endif
 
     Material *material = Materials::get_material_by_name(
       materials, drawable->mesh.material_name
@@ -389,9 +480,7 @@ void EntitySets::draw_all(
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
-    bool32 have_animations = false;
-    glm::mat4 local_bone_matrices[MAX_N_BONES];
-    glm::mat4 final_bone_matrices[MAX_N_BONES];
+    glm::mat4 *bone_matrices = nullptr;
 
     if (Entities::is_spatial_component_valid(spatial)) {
       // We only need to calculate the normal matrix if we have non-uniform
@@ -419,19 +508,7 @@ void EntitySets::draw_all(
         animation_component_set
       );
       if (animation_component) {
-        have_animations = true;
-
-        // TODO: This function is a bit heavy, and it needs a lot of space
-        // allocated for all the matrices. Can we do this differently?
-        // Should we preallocate some space for these matrices on the heap?
-        // We should definitely remove the matrix inversion inside the
-        // function. What else can we do to make it more lightweight?
-        EntitySets::make_bone_matrices(
-          local_bone_matrices,
-          final_bone_matrices,
-          animation_component,
-          t
-        );
+        bone_matrices = animation_component->bone_matrices;
       }
     }
 
@@ -442,8 +519,7 @@ void EntitySets::draw_all(
       material,
       &model_matrix,
       &model_normal_matrix,
-      have_animations,
-      final_bone_matrices,
+      bone_matrices,
       standard_depth_shader_asset
     );
   }

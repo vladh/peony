@@ -129,11 +129,11 @@ spatial_component.scale = vec3(1.0, 1.0, 1.0)
 ; spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
 ; spatial_component.scale = vec3(0.1, 0.1, 0.1)
 
-; > test
-; model_path = cube.obj
-; materials = [light]
-; render_passes = [forward_depth, shadowcaster]
-; spatial_component.position = vec3(0.0, 0.0, 0.0)
-; spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
-; spatial_component.scale = vec3(1.0, 1.0, 1.0)
-; behavior_component.behavior = test
+> test
+model_path = cube.obj
+materials = [light]
+render_passes = [forward_depth, shadowcaster]
+spatial_component.position = vec3(0.0, 0.0, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+behavior_component.behavior = test

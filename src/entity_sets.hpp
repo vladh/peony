@@ -57,6 +57,22 @@ namespace EntitySets {
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
+  void update_animation_components(
+    AnimationComponentSet *animation_component_set,
+    SpatialComponentSet *spatial_component_set,
+    real64 t
+  );
+  void update_behavior_components(
+    BehaviorComponentSet *behavior_component_set,
+    SpatialComponentSet *spatial_component_set,
+    real64 t
+  );
+  void update_light_components(
+    LightComponentSet *light_component_set,
+    SpatialComponentSet *spatial_component_set,
+    real64 t,
+    glm::vec3 camera_position
+  );
   uint32 get_anim_channel_position_index_for_animation_timepoint(
     AnimChannel *anim_channel, real64 t
   );
@@ -76,8 +92,6 @@ namespace EntitySets {
     AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *scaling
   );
   void make_bone_matrices(
-    glm::mat4 *local_bone_matrices,
-    glm::mat4 *final_bone_matrices,
     AnimationComponent *animation_component,
     real64 t
   );
@@ -93,7 +107,6 @@ namespace EntitySets {
     Material *material,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
-    bool32 have_animations,
     glm::mat4 *bone_matrices,
     ShaderAsset *standard_depth_shader_asset
   );

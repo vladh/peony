@@ -1,7 +1,7 @@
 #ifndef TYPES_HPP
 #define TYPES_HPP
 
-#define global_variable static
+#define global static
 #define local_persist static
 #define internal static
 
