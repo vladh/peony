@@ -64,6 +64,18 @@ State* init_state(
       asset_memory_pool, MAX_N_ENTITIES, "animation_components", true
     )
   };
+  state->bone_matrix_pool.bone_matrices = Array<glm::mat4>(
+    asset_memory_pool,
+    MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
+    "bone_matrices",
+    true
+  );
+  state->bone_matrix_pool.times = Array<real64>(
+    asset_memory_pool,
+    MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
+    "bone_matrix_times",
+    true
+  );
 
   return state;
 }

@@ -12,7 +12,10 @@ void Tasks::run_task(Task *task) {
   auto t0 = debug_start_timer();
 
   if (task->type == TaskType::load_model) {
-    Models::load_model(task->target.entity_loader);
+    Models::load_model(
+      task->target.entity_loader,
+      task->bone_matrix_pool
+    );
   } else if (task->type ==  TaskType::copy_textures_to_pbo) {
     Materials::copy_textures_to_pbo(task->target.material, task->persistent_pbo);
   } else {

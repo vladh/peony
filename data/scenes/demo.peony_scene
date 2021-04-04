@@ -79,7 +79,7 @@ spatial_component.scale = vec3(1.0, 1.0, 1.0)
 
 > platform
 model_path = platform/platform.obj
-materials = [island]
+materials = [platform]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 0.0, 5.0)
 spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)

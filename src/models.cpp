@@ -140,90 +140,76 @@ void Models::load_bones(
 
 void Models::load_animations(
   AnimationComponent *animation_component,
-  const aiScene *scene
+  const aiScene *scene,
+  BoneMatrixPool *bone_matrix_pool
 ) {
-  animation_component->scene_root_transform =
+  glm::mat4 scene_root_transform =
     Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
-  animation_component->inverse_scene_root_transform =
-    glm::inverse(animation_component->scene_root_transform);
+  glm::mat4 inverse_scene_root_transform = glm::inverse(scene_root_transform);
 
   animation_component->n_animations = scene->mNumAnimations;
   for_range_named (idx_animation, 0, scene->mNumAnimations) {
-    Animation *animation =
-      &animation_component->animations[idx_animation];
+    Animation *animation = &animation_component->animations[idx_animation];
     aiAnimation *ai_animation = scene->mAnimations[idx_animation];
 
-    animation->duration = ai_animation->mDuration;
-    animation->ticks_per_second = ai_animation->mTicksPerSecond;
+    *animation = {
+      .duration = ai_animation->mDuration * ai_animation->mTicksPerSecond,
+      .idx_bone_matrix_set = EntitySets::push_to_bone_matrix_pool(bone_matrix_pool),
+    };
     strcpy(animation->name, ai_animation->mName.C_Str());
 
-#if USE_ANIMATION_DEBUG
-    log_info(
-      "animation %d (dur %f)",
-      idx_animation,
-      animation->duration
-    );
-#endif
+    // Calculate bone matrices.
+    // NOTE: We do not finalise the bone matrices at this stage!
+    // The matrices in local form are still needed for the children.
+    for_range_named(idx_bone, 0, animation_component->n_bones) {
+      Bone *bone = &animation_component->bones[idx_bone];
 
-    animation->n_anim_channels = ai_animation->mNumChannels;
-    for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
-      aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
+      uint32 found_channel_idx = 0;
+      bool32 did_find_channel = false;
 
-      uint32 found_bone_idx = 0;
-      bool32 did_find_bone = false;
-
-      for_range_named(idx_bone, 0, animation_component->n_bones) {
-        if (Str::eq(
-          ai_channel->mNodeName.C_Str(), animation_component->bones[idx_bone].name
-        )) {
-          found_bone_idx = idx_bone;
-          did_find_bone = true;
+      for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
+        aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
+        if (Str::eq(ai_channel->mNodeName.C_Str(), bone->name)) {
+          found_channel_idx = idx_channel;
+          did_find_channel = true;
+          break;
         }
       }
 
-      assert(did_find_bone);
+      if (!did_find_channel) {
+        // No channel for this bone. Maybe it's just not animated. Skip it.
+        continue;
+      }
 
-      AnimChannel *channel = &animation->anim_channels[found_bone_idx];
-      *channel = {
-        .n_position_keys = ai_channel->mNumPositionKeys,
-        .n_rotation_keys = ai_channel->mNumRotationKeys,
-        .n_scaling_keys = ai_channel->mNumScalingKeys,
-      };
-#if USE_ANIMATION_DEBUG
-      log_info(
-        "channel %d: %d position, %d rotation, %d scaling",
-        idx_channel,
-        channel->n_position_keys,
-        channel->n_rotation_keys,
-        channel->n_scaling_keys
+      EntitySets::make_bone_matrices_for_animation_bone(
+        animation_component,
+        ai_animation->mChannels[found_channel_idx],
+        idx_animation,
+        idx_bone,
+        bone_matrix_pool
       );
-#endif
+    }
 
-      for_range_named (idx_key, 0, ai_channel->mNumPositionKeys) {
-        channel->position_keys[idx_key] = {
-          .position = Util::aiVector3D_to_glm(
-            &ai_channel->mPositionKeys[idx_key].mValue
-          ),
-          .time = ai_channel->mPositionKeys[idx_key].mTime,
-        };
-      }
+    // Finalise bone matrices.
+    // NOTE: Now that we've calculated all the bone matrices for this
+    // animation, we can finalise them.
+    for_range_named(idx_bone, 0, animation_component->n_bones) {
+      Bone *bone = &animation_component->bones[idx_bone];
 
-      for_range_named (idx_key, 0, ai_channel->mNumRotationKeys) {
-        channel->rotation_keys[idx_key] = {
-          .rotation = Util::aiQuaternion_to_glm(
-            &ai_channel->mRotationKeys[idx_key].mValue
-          ),
-          .time = ai_channel->mRotationKeys[idx_key].mTime,
-        };
-      }
+      for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
+        // #slow: We could avoid this multiplication here.
+        glm::mat4 *bone_matrix = EntitySets::get_bone_matrix(
+          bone_matrix_pool,
+          animation->idx_bone_matrix_set,
+          idx_bone,
+          idx_anim_key
+        );
 
-      for_range_named (idx_key, 0, ai_channel->mNumScalingKeys) {
-        channel->scaling_keys[idx_key] = {
-          .scale = Util::aiVector3D_to_glm(
-            &ai_channel->mScalingKeys[idx_key].mValue
-          ),
-          .time = ai_channel->mScalingKeys[idx_key].mTime,
-        };
+        *bone_matrix =
+          scene_root_transform *
+          *bone_matrix *
+          bone->offset *
+          inverse_scene_root_transform;
       }
     }
   }
@@ -399,7 +385,10 @@ void Models::load_node(
 }
 
 
-void Models::load_model(EntityLoader *entity_loader) {
+void Models::load_model(
+  EntityLoader *entity_loader,
+  BoneMatrixPool *bone_matrix_pool
+) {
   // If we're not loading from a file, all the data has already
   // been loaded previously, so we just need to handle the
   // shaders and textures and so on, so skip this.
@@ -435,12 +424,12 @@ void Models::load_model(EntityLoader *entity_loader) {
       animation_component, scene
     );
 
-    load_animations(
-      animation_component, scene
-    );
-
     load_node(
       entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+    );
+
+    load_animations(
+      animation_component, scene, bone_matrix_pool
     );
 
     aiReleaseImport(scene);
@@ -556,7 +545,8 @@ bool32 Models::prepare_model_and_check_if_done(
   SpatialComponentSet *spatial_component_set,
   LightComponentSet *light_component_set,
   BehaviorComponentSet *behavior_component_set,
-  AnimationComponentSet *animation_component_set
+  AnimationComponentSet *animation_component_set,
+  BoneMatrixPool *bone_matrix_pool
 ) {
   if (entity_loader->state == EntityLoaderState::initialized) {
     task_queue->push({
@@ -565,6 +555,7 @@ bool32 Models::prepare_model_and_check_if_done(
         .entity_loader = entity_loader,
       },
       .persistent_pbo = nullptr,
+      .bone_matrix_pool = bone_matrix_pool,
     });
     entity_loader->state = EntityLoaderState::mesh_data_being_loaded;
   }

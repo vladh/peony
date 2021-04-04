@@ -2,6 +2,7 @@
 #define TASK_HPP
 
 struct EntityLoader;
+struct BoneMatrixPool;
 
 enum class TaskType {
   load_model,
@@ -17,6 +18,7 @@ struct Task {
   TaskType type;
   TaskTarget target;
   PersistentPbo *persistent_pbo;
+  BoneMatrixPool *bone_matrix_pool;
 };
 
 namespace Tasks {

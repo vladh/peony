@@ -26,43 +26,16 @@ struct BehaviorComponent {
 struct Bone {
   char name[MAX_NODE_NAME_LENGTH];
   uint32 idx_parent;
+  uint32 n_anim_keys;
+  uint32 last_anim_key;
   glm::mat4 offset;
-};
-
-struct PositionKey {
-  glm::vec3 position;
-  real64 time;
-};
-
-struct RotationKey {
-  glm::quat rotation;
-  real64 time;
-};
-
-struct ScalingKey {
-  glm::vec3 scale;
-  real64 time;
-};
-
-struct AnimChannel {
-  uint32 n_position_keys;
-  uint32 n_rotation_keys;
-  uint32 n_scaling_keys;
-  uint32 last_position_key;
-  uint32 last_rotation_key;
-  uint32 last_scaling_key;
-  PositionKey position_keys[MAX_N_ANIM_KEYS];
-  RotationKey rotation_keys[MAX_N_ANIM_KEYS];
-  ScalingKey scaling_keys[MAX_N_ANIM_KEYS];
 };
 
 struct Animation {
   char name[MAX_NODE_NAME_LENGTH];
   real64 duration;
-  real64 ticks_per_second;
-  // TODO: Make this a pointer to something that lives elsewhere.
-  AnimChannel anim_channels[MAX_N_BONES];
-  uint32 n_anim_channels;
+  // NOTE: Index into the BoneMatrixPool
+  uint32 idx_bone_matrix_set;
 };
 
 struct AnimationComponent {
@@ -72,8 +45,6 @@ struct AnimationComponent {
   uint32 n_bones;
   Animation animations[MAX_N_ANIMATIONS];
   uint32 n_animations;
-  glm::mat4 scene_root_transform;
-  glm::mat4 inverse_scene_root_transform;
 };
 
 enum class LightType {none, point, directional};
