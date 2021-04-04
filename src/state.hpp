@@ -17,6 +17,12 @@ struct PerfCounters {
   uint32 last_fps;
 };
 
+struct BoneMatrixPool {
+  Array<glm::mat4> bone_matrices;
+  Array<real64> times;
+  uint32 n_bone_matrix_sets;
+};
+
 struct State {
   bool32 is_manual_frame_advance_enabled;
   bool32 should_manually_advance_to_next_frame;
@@ -53,6 +59,8 @@ struct State {
   SpatialComponentSet spatial_component_set;
   BehaviorComponentSet behavior_component_set;
   AnimationComponentSet animation_component_set;
+
+  BoneMatrixPool bone_matrix_pool;
 
   real32 heading_opacity;
   const char *heading_text;

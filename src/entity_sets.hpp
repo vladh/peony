@@ -48,6 +48,19 @@ struct AnimationComponentSet {
 };
 
 namespace EntitySets {
+  uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool);
+  glm::mat4* get_bone_matrix(
+    BoneMatrixPool *pool,
+    uint32 idx,
+    uint32 idx_bone,
+    uint32 idx_anim_key
+  );
+  real64* get_bone_matrix_time(
+    BoneMatrixPool *pool,
+    uint32 idx,
+    uint32 idx_bone,
+    uint32 idx_anim_key
+  );
   EntityHandle make_handle(EntitySet *entity_set);
   Entity* add_entity_to_set(
     EntitySet *entity_set,
@@ -60,7 +73,8 @@ namespace EntitySets {
   void update_animation_components(
     AnimationComponentSet *animation_component_set,
     SpatialComponentSet *spatial_component_set,
-    real64 t
+    real64 t,
+    BoneMatrixPool *bone_matrix_pool
   );
   void update_behavior_components(
     BehaviorComponentSet *behavior_component_set,
@@ -73,27 +87,19 @@ namespace EntitySets {
     real64 t,
     glm::vec3 camera_position
   );
-  uint32 get_anim_channel_position_index_for_animation_timepoint(
-    AnimChannel *anim_channel, real64 t
-  );
-  uint32 get_anim_channel_rotation_index_for_animation_timepoint(
-    AnimChannel *anim_channel, real64 t
-  );
-  uint32 get_anim_channel_scaling_index_for_animation_timepoint(
-    AnimChannel *anim_channel, real64 t
-  );
-  void make_bone_translation(
-    AnimChannel *anim_channel, real64 t, glm::mat4 *translation
-  );
-  void make_bone_rotation(
-    AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *translation
-  );
-  void make_bone_scaling(
-    AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *scaling
-  );
-  void make_bone_matrices(
+  uint32 get_bone_matrix_anim_key_for_timepoint(
+    BoneMatrixPool *bone_matrix_pool,
     AnimationComponent *animation_component,
-    real64 t
+    real64 animation_timepoint,
+    uint32 idx_bone_matrix_set,
+    uint32 idx_bone
+  );
+  void make_bone_matrices_for_animation_bone(
+    AnimationComponent *animation_component,
+    aiNodeAnim *ai_channel,
+    uint32 idx_animation,
+    uint32 idx_bone,
+    BoneMatrixPool *bone_matrix_pool
   );
   AnimationComponent* find_animation_component(
     SpatialComponent *spatial,

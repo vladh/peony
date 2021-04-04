@@ -1,3 +1,36 @@
+uint32 EntitySets::push_to_bone_matrix_pool(BoneMatrixPool *pool) {
+  return pool->n_bone_matrix_sets++;
+}
+
+
+glm::mat4* EntitySets::get_bone_matrix(
+  BoneMatrixPool *pool,
+  uint32 idx,
+  uint32 idx_bone,
+  uint32 idx_anim_key
+) {
+  return pool->bone_matrices.get(
+    idx * MAX_N_ANIM_KEYS * MAX_N_BONES +
+    idx_anim_key * MAX_N_BONES +
+    idx_bone
+  );
+}
+
+
+real64* EntitySets::get_bone_matrix_time(
+  BoneMatrixPool *pool,
+  uint32 idx,
+  uint32 idx_bone,
+  uint32 idx_anim_key
+) {
+  return pool->times.get(
+    idx * MAX_N_ANIM_KEYS * MAX_N_BONES +
+    idx_anim_key * MAX_N_BONES +
+    idx_bone
+  );
+}
+
+
 EntityHandle EntitySets::make_handle(
   EntitySet *entity_set
 ) {
@@ -59,21 +92,70 @@ glm::mat4 EntitySets::make_model_matrix(
 void EntitySets::update_animation_components(
   AnimationComponentSet *animation_component_set,
   SpatialComponentSet *spatial_component_set,
-  real64 t
+  real64 t,
+  BoneMatrixPool *bone_matrix_pool
 ) {
-  for (
-    uint32 idx = 1;
-    idx < animation_component_set->components.size;
-    idx++
-  ) {
+  for_range_named (handle, 1, animation_component_set->components.size) {
     AnimationComponent *animation_component =
-      animation_component_set->components.get(idx);
+      animation_component_set->components.get(handle);
 
     if (!Entities::is_animation_component_valid(animation_component)) {
       continue;
     }
 
-    make_bone_matrices(animation_component, t);
+    Animation *animation = &animation_component->animations[0];
+
+    for_range_named (idx_bone, 0, animation_component->n_bones) {
+      Bone *bone = &animation_component->bones[idx_bone];
+
+      // If we have no anim keys, just return the identity matrix.
+      if (bone->n_anim_keys == 0) {
+        animation_component->bone_matrices[idx_bone] = glm::mat4(1.0f);
+
+      // If we only have one anim key, just return that.
+      } else if (bone->n_anim_keys == 1) {
+        animation_component->bone_matrices[idx_bone] = *EntitySets::get_bone_matrix(
+          bone_matrix_pool,
+          animation->idx_bone_matrix_set,
+          idx_bone,
+          0
+        );
+
+      // If we have multiple anim keys, find the right ones and interpolate.
+      } else {
+        real64 animation_timepoint = fmod(t, animation->duration);
+
+        uint32 idx_anim_key = get_bone_matrix_anim_key_for_timepoint(
+          bone_matrix_pool,
+          animation_component,
+          animation_timepoint,
+          animation->idx_bone_matrix_set,
+          idx_bone
+        );
+
+        real64 t0 = *get_bone_matrix_time(
+          bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key
+        );
+        glm::mat4 transform_t0 = *get_bone_matrix(
+          bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key
+        );
+
+        real64 t1 = *get_bone_matrix_time(
+          bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key + 1
+        );
+        glm::mat4 transform_t1 = *get_bone_matrix(
+          bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key + 1
+        );
+
+        real32 lerp_factor = (real32)((animation_timepoint - t0) / (t1 - t0));
+
+        // NOTE: This is probably bad if we have scaling in our transform?
+        glm::mat4 interpolated_matrix =
+          (transform_t0 * (1.0f - lerp_factor)) + (transform_t1 * lerp_factor);
+
+        animation_component->bone_matrices[idx_bone] = interpolated_matrix;
+      }
+    }
   }
 }
 
@@ -150,190 +232,102 @@ void EntitySets::update_light_components(
 }
 
 
-uint32 EntitySets::get_anim_channel_position_index_for_animation_timepoint(
-  AnimChannel *anim_channel, real64 animation_timepoint
-) {
-  uint32 idx = anim_channel->last_position_key;
-  do {
-    if (
-      animation_timepoint > anim_channel->position_keys[idx].time &&
-      animation_timepoint < anim_channel->position_keys[idx + 1].time
-    ) {
-      anim_channel->last_position_key = idx;
-      return idx;
-    }
-    idx++;
-    if (idx == anim_channel->n_position_keys - 1) {
-      idx = 0;
-    }
-  } while (idx != anim_channel->last_position_key);
-  return 0;
-}
-
-
-uint32 EntitySets::get_anim_channel_rotation_index_for_animation_timepoint(
-  AnimChannel *anim_channel, real64 animation_timepoint
-) {
-  uint32 idx = anim_channel->last_rotation_key;
-  do {
-    if (
-      animation_timepoint > anim_channel->rotation_keys[idx].time &&
-      animation_timepoint < anim_channel->rotation_keys[idx + 1].time
-    ) {
-      anim_channel->last_rotation_key = idx;
-      return idx;
-    }
-    idx++;
-    if (idx == anim_channel->n_rotation_keys - 1) {
-      idx = 0;
-    }
-  } while (idx != anim_channel->last_rotation_key);
-  return 0;
-}
-
-
-uint32 EntitySets::get_anim_channel_scaling_index_for_animation_timepoint(
-  AnimChannel *anim_channel, real64 animation_timepoint
-) {
-  uint32 idx = anim_channel->last_scaling_key;
-  do {
-    if (
-      animation_timepoint > anim_channel->scaling_keys[idx].time &&
-      animation_timepoint < anim_channel->scaling_keys[idx + 1].time
-    ) {
-      anim_channel->last_scaling_key = idx;
-      return idx;
-    }
-    idx++;
-    if (idx == anim_channel->n_scaling_keys - 1) {
-      idx = 0;
-    }
-  } while (idx != anim_channel->last_scaling_key);
-  return 0;
-}
-
-
-void EntitySets::make_bone_translation(
-  AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *translation
-) {
-  if (anim_channel->n_position_keys == 1) {
-    *translation = glm::translate(
-      glm::mat4(1.0f), anim_channel->position_keys[0].position
-    );
-    return;
-  }
-
-  uint32 idx_position = get_anim_channel_position_index_for_animation_timepoint(
-    anim_channel, animation_timepoint
-  );
-  real64 prev_keyframe = anim_channel->position_keys[idx_position].time;
-  real64 next_keyframe = anim_channel->position_keys[idx_position + 1].time;
-
-  *translation = glm::translate(
-    glm::mat4(1.0f),
-    glm::mix(
-      anim_channel->position_keys[idx_position].position,
-      anim_channel->position_keys[idx_position + 1].position,
-      (animation_timepoint - prev_keyframe) / (next_keyframe - prev_keyframe)
-    )
-  );
-}
-
-
-void EntitySets::make_bone_rotation(
-  AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *rotation
-) {
-  if (anim_channel->n_rotation_keys == 1) {
-    *rotation = glm::toMat4(glm::normalize(anim_channel->rotation_keys[0].rotation));
-    return;
-  }
-
-  uint32 idx_rotation = get_anim_channel_rotation_index_for_animation_timepoint(
-    anim_channel, animation_timepoint
-  );
-  real64 prev_keyframe = anim_channel->rotation_keys[idx_rotation].time;
-  real64 next_keyframe = anim_channel->rotation_keys[idx_rotation + 1].time;
-
-  *rotation = glm::toMat4(glm::normalize(glm::slerp(
-    anim_channel->rotation_keys[idx_rotation].rotation,
-    anim_channel->rotation_keys[idx_rotation + 1].rotation,
-    (real32)((animation_timepoint - prev_keyframe) / (next_keyframe - prev_keyframe))
-  )));
-}
-
-
-void EntitySets::make_bone_scaling(
-  AnimChannel *anim_channel, real64 animation_timepoint, glm::mat4 *scaling
-) {
-  if (anim_channel->n_scaling_keys == 1) {
-    *scaling = glm::scale(
-      glm::mat4(1.0f), anim_channel->scaling_keys[0].scale
-    );
-    return;
-  }
-
-  uint32 idx_scaling = get_anim_channel_scaling_index_for_animation_timepoint(
-    anim_channel, animation_timepoint
-  );
-  real64 prev_keyframe = anim_channel->scaling_keys[idx_scaling].time;
-  real64 next_keyframe = anim_channel->scaling_keys[idx_scaling + 1].time;
-
-  *scaling = glm::scale(
-    glm::mat4(1.0f),
-    glm::mix(
-      anim_channel->scaling_keys[idx_scaling].scale,
-      anim_channel->scaling_keys[idx_scaling + 1].scale,
-      (animation_timepoint - prev_keyframe) / (next_keyframe - prev_keyframe)
-    )
-  );
-}
-
-
-void EntitySets::make_bone_matrices(
+uint32 EntitySets::get_bone_matrix_anim_key_for_timepoint(
+  BoneMatrixPool *bone_matrix_pool,
   AnimationComponent *animation_component,
-  real64 t
+  real64 animation_timepoint,
+  uint32 idx_bone_matrix_set,
+  uint32 idx_bone
 ) {
-  glm::mat4 local_bone_matrices[MAX_N_BONES];
+  Bone *bone = &animation_component->bones[idx_bone];
+  assert(bone->n_anim_keys > 1);
+  uint32 idx_anim_key = bone->last_anim_key;
+  do {
+    real64 t0 = *get_bone_matrix_time(
+      bone_matrix_pool, idx_bone_matrix_set, idx_bone, idx_anim_key
+    );
+    real64 t1 = *get_bone_matrix_time(
+      bone_matrix_pool, idx_bone_matrix_set, idx_bone, idx_anim_key + 1
+    );
+    if (animation_timepoint > t0 && animation_timepoint < t1) {
+      bone->last_anim_key = idx_anim_key;
+      return idx_anim_key;
+    }
+    idx_anim_key++;
+    assert(idx_anim_key < bone->n_anim_keys);
+    if (idx_anim_key == bone->n_anim_keys - 1) {
+      idx_anim_key = 0;
+    }
+  } while (idx_anim_key != bone->last_anim_key);
+  log_fatal("Could not find anim key.");
+  return 0;
+}
 
-  Animation *animation = &animation_component->animations[0];
-  real64 duration_in_sec = animation->ticks_per_second * animation->duration;
-  real64 animation_timepoint = fmod(t, duration_in_sec);
 
-  for_range (0, animation_component->n_bones) {
-    // NOTE: Because bones are sorted such that parents always come first,
-    // it is guaranteed that each node's parent's matrix will always be set
-    // when we get to computing the child.
-    Bone *bone = &animation_component->bones[idx];
+void EntitySets::make_bone_matrices_for_animation_bone(
+  AnimationComponent *animation_component,
+  aiNodeAnim *ai_channel,
+  uint32 idx_animation,
+  uint32 idx_bone,
+  BoneMatrixPool *bone_matrix_pool
+) {
+  assert(ai_channel->mNumPositionKeys == ai_channel->mNumRotationKeys);
+  assert(ai_channel->mNumPositionKeys == ai_channel->mNumScalingKeys);
+
+  Bone *bone = &animation_component->bones[idx_bone];
+  bone->n_anim_keys = ai_channel->mNumPositionKeys;
+
+  for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
+    assert(
+      ai_channel->mPositionKeys[idx_anim_key].mTime ==
+        ai_channel->mRotationKeys[idx_anim_key].mTime
+    );
+    assert(
+      ai_channel->mPositionKeys[idx_anim_key].mTime ==
+        ai_channel->mScalingKeys[idx_anim_key].mTime
+    );
+    real64 anim_key_time = ai_channel->mPositionKeys[idx_anim_key].mTime;
+
+    glm::mat4 *bone_matrix = get_bone_matrix(
+      bone_matrix_pool,
+      animation_component->animations[idx_animation].idx_bone_matrix_set,
+      idx_bone,
+      idx_anim_key
+    );
+
+    real64 *time = get_bone_matrix_time(
+      bone_matrix_pool,
+      animation_component->animations[idx_animation].idx_bone_matrix_set,
+      idx_bone,
+      idx_anim_key
+    );
+
     glm::mat4 parent_transform = glm::mat4(1.0f);
-    glm::mat4 translation = glm::mat4(1.0f);
-    glm::mat4 rotation = glm::mat4(1.0f);
-    glm::mat4 scaling = glm::mat4(1.0f);
 
-    if (idx > 0) {
-      parent_transform = local_bone_matrices[bone->idx_parent];
+    if (idx_bone > 0) {
+      parent_transform = *get_bone_matrix(
+        bone_matrix_pool,
+        animation_component->animations[idx_animation].idx_bone_matrix_set,
+        bone->idx_parent,
+        idx_anim_key
+      );
     }
 
-    AnimChannel *anim_channel = &animation->anim_channels[idx];
-
-    if (anim_channel->n_position_keys > 0) {
-      make_bone_translation(anim_channel, animation_timepoint, &translation);
-    }
-
-    if (anim_channel->n_rotation_keys > 0) {
-      make_bone_rotation(anim_channel, animation_timepoint, &rotation);
-    }
-
-    if (anim_channel->n_scaling_keys > 0) {
-      make_bone_scaling(anim_channel, animation_timepoint, &scaling);
-    }
+    glm::mat4 translation = glm::translate(
+      glm::mat4(1.0f),
+      Util::aiVector3D_to_glm(&ai_channel->mPositionKeys[idx_anim_key].mValue)
+    );
+    glm::mat4 rotation = glm::toMat4(glm::normalize(
+      Util::aiQuaternion_to_glm(&ai_channel->mRotationKeys[idx_anim_key].mValue)
+    ));
+    glm::mat4 scaling = glm::scale(
+      glm::mat4(1.0f),
+      Util::aiVector3D_to_glm(&ai_channel->mScalingKeys[idx_anim_key].mValue)
+    );
 
     glm::mat4 anim_transform = translation * rotation * scaling;
-    local_bone_matrices[idx] = parent_transform * anim_transform;
-    animation_component->bone_matrices[idx] =
-      animation_component->scene_root_transform *
-      local_bone_matrices[idx] *
-      bone->offset *
-      animation_component->inverse_scene_root_transform;
+    *bone_matrix = parent_transform * anim_transform;
+    *time = anim_key_time;
   }
 }
 

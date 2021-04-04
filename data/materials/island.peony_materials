@@ -2,9 +2,9 @@
 shader_asset.vert_path = standard.vert
 shader_asset.frag_path = standard.frag
 ; textures.albedo_texture = [albedo, island-texture.png]
-; albedo_static = vec4(0.25, 0.2, 0.2, 1.0)
+albedo_static = vec4(0.25, 0.2, 0.2, 1.0)
 ; albedo_static = vec4(0.32, 0.3, 0.3, 1.0)
-textures.albedo_texture = [albedo, concrete.png]
+; textures.albedo_texture = [albedo, concrete.png]
 metallic_static = 0.0
 roughness_static = 1.0
 ao_static = 1.0

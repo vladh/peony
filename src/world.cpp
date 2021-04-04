@@ -734,7 +734,8 @@ bool32 World::check_all_entities_loaded(State *state) {
       &state->spatial_component_set,
       &state->light_component_set,
       &state->behavior_component_set,
-      &state->animation_component_set
+      &state->animation_component_set,
+      &state->bone_matrix_pool
     );
     if (!is_done_loading) {
       are_all_done_loading = false;
@@ -756,7 +757,8 @@ void World::update(State *state) {
   EntitySets::update_animation_components(
     &state->animation_component_set,
     &state->spatial_component_set,
-    state->t
+    state->t,
+    &state->bone_matrix_pool
   );
 
   EntitySets::update_behavior_components(

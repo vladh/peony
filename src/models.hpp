@@ -87,7 +87,8 @@ namespace Models {
   );
   void load_animations(
     AnimationComponent *animation_component,
-    const aiScene *scene
+    const aiScene *scene,
+    BoneMatrixPool *bone_matrix_pool
   );
   void load_mesh(
     Mesh *mesh,
@@ -104,7 +105,8 @@ namespace Models {
     glm::mat4 accumulated_transform, Pack indices_pack
   );
   void load_model(
-    EntityLoader *entity_loader
+    EntityLoader *entity_loader,
+    BoneMatrixPool *bone_matrix_pool
   );
   void create_entities(
     EntityLoader *entity_loader,
@@ -125,7 +127,8 @@ namespace Models {
     SpatialComponentSet *spatial_component_set,
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set,
-    AnimationComponentSet *animation_component_set
+    AnimationComponentSet *animation_component_set,
+    BoneMatrixPool *bone_matrix_pool
   );
   EntityLoader* init_entity_loader(
     EntityLoader *entity_loader,
