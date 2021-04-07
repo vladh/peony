@@ -1,13 +1,5 @@
 @echo off
 
-echo ################################################################################
-echo ### Building
-echo ################################################################################
-
-if not defined DevEnvDir (
-  call vcvarsall x64
-)
-
 :: Compiler flags
 :: ---------------------
 :: -FC - Display full path of source code files in warnings
@@ -26,11 +18,22 @@ if not defined DevEnvDir (
 :: -nologo - Remove banner message
 :: -sdl - Enable additional security checks
 
-:: -GL
-:: -O2
-:: -Oi
+:: Linker flags
+:: ---------------------
+:: -STACK:reserve[,commit] - Stack size
+:: -INCREMENTAL - Link incrementally
+:: -DEBUG - Put debug information in the .pdb file
+:: -opt:ref - Remove functions and data that are never referenced
 
-set CommonCompilerFlags=/I "C:/opt/include/" ^
+echo ################################################################################
+echo ### Building
+echo ################################################################################
+
+if not defined DevEnvDir (
+  call vcvarsall x64
+)
+
+set compiler_flags=/I "C:/opt/include/" ^
 -FC ^
 -GS ^
 -MTd ^
@@ -46,15 +49,11 @@ set CommonCompilerFlags=/I "C:/opt/include/" ^
 -std:c++latest ^
 -wd4100 -wd4127 -wd4201 ^
 /D_ITERATOR_DEBUG_LEVEL=0
+:: -GL
+:: -O2
+:: -Oi
 
-:: Linker flags
-:: ---------------------
-:: -STACK:reserve[,commit] - Stack size
-:: -INCREMENTAL - Link incrementally
-:: -DEBUG - Put debug information in the .pdb file
-:: -opt:ref - Remove functions and data that are never referenced
-
-set CommonLinkerFlags=/LIBPATH:"C:/opt/lib/" ^
+set linker_flags=/LIBPATH:"C:/opt/lib/" ^
 -INCREMENTAL:NO ^
 -CGTHREADS:8 ^
 -DEBUG:FULL ^
@@ -65,6 +64,7 @@ freetype.lib opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib sh
 
 pushd build
 
-cl %CommonCompilerFlags% ..\src\peony.cpp /link /SUBSYSTEM:console %CommonLinkerFlags% /out:peony.exe
+cl %compiler_flags% ..\src\peony.cpp ^
+/link /SUBSYSTEM:console %linker_flags% /out:peony.exe
 
 popd
