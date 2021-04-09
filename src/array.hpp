@@ -31,19 +31,13 @@ public:
   }
 
   T push(T new_item) {
-    if (!this->items) {
-      alloc();
-    }
     T* new_slot = push();
     *new_slot = new_item;
     return new_item;
   }
 
   T* get(uint32 idx) {
-    assert(idx < this->max_size);
-    if (idx < 0) {
-      return nullptr;
-    }
+    assert(idx >= 0 && idx < this->max_size);
     if (idx >= this->size) {
       if (this->is_sparse) {
         this->size = idx + 1;
@@ -70,30 +64,11 @@ public:
     this->size = idx;
   }
 
-  void set(uint32 idx, T *new_item) {
-    *(this->items + idx) = *new_item;
-  }
-
-  T* get_items_ptr() {
-    return this->items;
-  }
-
-  Array(
-    MemoryPool *memory_pool,
-    uint32 max_size,
-    const char *debug_name
-  ) :
-    memory_pool(memory_pool),
-    debug_name(debug_name),
-    max_size(max_size)
-  {
-  }
-
   Array(
     MemoryPool *memory_pool,
     uint32 max_size,
     const char *debug_name,
-    bool32 is_sparse
+    bool32 is_sparse = false
   ) :
     memory_pool(memory_pool),
     debug_name(debug_name),

@@ -664,7 +664,7 @@ void World::load_scene(
     &n_used_materials
   );
 
-  for (uint32 idx = 0; idx < n_used_materials; idx++) {
+  for_range (0, n_used_materials) {
     material_templates[idx] = {};
     char path[MAX_PATH];
     PeonyFileParser::get_material_path(path, used_materials[idx]);
@@ -672,7 +672,7 @@ void World::load_scene(
   }
 
   // Create materials
-  for (uint32 idx = 0; idx < n_used_materials; idx++) {
+  for_range (0, n_used_materials) {
     Materials::create_material_from_template(
       state->materials.push(),
       &material_templates[idx],
@@ -682,9 +682,9 @@ void World::load_scene(
   }
 
   // Create entities
-  for (uint32 idx_entity = 0; idx_entity < n_entities; idx_entity++) {
+  for_range (0, n_entities) {
     create_entity_loader_from_entity_template(
-      &entity_templates[idx_entity],
+      &entity_templates[idx],
       &state->entity_set,
       &state->entity_loader_set,
       state,
