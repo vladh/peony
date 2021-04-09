@@ -62,6 +62,7 @@ namespace chrono = std::chrono;
 #include "pack.hpp"
 #include "queue.hpp"
 #include "array.hpp"
+#include "stackarray.hpp"
 #include "shaders.hpp"
 #include "materials.hpp"
 #include "tasks.hpp"

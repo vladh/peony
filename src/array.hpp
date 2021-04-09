@@ -25,7 +25,7 @@ public:
     }
     assert(this->size < this->max_size);
     uint32 new_idx = this->size;
-    T* new_slot = this->items + new_idx;
+    T* new_slot = &this->items[new_idx];
     this->size++;
     return new_slot;
   }
