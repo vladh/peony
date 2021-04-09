@@ -703,10 +703,10 @@ void Renderer::init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-#if USE_OPENGL_DEBUG
-  log_info("Using OpenGL debug context");
-  glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
+  if (USE_OPENGL_DEBUG) {
+    log_info("Using OpenGL debug context");
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+  }
 
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
@@ -766,7 +766,7 @@ void Renderer::init_window(WindowInfo *window_info) {
     log_fatal("No support for GLAD_GL_ARB_texture_storage");
   }
   if (!GLAD_GL_ARB_buffer_storage) {
-    log_fatal("No support for GLAD_GL_ARB_buffer_storage");
+    log_warning("No support for GLAD_GL_ARB_buffer_storage");
   }
 
   // TODO: Remove GL_EXT_debug_marker
@@ -777,27 +777,27 @@ void Renderer::init_window(WindowInfo *window_info) {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
 
-#if USE_OPENGL_DEBUG
-  if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
-    GLint flags;
-    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+  if (USE_OPENGL_DEBUG) {
+    if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
+      GLint flags;
+      glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 
-    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-      glEnable(GL_DEBUG_OUTPUT);
-      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-      glDebugMessageCallback(Util::debug_message_callback, nullptr);
-      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+      if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(Util::debug_message_callback, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+      } else {
+        log_fatal("Tried to initialise OpenGL debug output but couldn't");
+      }
     } else {
-      log_fatal("Tried to initialise OpenGL debug output but couldn't");
+      log_warning(
+        "Tried to initialise OpenGL debug output but none of "
+        "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
+        "are supported on this system. Skipping."
+      );
     }
-  } else {
-    log_warning(
-      "Tried to initialise OpenGL debug output but none of "
-      "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
-      "are supported on this system. Skipping."
-    );
   }
-#endif
 
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);

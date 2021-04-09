@@ -384,12 +384,20 @@ PersistentPbo* Materials::init_persistent_pbo(
   glGenBuffers(1, &ppbo->pbo);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, ppbo->pbo);
 
-  GLbitfield flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-  glBufferStorage(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, flags);
+  GLbitfield flags;
+  if (GLAD_GL_ARB_buffer_storage) {
+    flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+    glBufferStorage(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, flags);
+  } else {
+    flags = GL_MAP_WRITE_BIT;
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, GL_DYNAMIC_DRAW);
+  }
+
   ppbo->memory = glMapBufferRange(
     GL_PIXEL_UNPACK_BUFFER, 0, ppbo->total_size, flags
   );
-  if (!ppbo->memory) {
+
+  if (ppbo->memory == nullptr) {
     log_fatal("Could not get memory for PBO.");
   }
 
