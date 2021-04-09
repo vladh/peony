@@ -221,18 +221,14 @@ int main() {
     Tasks::run_loading_loop, &loading_thread_mutex, state, 5
   );
 
-#if 0
-  Util::print_texture_internalformat_info(GL_RGB8);
-  Util::print_texture_internalformat_info(GL_RGBA8);
-  Util::print_texture_internalformat_info(GL_SRGB8);
-#endif
-
   Renderer::update_drawing_options(state, window_info.window);
 
   MemoryAndState memory_and_state = {&asset_memory_pool, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
-  Materials::init_texture_name_pool(&state->texture_name_pool, &asset_memory_pool, 64, 4);
+  Materials::init_texture_name_pool(
+    &state->texture_name_pool, &asset_memory_pool, 64, 4
+  );
   Renderer::init_g_buffer(
     &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
   );

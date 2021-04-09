@@ -299,6 +299,21 @@ namespace Util {
 
 
   void print_texture_internalformat_info(GLenum internal_format) {
+    if (!GLAD_GL_ARB_internalformat_query) {
+      log_warning(
+        "Not printing texture_internalformat as this feature is not supported "
+        "on this system."
+      );
+      return;
+    }
+
+    if (!GLAD_GL_ARB_internalformat_query2) {
+      log_warning(
+        "Printing texture_internalformat, but some information may be missing, "
+        "as internalformat_query2 is not supported on this system."
+      );
+    }
+
     GLint preferred_format;
     GLint optimal_image_format;
     GLint optimal_image_type;
