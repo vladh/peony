@@ -389,6 +389,9 @@ PersistentPbo* Materials::init_persistent_pbo(
   ppbo->memory = glMapBufferRange(
     GL_PIXEL_UNPACK_BUFFER, 0, ppbo->total_size, flags
   );
+  if (!ppbo->memory) {
+    log_fatal("Could not get memory for PBO.");
+  }
 
   // We need to unbind this or it will mess up some textures transfers
   // after this function.

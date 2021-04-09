@@ -759,21 +759,43 @@ void Renderer::init_window(WindowInfo *window_info) {
     return;
   }
 
+  if (!GLAD_GL_ARB_texture_cube_map_array) {
+    log_fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
+  }
+  if (!GLAD_GL_ARB_texture_storage) {
+    log_fatal("No support for GLAD_GL_ARB_texture_storage");
+  }
+  if (!GLAD_GL_ARB_buffer_storage) {
+    log_fatal("No support for GLAD_GL_ARB_buffer_storage");
+  }
+
+  // TODO: Remove GL_EXT_debug_marker
+  // TODO: Remove GL_EXT_debug_label
+  // TODO: Remove GL_ARB_texture_storage_multisample
+
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
 
 #if USE_OPENGL_DEBUG
-  GLint flags;
-  glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+  if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
+    GLint flags;
+    glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 
-  if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-    glEnable(GL_DEBUG_OUTPUT);
-    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-    glDebugMessageCallback(Util::debug_message_callback, nullptr);
-    glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+      glEnable(GL_DEBUG_OUTPUT);
+      glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+      glDebugMessageCallback(Util::debug_message_callback, nullptr);
+      glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+    } else {
+      log_fatal("Tried to initialise OpenGL debug output but couldn't");
+    }
   } else {
-    log_fatal("Tried to initialise OpenGL debug output but couldn't");
+    log_warning(
+      "Tried to initialise OpenGL debug output but none of "
+      "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
+      "are supported on this system. Skipping."
+    );
   }
 #endif
 
