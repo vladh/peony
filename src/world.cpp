@@ -653,7 +653,7 @@ void World::load_scene(
     sizeof(MaterialTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
     "material_templates"
   );
-  char used_materials[MAX_N_MATERIALS][MAX_TOKEN_LENGTH] = {0};
+  char used_materials[MAX_N_MATERIALS][MAX_TOKEN_LENGTH] = {{0}};
   uint32 n_used_materials = 0;
 
   // Get EntityTemplates and MaterialTemplates
