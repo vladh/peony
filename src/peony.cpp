@@ -183,6 +183,16 @@ void check_environment() {
 
 
 int main() {
+  StackArray<int, 100> things;
+  things.push(1);
+  things.push(2);
+  things.push(3);
+  things[1] = 69;
+  for (auto &d : things) {
+    log_info("%d", d);
+  }
+  return 0;
+
   check_environment();
   srand((uint32)time(NULL));
 
