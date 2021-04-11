@@ -576,10 +576,8 @@ bool32 Models::prepare_model_and_check_if_done(
 
   if (entity_loader->state == EntityLoaderState::vertex_buffers_set_up) {
     // Set material names for each mesh
-    for (
-      uint32 idx_material = 0; idx_material < entity_loader->n_materials; idx_material++
-    ) {
-      for (uint32 idx_mesh = 0; idx_mesh < entity_loader->n_meshes; idx_mesh++) {
+    for_range_named (idx_material, 0, entity_loader->material_names.length) {
+      for_range_named (idx_mesh, 0, entity_loader->n_meshes) {
         Mesh *mesh = &entity_loader->meshes[idx_mesh];
         uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
         // For our model's mesh number `mesh_number`, we want to choose
@@ -589,9 +587,9 @@ bool32 Models::prepare_model_and_check_if_done(
         // meshes all get material number 0.
         if (
           mesh_number == idx_material ||
-          (mesh_number >= entity_loader->n_materials && idx_material == 0)
+          (mesh_number >= entity_loader->material_names.length && idx_material == 0)
         ) {
-          strcpy(mesh->material_name, entity_loader->material_names[idx_material]);
+          strcpy(mesh->material_name, *(entity_loader->material_names[idx_material]));
         }
       }
     }

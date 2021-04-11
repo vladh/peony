@@ -1,8 +1,6 @@
 #ifndef PEONY_FILE_PARSER_HPP
 #define PEONY_FILE_PARSER_HPP
 
-constexpr uint32 MAX_N_ARRAY_VALUES = 16;
-
 struct MaterialTemplate {
   char name[MAX_TOKEN_LENGTH];
   char shader_asset_vert_path[MAX_TOKEN_LENGTH];
@@ -18,20 +16,19 @@ struct MaterialTemplate {
   real32 ao_static = -1.0f;
 
   uint32 n_textures;
-  char texture_uniform_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
-  TextureType texture_types[MAX_N_ARRAY_VALUES];
-  char texture_paths[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+  char texture_uniform_names[MAX_N_PEONY_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+  TextureType texture_types[MAX_N_PEONY_ARRAY_VALUES];
+  char texture_paths[MAX_N_PEONY_ARRAY_VALUES][MAX_TOKEN_LENGTH];
 
   uint32 n_builtin_textures;
-  char builtin_texture_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+  char builtin_texture_names[MAX_N_PEONY_ARRAY_VALUES][MAX_TOKEN_LENGTH];
 };
 
 struct EntityTemplate {
   char entity_debug_name[MAX_TOKEN_LENGTH];
   char model_path[MAX_TOKEN_LENGTH];
   char builtin_model_name[MAX_TOKEN_LENGTH];
-  uint32 n_materials = 0;
-  char material_names[MAX_N_ARRAY_VALUES][MAX_TOKEN_LENGTH];
+  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
   RenderPassFlag render_pass;
   // NOTE: The `entity_handle` and `parent_entity_handle` properties
   // must be filled in later!
@@ -99,16 +96,15 @@ namespace PeonyFileParser {
     char *token,
     FILE *f,
     char prop_name[MAX_TOKEN_LENGTH],
-    PropValueType prop_value_types[MAX_N_ARRAY_VALUES],
-    PropValue prop_values[MAX_N_ARRAY_VALUES]
+    PropValueType prop_value_types[MAX_N_PEONY_ARRAY_VALUES],
+    PropValue prop_values[MAX_N_PEONY_ARRAY_VALUES]
   );
   void parse_material_file(
     const char *path, MaterialTemplate *material_templates
   );
   uint32 parse_scene_file(
     const char *path,
-    EntityTemplate *entity_templates,
-    StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> *used_materials
+    StackArray<EntityTemplate, 128> *entity_templates
   );
 };
 

@@ -61,10 +61,10 @@ void PeonyFileParser::print_entity_template(EntityTemplate *entity_template) {
   log_info("  name: %s", entity_template->entity_debug_name);
   log_info("  model_path: %s", entity_template->model_path);
   log_info("  builtin_model_name: %s", entity_template->builtin_model_name);
-  log_info("  n_materials: %d", entity_template->n_materials);
+  log_info("  material_names.length: %d", entity_template->material_names.length);
   log_info("  material_names:");
-  for_range (0, entity_template->n_materials) {
-    log_info(entity_template->material_names[idx]);
+  for_each (material_name, entity_template->material_names) {
+    log_info(*material_name);
   }
   log_info("  render_pass: %d", entity_template->render_pass);
   Entities::print_spatial_component(&entity_template->spatial_component);
@@ -276,8 +276,8 @@ uint32 PeonyFileParser::parse_property(
   char *token,
   FILE *f,
   char prop_name[MAX_TOKEN_LENGTH],
-  PropValueType prop_value_types[MAX_N_ARRAY_VALUES],
-  PropValue prop_values[MAX_N_ARRAY_VALUES]
+  PropValueType prop_value_types[MAX_N_PEONY_ARRAY_VALUES],
+  PropValue prop_values[MAX_N_PEONY_ARRAY_VALUES]
 ) {
   uint32 n_values = 0;
   strcpy(prop_name, token);
@@ -330,8 +330,8 @@ void PeonyFileParser::parse_material_file(
   char token[MAX_TOKEN_LENGTH];
   uint32 n_values;
   char prop_name[MAX_TOKEN_LENGTH];
-  PropValueType prop_value_types[MAX_N_ARRAY_VALUES];
-  PropValue prop_values[MAX_N_ARRAY_VALUES];
+  PropValueType prop_value_types[MAX_N_PEONY_ARRAY_VALUES];
+  PropValue prop_values[MAX_N_PEONY_ARRAY_VALUES];
 
   while (get_non_trivial_token(token, f)) {
     if (token[0] == TOKEN_HEADER_START) {
@@ -426,8 +426,7 @@ void PeonyFileParser::parse_material_file(
 
 uint32 PeonyFileParser::parse_scene_file(
   const char *path,
-  EntityTemplate *entity_templates,
-  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> *used_materials
+  StackArray<EntityTemplate, 128> *entity_templates
 ) {
   int32 idx_entity = -1;
 
@@ -442,13 +441,13 @@ uint32 PeonyFileParser::parse_scene_file(
   char token[MAX_TOKEN_LENGTH];
   uint32 n_values;
   char prop_name[MAX_TOKEN_LENGTH];
-  PropValueType prop_value_types[MAX_N_ARRAY_VALUES];
-  PropValue prop_values[MAX_N_ARRAY_VALUES];
+  PropValueType prop_value_types[MAX_N_PEONY_ARRAY_VALUES];
+  PropValue prop_values[MAX_N_PEONY_ARRAY_VALUES];
 
   while (get_non_trivial_token(token, f)) {
     if (token[0] == TOKEN_HEADER_START) {
       idx_entity++;
-      entity_template = &entity_templates[idx_entity];
+      entity_template = entity_templates->push();
       *entity_template = {};
       parse_header(token, f);
       strcpy(
@@ -471,19 +470,9 @@ uint32 PeonyFileParser::parse_scene_file(
           prop_values[0].string_value
         );
       } else if (Str::eq(prop_name, "materials")) {
-        entity_template->n_materials = n_values;
         for_range_named (idx_value, 0, n_values) {
-          bool32 does_material_already_exist = false;
-          for_each (used_material, *used_materials) {
-            if (Str::eq(*used_material, prop_values[idx_value].string_value)) {
-              does_material_already_exist = true;
-            }
-          }
-          if (!does_material_already_exist) {
-            strcpy(*used_materials->push(), prop_values[idx_value].string_value);
-          }
           strcpy(
-            entity_template->material_names[idx_value],
+            *(entity_template->material_names.push()),
             prop_values[idx_value].string_value
           );
         }
