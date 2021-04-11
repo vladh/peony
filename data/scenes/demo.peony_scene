@@ -25,39 +25,254 @@ render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 1.7, 5.0)
 spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
-> archer1
+> archer
 model_path = archer.dae
 materials = [archer]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 1.7, 7.0)
 spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
-> archer2
+> archer
 model_path = archer.dae
 materials = [archer]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 1.7, 9.0)
 spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
-> archer3
+> archer
 model_path = archer.dae
 materials = [archer]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 1.7, 11.0)
 spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
-> archer4
+> archer
 model_path = archer.dae
 materials = [archer]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 1.7, 13.0)
 spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
-> archer5
+> archer
 model_path = archer.dae
 materials = [archer]
 render_passes = [deferred, shadowcaster]
 spatial_component.position = vec3(-10.0, 1.7, 15.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-12.0, 1.7, 5.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-12.0, 1.7, 7.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-12.0, 1.7, 9.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-12.0, 1.7, 11.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-12.0, 1.7, 13.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-12.0, 1.7, 15.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-14.0, 1.7, 5.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-14.0, 1.7, 7.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-14.0, 1.7, 9.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-14.0, 1.7, 11.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-14.0, 1.7, 13.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-14.0, 1.7, 15.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-16.0, 1.7, 5.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-16.0, 1.7, 7.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-16.0, 1.7, 9.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-16.0, 1.7, 11.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-16.0, 1.7, 13.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-16.0, 1.7, 15.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-18.0, 1.7, 5.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-18.0, 1.7, 7.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-18.0, 1.7, 9.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-18.0, 1.7, 11.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-18.0, 1.7, 13.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-18.0, 1.7, 15.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-20.0, 1.7, 5.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-20.0, 1.7, 7.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-20.0, 1.7, 9.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-20.0, 1.7, 11.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-20.0, 1.7, 13.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-20.0, 1.7, 15.0)
 spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(1.0, 1.0, 1.0)
 
