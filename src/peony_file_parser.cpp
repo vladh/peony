@@ -1,3 +1,4 @@
+// TODO: Move out of namespace.
 namespace PeonyFileParser {
   void get_material_path(char *path, const char *name) {
     strcpy(path, MATERIAL_FILE_DIRECTORY);
@@ -64,7 +65,7 @@ namespace PeonyFileParser {
     log_info("  builtin_model_name: %s", entity_template->builtin_model_name);
     log_info("  n_materials: %d", entity_template->n_materials);
     log_info("  material_names:");
-    for (uint32 idx = 0; idx < entity_template->n_materials; idx++) {
+    for_range (0, entity_template->n_materials) {
       log_info(entity_template->material_names[idx]);
     }
     log_info("  render_pass: %d", entity_template->render_pass);
@@ -115,8 +116,8 @@ namespace PeonyFileParser {
 
 
   bool32 is_token_name(const char *token) {
-    for (uint32 idx_char = 0; idx_char < strlen(token); idx_char++) {
-      if (!is_char_allowed_in_name(token[idx_char])) {
+    for_range (0, strlen(token)) {
+      if (!is_char_allowed_in_name(token[idx])) {
         return false;
       }
     }
@@ -412,7 +413,7 @@ namespace PeonyFileParser {
           material_template->n_builtin_textures++;
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
-          for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
+          for_range_named (idx_value, 0, n_values) {
             print_value(prop_values[idx_value], prop_value_types[idx_value]);
           }
         }
@@ -428,8 +429,7 @@ namespace PeonyFileParser {
   uint32 parse_scene_file(
     const char *path,
     EntityTemplate *entity_templates,
-    char used_materials[MAX_N_MATERIALS][MAX_TOKEN_LENGTH],
-    uint32 *n_used_materials
+    StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> *used_materials
   ) {
     int32 idx_entity = -1;
 
@@ -474,11 +474,16 @@ namespace PeonyFileParser {
           );
         } else if (Str::eq(prop_name, "materials")) {
           entity_template->n_materials = n_values;
-          for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
-            strcpy(
-              used_materials[(*n_used_materials)++],
-              prop_values[idx_value].string_value
-            );
+          for_range_named (idx_value, 0, n_values) {
+            bool32 does_material_already_exist = false;
+            for_each (used_material, *used_materials) {
+              if (Str::eq(*used_material, prop_values[idx_value].string_value)) {
+                does_material_already_exist = true;
+              }
+            }
+            if (!does_material_already_exist) {
+              strcpy(*used_materials->push(), prop_values[idx_value].string_value);
+            }
             strcpy(
               entity_template->material_names[idx_value],
               prop_values[idx_value].string_value
@@ -486,7 +491,7 @@ namespace PeonyFileParser {
           }
         } else if (Str::eq(prop_name, "render_passes")) {
           RenderPassFlag render_pass = RenderPass::none;
-          for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
+          for_range_named (idx_value, 0, n_values) {
             render_pass = render_pass |
               Renderer::render_pass_from_string(prop_values[idx_value].string_value);
           }
@@ -519,7 +524,7 @@ namespace PeonyFileParser {
             Entities::behavior_from_string(prop_values[0].string_value);
         } else {
           log_info("Unhandled prop_name %s with values:", prop_name);
-          for (uint32 idx_value = 0; idx_value < n_values; idx_value++) {
+          for_range_named (idx_value, 0, n_values) {
             print_value(prop_values[idx_value], prop_value_types[idx_value]);
           }
         }
