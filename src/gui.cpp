@@ -232,8 +232,7 @@ GuiContainer* Gui::make_container(
   GuiState *gui_state, const char *title, glm::vec2 position
 ) {
   GuiContainer *container = nullptr;
-  for (uint32 idx = 0; idx < gui_state->containers.size; idx++) {
-    GuiContainer *container_candidate = gui_state->containers[idx];
+  for_each (container_candidate, gui_state->containers) {
     if (strcmp(container_candidate->title, title) == 0) {
       container = container_candidate;
       break;
@@ -736,25 +735,25 @@ GuiState* Gui::init_gui_state(
     }
 
     Fonts::init_font_asset(
-      (FontAsset*)(gui_state->font_assets.push()),
+      gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "body", GUI_MAIN_FONT_REGULAR, 18
     );
 
     Fonts::init_font_asset(
-      (FontAsset*)(gui_state->font_assets.push()),
+      gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "body-bold", GUI_MAIN_FONT_BOLD, 18
     );
 
     Fonts::init_font_asset(
-      (FontAsset*)(gui_state->font_assets.push()),
+      gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "heading", GUI_MAIN_FONT_REGULAR, 42
     );
 
     Fonts::init_font_asset(
-      (FontAsset*)(gui_state->font_assets.push()),
+      gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "title", GUI_MAIN_FONT_REGULAR, 64
     );

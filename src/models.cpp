@@ -448,9 +448,8 @@ void Models::create_entities(
   BehaviorComponentSet *behavior_component_set,
   AnimationComponentSet *animation_component_set
 ) {
-  SpatialComponent *spatial_component = spatial_component_set->components.get(
-    entity_loader->entity_handle
-  );
+  SpatialComponent *spatial_component =
+    spatial_component_set->components[ entity_loader->entity_handle];
   memcpy(
     spatial_component,
     &entity_loader->spatial_component,
@@ -458,9 +457,8 @@ void Models::create_entities(
   );
   spatial_component->entity_handle = entity_loader->entity_handle;
 
-  LightComponent *light_component = light_component_set->components.get(
-    entity_loader->entity_handle
-  );
+  LightComponent *light_component =
+    light_component_set->components[entity_loader->entity_handle];
   memcpy(
     light_component,
     &entity_loader->light_component,
@@ -468,9 +466,8 @@ void Models::create_entities(
   );
   light_component->entity_handle = entity_loader->entity_handle;
 
-  BehaviorComponent *behavior_component = behavior_component_set->components.get(
-    entity_loader->entity_handle
-  );
+  BehaviorComponent *behavior_component =
+    behavior_component_set->components[entity_loader->entity_handle];
   memcpy(
     behavior_component,
     &entity_loader->behavior_component,
@@ -478,9 +475,8 @@ void Models::create_entities(
   );
   behavior_component->entity_handle = entity_loader->entity_handle;
 
-  AnimationComponent *animation_component = animation_component_set->components.get(
-    entity_loader->entity_handle
-  );
+  AnimationComponent *animation_component =
+    animation_component_set->components[entity_loader->entity_handle];
   memcpy(
     animation_component,
     &entity_loader->animation_component,
@@ -490,9 +486,8 @@ void Models::create_entities(
 
   // DrawableComponent
   if (entity_loader->n_meshes == 1) {
-    DrawableComponent *drawable_component = drawable_component_set->components.get(
-      entity_loader->entity_handle
-    );
+    DrawableComponent *drawable_component =
+      drawable_component_set->components[entity_loader->entity_handle];
     assert(drawable_component);
     *drawable_component = {
       .entity_handle = entity_loader->entity_handle,
@@ -510,7 +505,7 @@ void Models::create_entities(
 
       if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
         SpatialComponent *child_spatial_component =
-          spatial_component_set->components.get(child_entity->handle);
+          spatial_component_set->components[child_entity->handle];
         assert(child_spatial_component);
         *child_spatial_component = {
           .entity_handle = child_entity->handle,
@@ -521,9 +516,8 @@ void Models::create_entities(
         };
       }
 
-      DrawableComponent *drawable_component = drawable_component_set->components.get(
-        child_entity->handle
-      );
+      DrawableComponent *drawable_component =
+        drawable_component_set->components[child_entity->handle];
       assert(drawable_component);
       *drawable_component = {
         .entity_handle = child_entity->handle,

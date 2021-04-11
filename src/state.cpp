@@ -31,37 +31,37 @@ State* init_state(
 
   state->entity_loader_set = {
     .loaders = Array<EntityLoader>(
-      asset_memory_pool, MAX_N_MODELS, "entity_loaders", true
+      asset_memory_pool, MAX_N_MODELS, "entity_loaders", true, 1
     )
   };
   state->entity_set = {
     .entities = Array<Entity>(
-      asset_memory_pool, MAX_N_ENTITIES, "entities", true
+      asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1
     )
   };
   state->drawable_component_set = {
     .components = Array<DrawableComponent>(
-      asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1
     )
   };
   state->light_component_set = {
     .components = Array<LightComponent>(
-      asset_memory_pool, MAX_N_ENTITIES, "light_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1
     )
   };
   state->spatial_component_set = {
     .components = Array<SpatialComponent>(
-      asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1
     )
   };
   state->behavior_component_set = {
     .components = Array<BehaviorComponent>(
-      asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1
     )
   };
   state->animation_component_set = {
     .components = Array<AnimationComponent>(
-      asset_memory_pool, MAX_N_ENTITIES, "animation_components", true
+      asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1
     )
   };
   state->bone_matrix_pool.bone_matrices = Array<glm::mat4>(

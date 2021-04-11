@@ -9,11 +9,11 @@ glm::mat4* EntitySets::get_bone_matrix(
   uint32 idx_bone,
   uint32 idx_anim_key
 ) {
-  return pool->bone_matrices.get(
+  return pool->bone_matrices[
     idx * MAX_N_ANIM_KEYS * MAX_N_BONES +
     idx_anim_key * MAX_N_BONES +
     idx_bone
-  );
+  ];
 }
 
 
@@ -23,11 +23,11 @@ real64* EntitySets::get_bone_matrix_time(
   uint32 idx_bone,
   uint32 idx_anim_key
 ) {
-  return pool->times.get(
+  return pool->times[
     idx * MAX_N_ANIM_KEYS * MAX_N_BONES +
     idx_anim_key * MAX_N_BONES +
     idx_bone
-  );
+  ];
 }
 
 
@@ -47,7 +47,7 @@ Entity* EntitySets::add_entity_to_set(
   const char *debug_name
 ) {
   EntityHandle new_handle = make_handle(entity_set);
-  Entity *new_entity = entity_set->entities.get(new_handle);
+  Entity *new_entity = entity_set->entities[new_handle];
   new_entity->handle = new_handle;
   strcpy(new_entity->debug_name, debug_name);
   return new_entity;
@@ -62,9 +62,9 @@ glm::mat4 EntitySets::make_model_matrix(
   glm::mat4 model_matrix = glm::mat4(1.0f);
 
   if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
-    SpatialComponent *parent = spatial_component_set->components.get(
+    SpatialComponent *parent = spatial_component_set->components[
       spatial_component->parent_entity_handle
-    );
+    ];
     model_matrix = make_model_matrix(spatial_component_set, parent, cache);
   }
 
@@ -95,10 +95,7 @@ void EntitySets::update_animation_components(
   real64 t,
   BoneMatrixPool *bone_matrix_pool
 ) {
-  for_range_named (handle, 1, animation_component_set->components.size) {
-    AnimationComponent *animation_component =
-      animation_component_set->components.get(handle);
-
+  for_each (animation_component, animation_component_set->components) {
     if (!Entities::is_animation_component_valid(animation_component)) {
       continue;
     }
@@ -165,25 +162,15 @@ void EntitySets::update_behavior_components(
   SpatialComponentSet *spatial_component_set,
   real64 t
 ) {
-  for (
-    uint32 idx = 1;
-    idx < behavior_component_set->components.size;
-    idx++
-  ) {
-    BehaviorComponent *behavior_component =
-      behavior_component_set->components.get(idx);
-
-    if (
-      !behavior_component ||
-      !Entities::is_behavior_component_valid(behavior_component)
-    ) {
+  for_each (behavior_component, behavior_component_set->components) {
+    if (!Entities::is_behavior_component_valid(behavior_component)) {
       continue;
     }
 
     EntityHandle entity_handle = behavior_component->entity_handle;
 
     SpatialComponent *spatial_component =
-      spatial_component_set->components.get(entity_handle);
+      spatial_component_set->components[entity_handle];
     if (!spatial_component) {
       log_error("Could not get SpatialComponent for BehaviorComponent");
       continue;
@@ -206,11 +193,13 @@ void EntitySets::update_light_components(
   real64 t,
   glm::vec3 camera_position
 ) {
-  for (uint32 idx = 0; idx < light_component_set->components.size; idx++) {
-    LightComponent *light_component =
-      light_component_set->components.get(idx);
+  for_each (light_component, light_component_set->components) {
+    if (light_component->entity_handle == Entity::no_entity_handle) {
+      continue;
+    }
+
     SpatialComponent *spatial_component =
-      spatial_component_set->components.get(light_component->entity_handle);
+      spatial_component_set->components[light_component->entity_handle];
 
     if (!(
       Entities::is_light_component_valid(light_component) &&
@@ -337,18 +326,16 @@ AnimationComponent* EntitySets::find_animation_component(
   SpatialComponentSet *spatial_component_set,
   AnimationComponentSet *animation_component_set
 ) {
-  AnimationComponent *animation_component = animation_component_set->components.get(
-    spatial_component->entity_handle
-  );
+  AnimationComponent *animation_component =
+    animation_component_set->components[spatial_component->entity_handle];
 
   if (Entities::is_animation_component_valid(animation_component)) {
     return animation_component;
   }
 
   if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
-    SpatialComponent *parent = spatial_component_set->components.get(
-      spatial_component->parent_entity_handle
-    );
+    SpatialComponent *parent =
+      spatial_component_set->components[spatial_component->parent_entity_handle];
     return find_animation_component(
       parent,
       spatial_component_set,
@@ -444,14 +431,12 @@ void EntitySets::draw_all(
 ) {
   ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
 
-  for (uint32 idx = 0; idx < drawable_component_set->components.size; idx++) {
-    DrawableComponent *drawable = drawable_component_set->components.get(idx);
-
-    if (!Models::is_drawable_component_valid(drawable)) {
+  for_each (drawable_component, drawable_component_set->components) {
+    if (!Models::is_drawable_component_valid(drawable_component)) {
       continue;
     }
 
-    if (!(render_pass & drawable->target_render_pass)) {
+    if (!(render_pass & drawable_component->target_render_pass)) {
       continue;
     }
 
@@ -461,16 +446,15 @@ void EntitySets::draw_all(
 #endif
 
     Material *material = Materials::get_material_by_name(
-      materials, drawable->mesh.material_name
+      materials, drawable_component->mesh.material_name
     );
 
     if (!material || material->state != MaterialState::complete) {
       material = Materials::get_material_by_name(materials, "unknown");
     }
 
-    SpatialComponent *spatial = spatial_component_set->components.get(
-      drawable->entity_handle
-    );
+    SpatialComponent *spatial =
+      spatial_component_set->components[drawable_component->entity_handle];
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
@@ -509,7 +493,7 @@ void EntitySets::draw_all(
     draw(
       render_mode,
       drawable_component_set,
-      &drawable->mesh,
+      &drawable_component->mesh,
       material,
       &model_matrix,
       &model_normal_matrix,

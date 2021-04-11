@@ -225,11 +225,12 @@ Material* Materials::get_material_by_name(
   Array<Material> *materials,
   const char *name
 ) {
-  for (uint32 idx = 0; idx < materials->size; idx++) {
-    if (Str::eq(materials->get(idx)->name, name)) {
-      return materials->get(idx);
+  for_each (material, *materials) {
+    if (Str::eq(material->name, name)) {
+      return material;
     }
   }
+  log_warning("Could not find Material with name %s", name);
   return nullptr;
 }
 
