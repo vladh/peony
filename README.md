@@ -1,5 +1,7 @@
 # peony
 
+![peony screenshot](https://vladh.net/static/peony@1000px.jpg)
+
 Peony is a 3D game engine written from scratch in C++. It's currently a work
 in progress.
 
