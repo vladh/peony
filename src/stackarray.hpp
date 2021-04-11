@@ -1,17 +1,16 @@
 #ifndef STACKARRAY_HPP
 #define STACKARRAY_HPP
 
-template <typename T, uint32 new_capacity>
+template <typename T, uint32 capacity>
 class StackArray {
 public:
-  T items[new_capacity] = {0};
+  T items[capacity] = {{0}};
   uint32 length = 0;
-  uint32 capacity = new_capacity;
   bool32 is_sparse = false;
   uint32 starting_idx = 0;
 
   T* push() {
-    assert(this->length < this->capacity);
+    assert(this->length < capacity);
     uint32 new_idx = this->length;
     this->length++;
     T* new_slot = &this->items[new_idx];
@@ -25,7 +24,7 @@ public:
   }
 
   T* get(uint32 idx) {
-    assert(idx >= this->starting_idx && idx < this->capacity);
+    assert(idx >= this->starting_idx && idx < capacity);
     if (idx >= this->length) {
       assert(this->is_sparse);
       this->length = idx + 1;

@@ -253,11 +253,10 @@ void World::create_entity_loader_from_entity_template(
     sizeof(entity_loader->material_names) == sizeof(entity_template->material_names)
   );
   memcpy(
-    entity_loader->material_names,
-    entity_template->material_names,
+    &entity_loader->material_names,
+    &entity_template->material_names,
     sizeof(entity_template->material_names)
   );
-  entity_loader->n_materials = entity_template->n_materials;
 }
 
 
@@ -445,8 +444,7 @@ void World::create_internal_entities(State *state) {
       RenderPass::lighting,
       entity->handle
     );
-    strcpy(entity_loader->material_names[0], "lighting");
-    entity_loader->n_materials = 1;
+    strcpy(*(entity_loader->material_names.push()), "lighting");
   }
 
 #if USE_BLOOM
@@ -468,8 +466,7 @@ void World::create_internal_entities(State *state) {
       RenderPass::preblur,
       entity->handle
     );
-    strcpy(entity_loader->material_names[0], "preblur");
-    entity_loader->n_materials = 1;
+    strcpy(*(entity_loader->material_names.push()), "preblur");
   }
 
   // Blur 1 screenquad
@@ -490,8 +487,7 @@ void World::create_internal_entities(State *state) {
       RenderPass::blur1,
       entity->handle
     );
-    strcpy(entity_loader->material_names[0], "blur1");
-    entity_loader->n_materials = 1;
+    strcpy(*(entity_loader->material_names.push()), "blur1");
   }
 
   // Blur 2 screenquad
@@ -512,8 +508,7 @@ void World::create_internal_entities(State *state) {
       RenderPass::blur2,
       entity->handle
     );
-    strcpy(entity_loader->material_names[0], "blur2");
-    entity_loader->n_materials = 1;
+    strcpy(*(entity_loader->material_names.push()), "blur2");
   }
 #endif
 
@@ -534,8 +529,7 @@ void World::create_internal_entities(State *state) {
       RenderPass::postprocessing,
       entity->handle
     );
-    strcpy(entity_loader->material_names[0], "postprocessing");
-    entity_loader->n_materials = 1;
+    strcpy(*(entity_loader->material_names.push()), "postprocessing");
   }
 
   // Skysphere
@@ -562,8 +556,7 @@ void World::create_internal_entities(State *state) {
       .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       .scale = glm::vec3(75.0f),
     };
-    strcpy(entity_loader->material_names[0], "skysphere");
-    entity_loader->n_materials = 1;
+    strcpy(*(entity_loader->material_names.push()), "skysphere");
 #endif
   }
 
@@ -631,37 +624,40 @@ void World::load_scene(
 ) {
   // Get some memory for everything we need
   MemoryPool temp_memory_pool = {};
-  EntityTemplate *entity_templates = (EntityTemplate*)Memory::push(
-    &temp_memory_pool,
-    sizeof(EntityTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
-    "entity_templates"
-  );
-  MaterialTemplate *material_templates = (MaterialTemplate*)Memory::push(
-    &temp_memory_pool,
-    sizeof(MaterialTemplate) * PeonyFileParser::MAX_N_FILE_ENTRIES,
-    "material_templates"
-  );
-  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
 
-  // Get EntityTemplates and MaterialTemplates
+  // Get EntityTemplates
+  StackArray<EntityTemplate, 128> entity_templates;
   uint32 n_entities = PeonyFileParser::parse_scene_file(
-    scene_path,
-    entity_templates,
-    &used_materials
+    scene_path, &entity_templates
   );
 
-  for_range (0, used_materials.length) {
-    material_templates[idx] = {};
-    char path[MAX_PATH];
-    PeonyFileParser::get_material_path(path, *used_materials[idx]);
-    PeonyFileParser::parse_material_file(path, &material_templates[idx]);
+  // Get only the unique used materials
+  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
+  for_each (entity_template, entity_templates) {
+    for_each (material_name, entity_template->material_names) {
+      bool32 does_material_already_exist = false;
+      for_each (used_material, used_materials) {
+        if (Str::eq(*material_name, *used_material)) {
+          does_material_already_exist = true;
+          break;
+        }
+      }
+      if (!does_material_already_exist) {
+        strcpy(*(used_materials.push()), *material_name);
+      }
+    }
   }
 
   // Create materials
-  for_range (0, used_materials.length) {
+  MaterialTemplate material_template;
+  for_each (used_material, used_materials) {
+    material_template = {};
+    char path[MAX_PATH];
+    PeonyFileParser::get_material_path(path, *used_material);
+    PeonyFileParser::parse_material_file(path, &material_template);
     Materials::create_material_from_template(
       state->materials.push(),
-      &material_templates[idx],
+      &material_template,
       &state->builtin_textures,
       &temp_memory_pool
     );
@@ -670,7 +666,7 @@ void World::load_scene(
   // Create entities
   for_range (0, n_entities) {
     create_entity_loader_from_entity_template(
-      &entity_templates[idx],
+      entity_templates[idx],
       &state->entity_set,
       &state->entity_loader_set,
       state,
@@ -725,6 +721,10 @@ bool32 World::check_all_entities_loaded(State *state) {
       are_all_done_loading = false;
     }
   }
+
+  // TODO: For each entity we need to make, check if we loaded its model
+  // and if so create the entity here. We need to split EntityLoader into
+  // two probably.
 
   return are_all_done_loading;
 }

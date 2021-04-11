@@ -46,8 +46,7 @@ struct EntityLoader {
   char name[MAX_DEBUG_NAME_LENGTH];
   ModelSource model_source;
   char path[MAX_PATH];
-  char material_names[MAX_N_MATERIALS_PER_MODEL][MAX_TOKEN_LENGTH];
-  uint32 n_materials;
+  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
   Mesh meshes[MAX_N_MESHES];
   uint32 n_meshes;
   EntityHandle entity_handle;
