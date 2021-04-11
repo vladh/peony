@@ -18,7 +18,7 @@ constexpr real64 PI = 3.14159265358979323846;
 
 constexpr uint32 MAX_N_ENTITIES = 256;
 constexpr uint32 MAX_N_MODELS = 128;
-constexpr uint32 MAX_N_ANIMATED_MODELS = 16;
+constexpr uint32 MAX_N_ANIMATED_MODELS = 128;
 constexpr uint32 MAX_DEBUG_NAME_LENGTH = 256;
 constexpr uint32 MAX_GENEROUS_STRING_LENGTH = 512;
 constexpr uint32 MAX_N_MESHES = 128;
