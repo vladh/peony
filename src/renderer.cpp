@@ -77,8 +77,7 @@ void Renderer::resize_renderer_buffers(
     memory_pool, builtin_textures, width, height
   );
 
-  for (uint32 idx = 0; idx < materials->size; idx++) {
-    Material *material = materials->get(idx);
+  for_each (material, *materials) {
     if (material->n_textures > 0 && material->is_screensize_dependent) {
       for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
         Texture *texture = &material->textures[idx_texture];
@@ -573,12 +572,13 @@ void Renderer::copy_scene_data_to_ubo(
   uint32 n_point_lights = 0;
   uint32 n_directional_lights = 0;
 
-  for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
-    LightComponent *light_component =
-      state->light_component_set.components.get(idx);
-    SpatialComponent *spatial_component = state->spatial_component_set.components.get(
-      light_component->entity_handle
-    );
+  for_each (light_component, state->light_component_set.components) {
+    if (light_component->entity_handle == Entity::no_entity_handle) {
+      continue;
+    }
+
+    SpatialComponent *spatial_component =
+      state->spatial_component_set.components[light_component->entity_handle];
 
     if (!(
       Entities::is_light_component_valid(light_component) &&
@@ -820,8 +820,7 @@ void Renderer::destroy_window() {
 void Renderer::reload_shaders(State *state) {
   MemoryPool temp_memory_pool = {};
 
-  for (uint32 idx = 0; idx < state->materials.size; idx++) {
-    Material *material = state->materials[idx];
+  for_each (material, state->materials) {
     Shaders::load_shader_asset(
       &material->shader_asset,
       &temp_memory_pool
@@ -906,8 +905,8 @@ void Renderer::render_scene_ui(State *state) {
     sprintf(debug_text, state->is_world_loaded ? "yes" : "no");
     Gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
 
-    sprintf(debug_text, "%d", state->entity_set.entities.size);
-    Gui::draw_named_value(&state->gui_state, container, "entities.size", debug_text);
+    sprintf(debug_text, "%d", state->entity_set.entities.length);
+    Gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
 
     if (Gui::draw_toggle(
       &state->gui_state, container, "Wireframe mode", &state->should_use_wireframe
@@ -1043,11 +1042,13 @@ void Renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
-        LightComponent *light_component =
-          state->light_component_set.components.get(idx);
+      for_each (light_component, state->light_component_set.components) {
+        if (light_component->entity_handle == Entity::no_entity_handle) {
+          continue;
+        }
+
         SpatialComponent *spatial_component =
-          state->spatial_component_set.components.get(light_component->entity_handle);
+          state->spatial_component_set.components[light_component->entity_handle];
 
         if (!(
           Entities::is_light_component_valid(light_component) &&
@@ -1109,11 +1110,13 @@ void Renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
-        LightComponent *light_component =
-          state->light_component_set.components.get(idx);
+      for_each (light_component, state->light_component_set.components) {
+        if (light_component->entity_handle == Entity::no_entity_handle) {
+          continue;
+        }
+
         SpatialComponent *spatial_component =
-          state->spatial_component_set.components.get(light_component->entity_handle);
+          state->spatial_component_set.components[light_component->entity_handle];
 
         if (!(
           Entities::is_light_component_valid(light_component) &&

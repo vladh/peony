@@ -6,7 +6,7 @@ void World::get_entity_text_representation(
 ) {
   EntityHandle handle = entity->handle;
   SpatialComponent *spatial_component =
-    state->spatial_component_set.components.get(handle);
+    state->spatial_component_set.components[handle];
 
   // Children will be drawn under their parents.
   if (
@@ -21,16 +21,16 @@ void World::get_entity_text_representation(
     spatial_component
   );
   bool32 has_drawable_component = Models::is_drawable_component_valid(
-    state->drawable_component_set.components.get(handle)
+    state->drawable_component_set.components[handle]
   );
   bool32 has_light_component = Entities::is_light_component_valid(
-    state->light_component_set.components.get(handle)
+    state->light_component_set.components[handle]
   );
   bool32 has_behavior_component = Entities::is_behavior_component_valid(
-    state->behavior_component_set.components.get(handle)
+    state->behavior_component_set.components[handle]
   );
   bool32 has_animation_component = Entities::is_animation_component_valid(
-    state->animation_component_set.components.get(handle)
+    state->animation_component_set.components[handle]
   );
 
   for (uint8 level = 0; level < depth; level++) {
@@ -74,13 +74,7 @@ void World::get_entity_text_representation(
   if (Entities::is_spatial_component_valid(spatial_component)) {
     // NOTE: This is super slow lol.
     uint32 n_children_found = 0;
-    for (
-      uint32 child_idx = 1;
-      child_idx < state->spatial_component_set.components.size;
-      child_idx++
-    ) {
-      SpatialComponent *child_spatial_component =
-        state->spatial_component_set.components.get(child_idx);
+    for_each (child_spatial_component, state->spatial_component_set.components) {
       if (
         child_spatial_component->parent_entity_handle ==
           spatial_component->entity_handle
@@ -90,7 +84,7 @@ void World::get_entity_text_representation(
           continue;
         }
         EntityHandle child_handle = child_spatial_component->entity_handle;
-        Entity *child_entity = state->entity_set.entities.get(child_handle);
+        Entity *child_entity = state->entity_set.entities[child_handle];
 
         if (text[strlen(text) - 1] != '\n') {
           strcat(text, "\n");
@@ -117,8 +111,7 @@ void World::get_entity_text_representation(
 void World::get_scene_text_representation(char *text, State *state) {
   text[0] = '\0';
 
-  for (uint32 idx = 1; idx < state->entity_set.entities.size; idx++) {
-    Entity *entity = state->entity_set.entities[idx];
+  for_each (entity, state->entity_set.entities) {
     get_entity_text_representation(text, state, entity, 0);
   }
 
@@ -133,14 +126,15 @@ void World::get_materials_text_representation(char *text, State *state) {
 
   strcat(text, "Internal:\n");
 
-  for (uint32 idx = 0; idx < state->materials.size; idx++) {
-    Material *material = state->materials[idx];
+  uint32 idx = 0;
+  for_each (material, state->materials) {
     strcat(text, "- ");
     strcat(text, material->name);
     strcat(text, "\n");
     if (idx == state->first_non_internal_material_idx - 1) {
       strcat(text, "Non-internal: \n");
     }
+    idx++;
   }
 
   if (text[strlen(text) - 1] == '\n') {
@@ -150,10 +144,8 @@ void World::get_materials_text_representation(char *text, State *state) {
 
 
 void World::update_light_position(State *state, real32 amount) {
-  for (uint32 idx = 0; idx < state->light_component_set.components.size; idx++) {
-    LightComponent *light_component =
-      state->light_component_set.components.get(idx);
-    if (light_component -> type == LightType::directional) {
+  for_each (light_component, state->light_component_set.components) {
+    if (light_component->type == LightType::directional) {
       state->dir_light_angle += amount;
       light_component->direction = glm::vec3(
         sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
@@ -173,11 +165,10 @@ void World::create_entity_loader_from_entity_template(
 ) {
   // TODO: Figure out parent system.
   Entity *entity = EntitySets::add_entity_to_set(
-    entity_set,
-    entity_template->entity_debug_name
+    entity_set, entity_template->entity_debug_name
   );
 
-  EntityLoader *entity_loader = entity_loader_set->loaders.get(entity->handle);
+  EntityLoader *entity_loader = entity_loader_set->loaders[entity->handle];
   bool32 did_init_loader = false;
 
   if (Str::is_empty(entity_template->builtin_model_name)) {
@@ -408,7 +399,7 @@ void World::create_internal_materials(State *state) {
 
   // We've created all internal materials, so we will mark the next position
   // in the array of materials, so we know where non-internal materials start.
-  state->first_non_internal_material_idx = state->materials.size;
+  state->first_non_internal_material_idx = state->materials.length;
 
   Memory::destroy_memory_pool(&temp_memory_pool);
 }
@@ -442,9 +433,8 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_lighting"
     );
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
-      entity->handle
-    );
+    EntityLoader *entity_loader =
+      state->entity_loader_set.loaders[entity->handle];
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
@@ -532,9 +522,8 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_postprocessing"
     );
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
-      entity->handle
-    );
+    EntityLoader *entity_loader =
+      state->entity_loader_set.loaders[entity->handle];
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
@@ -555,9 +544,8 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "skysphere"
     );
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
-      entity->handle
-    );
+    EntityLoader *entity_loader =
+      state->entity_loader_set.loaders[entity->handle];
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
@@ -591,7 +579,7 @@ void World::create_internal_entities(State *state) {
 void World::destroy_non_internal_materials(State *state) {
   for (
     uint32 idx = state->first_non_internal_material_idx;
-    idx < state->materials.size;
+    idx < state->materials.length;
     idx++
   ) {
     Materials::destroy_material(state->materials[idx]);
@@ -606,7 +594,7 @@ void World::destroy_non_internal_materials(State *state) {
 void World::destroy_non_internal_entities(State *state) {
   for (
     uint32 idx = state->entity_set.first_non_internal_handle;
-    idx < state->entity_set.entities.size;
+    idx < state->entity_set.entities.length;
     idx++
   ) {
     Models::destroy_drawable_component(
@@ -706,8 +694,7 @@ void World::init(State *state) {
 bool32 World::check_all_entities_loaded(State *state) {
   bool are_all_done_loading = true;
 
-  for (uint32 idx = 0; idx < state->materials.size; idx++) {
-    Material *material = state->materials[idx];
+  for_each (material, state->materials) {
     bool is_done_loading = Materials::prepare_material_and_check_if_done(
       material,
       &state->persistent_pbo,
@@ -719,8 +706,7 @@ bool32 World::check_all_entities_loaded(State *state) {
     }
   }
 
-  for (uint32 idx = 0; idx < state->entity_loader_set.loaders.size; idx++) {
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(idx);
+  for_each (entity_loader, state->entity_loader_set.loaders) {
     if (!Entities::is_entity_loader_valid(entity_loader)) {
       continue;
     }

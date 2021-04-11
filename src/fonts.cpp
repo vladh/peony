@@ -16,9 +16,8 @@ real32 Fonts::font_unit_to_px(uint32 n) {
 FontAsset* Fonts::get_by_name(
   Array<FontAsset> *assets, const char *name
 ) {
-  for (uint32 idx = 0; idx < assets->size; idx++) {
-    FontAsset *asset = assets->get(idx);
-    if (strcmp(asset->name, name) == 0) {
+  for_each (asset, *assets) {
+    if (Str::eq(asset->name, name)) {
       return asset;
     }
   }
