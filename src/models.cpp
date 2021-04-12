@@ -385,57 +385,120 @@ void Models::load_node(
 }
 
 
-void Models::load_model(
+void Models::load_model_from_file(
   EntityLoader *entity_loader,
   BoneMatrixPool *bone_matrix_pool
 ) {
-  // If we're not loading from a file, all the data has already
-  // been loaded previously, so we just need to handle the
-  // shaders and textures and so on, so skip this.
+  // NOTE: This function stores its vertex data in the MemoryPool for each
+  // mesh, and so is intended to be called from a separate thread.
   char full_path[MAX_PATH];
   strcpy(full_path, MODEL_DIR);
-  strcat(full_path, entity_loader->path);
+  strcat(full_path, entity_loader->model_path_or_builtin_model_name);
 
-  if (entity_loader->model_source == ModelSource::file) {
-    START_TIMER(assimp_import);
-    const aiScene *scene = aiImportFile(
-      full_path,
-      aiProcess_Triangulate
-      | aiProcess_JoinIdenticalVertices
-      | aiProcess_SortByPType
-      | aiProcess_GenNormals
-      | aiProcess_FlipUVs
-      // NOTE: This might break something in the future, let's look out for it.
-      | aiProcess_OptimizeMeshes
-      // NOTE: Use with caution, goes full YOLO.
-      /* aiProcess_OptimizeGraph */
-      /* | aiProcess_CalcTangentSpace */
-    );
-    END_TIMER(assimp_import);
+  START_TIMER(assimp_import);
+  const aiScene *scene = aiImportFile(
+    full_path,
+    aiProcess_Triangulate
+    | aiProcess_JoinIdenticalVertices
+    | aiProcess_SortByPType
+    | aiProcess_GenNormals
+    | aiProcess_FlipUVs
+    // NOTE: This might break something in the future, let's look out for it.
+    | aiProcess_OptimizeMeshes
+    // NOTE: Use with caution, goes full YOLO.
+    /* aiProcess_OptimizeGraph */
+    /* | aiProcess_CalcTangentSpace */
+  );
+  END_TIMER(assimp_import);
 
-    if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-      log_fatal("assimp error: %s", aiGetErrorString());
-      return;
-    }
-
-    AnimationComponent *animation_component = &entity_loader->animation_component;
-
-    load_bones(
-      animation_component, scene
-    );
-
-    load_node(
-      entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
-    );
-
-    load_animations(
-      animation_component, scene, bone_matrix_pool
-    );
-
-    aiReleaseImport(scene);
+  if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+    log_fatal("assimp error: %s", aiGetErrorString());
+    return;
   }
 
+  AnimationComponent *animation_component = &entity_loader->animation_component;
+
+  load_bones(
+    animation_component, scene
+  );
+
+  load_node(
+    entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+  );
+
+  load_animations(
+    animation_component, scene, bone_matrix_pool
+  );
+
+  aiReleaseImport(scene);
+
   entity_loader->state = EntityLoaderState::mesh_data_loaded;
+}
+
+
+void Models::load_model_from_data(
+  EntityLoader *entity_loader
+) {
+  // NOTE: This function sets up mesh vertex buffers directly, and so is
+  // intended to be called from the main OpenGL thread.
+  MemoryPool temp_memory_pool = {};
+
+  Vertex *vertex_data = nullptr;
+  uint32 n_vertices = 0;
+  uint32 *index_data = nullptr;
+  uint32 n_indices = 0;
+  GLenum mode = 0;
+
+  if (Str::eq(entity_loader->model_path_or_builtin_model_name, "axes")) {
+    vertex_data = (Vertex*)AXES_VERTICES;
+    n_vertices = 6;
+    index_data = nullptr;
+    n_indices = 0;
+    mode = GL_LINES;
+  } else if (Str::eq(entity_loader->model_path_or_builtin_model_name, "ocean")) {
+    Util::make_plane(
+      &temp_memory_pool,
+      200, 200,
+      800, 800,
+      &n_vertices, &n_indices,
+      &vertex_data, &index_data
+    );
+    mode = GL_TRIANGLES;
+  } else if (Str::eq(entity_loader->model_path_or_builtin_model_name, "skysphere")) {
+    Util::make_sphere(
+      &temp_memory_pool,
+      64, 64,
+      &n_vertices, &n_indices,
+      &vertex_data, &index_data
+    );
+    mode = GL_TRIANGLE_STRIP;
+  } else if (
+    Str::starts_with(entity_loader->model_path_or_builtin_model_name, "screenquad")
+  ) {
+    vertex_data = (Vertex*)SCREENQUAD_VERTICES;
+    n_vertices = 6;
+    index_data = nullptr;
+    n_indices = 0;
+    mode = GL_TRIANGLES;
+  } else {
+    log_fatal(
+      "Could not find builtin model: %s",
+      entity_loader->model_path_or_builtin_model_name
+    );
+  }
+
+  Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
+  *mesh = {};
+  mesh->transform = glm::mat4(1.0f);
+  mesh->mode = mode;
+  mesh->n_vertices = n_vertices;
+  mesh->n_indices = n_indices;
+  mesh->indices_pack = 0UL;
+
+  setup_mesh_vertex_buffers(mesh, vertex_data, n_vertices, index_data, n_indices);
+  entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
+
+  Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
@@ -543,8 +606,14 @@ bool32 Models::prepare_model_and_check_if_done(
   BoneMatrixPool *bone_matrix_pool
 ) {
   if (entity_loader->state == EntityLoaderState::initialized) {
+    if (entity_loader->model_source != ModelSource::file) {
+      log_error(
+        "Found model with model_source=file for which no vertex data was loaded."
+      );
+      return false;
+    }
     task_queue->push({
-      .type = TaskType::load_model,
+      .type = TaskType::load_model_from_data,
       .target = {
         .entity_loader = entity_loader,
       },
@@ -620,7 +689,7 @@ EntityLoader* Models::init_entity_loader(
   EntityLoader *entity_loader,
   ModelSource model_source,
   const char *name,
-  const char *path,
+  const char *model_path_or_builtin_model_name,
   RenderPassFlag render_pass,
   EntityHandle entity_handle
 ) {
@@ -631,40 +700,14 @@ EntityLoader* Models::init_entity_loader(
   entity_loader->render_pass = render_pass;
   entity_loader->entity_handle = entity_handle;
 
-  strcpy(entity_loader->path, path);
-  // NOTE: We do not load ModelSource::file models here.
-  // They will be loaded gradually in `::prepare_model_and_check_if_done()`.
+  strcpy(
+    entity_loader->model_path_or_builtin_model_name,
+    model_path_or_builtin_model_name
+  );
 
-  return entity_loader;
-}
-
-
-EntityLoader* Models::init_entity_loader(
-  EntityLoader *entity_loader,
-  ModelSource model_source,
-  Vertex *vertex_data, uint32 n_vertices,
-  uint32 *index_data, uint32 n_indices,
-  const char *name,
-  GLenum mode,
-  RenderPassFlag render_pass,
-  EntityHandle entity_handle
-) {
-  assert(entity_loader);
-  strcpy(entity_loader->name, name);
-  entity_loader->model_source = model_source;
-  entity_loader->render_pass = render_pass;
-  entity_loader->entity_handle = entity_handle;
-
-  Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
-  *mesh = {};
-  mesh->transform = glm::mat4(1.0f);
-  mesh->mode = mode;
-  mesh->n_vertices = n_vertices;
-  mesh->n_indices = n_indices;
-  mesh->indices_pack = 0UL;
-
-  setup_mesh_vertex_buffers(mesh, vertex_data, n_vertices, index_data, n_indices);
-  entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
+  if (model_source == ModelSource::data) {
+    load_model_from_data(entity_loader);
+  }
 
   return entity_loader;
 }

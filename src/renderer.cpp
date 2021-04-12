@@ -847,6 +847,9 @@ void Renderer::render_scene(
   RenderPassFlag render_pass,
   RenderMode render_mode
 ) {
+#if 0
+  log_info("RenderPass: %s", render_pass_to_string(render_pass));
+#endif
   EntitySets::draw_all(
     &state->entity_set,
     &state->drawable_component_set,

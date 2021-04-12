@@ -45,7 +45,7 @@ enum class EntityLoaderState {
 struct EntityLoader {
   char name[MAX_DEBUG_NAME_LENGTH];
   ModelSource model_source;
-  char path[MAX_PATH];
+  char model_path_or_builtin_model_name[MAX_PATH];
   StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
   Mesh meshes[MAX_N_MESHES];
   uint32 n_meshes;
@@ -103,9 +103,12 @@ namespace Models {
     aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
-  void load_model(
+  void load_model_from_file(
     EntityLoader *entity_loader,
     BoneMatrixPool *bone_matrix_pool
+  );
+  void load_model_from_data(
+    EntityLoader *entity_loader
   );
   void create_entities(
     EntityLoader *entity_loader,
@@ -133,17 +136,7 @@ namespace Models {
     EntityLoader *entity_loader,
     ModelSource model_source,
     const char *name,
-    const char *path,
-    RenderPassFlag render_pass,
-    EntityHandle entity_handle
-  );
-  EntityLoader* init_entity_loader(
-    EntityLoader *entity_loader,
-    ModelSource model_source,
-    Vertex *vertex_data, uint32 n_vertices,
-    uint32 *index_data, uint32 n_indices,
-    const char *name,
-    GLenum mode,
+    const char *model_path_or_builtin_model_name,
     RenderPassFlag render_pass,
     EntityHandle entity_handle
   );

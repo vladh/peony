@@ -5,7 +5,7 @@ struct EntityLoader;
 struct BoneMatrixPool;
 
 enum class TaskType {
-  load_model,
+  load_model_from_data,
   copy_textures_to_pbo,
 };
 

@@ -1,6 +1,6 @@
 const char* Tasks::task_type_to_str(TaskType type) {
-  if (type == TaskType::load_model) {
-    return "load_model";
+  if (type == TaskType::load_model_from_data) {
+    return "load_model_from_data";
   } else if (type == TaskType::copy_textures_to_pbo) {
     return "copy_textures_to_pbo";
   }
@@ -11,8 +11,8 @@ const char* Tasks::task_type_to_str(TaskType type) {
 void Tasks::run_task(Task *task) {
   auto t0 = debug_start_timer();
 
-  if (task->type == TaskType::load_model) {
-    Models::load_model(
+  if (task->type == TaskType::load_model_from_data) {
+    Models::load_model_from_file(
       task->target.entity_loader,
       task->bone_matrix_pool
     );
@@ -40,45 +40,7 @@ void Tasks::run_loading_loop(
     mutex->unlock();
 
     if (task) {
-#if 0
-      if (task->type == TaskType::load_model) {
-        log_info(
-          "[Thread #%d] Running task %s for model %s",
-          idx_thread,
-          task_type_to_str(task->type),
-          task->target.entity_loader->name
-        );
-      }
-      if (task->type == TaskType::copy_textures_to_pbo) {
-        log_info(
-          "[Thread #%d] Running task %s for material %s",
-          idx_thread,
-          task_type_to_str(task->type),
-          task->target.material->name
-        );
-      }
-#endif
-
       run_task(task);
-
-#if 0
-      if (task->type == TaskType::load_model) {
-        log_info(
-          "[Thread #%d] Finished task %s for model %s",
-          idx_thread,
-          task_type_to_str(task->type),
-          task->target.entity_loader->name
-        );
-      }
-      if (task->type == TaskType::copy_textures_to_pbo) {
-        log_info(
-          "[Thread #%d] Finished task %s for material %s",
-          idx_thread,
-          task_type_to_str(task->type),
-          task->target.material->name
-        );
-      }
-#endif
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));

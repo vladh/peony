@@ -59,8 +59,11 @@ void PeonyFileParser::print_material_template(MaterialTemplate *material_templat
 void PeonyFileParser::print_entity_template(EntityTemplate *entity_template) {
   log_info("EntityTemplate");
   log_info("  name: %s", entity_template->entity_debug_name);
-  log_info("  model_path: %s", entity_template->model_path);
-  log_info("  builtin_model_name: %s", entity_template->builtin_model_name);
+  log_info(
+    "  model_path_or_builtin_model_name: %s",
+    entity_template->model_path_or_builtin_model_name
+  );
+  log_info("  model_source: %d", entity_template->model_source);
   log_info("  material_names.length: %d", entity_template->material_names.length);
   log_info("  material_names:");
   for_each (material_name, entity_template->material_names) {
@@ -461,14 +464,16 @@ uint32 PeonyFileParser::parse_scene_file(
 
       if (Str::eq(prop_name, "model_path")) {
         strcpy(
-          entity_template->model_path,
+          entity_template->model_path_or_builtin_model_name,
           prop_values[0].string_value
         );
+        entity_template->model_source = ModelSource::file;
       } else if (Str::eq(prop_name, "builtin_model_name")) {
         strcpy(
-          entity_template->builtin_model_name,
+          entity_template->model_path_or_builtin_model_name,
           prop_values[0].string_value
         );
+        entity_template->model_source = ModelSource::data;
       } else if (Str::eq(prop_name, "materials")) {
         for_range_named (idx_value, 0, n_values) {
           strcpy(

@@ -441,8 +441,10 @@ void EntitySets::draw_all(
     }
 
 #if 0
-    Entity *entity = entity_set->entities.get(idx);
-    log_info("Drawing %s", entity->debug_name);
+    log_info(
+      "Drawing %s",
+      entity_set->entities[drawable_component->entity_handle]->debug_name
+    );
 #endif
 
     Material *material = Materials::get_material_by_name(
