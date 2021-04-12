@@ -26,8 +26,8 @@ struct MaterialTemplate {
 
 struct EntityTemplate {
   char entity_debug_name[MAX_TOKEN_LENGTH];
-  char model_path[MAX_TOKEN_LENGTH];
-  char builtin_model_name[MAX_TOKEN_LENGTH];
+  char model_path_or_builtin_model_name[MAX_TOKEN_LENGTH];
+  ModelSource model_source;
   StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
   RenderPassFlag render_pass;
   // NOTE: The `entity_handle` and `parent_entity_handle` properties

@@ -160,8 +160,7 @@ void World::create_entity_loader_from_entity_template(
   EntityTemplate *entity_template,
   EntitySet *entity_set,
   EntityLoaderSet *entity_loader_set,
-  State *state,
-  MemoryPool *memory_pool
+  State *state
 ) {
   // TODO: Figure out parent system.
   Entity *entity = EntitySets::add_entity_to_set(
@@ -169,66 +168,14 @@ void World::create_entity_loader_from_entity_template(
   );
 
   EntityLoader *entity_loader = entity_loader_set->loaders[entity->handle];
-  bool32 did_init_loader = false;
-
-  if (Str::is_empty(entity_template->builtin_model_name)) {
-    Models::init_entity_loader(
-      entity_loader,
-      ModelSource::file,
-      entity_template->entity_debug_name,
-      entity_template->model_path,
-      entity_template->render_pass,
-      entity->handle
-    );
-    did_init_loader = true;
-  } else {
-    if (strcmp(entity_template->builtin_model_name, "axes") == 0) {
-      Models::init_entity_loader(
-        entity_loader,
-        ModelSource::data,
-        (Vertex*)AXES_VERTICES, 6,
-        nullptr, 0,
-        entity_template->entity_debug_name,
-        GL_LINES,
-        entity_template->render_pass,
-        entity->handle
-      );
-      did_init_loader = true;
-    } else if (strcmp(entity_template->builtin_model_name, "ocean") == 0) {
-      uint32 ocean_n_vertices;
-      uint32 ocean_n_indices;
-      Vertex *ocean_vertex_data;
-      uint32 *ocean_index_data;
-
-      Util::make_plane(
-        memory_pool,
-        200, 200,
-        800, 800,
-        &ocean_n_vertices, &ocean_n_indices,
-        &ocean_vertex_data, &ocean_index_data
-      );
-
-      Models::init_entity_loader(
-        entity_loader,
-        ModelSource::data,
-        ocean_vertex_data, ocean_n_vertices,
-        ocean_index_data, ocean_n_indices,
-        entity_template->entity_debug_name,
-        GL_TRIANGLES,
-        entity_template->render_pass,
-        entity->handle
-      );
-      did_init_loader = true;
-    } else {
-      log_fatal(
-        "Could not find builtin model: %s", entity_template->builtin_model_name
-      );
-    }
-  }
-
-  if (!did_init_loader) {
-    log_fatal("Did not find any models to init entity loader with.");
-  }
+  Models::init_entity_loader(
+    entity_loader,
+    entity_template->model_source,
+    entity_template->entity_debug_name,
+    entity_template->model_path_or_builtin_model_name,
+    entity_template->render_pass,
+    entity->handle
+  );
 
   // TODO: Add support for parents! Forgot about this.
   memcpy(
@@ -415,18 +362,6 @@ void World::create_internal_entities(State *state) {
     "standard_depth.geom"
   );
 
-  uint32 skysphere_n_vertices;
-  uint32 skysphere_n_indices;
-  Vertex *skysphere_vertex_data;
-  uint32 *skysphere_index_data;
-
-  Util::make_sphere(
-    &temp_memory_pool,
-    64, 64,
-    &skysphere_n_vertices, &skysphere_n_indices,
-    &skysphere_vertex_data, &skysphere_index_data
-  );
-
   // Lighting screenquad
   {
     Entity *entity = EntitySets::add_entity_to_set(
@@ -437,10 +372,8 @@ void World::create_internal_entities(State *state) {
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
-      (Vertex*)SCREENQUAD_VERTICES, 6,
-      nullptr, 0,
       "screenquad_lighting",
-      GL_TRIANGLES,
+      "screenquad_lighting",
       RenderPass::lighting,
       entity->handle
     );
@@ -459,10 +392,8 @@ void World::create_internal_entities(State *state) {
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
-      (Vertex*)SCREENQUAD_VERTICES, 6,
-      nullptr, 0,
       "screenquad_preblur",
-      GL_TRIANGLES,
+      "screenquad_preblur",
       RenderPass::preblur,
       entity->handle
     );
@@ -480,10 +411,8 @@ void World::create_internal_entities(State *state) {
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
-      (Vertex*)SCREENQUAD_VERTICES, 6,
-      nullptr, 0,
       "screenquad_blur1",
-      GL_TRIANGLES,
+      "screenquad_blur1",
       RenderPass::blur1,
       entity->handle
     );
@@ -501,10 +430,8 @@ void World::create_internal_entities(State *state) {
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
-      (Vertex*)SCREENQUAD_VERTICES, 6,
-      nullptr, 0,
       "screenquad_blur2",
-      GL_TRIANGLES,
+      "screenquad_blur2",
       RenderPass::blur2,
       entity->handle
     );
@@ -522,10 +449,8 @@ void World::create_internal_entities(State *state) {
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
-      (Vertex*)SCREENQUAD_VERTICES, 6,
-      nullptr, 0,
       "screenquad_postprocessing",
-      GL_TRIANGLES,
+      "screenquad_postprocessing",
       RenderPass::postprocessing,
       entity->handle
     );
@@ -543,10 +468,8 @@ void World::create_internal_entities(State *state) {
     Models::init_entity_loader(
       entity_loader,
       ModelSource::data,
-      skysphere_vertex_data, skysphere_n_vertices,
-      skysphere_index_data, skysphere_n_indices,
       "skysphere",
-      GL_TRIANGLE_STRIP,
+      "skysphere",
       RenderPass::forward_skybox,
       entity->handle
     );
@@ -669,8 +592,7 @@ void World::load_scene(
       entity_templates[idx],
       &state->entity_set,
       &state->entity_loader_set,
-      state,
-      &temp_memory_pool
+      state
     );
   }
 
