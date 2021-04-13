@@ -36,6 +36,16 @@ public:
     return get(idx);
   }
 
+  template <typename F>
+  T* find(F match) {
+    for (auto item = begin(); item < end(); item++) {
+      if (match(item)) {
+        return item;
+      }
+    }
+    return nullptr;
+  }
+
   T* begin() {
     return &this->items[this->starting_idx];
   }

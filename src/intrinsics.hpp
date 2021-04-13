@@ -29,7 +29,7 @@
 #define for_each(el, set) \
   for ( \
     auto el = (set).begin(); \
-    !(el >= (set).end()); \
+    el < (set).end(); \
     el++ \
   ) \
 

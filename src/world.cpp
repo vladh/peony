@@ -619,8 +619,9 @@ void World::load_scene(
 
   // Create entity, ModelLoader, EntityLoader
   for_range (0, n_entities) {
+    EntityTemplate *entity_template = entity_templates[idx];
     Entity *entity = EntitySets::add_entity_to_set(
-      &state->entity_set, entity_templates[idx]->entity_debug_name
+      &state->entity_set, entity_template->entity_debug_name
     );
 
     // NOTE: We only want to make a ModelLoader from this EntityTemplate
@@ -628,27 +629,30 @@ void World::load_scene(
     // EntityTemplate. If two entities have the same
     // `model_path_or_builtin_model_name`, we just make one model and use it
     // in both.
-    // TODO: Implement some kind of find() thing.
-    ModelLoader *found_model_loader = nullptr;
-    for_each (candidate_model_loader, state->model_loaders) {
-      if (Str::eq(
-        entity_templates[idx]->model_path_or_builtin_model_name,
-        candidate_model_loader->model_path_or_builtin_model_name
-      )) {
-        found_model_loader = candidate_model_loader;
-        break;
+    ModelLoader *found_model_loader = state->model_loaders.find(
+      [entity_template](ModelLoader *candidate_model_loader) -> bool32 {
+        return Str::eq(
+          entity_template->model_path_or_builtin_model_name,
+          candidate_model_loader->model_path_or_builtin_model_name
+        );
       }
+    );
+    if (found_model_loader) {
+      log_info(
+        "Skipping already-loaded model %s",
+        entity_template->model_path_or_builtin_model_name
+      );
     }
     if (!found_model_loader) {
       create_model_loader_from_entity_template(
-        entity_templates[idx],
+        entity_template,
         entity->handle,
         &state->model_loaders,
         state
       );
     }
     create_entity_loader_from_entity_template(
-      entity_templates[idx],
+      entity_template,
       entity->handle,
       &state->entity_loader_set,
       state
@@ -702,17 +706,14 @@ bool32 World::check_all_entities_loaded(State *state) {
       continue;
     }
 
-    // TODO: Implement some kind of find() thing.
-    ModelLoader *model_loader = nullptr;
-    for_each (candidate_model_loader, state->model_loaders) {
-      if (Str::eq(
-        entity_loader->model_path_or_builtin_model_name,
-        candidate_model_loader->model_path_or_builtin_model_name
-      )) {
-        model_loader = candidate_model_loader;
-        break;
+    ModelLoader *model_loader = state->model_loaders.find(
+      [entity_loader](ModelLoader *candidate_model_loader) -> bool32 {
+        return Str::eq(
+          entity_loader->model_path_or_builtin_model_name,
+          candidate_model_loader->model_path_or_builtin_model_name
+        );
       }
-    }
+    );
     assert(model_loader);
 
     bool is_done_loading = Models::prepare_entity_loader_and_check_if_done(
