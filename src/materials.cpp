@@ -230,7 +230,9 @@ Material* Materials::get_material_by_name(
       return material;
     }
   }
+#if 0
   log_warning("Could not find Material with name %s", name);
+#endif
   return nullptr;
 }
 

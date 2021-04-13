@@ -58,7 +58,7 @@ namespace Gui {
   constexpr glm::vec2 GUI_BUTTON_AUTOSIZE_PADDING = glm::vec2(20.0f, 20.0f);
   constexpr glm::vec2 GUI_BUTTON_DEFAULT_BORDER = glm::vec2(0.0f);
 
-  constexpr real32 GUI_NAMED_VALUE_NAME_WIDTH = 200.0f;
+  constexpr real32 GUI_NAMED_VALUE_NAME_WIDTH = 250.0f;
   constexpr real32 GUI_TOGGLE_SPACING = 20.0f;
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_SIZE = glm::vec2(20.0f);
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_DEFAULT_BORDER = glm::vec2(0.0f);

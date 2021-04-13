@@ -147,9 +147,6 @@ void World::update_light_position(State *state, real32 amount) {
   for_each (light_component, state->light_component_set.components) {
     if (light_component->type == LightType::directional) {
       state->dir_light_angle += amount;
-      light_component->direction = glm::vec3(
-        sin(state->dir_light_angle), -cos(state->dir_light_angle), 0.0f
-      );
       break;
     }
   }
@@ -523,6 +520,11 @@ void World::create_internal_entities(State *state) {
 }
 
 
+void World::destroy_model_loaders(State *state) {
+  state->model_loaders.clear();
+}
+
+
 void World::destroy_non_internal_materials(State *state) {
   for (
     uint32 idx = state->first_non_internal_material_idx;
@@ -547,15 +549,13 @@ void World::destroy_non_internal_entities(State *state) {
     Models::destroy_drawable_component(
       state->drawable_component_set.components[idx]
     );
-    memset(state->entity_set.entities[idx], 0, sizeof(Entity));
-    memset(state->light_component_set.components[idx], 0, sizeof(LightComponent));
-    memset(state->spatial_component_set.components[idx], 0, sizeof(SpatialComponent));
-    memset(state->drawable_component_set.components[idx], 0, sizeof(DrawableComponent));
-    memset(state->behavior_component_set.components[idx], 0, sizeof(BehaviorComponent));
   }
 
   state->entity_set.next_handle = state->entity_set.first_non_internal_handle;
   state->entity_set.entities.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
+  state->entity_loader_set.loaders.delete_elements_after_index(
     state->entity_set.first_non_internal_handle
   );
   state->light_component_set.components.delete_elements_after_index(
@@ -570,12 +570,26 @@ void World::destroy_non_internal_entities(State *state) {
   state->behavior_component_set.components.delete_elements_after_index(
     state->entity_set.first_non_internal_handle
   );
+  state->animation_component_set.components.delete_elements_after_index(
+    state->entity_set.first_non_internal_handle
+  );
 }
+
+
+void World::destroy_scene(State *state) {
+  destroy_model_loaders(state);
+  destroy_non_internal_materials(state);
+  destroy_non_internal_entities(state);
+}
+
 
 void World::load_scene(
   const char *scene_path,
   State *state
 ) {
+  // Destroy everything first!
+  destroy_scene(state);
+
   // Get some memory for everything we need
   MemoryPool temp_memory_pool = {};
 
@@ -685,10 +699,12 @@ bool32 World::check_all_entities_loaded(State *state) {
     }
   }
 
+  uint32 new_n_valid_model_loaders = 0;
   for_each (model_loader, state->model_loaders) {
     if (!Entities::is_model_loader_valid(model_loader)) {
       continue;
     }
+    new_n_valid_model_loaders++;
     bool is_done_loading = Models::prepare_model_loader_and_check_if_done(
       model_loader,
       &state->persistent_pbo,
@@ -700,11 +716,14 @@ bool32 World::check_all_entities_loaded(State *state) {
       are_all_done_loading = false;
     }
   }
+  state->n_valid_model_loaders = new_n_valid_model_loaders;
 
+  uint32 new_n_valid_entity_loaders = 0;
   for_each (entity_loader, state->entity_loader_set.loaders) {
     if (!Entities::is_entity_loader_valid(entity_loader)) {
       continue;
     }
+    new_n_valid_entity_loaders++;
 
     ModelLoader *model_loader = state->model_loaders.find(
       [entity_loader](ModelLoader *candidate_model_loader) -> bool32 {
@@ -714,7 +733,11 @@ bool32 World::check_all_entities_loaded(State *state) {
         );
       }
     );
-    assert(model_loader);
+    if (!model_loader) {
+      log_fatal(
+        "Encountered an EntityLoader for which we cannot find the ModelLoader."
+      );
+    }
 
     bool is_done_loading = Models::prepare_entity_loader_and_check_if_done(
       entity_loader,
@@ -726,10 +749,22 @@ bool32 World::check_all_entities_loaded(State *state) {
       &state->behavior_component_set,
       &state->animation_component_set
     );
+
+    // NOTE: If a certain EntityLoader is complete, it's done everything it
+    // needed to and we don't need it anymore.
+    if (is_done_loading) {
+      // TODO: We need to do this in a better way. We should somehow let the
+      // Array know when we delete one of these. Even though it's sparse,
+      // it should have length 0 if we know there's nothing in it. That way
+      // we don't have to iterate over it over and over.
+      memset(entity_loader, 0, sizeof(EntityLoader));
+    }
+
     if (!is_done_loading) {
       are_all_done_loading = false;
     }
   }
+  state->n_valid_entity_loaders = new_n_valid_entity_loaders;
 
   return are_all_done_loading;
 }
@@ -760,6 +795,7 @@ void World::update(State *state) {
     &state->light_component_set,
     &state->spatial_component_set,
     state->t,
-    state->camera_active->position
+    state->camera_active->position,
+    state->dir_light_angle
   );
 }

@@ -30,7 +30,7 @@ State* init_state(
     .shadowmap_far_clip_dist = 200.0f,
   };
 
-  state->dir_light_angle = PI32 / 4.0f;
+  state->dir_light_angle = DEG_TO_RAD32(55);
 
   state->entity_loader_set = {
     .loaders = Array<EntityLoader>(

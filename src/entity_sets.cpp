@@ -191,7 +191,8 @@ void EntitySets::update_light_components(
   LightComponentSet *light_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t,
-  glm::vec3 camera_position
+  glm::vec3 camera_position,
+  real32 dir_light_angle
 ) {
   for_each (light_component, light_component_set->components) {
     if (light_component->entity_handle == Entity::no_entity_handle) {
@@ -216,6 +217,9 @@ void EntitySets::update_light_components(
     if (light_component->type == LightType::directional) {
       spatial_component->position = camera_position +
         -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
+      light_component->direction = glm::vec3(
+        sin(dir_light_angle), -cos(dir_light_angle), 0.0f
+      );
     }
   }
 }

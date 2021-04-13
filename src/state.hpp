@@ -44,6 +44,8 @@ struct State {
   bool32 should_limit_fps;
   bool32 should_use_wireframe;
   glm::vec4 background_color;
+  uint32 n_valid_model_loaders;
+  uint32 n_valid_entity_loaders;
 
   bool32 is_world_loaded;
 
