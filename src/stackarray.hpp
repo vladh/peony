@@ -54,7 +54,13 @@ public:
     return &this->items[this->length];
   }
 
+  void clear() {
+    memset(this->items, 0, sizeof(this->items));
+    this->length = 0;
+  }
+
   void delete_elements_after_index(uint32 idx) {
+    memset(&this->items[idx], 0, sizeof(T) * (this->length - idx));
     this->length = idx;
   }
 };

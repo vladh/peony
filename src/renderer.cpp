@@ -908,8 +908,33 @@ void Renderer::render_scene_ui(State *state) {
     sprintf(debug_text, state->is_world_loaded ? "yes" : "no");
     Gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
 
+    sprintf(debug_text, "%d", state->materials.length);
+    Gui::draw_named_value(
+      &state->gui_state, container, "materials.length", debug_text
+    );
+
     sprintf(debug_text, "%d", state->entity_set.entities.length);
     Gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
+
+    sprintf(debug_text, "%d", state->model_loaders.length);
+    Gui::draw_named_value(
+      &state->gui_state, container, "model_loaders.length", debug_text
+    );
+
+    sprintf(debug_text, "%d", state->n_valid_model_loaders);
+    Gui::draw_named_value(
+      &state->gui_state, container, "n_valid_model_loaders", debug_text
+    );
+
+    sprintf(debug_text, "%d", state->entity_loader_set.loaders.length);
+    Gui::draw_named_value(
+      &state->gui_state, container, "entity_loader_set.length", debug_text
+    );
+
+    sprintf(debug_text, "%d", state->n_valid_entity_loaders);
+    Gui::draw_named_value(
+      &state->gui_state, container, "n_valid_entity_loaders", debug_text
+    );
 
     if (Gui::draw_toggle(
       &state->gui_state, container, "Wireframe mode", &state->should_use_wireframe
@@ -960,20 +985,6 @@ void Renderer::render_scene_ui(State *state) {
     )) {
       reload_shaders(state);
       set_heading(state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
-    }
-
-    if (Gui::draw_button(
-      &state->gui_state, container, "Destroy materials"
-    )) {
-      World::destroy_non_internal_materials(state);
-      set_heading(state, "Materials destroyed.", 1.0f, 1.0f, 1.0f);
-    }
-
-    if (Gui::draw_button(
-      &state->gui_state, container, "Destroy entities"
-    )) {
-      World::destroy_non_internal_entities(state);
-      set_heading(state, "Entities destroyed.", 1.0f, 1.0f, 1.0f);
     }
 
     if (Gui::draw_button(

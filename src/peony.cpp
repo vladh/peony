@@ -90,6 +90,21 @@ void process_input(GLFWwindow *window, State *state) {
   if (Input::is_key_down(&state->input_state, GLFW_KEY_ENTER)) {
     state->should_manually_advance_to_next_frame = true;
   }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_1)) {
+    World::load_scene("data/scenes/coast.peony_scene", state);
+    Renderer::set_heading(state, "Scene loaded: coast", 1.0f, 1.0f, 1.0f);
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_2)) {
+    World::load_scene("data/scenes/animtest.peony_scene", state);
+    Renderer::set_heading(state, "Scene loaded: animtest", 1.0f, 1.0f, 1.0f);
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_0)) {
+    World::destroy_scene(state);
+    Renderer::set_heading(state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
+  }
 }
 
 
@@ -243,7 +258,7 @@ int main() {
   );
   Renderer::init_ubo(state);
   World::init(state);
-  World::load_scene("data/scenes/demo.peony_scene", state);
+  /* World::load_scene("data/scenes/demo.peony_scene", state); */
 
   Materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 

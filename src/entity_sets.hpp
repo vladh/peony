@@ -85,7 +85,8 @@ namespace EntitySets {
     LightComponentSet *light_component_set,
     SpatialComponentSet *spatial_component_set,
     real64 t,
-    glm::vec3 camera_position
+    glm::vec3 camera_position,
+    real32 dir_light_angle
   );
   uint32 get_bone_matrix_anim_key_for_timepoint(
     BoneMatrixPool *bone_matrix_pool,
