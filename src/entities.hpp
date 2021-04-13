@@ -2,6 +2,8 @@
 #define ENTITIES_HPP
 
 struct Mesh;
+struct ModelLoader;
+struct EntityLoader;
 
 // NOTE: 0 is an invalid handle.
 typedef uint32 EntityHandle;
@@ -93,6 +95,7 @@ namespace Entities {
     SpatialComponent *spatial_component
   );
 
+  bool32 is_model_loader_valid(ModelLoader *model_loader);
   bool32 is_entity_loader_valid(EntityLoader *entity_loader);
 }
 

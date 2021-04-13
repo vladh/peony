@@ -8,9 +8,15 @@ namespace World {
   void get_scene_text_representation(char *text, State *state);
   void get_materials_text_representation(char *text, State *state);
   void update_light_position(State *state, real32 amount);
+  void create_model_loader_from_entity_template(
+    EntityTemplate *entity_template,
+    EntityHandle entity_handle,
+    Array<ModelLoader> *model_loaders,
+    State *state
+  );
   void create_entity_loader_from_entity_template(
     EntityTemplate *entity_template,
-    EntitySet *entity_set,
+    EntityHandle entity_handle,
     EntityLoaderSet *entity_loader_set,
     State *state
   );

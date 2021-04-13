@@ -117,6 +117,11 @@ bool32 Entities::is_spatial_component_valid(
 }
 
 
+bool32 Entities::is_model_loader_valid(ModelLoader *model_loader) {
+  return model_loader->state != ModelLoaderState::empty;
+}
+
+
 bool32 Entities::is_entity_loader_valid(EntityLoader *entity_loader) {
-  return entity_loader->model_source != ModelSource::none;
+  return entity_loader->state != EntityLoaderState::empty;
 }

@@ -220,7 +220,7 @@ void Models::load_mesh(
   Mesh *mesh,
   aiMesh *ai_mesh,
   const aiScene *scene,
-  EntityLoader *entity_loader,
+  ModelLoader *model_loader,
   glm::mat4 transform,
   Pack indices_pack
 ) {
@@ -301,7 +301,7 @@ void Models::load_mesh(
 
   // Bones
   assert(ai_mesh->mNumBones < MAX_N_BONES);
-  AnimationComponent *animation_component = &entity_loader->animation_component;
+  AnimationComponent *animation_component = &model_loader->animation_component;
   for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
     aiBone *ai_bone = ai_mesh->mBones[idx_bone];
     uint32 idx_found_bone = 0;
@@ -351,7 +351,7 @@ void Models::destroy_mesh(Mesh *mesh) {
 
 
 void Models::load_node(
-  EntityLoader *entity_loader,
+  ModelLoader *model_loader,
   aiNode *node, const aiScene *scene,
   glm::mat4 accumulated_transform, Pack indices_pack
 ) {
@@ -360,13 +360,13 @@ void Models::load_node(
 
   for_range (0, node->mNumMeshes) {
     aiMesh *ai_mesh = scene->mMeshes[node->mMeshes[idx]];
-    Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
+    Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
     *mesh = {};
     load_mesh(
       mesh,
       ai_mesh,
       scene,
-      entity_loader,
+      model_loader,
       transform,
       indices_pack
     );
@@ -379,21 +379,21 @@ void Models::load_node(
     // Just smash the number down to a uint8.
     pack_push(&new_indices_pack, (uint8)idx);
     load_node(
-      entity_loader, node->mChildren[idx], scene, transform, new_indices_pack
+      model_loader, node->mChildren[idx], scene, transform, new_indices_pack
     );
   }
 }
 
 
 void Models::load_model_from_file(
-  EntityLoader *entity_loader,
+  ModelLoader *model_loader,
   BoneMatrixPool *bone_matrix_pool
 ) {
   // NOTE: This function stores its vertex data in the MemoryPool for each
   // mesh, and so is intended to be called from a separate thread.
   char full_path[MAX_PATH];
   strcpy(full_path, MODEL_DIR);
-  strcat(full_path, entity_loader->model_path_or_builtin_model_name);
+  strcat(full_path, model_loader->model_path_or_builtin_model_name);
 
   START_TIMER(assimp_import);
   const aiScene *scene = aiImportFile(
@@ -416,14 +416,14 @@ void Models::load_model_from_file(
     return;
   }
 
-  AnimationComponent *animation_component = &entity_loader->animation_component;
+  AnimationComponent *animation_component = &model_loader->animation_component;
 
   load_bones(
     animation_component, scene
   );
 
   load_node(
-    entity_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+    model_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
   );
 
   load_animations(
@@ -432,12 +432,12 @@ void Models::load_model_from_file(
 
   aiReleaseImport(scene);
 
-  entity_loader->state = EntityLoaderState::mesh_data_loaded;
+  model_loader->state = ModelLoaderState::mesh_data_loaded;
 }
 
 
 void Models::load_model_from_data(
-  EntityLoader *entity_loader
+  ModelLoader *model_loader
 ) {
   // NOTE: This function sets up mesh vertex buffers directly, and so is
   // intended to be called from the main OpenGL thread.
@@ -449,13 +449,13 @@ void Models::load_model_from_data(
   uint32 n_indices = 0;
   GLenum mode = 0;
 
-  if (Str::eq(entity_loader->model_path_or_builtin_model_name, "axes")) {
+  if (Str::eq(model_loader->model_path_or_builtin_model_name, "axes")) {
     vertex_data = (Vertex*)AXES_VERTICES;
     n_vertices = 6;
     index_data = nullptr;
     n_indices = 0;
     mode = GL_LINES;
-  } else if (Str::eq(entity_loader->model_path_or_builtin_model_name, "ocean")) {
+  } else if (Str::eq(model_loader->model_path_or_builtin_model_name, "ocean")) {
     Util::make_plane(
       &temp_memory_pool,
       200, 200,
@@ -464,7 +464,7 @@ void Models::load_model_from_data(
       &vertex_data, &index_data
     );
     mode = GL_TRIANGLES;
-  } else if (Str::eq(entity_loader->model_path_or_builtin_model_name, "skysphere")) {
+  } else if (Str::eq(model_loader->model_path_or_builtin_model_name, "skysphere")) {
     Util::make_sphere(
       &temp_memory_pool,
       64, 64,
@@ -473,7 +473,7 @@ void Models::load_model_from_data(
     );
     mode = GL_TRIANGLE_STRIP;
   } else if (
-    Str::starts_with(entity_loader->model_path_or_builtin_model_name, "screenquad")
+    Str::starts_with(model_loader->model_path_or_builtin_model_name, "screenquad")
   ) {
     vertex_data = (Vertex*)SCREENQUAD_VERTICES;
     n_vertices = 6;
@@ -483,11 +483,11 @@ void Models::load_model_from_data(
   } else {
     log_fatal(
       "Could not find builtin model: %s",
-      entity_loader->model_path_or_builtin_model_name
+      model_loader->model_path_or_builtin_model_name
     );
   }
 
-  Mesh *mesh = &entity_loader->meshes[entity_loader->n_meshes++];
+  Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
   *mesh = {};
   mesh->transform = glm::mat4(1.0f);
   mesh->mode = mode;
@@ -496,117 +496,21 @@ void Models::load_model_from_data(
   mesh->indices_pack = 0UL;
 
   setup_mesh_vertex_buffers(mesh, vertex_data, n_vertices, index_data, n_indices);
-  entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
+  model_loader->state = ModelLoaderState::vertex_buffers_set_up;
 
   Memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void Models::create_entities(
-  EntityLoader *entity_loader,
-  EntitySet *entity_set,
-  DrawableComponentSet *drawable_component_set,
-  SpatialComponentSet *spatial_component_set,
-  LightComponentSet *light_component_set,
-  BehaviorComponentSet *behavior_component_set,
-  AnimationComponentSet *animation_component_set
-) {
-  SpatialComponent *spatial_component =
-    spatial_component_set->components[ entity_loader->entity_handle];
-  memcpy(
-    spatial_component,
-    &entity_loader->spatial_component,
-    sizeof(SpatialComponent)
-  );
-  spatial_component->entity_handle = entity_loader->entity_handle;
-
-  LightComponent *light_component =
-    light_component_set->components[entity_loader->entity_handle];
-  memcpy(
-    light_component,
-    &entity_loader->light_component,
-    sizeof(LightComponent)
-  );
-  light_component->entity_handle = entity_loader->entity_handle;
-
-  BehaviorComponent *behavior_component =
-    behavior_component_set->components[entity_loader->entity_handle];
-  memcpy(
-    behavior_component,
-    &entity_loader->behavior_component,
-    sizeof(BehaviorComponent)
-  );
-  behavior_component->entity_handle = entity_loader->entity_handle;
-
-  AnimationComponent *animation_component =
-    animation_component_set->components[entity_loader->entity_handle];
-  memcpy(
-    animation_component,
-    &entity_loader->animation_component,
-    sizeof(AnimationComponent)
-  );
-  animation_component->entity_handle = entity_loader->entity_handle;
-
-  // DrawableComponent
-  if (entity_loader->n_meshes == 1) {
-    DrawableComponent *drawable_component =
-      drawable_component_set->components[entity_loader->entity_handle];
-    assert(drawable_component);
-    *drawable_component = {
-      .entity_handle = entity_loader->entity_handle,
-      .mesh = entity_loader->meshes[0],
-      .target_render_pass = entity_loader->render_pass,
-    };
-  } else if (entity_loader->n_meshes > 1) {
-    for (uint32 idx = 0; idx < entity_loader->n_meshes; idx++) {
-      Mesh *mesh = &entity_loader->meshes[idx];
-
-      Entity *child_entity = EntitySets::add_entity_to_set(
-        entity_set,
-        entity_loader->name
-      );
-
-      if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
-        SpatialComponent *child_spatial_component =
-          spatial_component_set->components[child_entity->handle];
-        assert(child_spatial_component);
-        *child_spatial_component = {
-          .entity_handle = child_entity->handle,
-          .position = glm::vec3(0.0f),
-          .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
-          .scale = glm::vec3(0.0f),
-          .parent_entity_handle = entity_loader->entity_handle,
-        };
-      }
-
-      DrawableComponent *drawable_component =
-        drawable_component_set->components[child_entity->handle];
-      assert(drawable_component);
-      *drawable_component = {
-        .entity_handle = child_entity->handle,
-        .mesh = *mesh,
-        .target_render_pass = entity_loader->render_pass,
-      };
-    }
-  }
-}
-
-
-bool32 Models::prepare_model_and_check_if_done(
-  EntityLoader *entity_loader,
+bool32 Models::prepare_model_loader_and_check_if_done(
+  ModelLoader *model_loader,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
   Queue<Task> *task_queue,
-  EntitySet *entity_set,
-  DrawableComponentSet *drawable_component_set,
-  SpatialComponentSet *spatial_component_set,
-  LightComponentSet *light_component_set,
-  BehaviorComponentSet *behavior_component_set,
-  AnimationComponentSet *animation_component_set,
   BoneMatrixPool *bone_matrix_pool
 ) {
-  if (entity_loader->state == EntityLoaderState::initialized) {
-    if (entity_loader->model_source != ModelSource::file) {
+  if (model_loader->state == ModelLoaderState::initialized) {
+    if (model_loader->model_source != ModelSource::file) {
       log_error(
         "Found model with model_source=file for which no vertex data was loaded."
       );
@@ -615,23 +519,23 @@ bool32 Models::prepare_model_and_check_if_done(
     task_queue->push({
       .type = TaskType::load_model_from_data,
       .target = {
-        .entity_loader = entity_loader,
+        .model_loader = model_loader,
       },
       .persistent_pbo = nullptr,
       .bone_matrix_pool = bone_matrix_pool,
     });
-    entity_loader->state = EntityLoaderState::mesh_data_being_loaded;
+    model_loader->state = ModelLoaderState::mesh_data_being_loaded;
   }
 
-  if (entity_loader->state == EntityLoaderState::mesh_data_being_loaded) {
+  if (model_loader->state == ModelLoaderState::mesh_data_being_loaded) {
     // Wait. The task will progress this for us.
   }
 
-  if (entity_loader->state == EntityLoaderState::mesh_data_loaded) {
+  if (model_loader->state == ModelLoaderState::mesh_data_loaded) {
     // Setup vertex buffers
-    if (entity_loader->model_source == ModelSource::file) {
-      for (uint32 idx = 0; idx < entity_loader->n_meshes; idx++) {
-        Mesh *mesh = &entity_loader->meshes[idx];
+    if (model_loader->model_source == ModelSource::file) {
+      for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+        Mesh *mesh = &model_loader->meshes[idx];
         setup_mesh_vertex_buffers(
           mesh,
           mesh->vertices, mesh->n_vertices,
@@ -640,14 +544,14 @@ bool32 Models::prepare_model_and_check_if_done(
         Memory::destroy_memory_pool(&mesh->temp_memory_pool);
       }
     }
-    entity_loader->state = EntityLoaderState::vertex_buffers_set_up;
+    model_loader->state = ModelLoaderState::vertex_buffers_set_up;
   }
 
-  if (entity_loader->state == EntityLoaderState::vertex_buffers_set_up) {
+  if (model_loader->state == ModelLoaderState::vertex_buffers_set_up) {
     // Set material names for each mesh
-    for_range_named (idx_material, 0, entity_loader->material_names.length) {
-      for_range_named (idx_mesh, 0, entity_loader->n_meshes) {
-        Mesh *mesh = &entity_loader->meshes[idx_mesh];
+    for_range_named (idx_material, 0, model_loader->material_names.length) {
+      for_range_named (idx_mesh, 0, model_loader->n_meshes) {
+        Mesh *mesh = &model_loader->meshes[idx_mesh];
         uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
         // For our model's mesh number `mesh_number`, we want to choose
         // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
@@ -656,23 +560,119 @@ bool32 Models::prepare_model_and_check_if_done(
         // meshes all get material number 0.
         if (
           mesh_number == idx_material ||
-          (mesh_number >= entity_loader->material_names.length && idx_material == 0)
+          (mesh_number >= model_loader->material_names.length && idx_material == 0)
         ) {
-          strcpy(mesh->material_name, *(entity_loader->material_names[idx_material]));
+          strcpy(mesh->material_name, *(model_loader->material_names[idx_material]));
         }
       }
     }
 
-    // Create any entities we might need to create
-    create_entities(
-      entity_loader,
-      entity_set,
-      drawable_component_set,
-      spatial_component_set,
-      light_component_set,
-      behavior_component_set,
-      animation_component_set
+    model_loader->state = ModelLoaderState::complete;
+  }
+
+  if (model_loader->state == ModelLoaderState::complete) {
+    return true;
+  }
+
+  return false;
+}
+
+
+bool32 Models::prepare_entity_loader_and_check_if_done(
+  EntityLoader *entity_loader,
+  EntitySet *entity_set,
+  ModelLoader *model_loader,
+  DrawableComponentSet *drawable_component_set,
+  SpatialComponentSet *spatial_component_set,
+  LightComponentSet *light_component_set,
+  BehaviorComponentSet *behavior_component_set,
+  AnimationComponentSet *animation_component_set
+) {
+  if (entity_loader->state == EntityLoaderState::initialized) {
+    // Before we can create entities, we need this entity's models to have
+    // been loaded.
+    if (model_loader->state != ModelLoaderState::complete) {
+      return false;
+    }
+
+    SpatialComponent *spatial_component =
+      spatial_component_set->components[entity_loader->entity_handle];
+    memcpy(
+      spatial_component,
+      &entity_loader->spatial_component,
+      sizeof(SpatialComponent)
     );
+    spatial_component->entity_handle = entity_loader->entity_handle;
+
+    LightComponent *light_component =
+      light_component_set->components[entity_loader->entity_handle];
+    memcpy(
+      light_component,
+      &entity_loader->light_component,
+      sizeof(LightComponent)
+    );
+    light_component->entity_handle = entity_loader->entity_handle;
+
+    BehaviorComponent *behavior_component =
+      behavior_component_set->components[entity_loader->entity_handle];
+    memcpy(
+      behavior_component,
+      &entity_loader->behavior_component,
+      sizeof(BehaviorComponent)
+    );
+    behavior_component->entity_handle = entity_loader->entity_handle;
+
+    AnimationComponent *animation_component =
+      animation_component_set->components[entity_loader->entity_handle];
+    memcpy(
+      animation_component,
+      &model_loader->animation_component,
+      sizeof(AnimationComponent)
+    );
+    animation_component->entity_handle = entity_loader->entity_handle;
+
+    // DrawableComponent
+    if (model_loader->n_meshes == 1) {
+      DrawableComponent *drawable_component =
+        drawable_component_set->components[entity_loader->entity_handle];
+      assert(drawable_component);
+      *drawable_component = {
+        .entity_handle = entity_loader->entity_handle,
+        .mesh = model_loader->meshes[0],
+        .target_render_pass = entity_loader->render_pass,
+      };
+    } else if (model_loader->n_meshes > 1) {
+      for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+        Mesh *mesh = &model_loader->meshes[idx];
+
+        Entity *child_entity = EntitySets::add_entity_to_set(
+          entity_set,
+          entity_loader->name
+        );
+
+        if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
+          SpatialComponent *child_spatial_component =
+            spatial_component_set->components[child_entity->handle];
+          assert(child_spatial_component);
+          *child_spatial_component = {
+            .entity_handle = child_entity->handle,
+            .position = glm::vec3(0.0f),
+            .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
+            .scale = glm::vec3(0.0f),
+            .parent_entity_handle = entity_loader->entity_handle,
+          };
+        }
+
+        DrawableComponent *drawable_component =
+          drawable_component_set->components[child_entity->handle];
+        assert(drawable_component);
+        *drawable_component = {
+          .entity_handle = child_entity->handle,
+          .mesh = *mesh,
+          .target_render_pass = entity_loader->render_pass,
+        };
+      }
+    }
 
     entity_loader->state = EntityLoaderState::complete;
   }
@@ -685,9 +685,30 @@ bool32 Models::prepare_model_and_check_if_done(
 }
 
 
+ModelLoader* Models::init_model_loader(
+  ModelLoader *model_loader,
+  ModelSource model_source,
+  const char *model_path_or_builtin_model_name
+) {
+  assert(model_loader);
+  model_loader->model_source = model_source;
+  strcpy(
+    model_loader->model_path_or_builtin_model_name,
+    model_path_or_builtin_model_name
+  );
+
+  model_loader->state = ModelLoaderState::initialized;
+
+  if (model_source == ModelSource::data) {
+    load_model_from_data(model_loader);
+  }
+
+  return model_loader;
+}
+
+
 EntityLoader* Models::init_entity_loader(
   EntityLoader *entity_loader,
-  ModelSource model_source,
   const char *name,
   const char *model_path_or_builtin_model_name,
   RenderPassFlag render_pass,
@@ -695,20 +716,13 @@ EntityLoader* Models::init_entity_loader(
 ) {
   assert(entity_loader);
   strcpy(entity_loader->name, name);
-  entity_loader->state = EntityLoaderState::initialized;
-  entity_loader->model_source = model_source;
-  entity_loader->render_pass = render_pass;
-  entity_loader->entity_handle = entity_handle;
-
   strcpy(
     entity_loader->model_path_or_builtin_model_name,
     model_path_or_builtin_model_name
   );
-
-  if (model_source == ModelSource::data) {
-    load_model_from_data(entity_loader);
-  }
-
+  entity_loader->render_pass = render_pass;
+  entity_loader->entity_handle = entity_handle;
+  entity_loader->state = EntityLoaderState::initialized;
   return entity_loader;
 }
 

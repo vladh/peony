@@ -48,6 +48,7 @@ struct State {
   bool32 is_world_loaded;
 
   Array<Material> materials;
+  Array<ModelLoader> model_loaders;
   uint32 first_non_internal_material_idx;
 
   GuiState gui_state;

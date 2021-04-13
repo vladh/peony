@@ -13,7 +13,7 @@ void Tasks::run_task(Task *task) {
 
   if (task->type == TaskType::load_model_from_data) {
     Models::load_model_from_file(
-      task->target.entity_loader,
+      task->target.model_loader,
       task->bone_matrix_pool
     );
   } else if (task->type ==  TaskType::copy_textures_to_pbo) {
