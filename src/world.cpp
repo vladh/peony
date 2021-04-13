@@ -577,6 +577,8 @@ void World::destroy_non_internal_entities(State *state) {
 
 
 void World::destroy_scene(State *state) {
+  // TODO: Also reclaim texture names from TextureNamePool, otherwise we'll
+  // end up overflowing.
   destroy_model_loaders(state);
   destroy_non_internal_materials(state);
   destroy_non_internal_entities(state);
@@ -588,6 +590,9 @@ void World::load_scene(
   State *state
 ) {
   // Destroy everything first!
+  // TODO: Make it so that we "cancel" anything we already started loading.
+  // Right now, if you call load_scene() in quick succession it will break
+  // something.
   destroy_scene(state);
 
   // Get some memory for everything we need
