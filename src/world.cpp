@@ -156,28 +156,46 @@ void World::update_light_position(State *state, real32 amount) {
 }
 
 
+void World::create_model_loader_from_entity_template(
+  EntityTemplate *entity_template,
+  EntityHandle entity_handle,
+  Array<ModelLoader> *model_loaders,
+  State *state
+) {
+  ModelLoader *model_loader = model_loaders->push();
+
+  Models::init_model_loader(
+    model_loader,
+    entity_template->model_source,
+    entity_template->model_path_or_builtin_model_name
+  );
+
+  assert(
+    sizeof(model_loader->material_names) == sizeof(entity_template->material_names)
+  );
+  memcpy(
+    &model_loader->material_names,
+    &entity_template->material_names,
+    sizeof(entity_template->material_names)
+  );
+}
+
+
 void World::create_entity_loader_from_entity_template(
   EntityTemplate *entity_template,
-  EntitySet *entity_set,
+  EntityHandle entity_handle,
   EntityLoaderSet *entity_loader_set,
   State *state
 ) {
-  // TODO: Figure out parent system.
-  Entity *entity = EntitySets::add_entity_to_set(
-    entity_set, entity_template->entity_debug_name
-  );
-
-  EntityLoader *entity_loader = entity_loader_set->loaders[entity->handle];
+  EntityLoader *entity_loader = entity_loader_set->loaders[entity_handle];
   Models::init_entity_loader(
     entity_loader,
-    entity_template->model_source,
     entity_template->entity_debug_name,
     entity_template->model_path_or_builtin_model_name,
     entity_template->render_pass,
-    entity->handle
+    entity_handle
   );
 
-  // TODO: Add support for parents! Forgot about this.
   memcpy(
     &entity_loader->spatial_component,
     &entity_template->spatial_component,
@@ -194,15 +212,6 @@ void World::create_entity_loader_from_entity_template(
     &entity_loader->behavior_component,
     &entity_template->behavior_component,
     sizeof(BehaviorComponent)
-  );
-
-  assert(
-    sizeof(entity_loader->material_names) == sizeof(entity_template->material_names)
-  );
-  memcpy(
-    &entity_loader->material_names,
-    &entity_template->material_names,
-    sizeof(entity_template->material_names)
   );
 }
 
@@ -367,17 +376,21 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_lighting"
     );
-    EntityLoader *entity_loader =
-      state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader,
+      ModelSource::data,
+      "screenquad_lighting"
+    );
     Models::init_entity_loader(
       entity_loader,
-      ModelSource::data,
       "screenquad_lighting",
       "screenquad_lighting",
       RenderPass::lighting,
       entity->handle
     );
-    strcpy(*(entity_loader->material_names.push()), "lighting");
+    strcpy(*(model_loader->material_names.push()), "lighting");
   }
 
 #if USE_BLOOM
@@ -386,18 +399,22 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_preblur"
     );
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
-      entity->handle
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader
+      entity_loader,
+      ModelSource::data,
+      "screenquad_preblur"
     );
     Models::init_entity_loader(
       entity_loader,
-      ModelSource::data,
       "screenquad_preblur",
       "screenquad_preblur",
       RenderPass::preblur,
       entity->handle
     );
-    strcpy(*(entity_loader->material_names.push()), "preblur");
+    strcpy(*(model_loader->material_names.push()), "preblur");
   }
 
   // Blur 1 screenquad
@@ -405,18 +422,21 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_blur1"
     );
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
-      entity->handle
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader,
+      ModelSource::data,
+      "screenquad_blur1"
     );
     Models::init_entity_loader(
       entity_loader,
-      ModelSource::data,
       "screenquad_blur1",
       "screenquad_blur1",
       RenderPass::blur1,
       entity->handle
     );
-    strcpy(*(entity_loader->material_names.push()), "blur1");
+    strcpy(*(model_loader->material_names.push()), "blur1");
   }
 
   // Blur 2 screenquad
@@ -424,18 +444,21 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_blur2"
     );
-    EntityLoader *entity_loader = state->entity_loader_set.loaders.get(
-      entity->handle
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader,
+      ModelSource::data,
+      "screenquad_blur2",
     );
     Models::init_entity_loader(
       entity_loader,
-      ModelSource::data,
       "screenquad_blur2",
       "screenquad_blur2",
       RenderPass::blur2,
       entity->handle
     );
-    strcpy(*(entity_loader->material_names.push()), "blur2");
+    strcpy(*(model_loader->material_names.push()), "blur2");
   }
 #endif
 
@@ -444,17 +467,21 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "screenquad_postprocessing"
     );
-    EntityLoader *entity_loader =
-      state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader,
+      ModelSource::data,
+      "screenquad_postprocessing"
+    );
     Models::init_entity_loader(
       entity_loader,
-      ModelSource::data,
       "screenquad_postprocessing",
       "screenquad_postprocessing",
       RenderPass::postprocessing,
       entity->handle
     );
-    strcpy(*(entity_loader->material_names.push()), "postprocessing");
+    strcpy(*(model_loader->material_names.push()), "postprocessing");
   }
 
   // Skysphere
@@ -463,11 +490,15 @@ void World::create_internal_entities(State *state) {
     Entity *entity = EntitySets::add_entity_to_set(
       &state->entity_set, "skysphere"
     );
-    EntityLoader *entity_loader =
-      state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader,
+      ModelSource::data,
+      "skysphere"
+    );
     Models::init_entity_loader(
       entity_loader,
-      ModelSource::data,
       "skysphere",
       "skysphere",
       RenderPass::forward_skybox,
@@ -479,7 +510,7 @@ void World::create_internal_entities(State *state) {
       .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(1.0f, 0.0f, 0.0f)),
       .scale = glm::vec3(75.0f),
     };
-    strcpy(*(entity_loader->material_names.push()), "skysphere");
+    strcpy(*(model_loader->material_names.push()), "skysphere");
 #endif
   }
 
@@ -586,11 +617,39 @@ void World::load_scene(
     );
   }
 
-  // Create entities
+  // Create entity, ModelLoader, EntityLoader
   for_range (0, n_entities) {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, entity_templates[idx]->entity_debug_name
+    );
+
+    // NOTE: We only want to make a ModelLoader from this EntityTemplate
+    // if we haven't already encountered this model is a previous
+    // EntityTemplate. If two entities have the same
+    // `model_path_or_builtin_model_name`, we just make one model and use it
+    // in both.
+    // TODO: Implement some kind of find() thing.
+    ModelLoader *found_model_loader = nullptr;
+    for_each (candidate_model_loader, state->model_loaders) {
+      if (Str::eq(
+        entity_templates[idx]->model_path_or_builtin_model_name,
+        candidate_model_loader->model_path_or_builtin_model_name
+      )) {
+        found_model_loader = candidate_model_loader;
+        break;
+      }
+    }
+    if (!found_model_loader) {
+      create_model_loader_from_entity_template(
+        entity_templates[idx],
+        entity->handle,
+        &state->model_loaders,
+        state
+      );
+    }
     create_entity_loader_from_entity_template(
       entity_templates[idx],
-      &state->entity_set,
+      entity->handle,
       &state->entity_loader_set,
       state
     );
@@ -622,21 +681,15 @@ bool32 World::check_all_entities_loaded(State *state) {
     }
   }
 
-  for_each (entity_loader, state->entity_loader_set.loaders) {
-    if (!Entities::is_entity_loader_valid(entity_loader)) {
+  for_each (model_loader, state->model_loaders) {
+    if (!Entities::is_model_loader_valid(model_loader)) {
       continue;
     }
-    bool is_done_loading = Models::prepare_model_and_check_if_done(
-      entity_loader,
+    bool is_done_loading = Models::prepare_model_loader_and_check_if_done(
+      model_loader,
       &state->persistent_pbo,
       &state->texture_name_pool,
       &state->task_queue,
-      &state->entity_set,
-      &state->drawable_component_set,
-      &state->spatial_component_set,
-      &state->light_component_set,
-      &state->behavior_component_set,
-      &state->animation_component_set,
       &state->bone_matrix_pool
     );
     if (!is_done_loading) {
@@ -644,9 +697,38 @@ bool32 World::check_all_entities_loaded(State *state) {
     }
   }
 
-  // TODO: For each entity we need to make, check if we loaded its model
-  // and if so create the entity here. We need to split EntityLoader into
-  // two probably.
+  for_each (entity_loader, state->entity_loader_set.loaders) {
+    if (!Entities::is_entity_loader_valid(entity_loader)) {
+      continue;
+    }
+
+    // TODO: Implement some kind of find() thing.
+    ModelLoader *model_loader = nullptr;
+    for_each (candidate_model_loader, state->model_loaders) {
+      if (Str::eq(
+        entity_loader->model_path_or_builtin_model_name,
+        candidate_model_loader->model_path_or_builtin_model_name
+      )) {
+        model_loader = candidate_model_loader;
+        break;
+      }
+    }
+    assert(model_loader);
+
+    bool is_done_loading = Models::prepare_entity_loader_and_check_if_done(
+      entity_loader,
+      &state->entity_set,
+      model_loader,
+      &state->drawable_component_set,
+      &state->spatial_component_set,
+      &state->light_component_set,
+      &state->behavior_component_set,
+      &state->animation_component_set
+    );
+    if (!is_done_loading) {
+      are_all_done_loading = false;
+    }
+  }
 
   return are_all_done_loading;
 }

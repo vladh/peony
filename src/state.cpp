@@ -10,6 +10,9 @@ State* init_state(
   state->materials = Array<Material>(
     asset_memory_pool, MAX_N_MATERIALS, "materials"
   );
+  state->model_loaders = Array<ModelLoader>(
+    asset_memory_pool, MAX_N_MODELS, "model_loaders"
+  );
 
   state->heading_opacity = 0.0f;
   state->heading_text = "";
@@ -31,7 +34,7 @@ State* init_state(
 
   state->entity_loader_set = {
     .loaders = Array<EntityLoader>(
-      asset_memory_pool, MAX_N_MODELS, "entity_loaders", true, 1
+      asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1
     )
   };
   state->entity_set = {

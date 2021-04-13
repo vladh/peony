@@ -33,7 +33,7 @@ struct Mesh {
   uint32 n_indices;
 };
 
-enum class EntityLoaderState {
+enum class ModelLoaderState {
   empty,
   initialized,
   mesh_data_being_loaded,
@@ -42,18 +42,29 @@ enum class EntityLoaderState {
   complete
 };
 
-struct EntityLoader {
-  char name[MAX_DEBUG_NAME_LENGTH];
+struct ModelLoader {
   ModelSource model_source;
   char model_path_or_builtin_model_name[MAX_PATH];
-  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
   Mesh meshes[MAX_N_MESHES];
   uint32 n_meshes;
+  AnimationComponent animation_component;
+  StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
+  ModelLoaderState state;
+};
+
+enum class EntityLoaderState {
+  empty,
+  initialized,
+  complete
+};
+
+struct EntityLoader {
+  char name[MAX_DEBUG_NAME_LENGTH];
+  char model_path_or_builtin_model_name[MAX_PATH];
   EntityHandle entity_handle;
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
-  AnimationComponent animation_component;
   RenderPassFlag render_pass;
   EntityLoaderState state;
 };
@@ -93,48 +104,47 @@ namespace Models {
     Mesh *mesh,
     aiMesh *mesh_data,
     const aiScene *scene,
-    EntityLoader *entity_loader,
+    ModelLoader *model_loader,
     glm::mat4 transform,
     Pack indices_pack
   );
   void destroy_mesh(Mesh *mesh);
   void load_node(
-    EntityLoader *entity_loader,
+    ModelLoader *model_loader,
     aiNode *node, const aiScene *scene,
     glm::mat4 accumulated_transform, Pack indices_pack
   );
   void load_model_from_file(
-    EntityLoader *entity_loader,
+    ModelLoader *model_loader,
     BoneMatrixPool *bone_matrix_pool
   );
   void load_model_from_data(
-    EntityLoader *entity_loader
+    ModelLoader *model_loader
   );
-  void create_entities(
+  bool32 prepare_model_loader_and_check_if_done(
+    ModelLoader *model_loader,
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool,
+    Queue<Task> *task_queue,
+    BoneMatrixPool *bone_matrix_pool
+  );
+  bool32 prepare_entity_loader_and_check_if_done(
     EntityLoader *entity_loader,
     EntitySet *entity_set,
+    ModelLoader *model_loader,
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set,
     AnimationComponentSet *animation_component_set
   );
-  bool32 prepare_model_and_check_if_done(
-    EntityLoader *entity_loader,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
-    Queue<Task> *task_queue,
-    EntitySet *entity_set,
-    DrawableComponentSet *drawable_component_set,
-    SpatialComponentSet *spatial_component_set,
-    LightComponentSet *light_component_set,
-    BehaviorComponentSet *behavior_component_set,
-    AnimationComponentSet *animation_component_set,
-    BoneMatrixPool *bone_matrix_pool
+  ModelLoader* init_model_loader(
+    ModelLoader *model_loader,
+    ModelSource model_source,
+    const char *model_path_or_builtin_model_name
   );
   EntityLoader* init_entity_loader(
     EntityLoader *entity_loader,
-    ModelSource model_source,
     const char *name,
     const char *model_path_or_builtin_model_name,
     RenderPassFlag render_pass,

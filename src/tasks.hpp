@@ -1,7 +1,7 @@
 #ifndef TASK_HPP
 #define TASK_HPP
 
-struct EntityLoader;
+struct ModelLoader;
 struct BoneMatrixPool;
 
 enum class TaskType {
@@ -11,7 +11,7 @@ enum class TaskType {
 
 union TaskTarget {
   Material *material;
-  EntityLoader *entity_loader;
+  ModelLoader *model_loader;
 };
 
 struct Task {
