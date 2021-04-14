@@ -577,6 +577,15 @@ void World::destroy_non_internal_entities(State *state) {
 
 
 void World::destroy_scene(State *state) {
+  // If the current scene has not finished loading, we can neither
+  // unload it nor load a new one.
+  if (!state->is_world_loaded) {
+    log_info(
+      "Cannot load or unload scene while loading is already in progress."
+    );
+    return;
+  }
+
   // TODO: Also reclaim texture names from TextureNamePool, otherwise we'll
   // end up overflowing.
   destroy_model_loaders(state);
@@ -589,10 +598,16 @@ void World::load_scene(
   const char *scene_path,
   State *state
 ) {
+  // If the current scene has not finished loading, we can neither
+  // unload it nor load a new one.
+  if (!state->is_world_loaded) {
+    log_info(
+      "Cannot load or unload scene while loading is already in progress."
+    );
+    return;
+  }
+
   // Destroy everything first!
-  // TODO: Make it so that we "cancel" anything we already started loading.
-  // Right now, if you call load_scene() in quick succession it will break
-  // something.
   destroy_scene(state);
 
   // Get some memory for everything we need
