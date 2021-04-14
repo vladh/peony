@@ -48,6 +48,7 @@ struct State {
   uint32 n_valid_entity_loaders;
 
   bool32 is_world_loaded;
+  bool32 was_world_ever_loaded;
 
   Array<Material> materials;
   Array<ModelLoader> model_loaders;
@@ -64,11 +65,6 @@ struct State {
   AnimationComponentSet animation_component_set;
 
   BoneMatrixPool bone_matrix_pool;
-
-  real32 heading_opacity;
-  const char *heading_text;
-  real32 heading_fadeout_duration;
-  real32 heading_fadeout_delay;
 
   PersistentPbo persistent_pbo;
   TextureNamePool texture_name_pool;

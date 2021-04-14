@@ -14,11 +14,6 @@ State* init_state(
     asset_memory_pool, MAX_N_MODELS, "model_loaders"
   );
 
-  state->heading_opacity = 0.0f;
-  state->heading_text = "";
-  state->heading_fadeout_duration = 1.0f;
-  state->heading_fadeout_delay = 2.0f;
-
   state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
 
   state->builtin_textures = {

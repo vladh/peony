@@ -697,6 +697,69 @@ bool32 Gui::draw_button(
 }
 
 
+void Gui::draw_console(GuiState *gui_state) {
+  FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, "body");
+  real32 line_height = Fonts::font_unit_to_px(font_asset->height);
+  real32 line_spacing = glm::floor(
+    line_height * GUI_CONSOLE_LINE_SPACING_FACTOR
+  );
+  glm::vec2 next_element_position = glm::vec2(
+    GUI_CONSOLE_PADDING.x, GUI_MAX_CONSOLE_LOG_HEIGHT
+  );
+
+  draw_rect(
+    gui_state,
+    glm::vec2(0.0f, 0.0f),
+    glm::vec2(
+      gui_state->window_dimensions.x,
+      GUI_MAX_CONSOLE_LOG_HEIGHT
+    ),
+    GUI_CONSOLE_BG_COLOR
+  );
+
+  uint32 idx_line = gui_state->idx_console_log_start;
+  while (idx_line != gui_state->idx_console_log_end) {
+    glm::vec2 text_dimensions = get_text_dimensions(
+      font_asset, gui_state->console_log[idx_line]
+    );
+    next_element_position.y -= text_dimensions.y + line_spacing;
+    draw_text(
+      gui_state,
+      "body", gui_state->console_log[idx_line],
+      next_element_position,
+      GUI_LIGHT_TEXT_COLOR
+    );
+
+    idx_line++;
+    if (idx_line == GUI_MAX_N_CONSOLE_LINES) {
+      idx_line = 0;
+    }
+  }
+}
+
+
+void Gui::console_print(
+  GuiState *gui_state,
+  const char *text
+) {
+  // Fill array in back-to-front.
+  if (gui_state->idx_console_log_start == 0) {
+    gui_state->idx_console_log_start = GUI_MAX_N_CONSOLE_LINES - 1;
+  } else {
+    gui_state->idx_console_log_start--;
+  }
+  if (gui_state->idx_console_log_start == gui_state->idx_console_log_end) {
+    if (gui_state->idx_console_log_end == 0) {
+      gui_state->idx_console_log_end = GUI_MAX_N_CONSOLE_LINES - 1;
+    } else {
+      gui_state->idx_console_log_end--;
+    }
+  }
+  strcpy(gui_state->console_log[gui_state->idx_console_log_start], text);
+  strcat(gui_state->console_log[gui_state->idx_console_log_start], "\0");
+}
+
+
 GuiState* Gui::init_gui_state(
   GuiState* gui_state,
   MemoryPool *memory_pool,

@@ -14,10 +14,10 @@
 #define MAX(x, y) (((x) > (y)) ? (x) : (y))
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-#define DEG_TO_RAD(deg) ((deg) * PI / 180.0)
-#define RAD_TO_DEG(rad) ((rad) * 180.0 / PI)
-#define DEG_TO_RAD32(deg) ((deg) * PI32 / 180.0)
-#define RAD32_TO_DEG(rad) ((rad) * 180.0 / PI32)
+#define DEG_TO_RAD(deg) ((deg) * PI / 180.0f)
+#define RAD_TO_DEG(rad) ((rad) * 180.0f / PI)
+#define DEG_TO_RAD32(deg) ((deg) * PI32 / 180.0f)
+#define RAD32_TO_DEG(rad) ((rad) * 180.0f / PI32)
 
 #define for_range_named(idx, start, end) \
   for ( \

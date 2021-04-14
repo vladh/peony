@@ -607,6 +607,11 @@ void World::load_scene(
     return;
   }
 
+  char log_text[256];
+  strcpy(log_text, "Loading scene: ");
+  strcat(log_text, scene_path);
+  Gui::console_print(&state->gui_state, log_text);
+
   // Destroy everything first!
   destroy_scene(state);
 
@@ -791,6 +796,11 @@ bool32 World::check_all_entities_loaded(State *state) {
 
 
 void World::update(State *state) {
+  if (state->is_world_loaded && !state->was_world_ever_loaded) {
+    World::load_scene("data/scenes/coast.peony_scene", state);
+    state->was_world_ever_loaded = true;
+  }
+
   Cameras::update_matrices(
     state->camera_active,
     state->window_info.width,
