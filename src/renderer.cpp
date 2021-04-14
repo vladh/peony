@@ -869,10 +869,10 @@ void Renderer::set_heading(
   const char *text, real32 opacity,
   real32 fadeout_duration, real32 fadeout_delay
 ) {
-  state->heading_text = text;
-  state->heading_opacity = opacity;
-  state->heading_fadeout_duration = fadeout_duration;
-  state->heading_fadeout_delay = fadeout_delay;
+  state->gui_state.heading_text = text;
+  state->gui_state.heading_opacity = opacity;
+  state->gui_state.heading_fadeout_duration = fadeout_duration;
+  state->gui_state.heading_fadeout_delay = fadeout_delay;
 }
 
 
@@ -881,16 +881,17 @@ void Renderer::render_scene_ui(State *state) {
 
   Gui::start_drawing(&state->gui_state);
 
-  if (state->heading_opacity > 0.0f) {
+  if (state->gui_state.heading_opacity > 0.0f) {
     Gui::draw_heading(
       &state->gui_state,
-      state->heading_text,
-      glm::vec4(0.0f, 0.33f, 0.93f, state->heading_opacity)
+      state->gui_state.heading_text,
+      glm::vec4(0.0f, 0.33f, 0.93f, state->gui_state.heading_opacity)
     );
-    if (state->heading_fadeout_delay > 0.0f) {
-      state->heading_fadeout_delay -= (real32)state->dt;
+    if (state->gui_state.heading_fadeout_delay > 0.0f) {
+      state->gui_state.heading_fadeout_delay -= (real32)state->dt;
     } else {
-      state->heading_opacity -= state->heading_fadeout_duration * (real32)state->dt;
+      state->gui_state.heading_opacity -=
+        state->gui_state.heading_fadeout_duration * (real32)state->dt;
     }
   }
 
@@ -1015,6 +1016,7 @@ void Renderer::render_scene_ui(State *state) {
 #endif
   }
 
+  Gui::draw_console(&state->gui_state);
   Gui::render(&state->gui_state);
 }
 

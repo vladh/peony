@@ -105,6 +105,10 @@ void process_input(GLFWwindow *window, State *state) {
     World::destroy_scene(state);
     Renderer::set_heading(state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
   }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
+    Gui::console_print(&state->gui_state, "Hello world!");
+  }
 }
 
 
@@ -258,7 +262,6 @@ int main() {
   );
   Renderer::init_ubo(state);
   World::init(state);
-  /* World::load_scene("data/scenes/demo.peony_scene", state); */
 
   Materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 
@@ -268,6 +271,7 @@ int main() {
     &state->input_state,
     state->window_info.width, state->window_info.height
   );
+  Gui::console_print(&state->gui_state, "Hello world!");
 
   Cameras::init_camera(
     &state->camera_main,
@@ -281,10 +285,6 @@ int main() {
     &state->input_state,
     state->window_info.window
   );
-
-#if USE_CACHELINE_SIZE_DISPLAY
-  log_info("Cache line size: %dB", cacheline_get_size());
-#endif
 
   run_main_loop(state);
 

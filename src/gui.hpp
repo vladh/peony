@@ -1,6 +1,9 @@
 #ifndef GUI_HPP
 #define GUI_HPP
 
+constexpr uint32 GUI_MAX_CONSOLE_LINE_LENGTH = 200;
+constexpr uint32 GUI_MAX_N_CONSOLE_LINES = 10;
+
 struct GuiContainer {
   const char *title;
   glm::vec2 position;
@@ -24,19 +27,36 @@ struct GuiState {
   GLFWcursor *requested_cursor;
   Array<FontAsset> font_assets;
   TextureAtlas texture_atlas;
-  Array<GuiContainer> containers;
-  GuiContainer *container_being_moved;
   uint32 vao;
   uint32 vbo;
   glm::mat4 text_projection;
   glm::vec2 window_dimensions;
   uint32 n_vertices_pushed;
+
+  // Containers
+  Array<GuiContainer> containers;
+  GuiContainer *container_being_moved;
+
+  // Heading
+  real32 heading_opacity;
+  const char *heading_text;
+  real32 heading_fadeout_duration;
+  real32 heading_fadeout_delay;
+
+  // Console
+  bool32 is_console_enabled;
+  char console_log[GUI_MAX_N_CONSOLE_LINES][GUI_MAX_CONSOLE_LINE_LENGTH];
+  uint32 idx_console_log_start;
+  uint32 idx_console_log_end;
+  char console_input[GUI_MAX_CONSOLE_LINE_LENGTH];
+  uint32 console_input_length;
 };
 
 namespace Gui {
   constexpr const char *GUI_MAIN_FONT_REGULAR = "resources/fonts/SofiaProRegular.otf";
   constexpr const char *GUI_MAIN_FONT_BOLD = "resources/fonts/SofiaProBold.otf";
   constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
+  constexpr real32 GUI_CONSOLE_LINE_SPACING_FACTOR = 1.2f;
 
   constexpr uint32 GUI_MAX_N_VERTICES = 16384;
   constexpr uint32 GUI_VERTEX_LENGTH = 8;
@@ -45,6 +65,7 @@ namespace Gui {
   constexpr glm::vec2 GUI_TEXT_SHADOW_OFFSET = glm::vec2(1.0f);
 
   constexpr glm::vec4 GUI_WINDOW_BG_COLOR = glm::vec4(0.20f, 0.20f, 0.20f, 1.00f);
+  constexpr glm::vec4 GUI_CONSOLE_BG_COLOR = glm::vec4(0.10f, 0.10f, 0.10f, 0.95f);
   constexpr glm::vec4 GUI_MAIN_COLOR = glm::vec4(0.00f, 0.33f, 0.93f, 1.00f);
   constexpr glm::vec4 GUI_MAIN_DARKEN_COLOR = glm::vec4(0.00f, 0.23f, 0.83f, 1.00f);
   constexpr glm::vec4 GUI_MAIN_HOVER_COLOR = glm::vec4(0.00f, 0.43f, 1.00f, 1.00f);
@@ -62,6 +83,9 @@ namespace Gui {
   constexpr real32 GUI_TOGGLE_SPACING = 20.0f;
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_SIZE = glm::vec2(20.0f);
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_DEFAULT_BORDER = glm::vec2(0.0f);
+
+  constexpr real32 GUI_MAX_CONSOLE_LOG_HEIGHT = 200.0f;
+  constexpr glm::vec2 GUI_CONSOLE_PADDING = glm::vec2(10.0f);
 
   void update_screen_dimensions(
     GuiState *gui_state, uint32 window_width, uint32 window_height
@@ -139,6 +163,11 @@ namespace Gui {
   bool32 draw_button(
     GuiState *gui_state,
     GuiContainer *container,
+    const char *text
+  );
+  void draw_console(GuiState *gui_state);
+  void console_print(
+    GuiState *gui_state,
     const char *text
   );
   GuiState* init_gui_state(
