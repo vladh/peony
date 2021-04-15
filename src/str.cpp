@@ -1,3 +1,8 @@
+void Str::clear(char *str) {
+  str[0] = '\0';
+}
+
+
 bool32 Str::is_empty(const char *str) {
   return str[0] == '\0';
 }

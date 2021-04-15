@@ -35,6 +35,31 @@
 #include "renderer.cpp"
 
 
+void handle_console_command(State *state) {
+  char text_input_with_symbol[MAX_TEXT_INPUT_LENGTH + GUI_CONSOLE_SYMBOL_LENGTH];
+  strcpy(text_input_with_symbol, GUI_CONSOLE_SYMBOL);
+  strcat(text_input_with_symbol, state->input_state.text_input);
+
+  Gui::console_print(&state->gui_state, text_input_with_symbol);
+
+  if (Str::eq(state->input_state.text_input, "help")) {
+    Gui::console_print(
+      &state->gui_state,
+      "Your request for help has been recorded and will be processed within "
+      "30-60 working days."
+    );
+  } else if (Str::eq(state->input_state.text_input, "loadscene coast")) {
+    World::load_scene("data/scenes/coast.peony_scene", state);
+  } else if (Str::eq(state->input_state.text_input, "loadscene animtest")) {
+    World::load_scene("data/scenes/animtest.peony_scene", state);
+  } else {
+    Gui::console_print(&state->gui_state, "Unknown command.");
+  }
+
+  Str::clear(state->input_state.text_input);
+}
+
+
 void process_input(GLFWwindow *window, State *state) {
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
     if (state->gui_state.is_console_enabled) {
@@ -44,6 +69,18 @@ void process_input(GLFWwindow *window, State *state) {
       state->gui_state.is_console_enabled = true;
       Input::enable_text_input(&state->input_state);
     }
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_ENTER)) {
+    handle_console_command(state);
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
+    Input::do_text_input_backspace(&state->input_state);
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
+    Input::clear_text_input(&state->input_state);
   }
 
   if (state->input_state.is_text_input_enabled) {
