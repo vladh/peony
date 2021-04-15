@@ -44,8 +44,10 @@ namespace Input {
   void update_mouse(
     InputState *input_state, glm::vec2 new_mouse_pos
   );
+  void clear_text_input(InputState *input_state);
   void enable_text_input(InputState *input_state);
   void disable_text_input(InputState *input_state);
+  void do_text_input_backspace(InputState *input_state);
   void update_text_input(
     InputState *input_state, uint32 codepoint
   );

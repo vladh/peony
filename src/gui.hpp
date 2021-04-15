@@ -3,6 +3,8 @@
 
 constexpr uint32 GUI_MAX_CONSOLE_LINE_LENGTH = 200;
 constexpr uint32 GUI_MAX_N_CONSOLE_LINES = 10;
+constexpr char GUI_CONSOLE_SYMBOL[] = "> ";
+constexpr size_t GUI_CONSOLE_SYMBOL_LENGTH = 2;
 
 struct GuiContainer {
   const char *title;

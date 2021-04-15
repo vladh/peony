@@ -54,15 +54,29 @@ void Input::update_mouse(
 }
 
 
+void Input::clear_text_input(InputState *input_state) {
+  Str::clear(input_state->text_input);
+}
+
+
 void Input::enable_text_input(InputState *input_state) {
   input_state->is_text_input_enabled = true;
-  input_state->text_input[0] = '\0';
+  clear_text_input(input_state);
 }
 
 
 void Input::disable_text_input(InputState *input_state) {
   input_state->is_text_input_enabled = false;
-  input_state->text_input[0] = '\0';
+  clear_text_input(input_state);
+}
+
+
+void Input::do_text_input_backspace(InputState *input_state) {
+  size_t text_input_length = strlen(input_state->text_input);
+  if (text_input_length == 0) {
+    return;
+  }
+  input_state->text_input[text_input_length - 1] = '\0';
 }
 
 
