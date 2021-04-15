@@ -1,6 +1,8 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
 
+constexpr uint32 MAX_TEXT_INPUT_LENGTH = 512;
+
 struct InputState {
   GLFWwindow *window;
   glm::vec2 mouse_pos;
@@ -19,6 +21,8 @@ struct InputState {
   GLFWcursor *hresize_cursor;
   GLFWcursor *vresize_cursor;
   bool32 have_ever_gotten_mouse_pos;
+  bool32 is_text_input_enabled;
+  char text_input[MAX_TEXT_INPUT_LENGTH];
 };
 
 namespace Input {
@@ -39,6 +43,11 @@ namespace Input {
   );
   void update_mouse(
     InputState *input_state, glm::vec2 new_mouse_pos
+  );
+  void enable_text_input(InputState *input_state);
+  void disable_text_input(InputState *input_state);
+  void update_text_input(
+    InputState *input_state, uint32 codepoint
   );
   void update_keys(
     InputState *input_state, int key, int scancode, int action, int mods

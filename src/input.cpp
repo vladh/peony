@@ -54,6 +54,32 @@ void Input::update_mouse(
 }
 
 
+void Input::enable_text_input(InputState *input_state) {
+  input_state->is_text_input_enabled = true;
+  input_state->text_input[0] = '\0';
+}
+
+
+void Input::disable_text_input(InputState *input_state) {
+  input_state->is_text_input_enabled = false;
+  input_state->text_input[0] = '\0';
+}
+
+
+void Input::update_text_input(
+  InputState *input_state, uint32 codepoint
+) {
+  if (!input_state->is_text_input_enabled) {
+    return;
+  }
+  char poor_smashed_ascii_character = (char)codepoint;
+  char string_for_new_character[2];
+  string_for_new_character[0] = poor_smashed_ascii_character;
+  string_for_new_character[1] = '\0';
+  strcat(input_state->text_input, string_for_new_character);
+}
+
+
 void Input::update_keys(
   InputState *input_state, int key, int scancode, int action, int mods
 ) {
