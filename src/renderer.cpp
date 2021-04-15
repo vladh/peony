@@ -680,10 +680,22 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 }
 
 
-void Renderer::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+void Renderer::key_callback(
+  GLFWwindow* window,
+  int key, int scancode, int action, int mods
+) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
   Input::update_keys(&state->input_state, key, scancode, action, mods);
+}
+
+
+void Renderer::char_callback(
+  GLFWwindow* window, uint32 codepoint
+) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  Input::update_text_input(&state->input_state, codepoint);
 }
 
 
@@ -809,6 +821,7 @@ void Renderer::init_window(WindowInfo *window_info) {
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetKeyCallback(window, key_callback);
+  glfwSetCharCallback(window, char_callback);
 }
 
 
@@ -1016,7 +1029,9 @@ void Renderer::render_scene_ui(State *state) {
 #endif
   }
 
-  Gui::draw_console(&state->gui_state);
+  Gui::draw_console(
+    &state->gui_state, state->input_state.text_input
+  );
   Gui::render(&state->gui_state);
 }
 

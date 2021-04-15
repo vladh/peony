@@ -697,43 +697,77 @@ bool32 Gui::draw_button(
 }
 
 
-void Gui::draw_console(GuiState *gui_state) {
+void Gui::draw_console(
+  GuiState *gui_state,
+  char *console_input_text
+) {
+  if (!gui_state->is_console_enabled) {
+    return;
+  }
+
   FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, "body");
   real32 line_height = Fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = glm::floor(
     line_height * GUI_CONSOLE_LINE_SPACING_FACTOR
   );
-  glm::vec2 next_element_position = glm::vec2(
-    GUI_CONSOLE_PADDING.x, GUI_MAX_CONSOLE_LOG_HEIGHT
-  );
 
-  draw_rect(
-    gui_state,
-    glm::vec2(0.0f, 0.0f),
-    glm::vec2(
-      gui_state->window_dimensions.x,
-      GUI_MAX_CONSOLE_LOG_HEIGHT
-    ),
-    GUI_CONSOLE_BG_COLOR
-  );
-
-  uint32 idx_line = gui_state->idx_console_log_start;
-  while (idx_line != gui_state->idx_console_log_end) {
-    glm::vec2 text_dimensions = get_text_dimensions(
-      font_asset, gui_state->console_log[idx_line]
+  // Draw console log
+  {
+    glm::vec2 next_element_position = glm::vec2(
+      GUI_CONSOLE_PADDING.x, GUI_MAX_CONSOLE_LOG_HEIGHT
     );
-    next_element_position.y -= text_dimensions.y + line_spacing;
+
+    draw_rect(
+      gui_state,
+      glm::vec2(0.0f, 0.0f),
+      glm::vec2(
+        gui_state->window_dimensions.x,
+        GUI_MAX_CONSOLE_LOG_HEIGHT
+      ),
+      GUI_CONSOLE_BG_COLOR
+    );
+
+    uint32 idx_line = gui_state->idx_console_log_start;
+    while (idx_line != gui_state->idx_console_log_end) {
+      glm::vec2 text_dimensions = get_text_dimensions(
+        font_asset, gui_state->console_log[idx_line]
+      );
+      next_element_position.y -= text_dimensions.y + line_spacing;
+      draw_text(
+        gui_state,
+        "body", gui_state->console_log[idx_line],
+        next_element_position,
+        GUI_LIGHT_TEXT_COLOR
+      );
+
+      idx_line++;
+      if (idx_line == GUI_MAX_N_CONSOLE_LINES) {
+        idx_line = 0;
+      }
+    }
+  }
+
+  // Draw console input
+  {
+    real32 console_input_height = line_height + (2.0f * GUI_CONSOLE_PADDING.y);
+    glm::vec2 console_input_position = glm::vec2(0.0f, GUI_MAX_CONSOLE_LOG_HEIGHT);
+
+    draw_rect(
+      gui_state,
+      console_input_position,
+      glm::vec2(
+        gui_state->window_dimensions.x,
+        console_input_height
+      ),
+      GUI_MAIN_DARKEN_COLOR
+    );
+
     draw_text(
       gui_state,
-      "body", gui_state->console_log[idx_line],
-      next_element_position,
+      "body", console_input_text,
+      console_input_position + GUI_CONSOLE_PADDING,
       GUI_LIGHT_TEXT_COLOR
     );
-
-    idx_line++;
-    if (idx_line == GUI_MAX_N_CONSOLE_LINES) {
-      idx_line = 0;
-    }
   }
 }
 

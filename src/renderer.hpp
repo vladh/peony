@@ -121,6 +121,9 @@ namespace Renderer {
   void key_callback(
     GLFWwindow* window, int key, int scancode, int action, int mods
   );
+  void char_callback(
+    GLFWwindow* window, uint32 codepoint
+  );
   void reload_shaders(State *state);
   void render_scene(
     State *state,

@@ -48,8 +48,6 @@ struct GuiState {
   char console_log[GUI_MAX_N_CONSOLE_LINES][GUI_MAX_CONSOLE_LINE_LENGTH];
   uint32 idx_console_log_start;
   uint32 idx_console_log_end;
-  char console_input[GUI_MAX_CONSOLE_LINE_LENGTH];
-  uint32 console_input_length;
 };
 
 namespace Gui {
@@ -165,7 +163,10 @@ namespace Gui {
     GuiContainer *container,
     const char *text
   );
-  void draw_console(GuiState *gui_state);
+  void draw_console(
+    GuiState *gui_state,
+    char *console_input_text
+  );
   void console_print(
     GuiState *gui_state,
     const char *text

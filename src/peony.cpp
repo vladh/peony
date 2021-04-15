@@ -36,6 +36,21 @@
 
 
 void process_input(GLFWwindow *window, State *state) {
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
+    if (state->gui_state.is_console_enabled) {
+      state->gui_state.is_console_enabled = false;
+      Input::disable_text_input(&state->input_state);
+    } else {
+      state->gui_state.is_console_enabled = true;
+      Input::enable_text_input(&state->input_state);
+    }
+  }
+
+  if (state->input_state.is_text_input_enabled) {
+    // If we're typing text in, don't run any of the following stuff.
+    return;
+  }
+
   // Continuous
   if (Input::is_key_down(&state->input_state, GLFW_KEY_W)) {
     Cameras::move_front_back(state->camera_active, 1, state->dt);
@@ -104,10 +119,6 @@ void process_input(GLFWwindow *window, State *state) {
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_0)) {
     World::destroy_scene(state);
     Renderer::set_heading(state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
-  }
-
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
-    Gui::console_print(&state->gui_state, "Hello world!");
   }
 }
 
