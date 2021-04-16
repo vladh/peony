@@ -76,9 +76,6 @@ struct DrawableComponent {
 };
 
 namespace Models {
-  constexpr uint8 MAX_N_MATERIALS = 128;
-  constexpr char MODEL_DIR[] = "resources/models/";
-
   void setup_mesh_vertex_buffers(
     Mesh *mesh,
     Vertex *vertex_data, uint32 n_vertices,

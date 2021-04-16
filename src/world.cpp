@@ -595,7 +595,7 @@ void World::destroy_scene(State *state) {
 
 
 void World::load_scene(
-  const char *scene_path,
+  const char *scene_name,
   State *state
 ) {
   // If the current scene has not finished loading, we can neither
@@ -607,7 +607,13 @@ void World::load_scene(
     return;
   }
 
-  char log_text[256];
+  char scene_path[MAX_PATH] = {0};
+  strcpy(scene_path, SCENE_DIR);
+  strcat(scene_path, scene_name);
+  strcat(scene_path, SCENE_EXTENSION);
+  strcat(scene_path, "\0");
+
+  char log_text[GUI_MAX_CONSOLE_LINE_LENGTH];
   strcpy(log_text, "Loading scene: ");
   strcat(log_text, scene_path);
   Gui::console_print(&state->gui_state, log_text);
@@ -797,7 +803,7 @@ bool32 World::check_all_entities_loaded(State *state) {
 
 void World::update(State *state) {
   if (state->is_world_loaded && !state->was_world_ever_loaded) {
-    World::load_scene("data/scenes/coast.peony_scene", state);
+    World::load_scene("coast", state);
     state->was_world_ever_loaded = true;
   }
 

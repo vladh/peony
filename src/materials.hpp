@@ -1,9 +1,6 @@
 #ifndef TEXTURES_HPP
 #define TEXTURES_HPP
 
-constexpr uint32 MAX_N_TEXTURE_POOL_SIZES = 6;
-constexpr uint32 MAX_UNIFORM_LENGTH = 256;
-
 struct MaterialTemplate;
 struct Task;
 
@@ -134,8 +131,6 @@ struct Material {
 };
 
 namespace Materials {
-  constexpr char TEXTURE_DIR[] = "resources/textures/";
-
   Texture* init_texture(
     Texture *texture,
     TextureType type,
