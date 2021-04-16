@@ -87,10 +87,15 @@ void Input::update_text_input(
     return;
   }
   char poor_smashed_ascii_character = (char)codepoint;
-  char string_for_new_character[2];
-  string_for_new_character[0] = poor_smashed_ascii_character;
-  string_for_new_character[1] = '\0';
-  strcat(input_state->text_input, string_for_new_character);
+  size_t text_input_length = strlen(input_state->text_input);
+
+  if (text_input_length + 1 >= MAX_TEXT_INPUT_LENGTH - 1) {
+    log_error("Can't add another character to text_input, it's full.");
+    return;
+  }
+
+  input_state->text_input[text_input_length] = poor_smashed_ascii_character;
+  input_state->text_input[text_input_length + 1] = '\0';
 }
 
 
