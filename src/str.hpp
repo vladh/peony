@@ -3,10 +3,10 @@
 
 namespace Str {
   void split_on_first_occurrence(
-    char *str,
+    const char *str,
     char *part1, size_t part1_length,
     char *part2, size_t part2_length,
-    char separator
+    const char separator
   );
   void clear(char *str);
   bool32 is_empty(const char *str);

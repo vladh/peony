@@ -1,8 +1,8 @@
 void Str::split_on_first_occurrence(
-  char *str,
+  const char *str,
   char *part1, size_t part1_length,
   char *part2, size_t part2_length,
-  char separator
+  const char separator
 ) {
   size_t str_length = strlen(str);
   for (uint32 idx = 0; idx < str_length; idx++) {
