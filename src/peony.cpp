@@ -36,21 +36,18 @@
 
 
 void handle_console_command(State *state) {
-  char text_input_with_symbol[MAX_TEXT_INPUT_LENGTH + GUI_CONSOLE_SYMBOL_LENGTH];
-  strcpy(text_input_with_symbol, GUI_CONSOLE_SYMBOL);
-  strcat(text_input_with_symbol, state->input_state.text_input);
+  char output_buffer[MAX_TEXT_INPUT_LENGTH + 256] = {0};
+  strcpy(output_buffer, GUI_CONSOLE_SYMBOL);
+  strcat(output_buffer, state->input_state.text_input);
+  Gui::console_print(&state->gui_state, output_buffer);
 
-  Gui::console_print(&state->gui_state, text_input_with_symbol);
-
-  constexpr size_t command_length = 50;
-  char command[command_length] = {0};
-  constexpr size_t arguments_length = MAX_TEXT_INPUT_LENGTH - 50;
-  char arguments[arguments_length] = {0};
+  char command[MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
+  char arguments[MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {0};
 
   Str::split_on_first_occurrence(
     state->input_state.text_input,
-    command, command_length,
-    arguments, arguments_length,
+    command, MAX_TEXT_INPUT_COMMAND_LENGTH,
+    arguments, MAX_TEXT_INPUT_ARGUMENTS_LENGTH,
     ' '
   );
 
@@ -63,7 +60,9 @@ void handle_console_command(State *state) {
   } else if (Str::eq(command, "loadscene")) {
     World::load_scene(arguments, state);
   } else {
-    Gui::console_print(&state->gui_state, "Unknown command.");
+    strcpy(output_buffer, "Unknown command: ");
+    strcat(output_buffer, command);
+    Gui::console_print(&state->gui_state, output_buffer);
   }
 
   Str::clear(state->input_state.text_input);

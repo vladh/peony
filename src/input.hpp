@@ -2,6 +2,9 @@
 #define INPUT_HPP
 
 constexpr uint32 MAX_TEXT_INPUT_LENGTH = 512;
+constexpr uint32 MAX_TEXT_INPUT_COMMAND_LENGTH = 50;
+constexpr uint32 MAX_TEXT_INPUT_ARGUMENTS_LENGTH =
+  MAX_TEXT_INPUT_LENGTH - MAX_TEXT_INPUT_COMMAND_LENGTH;
 
 struct InputState {
   GLFWwindow *window;
