@@ -102,9 +102,10 @@ namespace PeonyFileParser {
   void parse_material_file(
     const char *path, MaterialTemplate *material_templates
   );
-  uint32 parse_scene_file(
+  bool32 parse_scene_file(
     const char *path,
-    StackArray<EntityTemplate, 128> *entity_templates
+    StackArray<EntityTemplate, 128> *entity_templates,
+    uint32 *n_entities
   );
 };
 

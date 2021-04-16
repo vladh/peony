@@ -594,17 +594,20 @@ void World::destroy_scene(State *state) {
 }
 
 
-void World::load_scene(
+bool32 World::load_scene(
   const char *scene_name,
   State *state
 ) {
+  char log_text[512] = {0};
+
   // If the current scene has not finished loading, we can neither
   // unload it nor load a new one.
   if (!state->is_world_loaded) {
-    log_info(
+    Gui::console_print(
+      &state->gui_state,
       "Cannot load or unload scene while loading is already in progress."
     );
-    return;
+    return false;
   }
 
   char scene_path[MAX_PATH] = {0};
@@ -613,22 +616,29 @@ void World::load_scene(
   strcat(scene_path, SCENE_EXTENSION);
   strcat(scene_path, "\0");
 
-  char log_text[GUI_MAX_CONSOLE_LINE_LENGTH];
   strcpy(log_text, "Loading scene: ");
   strcat(log_text, scene_path);
   Gui::console_print(&state->gui_state, log_text);
-
-  // Destroy everything first!
-  destroy_scene(state);
 
   // Get some memory for everything we need
   MemoryPool temp_memory_pool = {};
 
   // Get EntityTemplates
   StackArray<EntityTemplate, 128> entity_templates;
-  uint32 n_entities = PeonyFileParser::parse_scene_file(
-    scene_path, &entity_templates
+  uint32 n_entities = 0;
+  bool32 could_load_file = PeonyFileParser::parse_scene_file(
+    scene_path, &entity_templates, &n_entities
   );
+
+  if (!could_load_file) {
+    strcpy(log_text, "Could not load scene: ");
+    strcat(log_text, scene_path);
+    Gui::console_print(&state->gui_state, log_text);
+    return false;
+  }
+
+  // Destroy everything after we've confirmed we could load the scene.
+  destroy_scene(state);
 
   // Get only the unique used materials
   StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
@@ -706,6 +716,8 @@ void World::load_scene(
 
   // Clean up
   Memory::destroy_memory_pool(&temp_memory_pool);
+
+  return true;
 }
 
 

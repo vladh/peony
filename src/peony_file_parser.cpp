@@ -427,17 +427,19 @@ void PeonyFileParser::parse_material_file(
 }
 
 
-uint32 PeonyFileParser::parse_scene_file(
+bool32 PeonyFileParser::parse_scene_file(
   const char *path,
-  StackArray<EntityTemplate, 128> *entity_templates
+  StackArray<EntityTemplate, 128> *entity_templates,
+  uint32 *n_entities
 ) {
+  *n_entities = 0;
   int32 idx_entity = -1;
 
   FILE *f = fopen(path, "r");
 
   if (!f) {
-    log_fatal("Could not open file %s.", path);
-    return 0;
+    log_error("Could not open file %s.", path);
+    return false;
   }
 
   EntityTemplate *entity_template = nullptr;
@@ -527,5 +529,6 @@ uint32 PeonyFileParser::parse_scene_file(
 
   fclose(f);
 
-  return idx_entity + 1;
+  *n_entities = idx_entity + 1;
+  return true;
 }
