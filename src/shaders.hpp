@@ -1,10 +1,6 @@
 #ifndef SHADERS_HPP
 #define SHADERS_HPP
 
-constexpr uint8 MAX_N_UNIFORMS = 64;
-constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
-constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
-
 enum class ShaderType {none, standard, depth};
 
 struct ShaderAsset {
@@ -34,9 +30,6 @@ struct ShaderAsset {
 };
 
 namespace Shaders {
-  constexpr char SHADER_COMMON_PATH[] = "src/shaders/common.glsl";
-  constexpr char SHADER_COMMON_FRAGMENT_PATH[] = "src/shaders/common_fragment.glsl";
-  constexpr char SHADER_DIR[] = "src/shaders/";
 
   const char* shader_type_to_string(ShaderType shader_type);
   ShaderType shader_type_from_string(const char* str);

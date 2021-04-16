@@ -1,3 +1,30 @@
+void Str::split_on_first_occurrence(
+  char *str,
+  char *part1, size_t part1_length,
+  char *part2, size_t part2_length,
+  char separator
+) {
+  size_t str_length = strlen(str);
+  for (uint32 idx = 0; idx < str_length; idx++) {
+    // We don't want a space at the very start or end of the string;
+    // this wouldn't leave us with much to split. Just ignore those.
+    if (str[idx] == separator && idx > 0 && idx < str_length - 1) {
+      //           i
+      // [str1l    ] [str2l]
+      // 0 1 2 3 4 5 6 7 8 9
+      // h e l l o   t h e 0
+      assert(idx < part1_length);
+      assert(str_length - idx - 1 <= part2_length);
+      strncpy(part1, str, idx);
+      part1[idx] = '\0';
+      strncpy(part2, str + idx + 1, str_length - idx - 1);
+      part2[str_length - idx - 1] = '\0';
+      return;
+    }
+  }
+}
+
+
 void Str::clear(char *str) {
   str[0] = '\0';
 }

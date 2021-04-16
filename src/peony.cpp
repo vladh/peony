@@ -42,16 +42,26 @@ void handle_console_command(State *state) {
 
   Gui::console_print(&state->gui_state, text_input_with_symbol);
 
-  if (Str::eq(state->input_state.text_input, "help")) {
+  constexpr size_t command_length = 50;
+  char command[command_length] = {0};
+  constexpr size_t arguments_length = MAX_TEXT_INPUT_LENGTH - 50;
+  char arguments[arguments_length] = {0};
+
+  Str::split_on_first_occurrence(
+    state->input_state.text_input,
+    command, command_length,
+    arguments, arguments_length,
+    ' '
+  );
+
+  if (Str::eq(command, "help")) {
     Gui::console_print(
       &state->gui_state,
       "Your request for help has been recorded and will be processed within "
       "30-60 working days."
     );
-  } else if (Str::eq(state->input_state.text_input, "loadscene coast")) {
-    World::load_scene("data/scenes/coast.peony_scene", state);
-  } else if (Str::eq(state->input_state.text_input, "loadscene animtest")) {
-    World::load_scene("data/scenes/animtest.peony_scene", state);
+  } else if (Str::eq(command, "loadscene")) {
+    World::load_scene(arguments, state);
   } else {
     Gui::console_print(&state->gui_state, "Unknown command.");
   }
@@ -141,16 +151,6 @@ void process_input(GLFWwindow *window, State *state) {
 
   if (Input::is_key_down(&state->input_state, GLFW_KEY_ENTER)) {
     state->should_manually_advance_to_next_frame = true;
-  }
-
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_1)) {
-    World::load_scene("data/scenes/coast.peony_scene", state);
-    Renderer::set_heading(state, "Scene loaded: coast", 1.0f, 1.0f, 1.0f);
-  }
-
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_2)) {
-    World::load_scene("data/scenes/animtest.peony_scene", state);
-    Renderer::set_heading(state, "Scene loaded: animtest", 1.0f, 1.0f, 1.0f);
   }
 
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_0)) {

@@ -2,6 +2,12 @@
 #define STR_HPP
 
 namespace Str {
+  void split_on_first_occurrence(
+    char *str,
+    char *part1, size_t part1_length,
+    char *part2, size_t part2_length,
+    char separator
+  );
   void clear(char *str);
   bool32 is_empty(const char *str);
   bool32 eq(const char *str1, const char *str2);

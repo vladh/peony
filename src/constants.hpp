@@ -16,6 +16,13 @@ constexpr real64 PI = 3.14159265358979323846;
 #endif
 #endif
 
+constexpr char TEXTURE_DIR[] = "resources/textures/";
+constexpr char MODEL_DIR[] = "resources/models/";
+constexpr char SCENE_DIR[] = "data/scenes/";
+constexpr char SCENE_EXTENSION[] = ".peony_scene";
+constexpr char SHADER_COMMON_PATH[] = "src/shaders/common.glsl";
+constexpr char SHADER_COMMON_FRAGMENT_PATH[] = "src/shaders/common_fragment.glsl";
+constexpr char SHADER_DIR[] = "src/shaders/";
 constexpr uint32 MAX_N_ENTITIES = 256;
 constexpr uint32 MAX_N_MODELS = 128;
 constexpr uint32 MAX_N_ANIMATED_MODELS = 128;
@@ -24,7 +31,12 @@ constexpr uint32 MAX_GENEROUS_STRING_LENGTH = 512;
 constexpr uint32 MAX_N_MESHES = 128;
 constexpr uint32 MAX_N_MATERIALS = 256;
 constexpr uint32 MAX_N_MATERIALS_PER_MODEL = 16;
+constexpr uint32 MAX_UNIFORM_LENGTH = 256;
+constexpr uint32 MAX_N_TEXTURE_POOL_SIZES = 6;
 constexpr uint32 MAX_N_TEXTURES_PER_MATERIAL = 16;
+constexpr uint8 MAX_N_UNIFORMS = 64;
+constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
+constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
 constexpr uint32 MAX_TOKEN_LENGTH = 128;
 constexpr uint32 MAX_N_BONES = 128;
 constexpr uint32 MAX_N_BONES_PER_VERTEX = 4;

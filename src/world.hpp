@@ -26,7 +26,7 @@ namespace World {
   void destroy_non_internal_materials(State *state);
   void destroy_non_internal_entities(State *state);
   void destroy_scene(State *state);
-  void load_scene(const char *scene_path, State *state);
+  void load_scene(const char *scene_name, State *state);
   void init(State *state);
   bool32 check_all_entities_loaded(State *state);
   void update(State *state);
