@@ -1,6 +1,8 @@
 #ifndef UTIL_HPP
 #define UTIL_HPP
 
+struct Vertex;
+
 namespace Util {
   unsigned char *load_image(
     const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
@@ -21,13 +23,13 @@ namespace Util {
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    real32 **vertex_data, uint32 **index_data
+    Vertex **vertex_data, uint32 **index_data
   );
   void make_sphere(
     MemoryPool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    real32 **vertex_data, uint32 **index_data
+    Vertex **vertex_data, uint32 **index_data
   );
   glm::vec3 aiVector3D_to_glm(aiVector3D *vec);
   glm::quat aiQuaternion_to_glm(aiQuaternion *quat);
