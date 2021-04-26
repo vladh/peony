@@ -3,8 +3,8 @@
 #define N_SHADOW_SAMPLES 20
 #define SHOULD_USE_SHADOWS 1
 
-uniform samplerCubeArray cube_shadowmaps;
-uniform sampler2DArray texture_shadowmaps;
+uniform samplerCubeArray shadowmaps_3d;
+uniform sampler2DArray shadowmaps_2d;
 
 // NOTE: First directional light is the sun.
 vec3 SUN_DIRECTION = normalize(vec3(directional_light_direction[0]));
@@ -92,7 +92,7 @@ float calculate_point_shadows(
     vec4 sample_p = vec4(
       light_to_frag + SHADOW_GRID_SAMPLING_OFFSETS[i] * sample_radius, idx_light
     );
-    float closest_depth = texture(cube_shadowmaps, sample_p).r;
+    float closest_depth = texture(shadowmaps_3d, sample_p).r;
     if (current_depth - bias > closest_depth) {
       shadow += 1.0;
     }
@@ -127,14 +127,14 @@ float calculate_directional_shadows(
   float current_depth = length(light_to_frag) * depth_sign / shadow_far_clip_dist;
 
   vec3 light_space_position = vec3(
-    texture_shadowmap_transforms[idx_light] * vec4(world_position, 1.0)
+    shadowmap_2d_transforms[idx_light] * vec4(world_position, 1.0)
   ) * 0.5 + 0.5;
 
   for (int i = 0; i < N_SHADOW_SAMPLES; i++) {
     vec3 sample_p = vec3(
       light_space_position.xy + SHADOW_GRID_SAMPLING_OFFSETS[i].xy * sample_radius, idx_light
     );
-    float closest_depth = texture(texture_shadowmaps, sample_p).r;
+    float closest_depth = texture(shadowmaps_2d, sample_p).r;
     if (current_depth - bias > closest_depth) {
       shadow += 1.0;
     }

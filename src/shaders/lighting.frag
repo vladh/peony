@@ -10,7 +10,6 @@ in BLOCK {
 layout (location = 0) out vec4 l_color;
 layout (location = 1) out vec4 l_bright_color;
 
-
 void main() {
   vec3 world_position = texture(g_position_texture, fs_in.tex_coords).rgb;
   vec3 normal = texture(g_normal_texture, fs_in.tex_coords).rgb;

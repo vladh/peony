@@ -21,6 +21,12 @@ void Str::split_on_first_occurrence(
       part2[str_length - idx - 1] = '\0';
       return;
     }
+    // If we haven't found the separator, just put everything into the command.
+    if (idx == str_length - 1) {
+      assert(part1_length >= str_length);
+      strncpy(part1, str, str_length);
+      return;
+    }
   }
 }
 

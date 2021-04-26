@@ -11,12 +11,31 @@
 #define LIGHT_POINT 1
 #define LIGHT_DIRECTIONAL 2
 
+#define TEXTURETYPE_NONE 0
+#define TEXTURETYPE_ALBEDO 1
+#define TEXTURETYPE_METALLIC 2
+#define TEXTURETYPE_ROUGHNESS 3
+#define TEXTURETYPE_AO 4
+#define TEXTURETYPE_NORMAL 5
+#define TEXTURETYPE_SHADOWMAPS_3D 6
+#define TEXTURETYPE_SHADOWMAPS_2D 7
+#define TEXTURETYPE_OTHER 8
+#define TEXTURETYPE_G_POSITION 9
+#define TEXTURETYPE_G_NORMAL 10
+#define TEXTURETYPE_G_ALBEDO 11
+#define TEXTURETYPE_G_PBR 12
+#define TEXTURETYPE_L_COLOR 13
+#define TEXTURETYPE_L_BRIGHT_COLOR 14
+#define TEXTURETYPE_L_DEPTH 15
+#define TEXTURETYPE_BLUR1 16
+#define TEXTURETYPE_BLUR2 17
+
 layout (std140) uniform shader_common {
   mat4 view;
   mat4 projection;
   mat4 ui_projection;
-  mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
-  mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
+  mat4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+  mat4 shadowmap_2d_transforms[MAX_N_LIGHTS];
 
   vec3 camera_position;
   float camera_pitch;
@@ -33,8 +52,8 @@ layout (std140) uniform shader_common {
 
   float shadow_far_clip_dist;
   bool is_blur_horizontal;
-  int pad_1;
-  int pad_2;
+  int renderdebug_displayed_texture_type;
+  int unused_pad;
 
   float exposure;
   float t;

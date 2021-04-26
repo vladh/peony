@@ -7,5 +7,5 @@ textures.normal_texture = [normal, vlachos.jpg]
 textures.foam_texture = [other, water_foam.png]
 builtin_textures.g_position_texture = true
 builtin_textures.g_albedo_texture = true
-builtin_textures.cube_shadowmaps = true
-builtin_textures.texture_shadowmaps = true
+builtin_textures.shadowmaps_3d = true
+builtin_textures.shadowmaps_2d = true

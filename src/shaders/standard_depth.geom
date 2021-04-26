@@ -22,9 +22,9 @@ void main() {
 
       mat4 shadow_transform;
       if (current_shadow_light_type == LIGHT_POINT) {
-        shadow_transform = cube_shadowmap_transforms[layer_face];
+        shadow_transform = shadowmap_3d_transforms[layer_face];
       } else if (current_shadow_light_type == LIGHT_DIRECTIONAL) {
-        shadow_transform = texture_shadowmap_transforms[layer_face];
+        shadow_transform = shadowmap_2d_transforms[layer_face];
       }
 
       gl_Position = shadow_transform * gs_out.world_position;

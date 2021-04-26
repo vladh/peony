@@ -71,14 +71,15 @@ struct State {
   Queue<Task> task_queue;
 
   real32 dir_light_angle;
+  TextureType renderdebug_displayed_texture_type;
 
   ShaderAsset standard_depth_shader_asset;
 
   uint32 ubo_shader_common;
   ShaderCommon shader_common;
 
-  glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
-  glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
+  glm::mat4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+  glm::mat4 shadowmap_2d_transforms[MAX_N_LIGHTS];
   BuiltinTextures builtin_textures;
 };
 

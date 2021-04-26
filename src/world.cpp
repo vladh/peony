@@ -238,7 +238,7 @@ void World::create_internal_materials(State *state) {
       &material->shader_asset,
       &temp_memory_pool,
       "lighting", ShaderType::standard,
-      "lighting.vert", "lighting.frag", ""
+      "screenquad.vert", "lighting.frag", ""
     );
     Materials::add_texture_to_material(
       material, *state->builtin_textures.g_position_texture, "g_position_texture"
@@ -253,10 +253,10 @@ void World::create_internal_materials(State *state) {
       material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
     );
     Materials::add_texture_to_material(
-      material, *state->builtin_textures.cube_shadowmaps_texture, "cube_shadowmaps"
+      material, *state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
     );
     Materials::add_texture_to_material(
-      material, *state->builtin_textures.texture_shadowmaps_texture, "texture_shadowmaps"
+      material, *state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
 
@@ -270,7 +270,7 @@ void World::create_internal_materials(State *state) {
       &material->shader_asset,
       &temp_memory_pool,
       "blur", ShaderType::standard,
-      "blur.vert", "blur.frag", ""
+      "screenquad.vert", "blur.frag", ""
     );
     Materials::add_texture_to_material(
       material, *state->builtin_textures.l_bright_color_texture, "source_texture"
@@ -286,7 +286,7 @@ void World::create_internal_materials(State *state) {
       &material->shader_asset,
       &temp_memory_pool,
       "blur", ShaderType::standard,
-      "blur.vert", "blur.frag", ""
+      "screenquad.vert", "blur.frag", ""
     );
     Materials::add_texture_to_material(
       material, *state->builtin_textures.blur2_texture, "source_texture"
@@ -302,7 +302,7 @@ void World::create_internal_materials(State *state) {
       &material->shader_asset,
       &temp_memory_pool,
       "blur", ShaderType::standard,
-      "blur.vert", "blur.frag", ""
+      "screenquad.vert", "blur.frag", ""
     );
     Materials::add_texture_to_material(
       material, *state->builtin_textures.blur1_texture, "source_texture"
@@ -319,7 +319,7 @@ void World::create_internal_materials(State *state) {
       &material->shader_asset,
       &temp_memory_pool,
       "postprocessing", ShaderType::standard,
-      "postprocessing.vert", "postprocessing.frag", ""
+      "screenquad.vert", "postprocessing.frag", ""
     );
     Materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "l_color_texture"
@@ -333,6 +333,56 @@ void World::create_internal_materials(State *state) {
     /* Materials::add_texture_to-material( */
     /*   material, *state->l_depth_texture, "l_depth_texture" */
     /* ); */
+  }
+
+  // renderdebug
+  {
+    Material *material = Materials::init_material(
+      state->materials.push(), "renderdebug"
+    );
+    Shaders::init_shader_asset(
+      &material->shader_asset,
+      &temp_memory_pool,
+      "renderdebug", ShaderType::standard,
+      "screenquad.vert", "renderdebug.frag", ""
+    );
+
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.g_position_texture, "g_position_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.g_normal_texture, "g_normal_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.g_albedo_texture, "g_albedo_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
+    );
+
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.g_position_texture, "l_color_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.l_color_texture, "l_bright_color_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.l_color_texture, "l_depth_texture"
+    );
+
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.l_color_texture, "blur1_texture"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.l_color_texture, "blur2_texture"
+    );
+
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
+    );
+    Materials::add_texture_to_material(
+      material, *state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
+    );
   }
 
   // skysphere
@@ -479,6 +529,28 @@ void World::create_internal_entities(State *state) {
       entity->handle
     );
     strcpy(*(model_loader->material_names.push()), "postprocessing");
+  }
+
+  // Debug screenquad
+  {
+    Entity *entity = EntitySets::add_entity_to_set(
+      &state->entity_set, "screenquad_renderdebug"
+    );
+    ModelLoader *model_loader = state->model_loaders.push();
+    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    Models::init_model_loader(
+      model_loader,
+      ModelSource::data,
+      "screenquad_renderdebug"
+    );
+    Models::init_entity_loader(
+      entity_loader,
+      "screenquad_renderdebug",
+      "screenquad_renderdebug",
+      RenderPass::renderdebug,
+      entity->handle
+    );
+    strcpy(*(model_loader->material_names.push()), "renderdebug");
   }
 
   // Skysphere
