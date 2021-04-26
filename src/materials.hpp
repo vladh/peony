@@ -39,7 +39,8 @@ enum class TextureType {
   roughness,
   ao,
   normal,
-  shadowmap,
+  shadowmaps_3d,
+  shadowmaps_2d,
   other,
 
   // Screensize-dependent textures
@@ -83,21 +84,21 @@ struct BuiltinTextures {
   Texture *blur1_texture;
   Texture *blur2_texture;
 
-  Texture *cube_shadowmaps_texture;
-  Texture *texture_shadowmaps_texture;
+  Texture *shadowmaps_3d_texture;
+  Texture *shadowmaps_2d_texture;
 
   uint32 g_buffer;
   uint32 l_buffer;
   uint32 blur1_buffer;
   uint32 blur2_buffer;
-  uint32 cube_shadowmaps_framebuffer;
-  uint32 cube_shadowmaps;
-  uint32 texture_shadowmaps_framebuffer;
-  uint32 texture_shadowmaps;
-  uint32 cube_shadowmap_width;
-  uint32 cube_shadowmap_height;
-  uint32 texture_shadowmap_width;
-  uint32 texture_shadowmap_height;
+  uint32 shadowmaps_3d_framebuffer;
+  uint32 shadowmaps_3d;
+  uint32 shadowmaps_2d_framebuffer;
+  uint32 shadowmaps_2d;
+  uint32 shadowmap_3d_width;
+  uint32 shadowmap_3d_height;
+  uint32 shadowmap_2d_width;
+  uint32 shadowmap_2d_height;
   real32 shadowmap_near_clip_dist;
   real32 shadowmap_far_clip_dist;
 };

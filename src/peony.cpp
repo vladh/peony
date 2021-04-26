@@ -54,11 +54,19 @@ void handle_console_command(State *state) {
   if (Str::eq(command, "help")) {
     Gui::console_print(
       &state->gui_state,
-      "Your request for help has been recorded and will be processed within "
-      "30-60 working days."
+      "Some useful commands\n"
+      "--------------------\n"
+      "loadscene <scene_name>: Load a scene\n"
+      "renderdebug <internal_texture_name>: Display an internal texture. "
+      "Use texture \"none\" to disable.\n"
+      "help: show help"
     );
   } else if (Str::eq(command, "loadscene")) {
     World::load_scene(arguments, state);
+  } else if (Str::eq(command, "renderdebug")) {
+    state->renderdebug_displayed_texture_type = Materials::texture_type_from_string(
+      arguments
+    );
   } else {
     strcpy(output_buffer, "Unknown command: ");
     strcat(output_buffer, command);

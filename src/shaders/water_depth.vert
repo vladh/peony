@@ -14,7 +14,7 @@ void main() {
   vs_out.world_position = vec4(water_lf_position, 1.0);
 
   // NOTE: The water is only affected by sunlight.
-  mat4 shadow_transform = texture_shadowmap_transforms[0];
+  mat4 shadow_transform = shadowmap_2d_transforms[0];
 
   gl_Position = shadow_transform * vs_out.world_position;
 }

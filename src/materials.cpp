@@ -66,8 +66,10 @@ const char* Materials::texture_type_to_string(TextureType texture_type) {
     return "ao";
   } else if (texture_type == TextureType::normal) {
     return "normal";
-  } else if (texture_type == TextureType::shadowmap) {
-    return "shadowmap";
+  } else if (texture_type == TextureType::shadowmaps_2d) {
+    return "shadowmaps_2d";
+  } else if (texture_type == TextureType::shadowmaps_3d) {
+    return "shadowmaps_3d";
   } else if (texture_type == TextureType::other) {
     return "other";
   } else if (texture_type == TextureType::g_position) {
@@ -89,7 +91,7 @@ const char* Materials::texture_type_to_string(TextureType texture_type) {
   } else if (texture_type == TextureType::blur2) {
     return "blur2";
   } else {
-    log_error("Could not convert TextureType to string: %d", texture_type);
+    log_warning("Could not convert TextureType to string: %d", texture_type);
     return "<unknown>";
   }
 }
@@ -108,8 +110,10 @@ TextureType Materials::texture_type_from_string(const char* str) {
     return TextureType::ao;
   } else if (strcmp(str, "normal") == 0) {
     return TextureType::normal;
-  } else if (strcmp(str, "shadowmap") == 0) {
-    return TextureType::shadowmap;
+  } else if (strcmp(str, "shadowmaps_2d") == 0) {
+    return TextureType::shadowmaps_2d;
+  } else if (strcmp(str, "shadowmaps_3d") == 0) {
+    return TextureType::shadowmaps_3d;
   } else if (strcmp(str, "other") == 0) {
     return TextureType::other;
   } else if (strcmp(str, "g_position") == 0) {
@@ -131,7 +135,7 @@ TextureType Materials::texture_type_from_string(const char* str) {
   } else if (strcmp(str, "blur2") == 0) {
     return TextureType::blur2;
   } else {
-    log_fatal("Could not parse TextureType from string: %s", str);
+    log_warning("Could not parse TextureType from string: %s", str);
     return TextureType::none;
   }
 }
@@ -652,13 +656,13 @@ void Materials::create_material_from_template(
       Materials::add_texture_to_material(
         material, *builtin_textures->g_albedo_texture, builtin_texture_name
       );
-    } else if (strcmp(builtin_texture_name, "cube_shadowmaps") == 0) {
+    } else if (strcmp(builtin_texture_name, "shadowmaps_3d") == 0) {
       Materials::add_texture_to_material(
-        material, *builtin_textures->cube_shadowmaps_texture, builtin_texture_name
+        material, *builtin_textures->shadowmaps_3d_texture, builtin_texture_name
       );
-    } else if (strcmp(builtin_texture_name, "texture_shadowmaps") == 0) {
+    } else if (strcmp(builtin_texture_name, "shadowmaps_2d") == 0) {
       Materials::add_texture_to_material(
-        material, *builtin_textures->texture_shadowmaps_texture, builtin_texture_name
+        material, *builtin_textures->shadowmaps_2d_texture, builtin_texture_name
       );
     } else {
       log_fatal(

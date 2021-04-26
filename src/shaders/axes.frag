@@ -5,5 +5,5 @@ in BLOCK {
 out vec4 frag_color;
 
 void main() {
-  frag_color = vec4(normal, 1.0);
+  frag_color = vec4(fs_in.normal, 1.0);
 }

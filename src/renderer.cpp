@@ -21,6 +21,8 @@ const char* Renderer::render_pass_to_string(RenderPassFlag render_pass) {
     return "blur1";
   } else if (render_pass == RenderPass::blur2) {
     return "blur2";
+  } else if (render_pass == RenderPass::renderdebug) {
+    return "renderdebug";
   } else {
     log_error("Don't know how to convert RenderPass to string: %d", render_pass);
     return "<unknown>";
@@ -29,28 +31,30 @@ const char* Renderer::render_pass_to_string(RenderPassFlag render_pass) {
 
 
 RenderPassFlag Renderer::render_pass_from_string(const char* str) {
-  if (strcmp(str, "none") == 0) {
+  if (Str::eq(str, "none")) {
     return RenderPass::none;
-  } else if (strcmp(str, "shadowcaster") == 0) {
+  } else if (Str::eq(str, "shadowcaster")) {
     return RenderPass::shadowcaster;
-  } else if (strcmp(str, "deferred") == 0) {
+  } else if (Str::eq(str, "deferred")) {
     return RenderPass::deferred;
-  } else if (strcmp(str, "forward_depth") == 0) {
+  } else if (Str::eq(str, "forward_depth")) {
     return RenderPass::forward_depth;
-  } else if (strcmp(str, "forward_nodepth") == 0) {
+  } else if (Str::eq(str, "forward_nodepth")) {
     return RenderPass::forward_nodepth;
-  } else if (strcmp(str, "forward_skybox") == 0) {
+  } else if (Str::eq(str, "forward_skybox")) {
     return RenderPass::forward_skybox;
-  } else if (strcmp(str, "lighting") == 0) {
+  } else if (Str::eq(str, "lighting")) {
     return RenderPass::lighting;
-  } else if (strcmp(str, "postprocessing") == 0) {
+  } else if (Str::eq(str, "postprocessing")) {
     return RenderPass::postprocessing;
-  } else if (strcmp(str, "preblur") == 0) {
+  } else if (Str::eq(str, "preblur")) {
     return RenderPass::preblur;
-  } else if (strcmp(str, "blur1") == 0) {
+  } else if (Str::eq(str, "blur1")) {
     return RenderPass::blur1;
-  } else if (strcmp(str, "blur2") == 0) {
+  } else if (Str::eq(str, "blur2")) {
     return RenderPass::blur2;
+  } else if (Str::eq(str, "renderdebug")) {
+    return RenderPass::renderdebug;
   } else {
     log_fatal("Could not parse RenderPass: %s", str);
     return RenderPass::none;
@@ -121,13 +125,13 @@ void Renderer::init_shadowmaps(
   BuiltinTextures *builtin_textures
 ) {
   // Cube
-  glGenFramebuffers(1, &builtin_textures->cube_shadowmaps_framebuffer);
-  glGenTextures(1, &builtin_textures->cube_shadowmaps);
-  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, builtin_textures->cube_shadowmaps);
+  glGenFramebuffers(1, &builtin_textures->shadowmaps_3d_framebuffer);
+  glGenTextures(1, &builtin_textures->shadowmaps_3d);
+  glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, builtin_textures->shadowmaps_3d);
 
   glTexStorage3D(
     GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-    builtin_textures->cube_shadowmap_width, builtin_textures->cube_shadowmap_height,
+    builtin_textures->shadowmap_3d_width, builtin_textures->shadowmap_3d_height,
     6 * MAX_N_LIGHTS
   );
 
@@ -136,9 +140,9 @@ void Renderer::init_shadowmaps(
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-  glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->cube_shadowmaps_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->shadowmaps_3d_framebuffer);
   glFramebufferTexture(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->cube_shadowmaps, 0
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->shadowmaps_3d, 0
   );
 
   // #slow
@@ -146,25 +150,25 @@ void Renderer::init_shadowmaps(
     log_fatal("Framebuffer not complete!");
   }
 
-  builtin_textures->cube_shadowmaps_texture = Materials::init_texture(
+  builtin_textures->shadowmaps_3d_texture = Materials::init_texture(
     (Texture*)Memory::push(
-      memory_pool, sizeof(Texture), "cube_shadowmaps_texture"
+      memory_pool, sizeof(Texture), "shadowmaps_3d_texture"
     ),
     GL_TEXTURE_CUBE_MAP_ARRAY,
-    TextureType::shadowmap, builtin_textures->cube_shadowmaps,
-    builtin_textures->cube_shadowmap_width, builtin_textures->cube_shadowmap_height, 1
+    TextureType::shadowmaps_3d, builtin_textures->shadowmaps_3d,
+    builtin_textures->shadowmap_3d_width, builtin_textures->shadowmap_3d_height, 1
   );
-  builtin_textures->cube_shadowmaps_texture->is_builtin = true;
+  builtin_textures->shadowmaps_3d_texture->is_builtin = true;
 
   // Texture
-  glGenFramebuffers(1, &builtin_textures->texture_shadowmaps_framebuffer);
-  glGenTextures(1, &builtin_textures->texture_shadowmaps);
-  glBindTexture(GL_TEXTURE_2D_ARRAY, builtin_textures->texture_shadowmaps);
+  glGenFramebuffers(1, &builtin_textures->shadowmaps_2d_framebuffer);
+  glGenTextures(1, &builtin_textures->shadowmaps_2d);
+  glBindTexture(GL_TEXTURE_2D_ARRAY, builtin_textures->shadowmaps_2d);
 
   glTexStorage3D(
     GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-    builtin_textures->texture_shadowmap_width,
-    builtin_textures->texture_shadowmap_height,
+    builtin_textures->shadowmap_2d_width,
+    builtin_textures->shadowmap_2d_height,
     MAX_N_LIGHTS
   );
 
@@ -174,9 +178,9 @@ void Renderer::init_shadowmaps(
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
   real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
   glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, border_color);
-  glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->texture_shadowmaps_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->shadowmaps_2d_framebuffer);
   glFramebufferTexture(
-    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->texture_shadowmaps, 0
+    GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->shadowmaps_2d, 0
   );
 
   // #slow
@@ -184,16 +188,16 @@ void Renderer::init_shadowmaps(
     log_fatal("Framebuffer not complete!");
   }
 
-  builtin_textures->texture_shadowmaps_texture = Materials::init_texture(
+  builtin_textures->shadowmaps_2d_texture = Materials::init_texture(
     (Texture*)Memory::push(
-      memory_pool, sizeof(Texture), "texture_shadowmaps_texture"
+      memory_pool, sizeof(Texture), "shadowmaps_2d_texture"
     ),
     GL_TEXTURE_2D_ARRAY,
-    TextureType::shadowmap, builtin_textures->texture_shadowmaps,
-    builtin_textures->texture_shadowmap_width,
-    builtin_textures->texture_shadowmap_height, 1
+    TextureType::shadowmaps_2d, builtin_textures->shadowmaps_2d,
+    builtin_textures->shadowmap_2d_width,
+    builtin_textures->shadowmap_2d_height, 1
   );
-  builtin_textures->texture_shadowmaps_texture->is_builtin = true;
+  builtin_textures->shadowmaps_2d_texture->is_builtin = true;
 }
 
 
@@ -540,14 +544,14 @@ void Renderer::copy_scene_data_to_ubo(
   shader_common->projection = state->camera_active->projection;
   shader_common->ui_projection = state->camera_active->ui_projection;
   memcpy(
-    shader_common->cube_shadowmap_transforms,
-    state->cube_shadowmap_transforms,
-    sizeof(state->cube_shadowmap_transforms)
+    shader_common->shadowmap_3d_transforms,
+    state->shadowmap_3d_transforms,
+    sizeof(state->shadowmap_3d_transforms)
   );
   memcpy(
-    shader_common->texture_shadowmap_transforms,
-    state->texture_shadowmap_transforms,
-    sizeof(state->texture_shadowmap_transforms)
+    shader_common->shadowmap_2d_transforms,
+    state->shadowmap_2d_transforms,
+    sizeof(state->shadowmap_2d_transforms)
   );
 
   shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
@@ -563,6 +567,9 @@ void Renderer::copy_scene_data_to_ubo(
 
   shader_common->shadow_far_clip_dist = state->builtin_textures.shadowmap_far_clip_dist;
   shader_common->is_blur_horizontal = is_blur_horizontal;
+  shader_common->renderdebug_displayed_texture_type =
+    state->renderdebug_displayed_texture_type;
+  shader_common->unused_pad = 0;
 
   shader_common->exposure = state->camera_active->exposure;
   shader_common->t = (float)state->t;
@@ -1064,8 +1071,8 @@ void Renderer::render(State *state) {
       glm::mat4 perspective_projection = glm::perspective(
         glm::radians(90.0f),
         (
-          (real32)state->builtin_textures.cube_shadowmap_width /
-          (real32)state->builtin_textures.cube_shadowmap_height
+          (real32)state->builtin_textures.shadowmap_3d_width /
+          (real32)state->builtin_textures.shadowmap_3d_height
         ),
         state->builtin_textures.shadowmap_near_clip_dist,
         state->builtin_textures.shadowmap_far_clip_dist
@@ -1092,7 +1099,7 @@ void Renderer::render(State *state) {
         glm::vec3 position = spatial_component->position;
 
         for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
-          state->cube_shadowmap_transforms[(idx_light * 6) + idx_face] =
+          state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
             perspective_projection * glm::lookAt(
               position,
               position + CUBEMAP_OFFSETS[idx_face],
@@ -1102,12 +1109,12 @@ void Renderer::render(State *state) {
 
         glViewport(
           0, 0,
-          state->builtin_textures.cube_shadowmap_width,
-          state->builtin_textures.cube_shadowmap_height
+          state->builtin_textures.shadowmap_3d_width,
+          state->builtin_textures.shadowmap_3d_height
         );
         glBindFramebuffer(
           GL_FRAMEBUFFER,
-          state->builtin_textures.cube_shadowmaps_framebuffer
+          state->builtin_textures.shadowmaps_3d_framebuffer
         );
         glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -1127,8 +1134,8 @@ void Renderer::render(State *state) {
     // Directional lights
     {
       real32 ortho_ratio = (
-        (real32)state->builtin_textures.texture_shadowmap_width /
-        (real32)state->builtin_textures.texture_shadowmap_height
+        (real32)state->builtin_textures.shadowmap_2d_width /
+        (real32)state->builtin_textures.shadowmap_2d_height
       );
       real32 ortho_width = 100.0f;
       real32 ortho_height = ortho_width / ortho_ratio;
@@ -1157,7 +1164,7 @@ void Renderer::render(State *state) {
           continue;
         }
 
-        state->texture_shadowmap_transforms[idx_light] = ortho_projection * glm::lookAt(
+        state->shadowmap_2d_transforms[idx_light] = ortho_projection * glm::lookAt(
           spatial_component->position,
           spatial_component->position + light_component->direction,
           glm::vec3(0.0f, -1.0f, 0.0f)
@@ -1165,12 +1172,12 @@ void Renderer::render(State *state) {
 
         glViewport(
           0, 0,
-          state->builtin_textures.texture_shadowmap_width,
-          state->builtin_textures.texture_shadowmap_height
+          state->builtin_textures.shadowmap_2d_width,
+          state->builtin_textures.shadowmap_2d_height
         );
         glBindFramebuffer(
           GL_FRAMEBUFFER,
-          state->builtin_textures.texture_shadowmaps_framebuffer
+          state->builtin_textures.shadowmaps_2d_framebuffer
         );
         glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -1321,6 +1328,15 @@ void Renderer::render(State *state) {
     render_scene(
       state,
       RenderPass::postprocessing,
+      RenderMode::regular
+    );
+  }
+
+  // Debug pass
+  {
+    render_scene(
+      state,
+      RenderPass::renderdebug,
       RenderMode::regular
     );
   }

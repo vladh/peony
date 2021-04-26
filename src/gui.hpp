@@ -2,7 +2,7 @@
 #define GUI_HPP
 
 constexpr uint32 GUI_MAX_CONSOLE_LINE_LENGTH = 200;
-constexpr uint32 GUI_MAX_N_CONSOLE_LINES = 10;
+constexpr uint32 GUI_MAX_N_CONSOLE_LINES = 30;
 constexpr char GUI_CONSOLE_SYMBOL[] = "> ";
 constexpr size_t GUI_CONSOLE_SYMBOL_LENGTH = 2;
 
@@ -84,7 +84,7 @@ namespace Gui {
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_SIZE = glm::vec2(20.0f);
   constexpr glm::vec2 GUI_TOGGLE_BUTTON_DEFAULT_BORDER = glm::vec2(0.0f);
 
-  constexpr real32 GUI_MAX_CONSOLE_LOG_HEIGHT = 200.0f;
+  constexpr real32 GUI_MAX_CONSOLE_LOG_HEIGHT = 350.0f;
   constexpr glm::vec2 GUI_CONSOLE_PADDING = glm::vec2(10.0f);
 
   void update_screen_dimensions(

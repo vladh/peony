@@ -7,7 +7,6 @@ in BLOCK {
 layout (location = 0) out vec4 l_color;
 layout (location = 1) out vec4 l_bright_color;
 
-
 void main() {
   vec3 N = normalize(fs_in.normal);
   vec3 color = vec3(1.0);

@@ -22,14 +22,15 @@ namespace RenderPass {
   RenderPassFlag preblur = (1 << 7);
   RenderPassFlag blur1 = (1 << 8);
   RenderPassFlag blur2 = (1 << 9);
+  RenderPassFlag renderdebug = (1 << 10);
 };
 
 struct ShaderCommon {
   glm::mat4 view;
   glm::mat4 projection;
   glm::mat4 ui_projection;
-  glm::mat4 cube_shadowmap_transforms[6 * MAX_N_LIGHTS];
-  glm::mat4 texture_shadowmap_transforms[MAX_N_LIGHTS];
+  glm::mat4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+  glm::mat4 shadowmap_2d_transforms[MAX_N_LIGHTS];
 
   glm::vec3 camera_position;
   float camera_pitch;
@@ -46,8 +47,8 @@ struct ShaderCommon {
 
   float shadow_far_clip_dist;
   bool is_blur_horizontal;
-  float pad_1;
-  float pad_2;
+  TextureType renderdebug_displayed_texture_type;
+  int unused_pad;
 
   float exposure;
   float t;
