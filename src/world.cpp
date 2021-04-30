@@ -887,7 +887,7 @@ bool32 World::check_all_entities_loaded(State *state) {
 
 void World::update(State *state) {
   if (state->is_world_loaded && !state->was_world_ever_loaded) {
-    World::load_scene("coast", state);
+    World::load_scene(DEFAULT_SCENE, state);
     state->was_world_ever_loaded = true;
   }
 
@@ -906,6 +906,7 @@ void World::update(State *state) {
   );
 
   EntitySets::update_behavior_components(
+    state,
     &state->behavior_component_set,
     &state->spatial_component_set,
     state->t

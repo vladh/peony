@@ -17,7 +17,10 @@ struct Entity {
 EntityHandle Entity::no_entity_handle = 0;
 
 enum class Behavior {
-  none, test
+  none,
+  test,
+  char_movement_test,
+  length
 };
 
 struct BehaviorComponent {

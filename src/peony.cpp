@@ -27,6 +27,7 @@
 #include "memory.cpp"
 #include "input.cpp"
 #include "entities.cpp"
+#include "behavior_functions.cpp"
 #include "entity_sets.cpp"
 #include "gui.cpp"
 #include "models.cpp"

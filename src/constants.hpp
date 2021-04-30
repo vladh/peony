@@ -16,6 +16,7 @@ constexpr real64 PI = 3.14159265358979323846;
 #endif
 #endif
 
+constexpr char DEFAULT_SCENE[] = "terraintest";
 constexpr char TEXTURE_DIR[] = "resources/textures/";
 constexpr char MODEL_DIR[] = "resources/models/";
 constexpr char SCENE_DIR[] = "data/scenes/";

@@ -158,6 +158,7 @@ void EntitySets::update_animation_components(
 
 
 void EntitySets::update_behavior_components(
+  State *state,
   BehaviorComponentSet *behavior_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t
@@ -169,19 +170,9 @@ void EntitySets::update_behavior_components(
 
     EntityHandle entity_handle = behavior_component->entity_handle;
 
-    SpatialComponent *spatial_component =
-      spatial_component_set->components[entity_handle];
-    if (!spatial_component) {
-      log_error("Could not get SpatialComponent for BehaviorComponent");
-      continue;
-    }
-
-    if (behavior_component->behavior == Behavior::test) {
-      spatial_component->position = glm::vec3(
-        (real32)sin(t) * 15.0f,
-        (real32)((sin(t * 2.0f) + 1.5) * 3.0f),
-        (real32)cos(t) * 15.0f
-      );
+    auto handler = BEHAVIOR_FUNCTION_MAP[(uint32)behavior_component->behavior];
+    if (handler) {
+      handler(state, entity_handle);
     }
   }
 }
