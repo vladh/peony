@@ -3,6 +3,8 @@ const char* Entities::behavior_to_string(Behavior behavior) {
     return "none";
   } else if (behavior == Behavior::test) {
     return "test";
+  } else if (behavior == Behavior::char_movement_test) {
+    return "char_movement_test";
   } else {
     log_error("Don't know how to convert Behavior to string: %d", behavior);
     return "<unknown>";
@@ -15,6 +17,8 @@ Behavior Entities::behavior_from_string(const char *str) {
     return Behavior::none;
   } else if (strcmp(str, "test") == 0) {
     return Behavior::test;
+  } else if (strcmp(str, "char_movement_test") == 0) {
+    return Behavior::char_movement_test;
   } else {
     log_fatal("Could not parse Behavior: %s", str);
     return Behavior::none;

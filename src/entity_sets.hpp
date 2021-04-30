@@ -77,6 +77,7 @@ namespace EntitySets {
     BoneMatrixPool *bone_matrix_pool
   );
   void update_behavior_components(
+    State *state,
     BehaviorComponentSet *behavior_component_set,
     SpatialComponentSet *spatial_component_set,
     real64 t
