@@ -698,6 +698,8 @@ bool32 World::load_scene(
   // Destroy everything after we've confirmed we could load the scene.
   destroy_scene(state);
 
+  strcpy(state->current_scene_name, scene_name);
+
   // Get only the unique used materials
   StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
   for_each (entity_template, entity_templates) {

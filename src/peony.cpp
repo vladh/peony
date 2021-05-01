@@ -151,6 +151,12 @@ void process_input(GLFWwindow *window, State *state) {
     Renderer::update_drawing_options(state, window);
   }
 
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_R)) {
+    World::load_scene(
+      state->current_scene_name, state
+    );
+  }
+
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_TAB)) {
     state->should_pause = !state->should_pause;
   }
