@@ -9,7 +9,7 @@ struct Obb {
 
 namespace Physics {
   bool32 is_obb_valid(Obb *obb);
-  Obb apply_model_matrix_to_obb(Obb obb, glm::mat4 *model_matrix);
+  Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
 }
 
 #endif

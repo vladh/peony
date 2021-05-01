@@ -350,8 +350,7 @@ void EntitySets::draw(
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
   glm::mat4 *bone_matrices,
-  ShaderAsset *standard_depth_shader_asset,
-  DebugDrawState *debug_draw_state
+  ShaderAsset *standard_depth_shader_asset
 ) {
   ShaderAsset *shader_asset = nullptr;
 
@@ -403,18 +402,6 @@ void EntitySets::draw(
         shader_asset, MAX_N_BONES, "bone_matrices[0]", bone_matrices
       );
     }
-  }
-
-  if (Physics::is_obb_valid(&drawable_component->obb)) {
-    Obb transformed_obb = Physics::apply_model_matrix_to_obb(
-      drawable_component->obb,
-      model_matrix
-    );
-    DebugDraw::draw_obb(
-      debug_draw_state,
-      &transformed_obb,
-      glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
-    );
   }
 
   Mesh *mesh = &drawable_component->mesh;
@@ -500,6 +487,18 @@ void EntitySets::draw_all(
       if (animation_component) {
         bone_matrices = animation_component->bone_matrices;
       }
+
+      // Bounding boxes
+      if (Physics::is_obb_valid(&drawable_component->obb)) {
+        Obb transformed_obb = Physics::transform_obb(
+          drawable_component->obb, spatial
+        );
+        DebugDraw::draw_obb(
+          debug_draw_state,
+          &transformed_obb,
+          glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
+        );
+      }
     }
 
     draw(
@@ -510,8 +509,7 @@ void EntitySets::draw_all(
       &model_matrix,
       &model_normal_matrix,
       bone_matrices,
-      standard_depth_shader_asset,
-      debug_draw_state
+      standard_depth_shader_asset
     );
   }
 }
