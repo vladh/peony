@@ -116,8 +116,7 @@ namespace EntitySets {
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
     glm::mat4 *bone_matrices,
-    ShaderAsset *standard_depth_shader_asset,
-    DebugDrawState *debug_draw_state
+    ShaderAsset *standard_depth_shader_asset
   );
   void draw_all(
     EntitySet *entity_set,

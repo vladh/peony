@@ -3,9 +3,11 @@ bool32 Physics::is_obb_valid(Obb *obb) {
 }
 
 
-Obb Physics::apply_model_matrix_to_obb(Obb obb, glm::mat4 *model_matrix) {
-  obb.center = glm::vec3(*model_matrix * glm::vec4(obb.center, 1.0f));
-  obb.axes[0] = glm::normalize(glm::mat3(*model_matrix) * obb.axes[0]);
-  obb.axes[1] = glm::normalize(glm::mat3(*model_matrix) * obb.axes[1]);
+Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
+  glm::mat3 rotation = glm::toMat3(glm::normalize(spatial->rotation));
+  obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
+  obb.axes[0] = glm::normalize(rotation * obb.axes[0]);
+  obb.axes[1] = glm::normalize(rotation * obb.axes[1]);
+  obb.extents *= spatial->scale;
   return obb;
 }
