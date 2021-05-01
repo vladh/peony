@@ -47,6 +47,10 @@ struct AnimationComponentSet {
   Array<AnimationComponent> components;
 };
 
+struct PhysicsComponentSet {
+  Array<PhysicsComponent> components;
+};
+
 namespace EntitySets {
   uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool);
   glm::mat4* get_bone_matrix(
@@ -123,6 +127,7 @@ namespace EntitySets {
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     AnimationComponentSet *animation_component_set,
+    PhysicsComponentSet *physics_component_set,
     Array<Material> *materials,
     RenderPassFlag render_pass,
     RenderMode render_mode,

@@ -65,15 +65,14 @@ struct EntityLoader {
   SpatialComponent spatial_component;
   LightComponent light_component;
   BehaviorComponent behavior_component;
+  PhysicsComponent physics_component;
   RenderPassFlag render_pass;
-  Obb obb;
   EntityLoaderState state;
 };
 
 struct DrawableComponent {
   EntityHandle entity_handle;
   Mesh mesh;
-  Obb obb;
   RenderPassFlag target_render_pass = RenderPass::none;
 };
 
@@ -135,7 +134,8 @@ namespace Models {
     SpatialComponentSet *spatial_component_set,
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set,
-    AnimationComponentSet *animation_component_set
+    AnimationComponentSet *animation_component_set,
+    PhysicsComponentSet *physics_component_set
   );
   ModelLoader* init_model_loader(
     ModelLoader *model_loader,

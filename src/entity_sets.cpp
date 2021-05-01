@@ -419,6 +419,7 @@ void EntitySets::draw_all(
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
   AnimationComponentSet *animation_component_set,
+  PhysicsComponentSet *physics_component_set,
   Array<Material> *materials,
   RenderPassFlag render_pass,
   RenderMode render_mode,
@@ -452,26 +453,27 @@ void EntitySets::draw_all(
       material = Materials::get_material_by_name(materials, "unknown");
     }
 
-    SpatialComponent *spatial =
+    SpatialComponent *spatial_component =
       spatial_component_set->components[drawable_component->entity_handle];
 
     glm::mat4 model_matrix = glm::mat4(1.0f);
     glm::mat3 model_normal_matrix = glm::mat3(1.0f);
     glm::mat4 *bone_matrices = nullptr;
 
-    if (Entities::is_spatial_component_valid(spatial)) {
+    if (Entities::is_spatial_component_valid(spatial_component)) {
       // We only need to calculate the normal matrix if we have non-uniform
       // scaling.
-      model_matrix = make_model_matrix(spatial_component_set, spatial, &cache);
+      model_matrix = make_model_matrix(spatial_component_set, spatial_component, &cache);
 
       // TODO: Even though we have a uniform scaling in the transformation for
       // our spatial component itself, when accumulating it with the parent
       // spatial components, we might (possibly) get non-uniform scaling,
       // in which case we want to calculate the model normal matrix!
-      // Oops! We should be looking at the model_matrix and not at spatial->scale.
+      // Oops! We should be looking at the model_matrix and not at
+      // spatial_component->scale.
       if (
-        spatial->scale.x == spatial->scale.y &&
-        spatial->scale.y == spatial->scale.z
+        spatial_component->scale.x == spatial_component->scale.y &&
+        spatial_component->scale.y == spatial_component->scale.z
       ) {
         model_normal_matrix = glm::mat3(model_matrix);
       } else {
@@ -480,7 +482,7 @@ void EntitySets::draw_all(
 
       // Animations
       AnimationComponent *animation_component = find_animation_component(
-        spatial,
+        spatial_component,
         spatial_component_set,
         animation_component_set
       );
@@ -489,9 +491,12 @@ void EntitySets::draw_all(
       }
 
       // Bounding boxes
-      if (Physics::is_obb_valid(&drawable_component->obb)) {
+      PhysicsComponent *physics_component =
+        physics_component_set->components[drawable_component->entity_handle];
+
+      if (Entities::is_physics_component_valid(physics_component)) {
         Obb transformed_obb = Physics::transform_obb(
-          drawable_component->obb, spatial
+          physics_component->obb, spatial_component
         );
         DebugDraw::draw_obb(
           debug_draw_state,

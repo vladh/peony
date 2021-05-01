@@ -1,8 +1,3 @@
-bool32 Physics::is_obb_valid(Obb *obb) {
-  return obb->extents.x > 0;
-}
-
-
 Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
   glm::mat3 rotation = glm::toMat3(glm::normalize(spatial->rotation));
   obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
