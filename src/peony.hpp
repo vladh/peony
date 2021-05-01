@@ -14,6 +14,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <signal.h>
+#include <float.h>
 
 #ifdef _WIN32
 #include <intrin.h>

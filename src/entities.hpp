@@ -65,6 +65,7 @@ struct AnimationComponent {
 struct PhysicsComponent {
   EntityHandle entity_handle;
   Obb obb;
+  Obb transformed_obb;
 };
 
 struct SpatialComponent {
