@@ -55,6 +55,7 @@ struct State {
   uint32 first_non_internal_material_idx;
 
   GuiState gui_state;
+  DebugDrawState debug_draw_state;
 
   EntitySet entity_set;
   EntityLoaderSet entity_loader_set;

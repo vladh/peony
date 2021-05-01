@@ -66,12 +66,14 @@ struct EntityLoader {
   LightComponent light_component;
   BehaviorComponent behavior_component;
   RenderPassFlag render_pass;
+  Obb obb;
   EntityLoaderState state;
 };
 
 struct DrawableComponent {
   EntityHandle entity_handle;
   Mesh mesh;
+  Obb obb;
   RenderPassFlag target_render_pass = RenderPass::none;
 };
 

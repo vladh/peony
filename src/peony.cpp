@@ -26,10 +26,12 @@
 #include "camera.cpp"
 #include "memory.cpp"
 #include "input.cpp"
+#include "physics.cpp"
 #include "entities.cpp"
 #include "behavior_functions.cpp"
 #include "entity_sets.cpp"
 #include "gui.cpp"
+#include "debugdraw.cpp"
 #include "models.cpp"
 #include "world.cpp"
 #include "state.cpp"
@@ -328,6 +330,11 @@ int main() {
     state->window_info.width, state->window_info.height
   );
   Gui::console_print(&state->gui_state, "Hello world!");
+
+  DebugDraw::init_debug_draw_state(
+    &state->debug_draw_state,
+    &asset_memory_pool
+  );
 
   Cameras::init_camera(
     &state->camera_main,

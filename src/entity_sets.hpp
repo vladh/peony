@@ -111,12 +111,13 @@ namespace EntitySets {
   void draw(
     RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
-    Mesh *mesh,
+    DrawableComponent *drawable_component,
     Material *material,
     glm::mat4 *model_matrix,
     glm::mat3 *model_normal_matrix,
     glm::mat4 *bone_matrices,
-    ShaderAsset *standard_depth_shader_asset
+    ShaderAsset *standard_depth_shader_asset,
+    DebugDrawState *debug_draw_state
   );
   void draw_all(
     EntitySet *entity_set,
@@ -127,7 +128,8 @@ namespace EntitySets {
     RenderPassFlag render_pass,
     RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset,
-    real64 t
+    real64 t,
+    DebugDrawState *debug_draw_state
   );
 }
 

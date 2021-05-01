@@ -865,7 +865,7 @@ GuiState* Gui::init_gui_state(
     glBindVertexArray(gui_state->vao);
     glBindBuffer(GL_ARRAY_BUFFER, gui_state->vbo);
     glBufferData(
-      GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * 6 * GUI_MAX_N_VERTICES,
+      GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * GUI_MAX_N_VERTICES,
       NULL, GL_DYNAMIC_DRAW
     );
 

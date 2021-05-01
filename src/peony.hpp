@@ -68,6 +68,8 @@ namespace chrono = std::chrono;
 #include "tasks.hpp"
 #include "fonts.hpp"
 #include "renderer.hpp"
+#include "physics.hpp"
+#include "debugdraw.hpp"
 #include "entities.hpp"
 #include "entity_sets.hpp"
 #include "models.hpp"

@@ -345,12 +345,13 @@ AnimationComponent* EntitySets::find_animation_component(
 void EntitySets::draw(
   RenderMode render_mode,
   DrawableComponentSet *drawable_component_set,
-  Mesh *mesh,
+  DrawableComponent *drawable_component,
   Material *material,
   glm::mat4 *model_matrix,
   glm::mat3 *model_normal_matrix,
   glm::mat4 *bone_matrices,
-  ShaderAsset *standard_depth_shader_asset
+  ShaderAsset *standard_depth_shader_asset,
+  DebugDrawState *debug_draw_state
 ) {
   ShaderAsset *shader_asset = nullptr;
 
@@ -404,6 +405,19 @@ void EntitySets::draw(
     }
   }
 
+  if (Physics::is_obb_valid(&drawable_component->obb)) {
+    Obb transformed_obb = Physics::apply_model_matrix_to_obb(
+      drawable_component->obb,
+      model_matrix
+    );
+    DebugDraw::draw_obb(
+      debug_draw_state,
+      &transformed_obb,
+      glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
+    );
+  }
+
+  Mesh *mesh = &drawable_component->mesh;
   glBindVertexArray(mesh->vao);
   if (mesh->n_indices > 0) {
     glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
@@ -422,7 +436,8 @@ void EntitySets::draw_all(
   RenderPassFlag render_pass,
   RenderMode render_mode,
   ShaderAsset *standard_depth_shader_asset,
-  real64 t
+  real64 t,
+  DebugDrawState *debug_draw_state
 ) {
   ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
 
@@ -490,12 +505,13 @@ void EntitySets::draw_all(
     draw(
       render_mode,
       drawable_component_set,
-      &drawable_component->mesh,
+      drawable_component,
       material,
       &model_matrix,
       &model_normal_matrix,
       bone_matrices,
-      standard_depth_shader_asset
+      standard_depth_shader_asset,
+      debug_draw_state
     );
   }
 }

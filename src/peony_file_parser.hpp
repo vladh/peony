@@ -30,6 +30,7 @@ struct EntityTemplate {
   ModelSource model_source;
   StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
   RenderPassFlag render_pass;
+  Obb obb;
   // NOTE: The `entity_handle` and `parent_entity_handle` properties
   // must be filled in later!
   SpatialComponent spatial_component;
