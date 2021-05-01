@@ -34,6 +34,7 @@ struct State {
   Camera camera_main;
   Camera *camera_active;
   InputState input_state;
+  char current_scene_name[MAX_TOKEN_LENGTH];
 
   // NOTE: `t` and `dt` will not change when gameplay is paused.
   real64 t; // us

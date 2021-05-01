@@ -496,7 +496,7 @@ void EntitySets::draw_all(
         DebugDraw::draw_obb(
           debug_draw_state,
           &transformed_obb,
-          glm::vec4(1.0f, 0.0f, 1.0f, 1.0f)
+          glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)
         );
       }
     }

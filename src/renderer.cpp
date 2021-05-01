@@ -917,8 +917,10 @@ void Renderer::render_scene_ui(State *state) {
   }
 
   {
+    strcpy(debug_text, "Peony debug info: ");
+    strcat(debug_text, state->current_scene_name);
     GuiContainer *container = Gui::make_container(
-      &state->gui_state, "Peony debug info", glm::vec2(25.0f, 25.0f)
+      &state->gui_state, debug_text, glm::vec2(25.0f, 25.0f)
     );
 
     sprintf(debug_text, "%d fps", state->perf_counters.last_fps);

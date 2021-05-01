@@ -23,6 +23,18 @@ spatial_component.rotation = vec4(-30.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(0.2, 0.2, 0.2)
 behavior_component.behavior = char_movement_test
 
+> platform
+model_path = platform/platform.obj
+materials = [platform]
+render_passes = [deferred, shadowcaster]
+obb.center = vec3(0.0, -3.0, 0.0)
+obb.axes.0 = vec3(1.0, 0.0, 0.0)
+obb.axes.1 = vec3(0.0, 1.0, 0.0)
+obb.extents = vec3(1.2, 5.0, 1.0)
+spatial_component.position = vec3(-19.0, 10.0, 12.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(10.0, 0.5, 10.0)
+
 > island
 model_path = island/island.obj
 materials = [island]
