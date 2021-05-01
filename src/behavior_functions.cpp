@@ -24,11 +24,13 @@ namespace BehaviorFunctions {
 
     spatial_component->position.x = (real32)sin(state->t) * 10.0f;
     spatial_component->position.z = (real32)cos(state->t) * 10.0f;
+    spatial_component->rotation.x = (real32)sin(state->t);
+    spatial_component->rotation.y = (real32)cos(state->t);
   }
 }
 
 // NOTE: Must match Behavior enum
-void (*BEHAVIOR_FUNCTION_MAP[Behavior::length]) (
+void (*BEHAVIOR_FUNCTION_MAP[(uint32)Behavior::length]) (
   State *state, EntityHandle entity_handle
 ) {
   nullptr,

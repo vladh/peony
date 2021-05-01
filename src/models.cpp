@@ -597,38 +597,22 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
 
     SpatialComponent *spatial_component =
       spatial_component_set->components[entity_loader->entity_handle];
-    memcpy(
-      spatial_component,
-      &entity_loader->spatial_component,
-      sizeof(SpatialComponent)
-    );
+    *spatial_component = entity_loader->spatial_component;
     spatial_component->entity_handle = entity_loader->entity_handle;
 
     LightComponent *light_component =
       light_component_set->components[entity_loader->entity_handle];
-    memcpy(
-      light_component,
-      &entity_loader->light_component,
-      sizeof(LightComponent)
-    );
+    *light_component = entity_loader->light_component;
     light_component->entity_handle = entity_loader->entity_handle;
 
     BehaviorComponent *behavior_component =
       behavior_component_set->components[entity_loader->entity_handle];
-    memcpy(
-      behavior_component,
-      &entity_loader->behavior_component,
-      sizeof(BehaviorComponent)
-    );
+    *behavior_component = entity_loader->behavior_component;
     behavior_component->entity_handle = entity_loader->entity_handle;
 
     AnimationComponent *animation_component =
       animation_component_set->components[entity_loader->entity_handle];
-    memcpy(
-      animation_component,
-      &model_loader->animation_component,
-      sizeof(AnimationComponent)
-    );
+    *animation_component = model_loader->animation_component;
     animation_component->entity_handle = entity_loader->entity_handle;
 
     // DrawableComponent
@@ -639,6 +623,7 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
       *drawable_component = {
         .entity_handle = entity_loader->entity_handle,
         .mesh = model_loader->meshes[0],
+        .obb = entity_loader->obb,
         .target_render_pass = entity_loader->render_pass,
       };
     } else if (model_loader->n_meshes > 1) {

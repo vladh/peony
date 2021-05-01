@@ -31,7 +31,6 @@ struct GuiState {
   TextureAtlas texture_atlas;
   uint32 vao;
   uint32 vbo;
-  glm::mat4 text_projection;
   glm::vec2 window_dimensions;
   uint32 n_vertices_pushed;
 

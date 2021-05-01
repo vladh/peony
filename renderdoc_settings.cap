@@ -5,7 +5,7 @@
         "commandLine": "",
         "environment": [
         ],
-        "executable": "D:\\proj-versioned\\gl\\build\\gl.exe",
+        "executable": "D:\\proj-versioned\\peony\\build\\peony.exe",
         "inject": false,
         "numQueuedFrames": 0,
         "options": {
@@ -22,6 +22,6 @@
             "verifyBufferAccess": false
         },
         "queuedFrameCap": 0,
-        "workingDir": "D:/proj-versioned/gl"
+        "workingDir": "D:/proj-versioned/peony"
     }
 }

@@ -879,7 +879,8 @@ void Renderer::render_scene(
     render_pass,
     render_mode,
     &state->standard_depth_shader_asset,
-    state->t
+    state->t,
+    &state->debug_draw_state
   );
 }
 
@@ -1285,6 +1286,11 @@ void Renderer::render(State *state) {
       if (state->should_use_wireframe) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
       }
+    }
+
+    // Debug draw pass
+    {
+      DebugDraw::render(&state->debug_draw_state);
     }
   }
 

@@ -192,24 +192,10 @@ void World::create_entity_loader_from_entity_template(
     entity_template->render_pass,
     entity_handle
   );
-
-  memcpy(
-    &entity_loader->spatial_component,
-    &entity_template->spatial_component,
-    sizeof(SpatialComponent)
-  );
-
-  memcpy(
-    &entity_loader->light_component,
-    &entity_template->light_component,
-    sizeof(LightComponent)
-  );
-
-  memcpy(
-    &entity_loader->behavior_component,
-    &entity_template->behavior_component,
-    sizeof(BehaviorComponent)
-  );
+  entity_loader->obb = entity_template->obb;
+  entity_loader->spatial_component = entity_template->spatial_component;
+  entity_loader->light_component = entity_template->light_component;
+  entity_loader->behavior_component = entity_template->behavior_component;
 }
 
 
