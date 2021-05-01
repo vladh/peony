@@ -89,6 +89,65 @@ glm::mat4 EntitySets::make_model_matrix(
 }
 
 
+void EntitySets::update_light_components(
+  LightComponentSet *light_component_set,
+  SpatialComponentSet *spatial_component_set,
+  real64 t,
+  glm::vec3 camera_position,
+  real32 dir_light_angle
+) {
+  for_each (light_component, light_component_set->components) {
+    if (light_component->entity_handle == Entity::no_entity_handle) {
+      continue;
+    }
+
+    SpatialComponent *spatial_component =
+      spatial_component_set->components[light_component->entity_handle];
+
+    if (!(
+      Entities::is_light_component_valid(light_component) &&
+      Entities::is_spatial_component_valid(spatial_component)
+    )) {
+      continue;
+    }
+
+    if (light_component->type == LightType::point) {
+      light_component->color.b = ((real32)sin(t) + 1.0f) / 2.0f * 50.0f;
+    }
+
+    // For the sun! :)
+    if (light_component->type == LightType::directional) {
+      spatial_component->position = camera_position +
+        -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
+      light_component->direction = glm::vec3(
+        sin(dir_light_angle), -cos(dir_light_angle), 0.0f
+      );
+    }
+  }
+}
+
+
+void EntitySets::update_behavior_components(
+  State *state,
+  BehaviorComponentSet *behavior_component_set,
+  SpatialComponentSet *spatial_component_set,
+  real64 t
+) {
+  for_each (behavior_component, behavior_component_set->components) {
+    if (!Entities::is_behavior_component_valid(behavior_component)) {
+      continue;
+    }
+
+    EntityHandle entity_handle = behavior_component->entity_handle;
+
+    auto handler = BEHAVIOR_FUNCTION_MAP[(uint32)behavior_component->behavior];
+    if (handler) {
+      handler(state, entity_handle);
+    }
+  }
+}
+
+
 void EntitySets::update_animation_components(
   AnimationComponentSet *animation_component_set,
   SpatialComponentSet *spatial_component_set,
@@ -157,61 +216,26 @@ void EntitySets::update_animation_components(
 }
 
 
-void EntitySets::update_behavior_components(
-  State *state,
-  BehaviorComponentSet *behavior_component_set,
-  SpatialComponentSet *spatial_component_set,
-  real64 t
+void EntitySets::update_physics_components(
+  PhysicsComponentSet *physics_component_set,
+  SpatialComponentSet *spatial_component_set
 ) {
-  for_each (behavior_component, behavior_component_set->components) {
-    if (!Entities::is_behavior_component_valid(behavior_component)) {
-      continue;
-    }
-
-    EntityHandle entity_handle = behavior_component->entity_handle;
-
-    auto handler = BEHAVIOR_FUNCTION_MAP[(uint32)behavior_component->behavior];
-    if (handler) {
-      handler(state, entity_handle);
-    }
-  }
-}
-
-
-void EntitySets::update_light_components(
-  LightComponentSet *light_component_set,
-  SpatialComponentSet *spatial_component_set,
-  real64 t,
-  glm::vec3 camera_position,
-  real32 dir_light_angle
-) {
-  for_each (light_component, light_component_set->components) {
-    if (light_component->entity_handle == Entity::no_entity_handle) {
+  for_each (physics_component, physics_component_set->components) {
+    if (!Entities::is_physics_component_valid(physics_component)) {
       continue;
     }
 
     SpatialComponent *spatial_component =
-      spatial_component_set->components[light_component->entity_handle];
+      spatial_component_set->components[physics_component->entity_handle];
 
-    if (!(
-      Entities::is_light_component_valid(light_component) &&
-      Entities::is_spatial_component_valid(spatial_component)
-    )) {
+    if (!Entities::is_spatial_component_valid(spatial_component)) {
+      log_warning("Tried to update physics component but it had no spatial component.");
       continue;
     }
 
-    if (light_component->type == LightType::point) {
-      light_component->color.b = ((real32)sin(t) + 1.0f) / 2.0f * 50.0f;
-    }
-
-    // For the sun! :)
-    if (light_component->type == LightType::directional) {
-      spatial_component->position = camera_position +
-        -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
-      light_component->direction = glm::vec3(
-        sin(dir_light_angle), -cos(dir_light_angle), 0.0f
-      );
-    }
+    physics_component->transformed_obb = Physics::transform_obb(
+      physics_component->obb, spatial_component
+    );
   }
 }
 
@@ -495,14 +519,38 @@ void EntitySets::draw_all(
         physics_component_set->components[drawable_component->entity_handle];
 
       if (Entities::is_physics_component_valid(physics_component)) {
-        Obb transformed_obb = Physics::transform_obb(
-          physics_component->obb, spatial_component
-        );
-        DebugDraw::draw_obb(
-          debug_draw_state,
-          &transformed_obb,
-          glm::vec4(0.0f, 0.0f, 1.0f, 1.0f)
-        );
+        bool32 did_intersect = false;
+
+        for_each (target_physics_component, physics_component_set->components) {
+          if (!Entities::is_physics_component_valid(target_physics_component)) {
+            continue;
+          }
+
+          if (physics_component == target_physics_component) {
+            continue;
+          }
+
+          if (Physics::intersect_obb_obb(
+            &physics_component->transformed_obb, &target_physics_component->transformed_obb
+          )) {
+            did_intersect = true;
+            break;
+          }
+        }
+
+        if (did_intersect) {
+          DebugDraw::draw_obb(
+            debug_draw_state,
+            &physics_component->transformed_obb,
+            glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+          );
+        } else {
+          DebugDraw::draw_obb(
+            debug_draw_state,
+            &physics_component->transformed_obb,
+            glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+          );
+        }
       }
     }
 

@@ -74,11 +74,12 @@ namespace EntitySets {
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
-  void update_animation_components(
-    AnimationComponentSet *animation_component_set,
+  void update_light_components(
+    LightComponentSet *light_component_set,
     SpatialComponentSet *spatial_component_set,
     real64 t,
-    BoneMatrixPool *bone_matrix_pool
+    glm::vec3 camera_position,
+    real32 dir_light_angle
   );
   void update_behavior_components(
     State *state,
@@ -86,12 +87,15 @@ namespace EntitySets {
     SpatialComponentSet *spatial_component_set,
     real64 t
   );
-  void update_light_components(
-    LightComponentSet *light_component_set,
+  void update_animation_components(
+    AnimationComponentSet *animation_component_set,
     SpatialComponentSet *spatial_component_set,
     real64 t,
-    glm::vec3 camera_position,
-    real32 dir_light_angle
+    BoneMatrixPool *bone_matrix_pool
+  );
+  void update_physics_components(
+    PhysicsComponentSet *physics_component_set,
+    SpatialComponentSet *spatial_component_set
   );
   uint32 get_bone_matrix_anim_key_for_timepoint(
     BoneMatrixPool *bone_matrix_pool,

@@ -11,6 +11,7 @@ struct Obb {
 
 namespace Physics {
   Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
+  bool32 intersect_obb_obb(Obb *obb1, Obb *obb2);
 }
 
 #endif

@@ -887,11 +887,12 @@ void World::update(State *state) {
   );
   state->is_world_loaded = check_all_entities_loaded(state);
 
-  EntitySets::update_animation_components(
-    &state->animation_component_set,
+  EntitySets::update_light_components(
+    &state->light_component_set,
     &state->spatial_component_set,
     state->t,
-    &state->bone_matrix_pool
+    state->camera_active->position,
+    state->dir_light_angle
   );
 
   EntitySets::update_behavior_components(
@@ -901,11 +902,15 @@ void World::update(State *state) {
     state->t
   );
 
-  EntitySets::update_light_components(
-    &state->light_component_set,
+  EntitySets::update_animation_components(
+    &state->animation_component_set,
     &state->spatial_component_set,
     state->t,
-    state->camera_active->position,
-    state->dir_light_angle
+    &state->bone_matrix_pool
+  );
+
+  EntitySets::update_physics_components(
+    &state->physics_component_set,
+    &state->spatial_component_set
   );
 }

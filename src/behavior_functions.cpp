@@ -22,8 +22,8 @@ namespace BehaviorFunctions {
       return;
     }
 
-    spatial_component->position.x = (real32)sin(state->t) * 10.0f;
-    spatial_component->position.z = (real32)cos(state->t) * 10.0f;
+    spatial_component->position.x = (real32)sin(state->t * 2.0f) * 5.0f;
+    spatial_component->position.z = (real32)cos(state->t * 2.0f) * 5.0f;
     spatial_component->rotation.x = (real32)sin(state->t);
     spatial_component->rotation.y = (real32)cos(state->t);
   }

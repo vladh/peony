@@ -793,6 +793,7 @@ void Renderer::init_window(WindowInfo *window_info) {
   // TODO: Remove GL_ARB_texture_storage_multisample
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glLineWidth(2.0f);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_MULTISAMPLE);
 
