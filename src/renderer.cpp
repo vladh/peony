@@ -875,6 +875,7 @@ void Renderer::render_scene(
     &state->drawable_component_set,
     &state->spatial_component_set,
     &state->animation_component_set,
+    &state->physics_component_set,
     &state->materials,
     render_pass,
     render_mode,

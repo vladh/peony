@@ -490,14 +490,14 @@ bool32 PeonyFileParser::parse_scene_file(
             Renderer::render_pass_from_string(prop_values[idx_value].string_value);
         }
         entity_template->render_pass = render_pass;
-      } else if (Str::eq(prop_name, "obb.center")) {
-        entity_template->obb.center = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "obb.axes.0")) {
-        entity_template->obb.axes[0] = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "obb.axes.1")) {
-        entity_template->obb.axes[1] = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "obb.extents")) {
-        entity_template->obb.extents = prop_values[0].vec3_value;
+      } else if (Str::eq(prop_name, "physics_component.obb.center")) {
+        entity_template->physics_component.obb.center = prop_values[0].vec3_value;
+      } else if (Str::eq(prop_name, "physics_component.obb.axes.0")) {
+        entity_template->physics_component.obb.axes[0] = prop_values[0].vec3_value;
+      } else if (Str::eq(prop_name, "physics_component.obb.axes.1")) {
+        entity_template->physics_component.obb.axes[1] = prop_values[0].vec3_value;
+      } else if (Str::eq(prop_name, "physics_component.obb.extents")) {
+        entity_template->physics_component.obb.extents = prop_values[0].vec3_value;
       } else if (Str::eq(prop_name, "spatial_component.position")) {
         entity_template->spatial_component.position = prop_values[0].vec3_value;
       } else if (Str::eq(prop_name, "spatial_component.rotation")) {

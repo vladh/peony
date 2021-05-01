@@ -192,10 +192,10 @@ void World::create_entity_loader_from_entity_template(
     entity_template->render_pass,
     entity_handle
   );
-  entity_loader->obb = entity_template->obb;
   entity_loader->spatial_component = entity_template->spatial_component;
   entity_loader->light_component = entity_template->light_component;
   entity_loader->behavior_component = entity_template->behavior_component;
+  entity_loader->physics_component = entity_template->physics_component;
 }
 
 
@@ -850,7 +850,8 @@ bool32 World::check_all_entities_loaded(State *state) {
       &state->spatial_component_set,
       &state->light_component_set,
       &state->behavior_component_set,
-      &state->animation_component_set
+      &state->animation_component_set,
+      &state->physics_component_set
     );
 
     // NOTE: If a certain EntityLoader is complete, it's done everything it

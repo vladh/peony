@@ -62,6 +62,11 @@ State* init_state(
       asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1
     )
   };
+  state->physics_component_set = {
+    .components = Array<PhysicsComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1
+    )
+  };
   state->bone_matrix_pool.bone_matrices = Array<glm::mat4>(
     asset_memory_pool,
     MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,

@@ -16,6 +16,16 @@ struct Entity {
 
 EntityHandle Entity::no_entity_handle = 0;
 
+enum class LightType {none, point, directional};
+
+struct LightComponent {
+  EntityHandle entity_handle;
+  LightType type = LightType::none;
+  glm::vec3 direction = glm::vec3(0.0f);
+  glm::vec4 color = glm::vec4(0.0f);
+  glm::vec4 attenuation = glm::vec4(0.0f);
+};
+
 enum class Behavior {
   none,
   test,
@@ -52,14 +62,9 @@ struct AnimationComponent {
   uint32 n_animations;
 };
 
-enum class LightType {none, point, directional};
-
-struct LightComponent {
+struct PhysicsComponent {
   EntityHandle entity_handle;
-  LightType type = LightType::none;
-  glm::vec3 direction = glm::vec3(0.0f);
-  glm::vec4 color = glm::vec4(0.0f);
-  glm::vec4 attenuation = glm::vec4(0.0f);
+  Obb obb;
 };
 
 struct SpatialComponent {
@@ -71,6 +76,13 @@ struct SpatialComponent {
 };
 
 namespace Entities {
+  const char* light_type_to_string(LightType light_type);
+  LightType light_type_from_string(const char *str);
+  uint32 light_type_to_int(LightType light_type);
+  bool32 is_light_component_valid(
+    LightComponent *light_component
+  );
+
   const char* behavior_to_string(Behavior behavior);
   Behavior behavior_from_string(const char *str);
   bool32 is_behavior_component_valid(
@@ -81,11 +93,8 @@ namespace Entities {
     AnimationComponent *animation_component
   );
 
-  const char* light_type_to_string(LightType light_type);
-  LightType light_type_from_string(const char *str);
-  uint32 light_type_to_int(LightType light_type);
-  bool32 is_light_component_valid(
-    LightComponent *light_component
+  bool32 is_physics_component_valid(
+    PhysicsComponent *physics_component
   );
 
   void print_spatial_component(

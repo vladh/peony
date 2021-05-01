@@ -586,7 +586,8 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
   SpatialComponentSet *spatial_component_set,
   LightComponentSet *light_component_set,
   BehaviorComponentSet *behavior_component_set,
-  AnimationComponentSet *animation_component_set
+  AnimationComponentSet *animation_component_set,
+  PhysicsComponentSet *physics_component_set
 ) {
   if (entity_loader->state == EntityLoaderState::initialized) {
     // Before we can create entities, we need this entity's models to have
@@ -615,6 +616,11 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
     *animation_component = model_loader->animation_component;
     animation_component->entity_handle = entity_loader->entity_handle;
 
+    PhysicsComponent *physics_component =
+      physics_component_set->components[entity_loader->entity_handle];
+    *physics_component = entity_loader->physics_component;
+    physics_component->entity_handle = entity_loader->entity_handle;
+
     // DrawableComponent
     if (model_loader->n_meshes == 1) {
       DrawableComponent *drawable_component =
@@ -623,7 +629,6 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
       *drawable_component = {
         .entity_handle = entity_loader->entity_handle,
         .mesh = model_loader->meshes[0],
-        .obb = entity_loader->obb,
         .target_render_pass = entity_loader->render_pass,
       };
     } else if (model_loader->n_meshes > 1) {
