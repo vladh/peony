@@ -788,9 +788,9 @@ void Renderer::init_window(WindowInfo *window_info) {
     log_warning("No support for GLAD_GL_ARB_buffer_storage");
   }
 
-  // TODO: Remove GL_EXT_debug_marker
-  // TODO: Remove GL_EXT_debug_label
-  // TODO: Remove GL_ARB_texture_storage_multisample
+  // TODO: Remove GL_EXT_debug_marker from GLAD
+  // TODO: Remove GL_EXT_debug_label from GLAD
+  // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glLineWidth(2.0f);
