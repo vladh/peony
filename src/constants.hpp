@@ -16,14 +16,14 @@ constexpr real64 PI = 3.14159265358979323846;
 #endif
 #endif
 
-constexpr char TEXTURE_DIR[] = "../resources/textures/";
-constexpr char MODEL_DIR[] = "../resources/models/";
-constexpr char FONTS_DIR[] = "../resources/fonts/";
-constexpr char SCENE_DIR[] = "../data/scenes/";
-constexpr char MATERIAL_FILE_DIRECTORY[] = "../data/materials/";
-constexpr char SHADER_COMMON_PATH[] = "../src/shaders/common.glsl";
-constexpr char SHADER_COMMON_FRAGMENT_PATH[] = "../src/shaders/common_fragment.glsl";
-constexpr char SHADER_DIR[] = "../src/shaders/";
+constexpr char TEXTURE_DIR[] = "resources/textures/";
+constexpr char MODEL_DIR[] = "resources/models/";
+constexpr char FONTS_DIR[] = "resources/fonts/";
+constexpr char SCENE_DIR[] = "data/scenes/";
+constexpr char MATERIAL_FILE_DIRECTORY[] = "data/materials/";
+constexpr char SHADER_COMMON_PATH[] = "src/shaders/common.glsl";
+constexpr char SHADER_COMMON_FRAGMENT_PATH[] = "src/shaders/common_fragment.glsl";
+constexpr char SHADER_DIR[] = "src/shaders/";
 constexpr char DEFAULT_SCENE[] = "terraintest";
 constexpr char SCENE_EXTENSION[] = ".peony_scene";
 constexpr char MATERIAL_FILE_EXTENSION[] = ".peony_materials";
