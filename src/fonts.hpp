@@ -40,7 +40,7 @@ namespace Fonts {
     TextureAtlas *texture_atlas,
     FT_Library *ft_library,
     const char *name,
-    const char *path,
+    const char *filename,
     uint16 font_size
   );
 }

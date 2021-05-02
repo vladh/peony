@@ -92,11 +92,15 @@ FontAsset* Fonts::init_font_asset(
   TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
-  const char *path,
+  const char *filename,
   uint16 font_size
 ) {
   font_asset->name = name;
   font_asset->font_size = font_size;
+
+  char path[MAX_PATH];
+  strcpy(path, FONTS_DIR);
+  strcat(path, filename);
 
   font_asset->characters = Array<Character>(
     memory_pool,

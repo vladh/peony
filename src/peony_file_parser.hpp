@@ -69,8 +69,6 @@ namespace PeonyFileParser {
   constexpr size_t TEXTURE_PREFIX_LENGTH = 9;
   constexpr const char *BUILTIN_TEXTURE_PREFIX = "builtin_textures.";
   constexpr size_t BUILTIN_TEXTURE_PREFIX_LENGTH = 17;
-  constexpr const char *MATERIAL_FILE_DIRECTORY = "data/materials/";
-  constexpr const char *MATERIAL_FILE_EXTENSION = ".peony_materials";
 
   void get_material_path(char *dest, const char *name);
   void print_material_template(MaterialTemplate *material_template);
