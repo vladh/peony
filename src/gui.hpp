@@ -52,8 +52,8 @@ struct GuiState {
 };
 
 namespace Gui {
-  constexpr const char *GUI_MAIN_FONT_REGULAR = "resources/fonts/SofiaProRegular.otf";
-  constexpr const char *GUI_MAIN_FONT_BOLD = "resources/fonts/SofiaProBold.otf";
+  constexpr const char *GUI_MAIN_FONT_REGULAR = "SofiaProRegular.otf";
+  constexpr const char *GUI_MAIN_FONT_BOLD = "SofiaProBold.otf";
   constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;
   constexpr real32 GUI_CONSOLE_LINE_SPACING_FACTOR = 1.2f;
 
