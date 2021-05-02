@@ -5,8 +5,10 @@ constexpr uint32 DT_HIST_LENGTH = 512;
 
 struct WindowInfo {
   GLFWwindow *window;
-  uint32 width;
-  uint32 height;
+  uint32 width; // in pixels (size of framebuffer)
+  uint32 height; // in pixels (size of framebuffer)
+  uint32 screencoord_width; // in screen coordinates
+  uint32 screencoord_height; // in screen coordinates
   char title[128];
 };
 

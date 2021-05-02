@@ -17,10 +17,10 @@ State* init_state(
   state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
 
   state->builtin_textures = {
-    .shadowmap_3d_width = state->window_info.width,
-    .shadowmap_3d_height = state->window_info.width,
-    .shadowmap_2d_width = (uint32)(2560.0f * 4.0f),
-    .shadowmap_2d_height = (uint32)(1440.0f * 4.0f),
+    .shadowmap_3d_width = MIN(state->window_info.width, 2000),
+    .shadowmap_3d_height = MIN(state->window_info.width, 2000),
+    .shadowmap_2d_width = 2560 * 2,
+    .shadowmap_2d_height = 1440 * 2,
     .shadowmap_near_clip_dist = 0.05f,
     .shadowmap_far_clip_dist = 200.0f,
   };
