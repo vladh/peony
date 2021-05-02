@@ -730,6 +730,9 @@ void Renderer::init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
   glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
 
+  // Create the window. Right now we're working with screencoord sizes,
+  // not pixels!
+
 #if USE_FULLSCREEN
   int32 n_monitors;
   GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
@@ -741,11 +744,12 @@ void Renderer::init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-  window_info->width = video_mode->width;
-  window_info->height = video_mode->height;
+  window_info->screencoord_width = video_mode->width;
+  window_info->screencoord_height = video_mode->height;
 
   GLFWwindow *window = glfwCreateWindow(
-    window_info->width, window_info->height, window_info->title,
+    window_info->screencoord_width, window_info->screencoord_height,
+    window_info->title,
 #if USE_WINDOWED_FULLSCREEN
     nullptr, nullptr
 #else
@@ -753,11 +757,12 @@ void Renderer::init_window(WindowInfo *window_info) {
 #endif
   );
 #else
-  window_info->width = 1920;
-  window_info->height = 1080;
+  window_info->screencoord_width = 1920;
+  window_info->screencoord_height = 1080;
 
   GLFWwindow *window = glfwCreateWindow(
-    window_info->width, window_info->height, window_info->title,
+    window_info->screencoord_width, window_info->screencoord_height,
+    window_info->title,
     nullptr, nullptr
   );
 
@@ -792,11 +797,6 @@ void Renderer::init_window(WindowInfo *window_info) {
   // TODO: Remove GL_EXT_debug_label from GLAD
   // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
 
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glLineWidth(2.0f);
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_MULTISAMPLE);
-
   if (USE_OPENGL_DEBUG) {
     if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
       GLint flags;
@@ -819,12 +819,22 @@ void Renderer::init_window(WindowInfo *window_info) {
     }
   }
 
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_MULTISAMPLE);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
-
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glLineWidth(2.0f);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+  // Get the framebuffer size. This is the actual window size in pixels.
+  int32 framebuffer_width;
+  int32 framebuffer_height;
+  glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+  window_info->width = (uint32)framebuffer_width;
+  window_info->height = (uint32)framebuffer_height;
   glViewport(0, 0, window_info->width, window_info->height);
+
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
@@ -924,6 +934,15 @@ void Renderer::render_scene_ui(State *state) {
     GuiContainer *container = Gui::make_container(
       &state->gui_state, debug_text, glm::vec2(25.0f, 25.0f)
     );
+
+    sprintf(debug_text, "%dx%d", state->window_info.width, state->window_info.height);
+    Gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
+
+    sprintf(
+      debug_text, "%dx%d",
+      state->window_info.screencoord_width, state->window_info.screencoord_height
+    );
+    Gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
 
     sprintf(debug_text, "%d fps", state->perf_counters.last_fps);
     Gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
