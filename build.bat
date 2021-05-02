@@ -64,7 +64,7 @@ freetype.lib opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib sh
 
 pushd build
 
-cl %compiler_flags% ..\src\peony.cpp ^
+cl %compiler_flags% ..\src\peony.cc ^
 /link /SUBSYSTEM:console %linker_flags% /out:peony.exe
 
 popd
