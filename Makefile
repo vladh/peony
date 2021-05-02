@@ -4,7 +4,7 @@ CC = g++
 CFLAGS = -I${HOME}/opt/include -std=c++2a -g -Wall -Wno-deprecated-volatile
 LDFLAGS = -lm -lglfw -lassimp -lfreetype
 
-OBJECTS = src/peony.cpp
+OBJECTS = src/peony.cc
 
 .PHONY: test default all clean
 default: $(TARGET)
