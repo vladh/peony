@@ -4,7 +4,7 @@
 template <typename T, uint32 new_capacity>
 class StackArray {
 public:
-  T items[new_capacity] = {0};
+  T items[new_capacity] = {};
   uint32 length = 0;
   uint32 capacity = new_capacity;
   bool32 is_sparse = false;
