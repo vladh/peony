@@ -68,24 +68,30 @@ namespace BehaviorFunctions {
         .origin = obb->center + obb->y_axis * obb->extents[1],
         .direction = obb->y_axis,
       };
-      PhysicsComponent *collidee = Physics::find_ray_collision(
+      RayCollisionResult ray_collision_result = Physics::find_ray_collision(
         &ray,
         physics_component,
         &state->physics_component_set
       );
 
-      if (collidee) {
+      if (ray_collision_result.did_intersect) {
         DebugDraw::draw_ray(
-          &state->debug_draw_state, &ray, 5.0f, v4(1.0f, 0.0f, 0.0f, 0.0f)
+          &state->debug_draw_state,
+          &ray,
+          ray_collision_result.distance,
+          v4(1.0f, 0.0f, 0.0f, 0.0f)
         );
         DebugDraw::draw_obb(
           &state->debug_draw_state,
-          &collidee->transformed_obb,
+          &ray_collision_result.collidee->transformed_obb,
           v4(1.0f, 0.0f, 0.0f, 1.0f)
         );
       } else {
         DebugDraw::draw_ray(
-          &state->debug_draw_state, &ray, 5.0f, v4(1.0f, 1.0f, 1.0f, 0.0f)
+          &state->debug_draw_state,
+          &ray,
+          5.0f,
+          v4(1.0f, 1.0f, 1.0f, 0.0f)
         );
       }
     }

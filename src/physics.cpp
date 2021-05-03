@@ -8,8 +8,46 @@ Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
 }
 
 
-bool32 Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
-  return sin(g_t) > 0.0f;
+RaycastResult Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
+  if (sin(g_t) > 0.0f) {
+    return {
+      .did_intersect = true,
+      .distance = 2.0f,
+    };
+  } else {
+    return {};
+  }
+}
+
+
+RayCollisionResult Physics::find_ray_collision(
+  Ray *ray,
+  // TODO: Replace this with some kind of collision layers.
+  PhysicsComponent *physics_component_to_ignore_or_nullptr,
+  PhysicsComponentSet *physics_component_set
+) {
+  for_each (candidate, physics_component_set->components) {
+    if (!Entities::is_physics_component_valid(candidate)) {
+      continue;
+    }
+
+    if (physics_component_to_ignore_or_nullptr == candidate) {
+      continue;
+    }
+
+    RaycastResult raycast_result = Physics::intersect_obb_ray(
+      &candidate->transformed_obb, ray
+    );
+    if (raycast_result.did_intersect) {
+      return {
+        .did_intersect = raycast_result.did_intersect,
+        .distance = raycast_result.distance,
+        .collidee = candidate,
+      };
+    }
+  }
+
+  return {};
 }
 
 
@@ -161,30 +199,6 @@ PhysicsComponent* Physics::find_physics_component_collision(
     if (Physics::intersect_obb_obb(
       &self->transformed_obb, &candidate->transformed_obb
     )) {
-      return candidate;
-    }
-  }
-
-  return nullptr;
-}
-
-
-PhysicsComponent* Physics::find_ray_collision(
-  Ray *ray,
-  // TODO: Replace this with some kind of collision layers.
-  PhysicsComponent *physics_component_to_ignore_or_nullptr,
-  PhysicsComponentSet *physics_component_set
-) {
-  for_each (candidate, physics_component_set->components) {
-    if (!Entities::is_physics_component_valid(candidate)) {
-      continue;
-    }
-
-    if (physics_component_to_ignore_or_nullptr == candidate) {
-      continue;
-    }
-
-    if (Physics::intersect_obb_ray(&candidate->transformed_obb, ray)) {
       return candidate;
     }
   }
