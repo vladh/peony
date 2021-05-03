@@ -37,4 +37,14 @@ typedef real64 r64;
 typedef real32 f32;
 typedef real64 f64;
 
+typedef glm::vec2 v2;
+typedef glm::vec3 v3;
+typedef glm::vec4 v4;
+typedef glm::ivec2 iv2;
+typedef glm::ivec3 iv3;
+typedef glm::ivec4 iv4;
+typedef glm::mat2 m2;
+typedef glm::mat3 m3;
+typedef glm::mat4 m4;
+
 #endif

@@ -21,9 +21,9 @@ enum class LightType {none, point, directional};
 struct LightComponent {
   EntityHandle entity_handle;
   LightType type = LightType::none;
-  glm::vec3 direction = glm::vec3(0.0f);
-  glm::vec4 color = glm::vec4(0.0f);
-  glm::vec4 attenuation = glm::vec4(0.0f);
+  v3 direction = v3(0.0f);
+  v4 color = v4(0.0f);
+  v4 attenuation = v4(0.0f);
 };
 
 enum class Behavior {
@@ -43,7 +43,7 @@ struct Bone {
   uint32 idx_parent;
   uint32 n_anim_keys;
   uint32 last_anim_key;
-  glm::mat4 offset;
+  m4 offset;
 };
 
 struct Animation {
@@ -56,7 +56,7 @@ struct Animation {
 struct AnimationComponent {
   EntityHandle entity_handle;
   Bone bones[MAX_N_BONES];
-  glm::mat4 bone_matrices[MAX_N_BONES];
+  m4 bone_matrices[MAX_N_BONES];
   uint32 n_bones;
   Animation animations[MAX_N_ANIMATIONS];
   uint32 n_animations;
@@ -70,9 +70,9 @@ struct PhysicsComponent {
 
 struct SpatialComponent {
   EntityHandle entity_handle;
-  glm::vec3 position = glm::vec3(0.0f);
-  glm::quat rotation = glm::angleAxis(0.0f, glm::vec3(0.0f));
-  glm::vec3 scale = glm::vec3(0.0f);
+  v3 position = v3(0.0f);
+  glm::quat rotation = glm::angleAxis(0.0f, v3(0.0f));
+  v3 scale = v3(0.0f);
   EntityHandle parent_entity_handle;
 };
 

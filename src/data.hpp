@@ -12,22 +12,22 @@ constexpr const char *DEPTH_TEXTURE_UNIFORM_NAMES[8] = {
   "depth_textures[7]"
 };
 
-constexpr glm::vec3 CUBEMAP_OFFSETS[6] = {
-  glm::vec3(1.0f, 0.0f, 0.0f),
-  glm::vec3(-1.0f, 0.0f, 0.0f),
-  glm::vec3(0.0f, 1.0f, 0.0f),
-  glm::vec3(0.0f, -1.0f, 0.0f),
-  glm::vec3(0.0f, 0.0f, 1.0f),
-  glm::vec3(0.0f, 0.0f, -1.0f)
+constexpr v3 CUBEMAP_OFFSETS[6] = {
+  v3(1.0f, 0.0f, 0.0f),
+  v3(-1.0f, 0.0f, 0.0f),
+  v3(0.0f, 1.0f, 0.0f),
+  v3(0.0f, -1.0f, 0.0f),
+  v3(0.0f, 0.0f, 1.0f),
+  v3(0.0f, 0.0f, -1.0f)
 };
 
-constexpr glm::vec3 CUBEMAP_UPS[6] = {
-  glm::vec3(0.0f, -1.0f, 0.0f),
-  glm::vec3(0.0f, -1.0f, 0.0f),
-  glm::vec3(0.0f, 0.0f, 1.0f),
-  glm::vec3(0.0f, 0.0f, -1.0f),
-  glm::vec3(0.0f, -1.0f, 0.0f),
-  glm::vec3(0.0f, -1.0f, 0.0f)
+constexpr v3 CUBEMAP_UPS[6] = {
+  v3(0.0f, -1.0f, 0.0f),
+  v3(0.0f, -1.0f, 0.0f),
+  v3(0.0f, 0.0f, 1.0f),
+  v3(0.0f, 0.0f, -1.0f),
+  v3(0.0f, -1.0f, 0.0f),
+  v3(0.0f, -1.0f, 0.0f)
 };
 
 constexpr real32 AXIS_SIZE = 20.0f;

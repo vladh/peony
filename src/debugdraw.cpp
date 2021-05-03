@@ -13,9 +13,9 @@ void DebugDraw::push_vertices(
 
 void DebugDraw::draw_line(
   DebugDrawState *debug_draw_state,
-  glm::vec3 start_pos,
-  glm::vec3 end_pos,
-  glm::vec4 color
+  v3 start_pos,
+  v3 end_pos,
+  v4 color
 ) {
   DebugDrawVertex vertices[2];
   vertices[0] = {start_pos, color};
@@ -28,16 +28,16 @@ void DebugDraw::draw_ray(
   DebugDrawState *debug_draw_state,
   Ray *ray,
   real32 length,
-  glm::vec4 color
+  v4 color
 ) {
-  glm::vec3 end_pos = ray->origin + ray->direction * length;
-  glm::vec3 x_axis = Util::get_orthogonal_vector(&ray->direction);
-  glm::vec3 z_axis = glm::cross(ray->direction, x_axis);
+  v3 end_pos = ray->origin + ray->direction * length;
+  v3 x_axis = Util::get_orthogonal_vector(&ray->direction);
+  v3 z_axis = glm::cross(ray->direction, x_axis);
   real32 chevron_size = 0.2f;
-  glm::vec3 chevron_1_pos = end_pos + ((-ray->direction + x_axis) * chevron_size);
-  glm::vec3 chevron_2_pos = end_pos + ((-ray->direction - x_axis) * chevron_size);
-  glm::vec3 chevron_3_pos = end_pos + ((-ray->direction + z_axis) * chevron_size);
-  glm::vec3 chevron_4_pos = end_pos + ((-ray->direction - z_axis) * chevron_size);
+  v3 chevron_1_pos = end_pos + ((-ray->direction + x_axis) * chevron_size);
+  v3 chevron_2_pos = end_pos + ((-ray->direction - x_axis) * chevron_size);
+  v3 chevron_3_pos = end_pos + ((-ray->direction + z_axis) * chevron_size);
+  v3 chevron_4_pos = end_pos + ((-ray->direction - z_axis) * chevron_size);
   draw_line(debug_draw_state, ray->origin, end_pos, color);
   draw_line(debug_draw_state, chevron_1_pos, end_pos, color);
   draw_line(debug_draw_state, chevron_2_pos, end_pos, color);
@@ -48,11 +48,11 @@ void DebugDraw::draw_ray(
 
 void DebugDraw::draw_quad(
   DebugDrawState *debug_draw_state,
-  glm::vec3 p1, // clockwise: top left
-  glm::vec3 p2, // top right
-  glm::vec3 p3, // bottom right
-  glm::vec3 p4, // bottom left
-  glm::vec4 color
+  v3 p1, // clockwise: top left
+  v3 p2, // top right
+  v3 p3, // bottom right
+  v3 p4, // bottom left
+  v4 color
 ) {
   draw_line(debug_draw_state, p1, p2, color);
   draw_line(debug_draw_state, p2, p3, color);
@@ -63,15 +63,15 @@ void DebugDraw::draw_quad(
 
 void DebugDraw::draw_box(
   DebugDrawState *debug_draw_state,
-  glm::vec3 p1, // clockwise top face: top left
-  glm::vec3 p2, // top right
-  glm::vec3 p3, // bottom right
-  glm::vec3 p4, // top left
-  glm::vec3 p5, // clockwise bottom face: top left
-  glm::vec3 p6, // top right
-  glm::vec3 p7, // bottom right
-  glm::vec3 p8, // top left
-  glm::vec4 color
+  v3 p1, // clockwise top face: top left
+  v3 p2, // top right
+  v3 p3, // bottom right
+  v3 p4, // top left
+  v3 p5, // clockwise bottom face: top left
+  v3 p6, // top right
+  v3 p7, // bottom right
+  v3 p8, // top left
+  v4 color
 ) {
   draw_quad(debug_draw_state, p1, p2, p3, p4, color);
   draw_quad(debug_draw_state, p5, p6, p7, p8, color);
@@ -85,20 +85,20 @@ void DebugDraw::draw_box(
 void DebugDraw::draw_obb(
   DebugDrawState *debug_draw_state,
   Obb *obb,
-  glm::vec4 color
+  v4 color
 ) {
-  glm::vec3 z_axis = glm::cross(obb->x_axis, obb->y_axis);
-  glm::vec3 dir1 = obb->x_axis * obb->extents[0];
-  glm::vec3 dir2 = obb->y_axis * obb->extents[1];
-  glm::vec3 dir3 = z_axis * obb->extents[2];
-  glm::vec3 p1 = obb->center - dir1 + dir2 - dir3;
-  glm::vec3 p2 = obb->center + dir1 + dir2 - dir3;
-  glm::vec3 p3 = obb->center + dir1 + dir2 + dir3;
-  glm::vec3 p4 = obb->center - dir1 + dir2 + dir3;
-  glm::vec3 p5 = obb->center - dir1 - dir2 - dir3;
-  glm::vec3 p6 = obb->center + dir1 - dir2 - dir3;
-  glm::vec3 p7 = obb->center + dir1 - dir2 + dir3;
-  glm::vec3 p8 = obb->center - dir1 - dir2 + dir3;
+  v3 z_axis = glm::cross(obb->x_axis, obb->y_axis);
+  v3 dir1 = obb->x_axis * obb->extents[0];
+  v3 dir2 = obb->y_axis * obb->extents[1];
+  v3 dir3 = z_axis * obb->extents[2];
+  v3 p1 = obb->center - dir1 + dir2 - dir3;
+  v3 p2 = obb->center + dir1 + dir2 - dir3;
+  v3 p3 = obb->center + dir1 + dir2 + dir3;
+  v3 p4 = obb->center - dir1 + dir2 + dir3;
+  v3 p5 = obb->center - dir1 - dir2 - dir3;
+  v3 p6 = obb->center + dir1 - dir2 - dir3;
+  v3 p7 = obb->center + dir1 - dir2 + dir3;
+  v3 p8 = obb->center - dir1 - dir2 + dir3;
   draw_quad(debug_draw_state, p1, p2, p3, p4, color);
   draw_quad(debug_draw_state, p5, p6, p7, p8, color);
   draw_quad(debug_draw_state, p1, p2, p6, p5, color);

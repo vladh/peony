@@ -11,16 +11,16 @@ enum class ModelSource {
 };
 
 struct Vertex {
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec2 tex_coords;
+  v3 position;
+  v3 normal;
+  v2 tex_coords;
   uint32 bone_idxs[MAX_N_BONES_PER_VERTEX];
   real32 bone_weights[MAX_N_BONES_PER_VERTEX];
 };
 
 struct Mesh {
   MemoryPool temp_memory_pool;
-  glm::mat4 transform;
+  m4 transform;
   char material_name[MAX_TOKEN_LENGTH];
   Pack indices_pack;
   uint32 vao;
@@ -103,14 +103,14 @@ namespace Models {
     aiMesh *mesh_data,
     const aiScene *scene,
     ModelLoader *model_loader,
-    glm::mat4 transform,
+    m4 transform,
     Pack indices_pack
   );
   void destroy_mesh(Mesh *mesh);
   void load_node(
     ModelLoader *model_loader,
     aiNode *node, const aiScene *scene,
-    glm::mat4 accumulated_transform, Pack indices_pack
+    m4 accumulated_transform, Pack indices_pack
   );
   void load_model_from_file(
     ModelLoader *model_loader,

@@ -260,8 +260,8 @@ void Util::make_sphere(
 }
 
 
-glm::vec3 Util::aiVector3D_to_glm(aiVector3D *vec) {
-  return glm::vec3(vec->x, vec->y, vec->z);
+v3 Util::aiVector3D_to_glm(aiVector3D *vec) {
+  return v3(vec->x, vec->y, vec->z);
 }
 
 
@@ -270,8 +270,8 @@ glm::quat Util::aiQuaternion_to_glm(aiQuaternion *quat) {
 }
 
 
-glm::mat4 Util::aimatrix4x4_to_glm(aiMatrix4x4 *from) {
-  glm::mat4 to;
+m4 Util::aimatrix4x4_to_glm(aiMatrix4x4 *from) {
+  m4 to;
 
   to[0][0] = (GLfloat)from->a1;
   to[0][1] = (GLfloat)from->b1;
@@ -444,10 +444,10 @@ real64 Util::get_us_from_duration(chrono::duration<real64> duration) {
 }
 
 
-glm::vec3 Util::get_orthogonal_vector(glm::vec3 *v) {
+v3 Util::get_orthogonal_vector(v3 *v) {
   if (v->z < v->x) {
-    return glm::vec3(v->y, -v->x, 0.0f);
+    return v3(v->y, -v->x, 0.0f);
   } else {
-    return glm::vec3(0.0f, -v->z, v->y);
+    return v3(0.0f, -v->z, v->y);
   }
 }

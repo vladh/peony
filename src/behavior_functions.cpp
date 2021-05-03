@@ -7,7 +7,7 @@ namespace BehaviorFunctions {
       return;
     }
 
-    spatial_component->position = glm::vec3(
+    spatial_component->position = v3(
       (real32)sin(state->t) * 15.0f,
       (real32)((sin(state->t * 2.0f) + 1.5) * 3.0f),
       (real32)cos(state->t) * 15.0f
@@ -45,18 +45,18 @@ namespace BehaviorFunctions {
       DebugDraw::draw_obb(
         &state->debug_draw_state,
         obb,
-        glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+        v4(1.0f, 0.0f, 0.0f, 1.0f)
       );
       DebugDraw::draw_obb(
         &state->debug_draw_state,
         &collidee->transformed_obb,
-        glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
+        v4(1.0f, 0.0f, 0.0f, 1.0f)
       );
     } else {
       DebugDraw::draw_obb(
         &state->debug_draw_state,
         obb,
-        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
+        v4(1.0f, 1.0f, 1.0f, 1.0f)
       );
     }
 
@@ -66,7 +66,7 @@ namespace BehaviorFunctions {
       .direction = obb->y_axis,
     };
     DebugDraw::draw_ray(
-      &state->debug_draw_state, &ray, 5.0f, glm::vec4(1.0f, 1.0f, 1.0f, 0.0f)
+      &state->debug_draw_state, &ray, 5.0f, v4(1.0f, 1.0f, 1.0f, 0.0f)
     );
   }
 }

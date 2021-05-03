@@ -40,7 +40,7 @@ bool32 Input::is_mouse_button_now_up(
 
 
 void Input::update_mouse(
-  InputState *input_state, glm::vec2 new_mouse_pos
+  InputState *input_state, v2 new_mouse_pos
 ) {
   if (!input_state->have_ever_gotten_mouse_pos) {
     input_state->mouse_pos = new_mouse_pos;
@@ -141,7 +141,7 @@ bool32 Input::is_key_now_up(
 
 
 bool32 Input::is_mouse_in_bb(
-  InputState *input_state, glm::vec2 topleft, glm::vec2 bottomright
+  InputState *input_state, v2 topleft, v2 bottomright
 ) {
   return input_state->mouse_pos.x > topleft.x &&
     input_state->mouse_pos.x < bottomright.x &&
@@ -188,7 +188,7 @@ InputState* Input::init_input_state(
   GLFWwindow *window
 ) {
   input_state->window = window;
-  input_state->mouse_pos = glm::vec2(0.0f, 0.0f);
+  input_state->mouse_pos = v2(0.0f, 0.0f);
   input_state->mouse_3d_sensitivity = 0.1f;
   input_state->current_cursor = nullptr;
   input_state->arrow_cursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);

@@ -143,9 +143,9 @@ void Models::load_animations(
   const aiScene *scene,
   BoneMatrixPool *bone_matrix_pool
 ) {
-  glm::mat4 scene_root_transform =
+  m4 scene_root_transform =
     Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
-  glm::mat4 inverse_scene_root_transform = glm::inverse(scene_root_transform);
+  m4 inverse_scene_root_transform = glm::inverse(scene_root_transform);
 
   animation_component->n_animations = scene->mNumAnimations;
   for_range_named (idx_animation, 0, scene->mNumAnimations) {
@@ -198,7 +198,7 @@ void Models::load_animations(
 
       for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
         // #slow: We could avoid this multiplication here.
-        glm::mat4 *bone_matrix = EntitySets::get_bone_matrix(
+        m4 *bone_matrix = EntitySets::get_bone_matrix(
           bone_matrix_pool,
           animation->idx_bone_matrix_set,
           idx_bone,
@@ -221,11 +221,11 @@ void Models::load_mesh(
   aiMesh *ai_mesh,
   const aiScene *scene,
   ModelLoader *model_loader,
-  glm::mat4 transform,
+  m4 transform,
   Pack indices_pack
 ) {
   mesh->transform = transform;
-  glm::mat3 normal_matrix = glm::mat3(glm::transpose(glm::inverse(transform)));
+  m3 normal_matrix = m3(glm::transpose(glm::inverse(transform)));
   mesh->mode = GL_TRIANGLES;
 
   mesh->indices_pack = indices_pack;
@@ -246,9 +246,9 @@ void Models::load_mesh(
     Vertex *vertex = &mesh->vertices[idx];
     *vertex = {};
 
-    vertex->position = glm::vec3(
+    vertex->position = v3(
       mesh->transform *
-      glm::vec4(
+      v4(
         ai_mesh->mVertices[idx].x,
         ai_mesh->mVertices[idx].y,
         ai_mesh->mVertices[idx].z,
@@ -258,7 +258,7 @@ void Models::load_mesh(
 
     vertex->normal = glm::normalize(
       normal_matrix *
-      glm::vec3(
+      v3(
         ai_mesh->mNormals[idx].x,
         ai_mesh->mNormals[idx].y,
         ai_mesh->mNormals[idx].z
@@ -266,7 +266,7 @@ void Models::load_mesh(
     );
 
     if (ai_mesh->mTextureCoords[0]) {
-      vertex->tex_coords = glm::vec2(
+      vertex->tex_coords = v2(
         ai_mesh->mTextureCoords[0][idx].x,
         1 - ai_mesh->mTextureCoords[0][idx].y
       );
@@ -353,10 +353,10 @@ void Models::destroy_mesh(Mesh *mesh) {
 void Models::load_node(
   ModelLoader *model_loader,
   aiNode *node, const aiScene *scene,
-  glm::mat4 accumulated_transform, Pack indices_pack
+  m4 accumulated_transform, Pack indices_pack
 ) {
-  glm::mat4 node_transform = Util::aimatrix4x4_to_glm(&node->mTransformation);
-  glm::mat4 transform = accumulated_transform * node_transform;
+  m4 node_transform = Util::aimatrix4x4_to_glm(&node->mTransformation);
+  m4 transform = accumulated_transform * node_transform;
 
   for_range (0, node->mNumMeshes) {
     aiMesh *ai_mesh = scene->mMeshes[node->mMeshes[idx]];
@@ -423,7 +423,7 @@ void Models::load_model_from_file(
   );
 
   load_node(
-    model_loader, scene->mRootNode, scene, glm::mat4(1.0f), 0ULL
+    model_loader, scene->mRootNode, scene, m4(1.0f), 0ULL
   );
 
   load_animations(
@@ -489,7 +489,7 @@ void Models::load_model_from_data(
 
   Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
   *mesh = {};
-  mesh->transform = glm::mat4(1.0f);
+  mesh->transform = m4(1.0f);
   mesh->mode = mode;
   mesh->n_vertices = n_vertices;
   mesh->n_indices = n_indices;
@@ -646,9 +646,9 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
           assert(child_spatial_component);
           *child_spatial_component = {
             .entity_handle = child_entity->handle,
-            .position = glm::vec3(0.0f),
-            .rotation = glm::angleAxis(glm::radians(0.0f), glm::vec3(0.0f)),
-            .scale = glm::vec3(0.0f),
+            .position = v3(0.0f),
+            .rotation = glm::angleAxis(glm::radians(0.0f), v3(0.0f)),
+            .scale = v3(0.0f),
             .parent_entity_handle = entity_loader->entity_handle,
           };
         }

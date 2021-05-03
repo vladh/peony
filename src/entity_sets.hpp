@@ -26,7 +26,7 @@ struct LightComponentSet {
 };
 
 struct ModelMatrixCache {
-  glm::mat4 last_model_matrix;
+  m4 last_model_matrix;
   SpatialComponent *last_model_matrix_spatial_component;
 };
 
@@ -53,7 +53,7 @@ struct PhysicsComponentSet {
 
 namespace EntitySets {
   uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool);
-  glm::mat4* get_bone_matrix(
+  m4* get_bone_matrix(
     BoneMatrixPool *pool,
     uint32 idx,
     uint32 idx_bone,
@@ -70,7 +70,7 @@ namespace EntitySets {
     EntitySet *entity_set,
     const char *debug_name
   );
-  glm::mat4 make_model_matrix(
+  m4 make_model_matrix(
     SpatialComponentSet *spatial_component_set,
     SpatialComponent *spatial_component, ModelMatrixCache *cache
   );
@@ -78,7 +78,7 @@ namespace EntitySets {
     LightComponentSet *light_component_set,
     SpatialComponentSet *spatial_component_set,
     real64 t,
-    glm::vec3 camera_position,
+    v3 camera_position,
     real32 dir_light_angle
   );
   void update_behavior_components(
@@ -121,9 +121,9 @@ namespace EntitySets {
     DrawableComponentSet *drawable_component_set,
     DrawableComponent *drawable_component,
     Material *material,
-    glm::mat4 *model_matrix,
-    glm::mat3 *model_normal_matrix,
-    glm::mat4 *bone_matrices,
+    m4 *model_matrix,
+    m3 *model_normal_matrix,
+    m4 *bone_matrices,
     ShaderAsset *standard_depth_shader_asset
   );
   void draw_all(

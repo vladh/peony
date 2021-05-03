@@ -31,9 +31,9 @@ namespace Util {
     uint32 *n_vertices, uint32 *n_indices,
     Vertex **vertex_data, uint32 **index_data
   );
-  glm::vec3 aiVector3D_to_glm(aiVector3D *vec);
+  v3 aiVector3D_to_glm(aiVector3D *vec);
   glm::quat aiQuaternion_to_glm(aiQuaternion *quat);
-  glm::mat4 aimatrix4x4_to_glm(aiMatrix4x4* from);
+  m4 aimatrix4x4_to_glm(aiMatrix4x4* from);
   void print_texture_internalformat_info(GLenum internal_format);
   void APIENTRY debug_message_callback(
     GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
@@ -41,7 +41,7 @@ namespace Util {
   );
   real32 round_to_nearest_multiple(real32 n, real32 multiple_of);
   real64 get_us_from_duration(chrono::duration<real64> duration);
-  glm::vec3 get_orthogonal_vector(glm::vec3 *v);
+  v3 get_orthogonal_vector(v3 *v);
 };
 
 #endif

@@ -2,10 +2,10 @@
 #define FONTS_HPP
 
 struct Character {
-  glm::ivec2 size;
-  glm::ivec2 bearing;
-  glm::ivec2 advance;
-  glm::ivec2 tex_coords;
+  iv2 size;
+  iv2 bearing;
+  iv2 advance;
+  iv2 tex_coords;
 };
 
 struct FontAsset {

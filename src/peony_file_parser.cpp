@@ -233,7 +233,7 @@ void PeonyFileParser::parse_header(char *token, FILE *f) {
 }
 
 
-void PeonyFileParser::parse_vec2(char *token, FILE *f, glm::vec2 *parsed_vector) {
+void PeonyFileParser::parse_vec2(char *token, FILE *f, v2 *parsed_vector) {
   get_non_trivial_token(token, f);
   assert(token[0] == TOKEN_TUPLE_START);
   get_non_trivial_token(token, f);
@@ -245,7 +245,7 @@ void PeonyFileParser::parse_vec2(char *token, FILE *f, glm::vec2 *parsed_vector)
 }
 
 
-void PeonyFileParser::parse_vec3(char *token, FILE *f, glm::vec3 *parsed_vector) {
+void PeonyFileParser::parse_vec3(char *token, FILE *f, v3 *parsed_vector) {
   get_non_trivial_token(token, f);
   assert(token[0] == TOKEN_TUPLE_START);
   get_non_trivial_token(token, f);
@@ -259,7 +259,7 @@ void PeonyFileParser::parse_vec3(char *token, FILE *f, glm::vec3 *parsed_vector)
 }
 
 
-void PeonyFileParser::parse_vec4(char *token, FILE *f, glm::vec4 *parsed_vector) {
+void PeonyFileParser::parse_vec4(char *token, FILE *f, v4 *parsed_vector) {
   get_non_trivial_token(token, f);
   assert(token[0] == TOKEN_TUPLE_START);
   get_non_trivial_token(token, f);
@@ -504,7 +504,7 @@ bool32 PeonyFileParser::parse_scene_file(
         entity_template->spatial_component.rotation =
           glm::angleAxis(
             glm::radians(prop_values[0].vec4_value[0]),
-            glm::vec3(
+            v3(
               prop_values[0].vec4_value[1],
               prop_values[0].vec4_value[2],
               prop_values[0].vec4_value[3]

@@ -6,15 +6,15 @@ struct PhysicsComponent;
 struct PhysicsComponentSet;
 
 struct Obb {
-  glm::vec3 center;
-  glm::vec3 x_axis; // We can get the z axis with a cross product
-  glm::vec3 y_axis; // We can get the z axis with a cross product
-  glm::vec3 extents;
+  v3 center;
+  v3 x_axis; // We can get the z axis with a cross product
+  v3 y_axis; // We can get the z axis with a cross product
+  v3 extents;
 };
 
 struct Ray {
-  glm::vec3 origin;
-  glm::vec3 direction;
+  v3 origin;
+  v3 direction;
 };
 
 namespace Physics {
