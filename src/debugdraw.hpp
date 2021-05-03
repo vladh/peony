@@ -30,6 +30,12 @@ namespace DebugDraw {
     glm::vec3 end_pos,
     glm::vec4 color
   );
+  void draw_ray(
+    DebugDrawState *debug_draw_state,
+    Ray *ray,
+    real32 length,
+    glm::vec4 color
+  );
   void draw_quad(
     DebugDrawState *debug_draw_state,
     glm::vec3 p1, // clockwise: top left

@@ -1,8 +1,8 @@
 Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
   glm::mat3 rotation = glm::toMat3(glm::normalize(spatial->rotation));
   obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
-  obb.axes[0] = glm::normalize(rotation * obb.axes[0]);
-  obb.axes[1] = glm::normalize(rotation * obb.axes[1]);
+  obb.x_axis = glm::normalize(rotation * obb.x_axis);
+  obb.y_axis = glm::normalize(rotation * obb.y_axis);
   obb.extents *= spatial->scale;
   return obb;
 }
@@ -10,14 +10,15 @@ Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
 
 bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
+  // This is the separating axis test (sometimes abbreviated SAT).
   real32 ra, rb;
   glm::mat3 r, abs_r;
 
   glm::vec3 obb1_axes[3] = {
-    obb1->axes[0], obb1->axes[1], glm::cross(obb1->axes[0], obb1->axes[1])
+    obb1->x_axis, obb1->y_axis, glm::cross(obb1->x_axis, obb1->y_axis)
   };
   glm::vec3 obb2_axes[3] = {
-    obb2->axes[0], obb2->axes[1], glm::cross(obb2->axes[0], obb2->axes[1])
+    obb2->x_axis, obb2->y_axis, glm::cross(obb2->x_axis, obb2->y_axis)
   };
 
   // Compute rotation matrix expressing obb2 in obb1's coordinate frame
@@ -136,4 +137,28 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
 
   // Since no separating axis is found, the OBBs must be intersecting
   return true;
+}
+
+
+PhysicsComponent* Physics::find_collision(
+  PhysicsComponent *physics_component,
+  PhysicsComponentSet *physics_component_set
+) {
+  for_each (candidate, physics_component_set->components) {
+    if (!Entities::is_physics_component_valid(candidate)) {
+      continue;
+    }
+
+    if (physics_component == candidate) {
+      continue;
+    }
+
+    if (Physics::intersect_obb_obb(
+      &physics_component->transformed_obb, &candidate->transformed_obb
+    )) {
+      return candidate;
+    }
+  }
+
+  return nullptr;
 }

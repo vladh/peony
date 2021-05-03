@@ -513,45 +513,6 @@ void EntitySets::draw_all(
       if (animation_component) {
         bone_matrices = animation_component->bone_matrices;
       }
-
-      // Bounding boxes
-      PhysicsComponent *physics_component =
-        physics_component_set->components[drawable_component->entity_handle];
-
-      if (Entities::is_physics_component_valid(physics_component)) {
-        bool32 did_intersect = false;
-
-        for_each (target_physics_component, physics_component_set->components) {
-          if (!Entities::is_physics_component_valid(target_physics_component)) {
-            continue;
-          }
-
-          if (physics_component == target_physics_component) {
-            continue;
-          }
-
-          if (Physics::intersect_obb_obb(
-            &physics_component->transformed_obb, &target_physics_component->transformed_obb
-          )) {
-            did_intersect = true;
-            break;
-          }
-        }
-
-        if (did_intersect) {
-          DebugDraw::draw_obb(
-            debug_draw_state,
-            &physics_component->transformed_obb,
-            glm::vec4(1.0f, 0.0f, 0.0f, 1.0f)
-          );
-        } else {
-          DebugDraw::draw_obb(
-            debug_draw_state,
-            &physics_component->transformed_obb,
-            glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)
-          );
-        }
-      }
     }
 
     draw(

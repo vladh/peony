@@ -492,10 +492,10 @@ bool32 PeonyFileParser::parse_scene_file(
         entity_template->render_pass = render_pass;
       } else if (Str::eq(prop_name, "physics_component.obb.center")) {
         entity_template->physics_component.obb.center = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "physics_component.obb.axes.0")) {
-        entity_template->physics_component.obb.axes[0] = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "physics_component.obb.axes.1")) {
-        entity_template->physics_component.obb.axes[1] = prop_values[0].vec3_value;
+      } else if (Str::eq(prop_name, "physics_component.obb.x_axis")) {
+        entity_template->physics_component.obb.x_axis = prop_values[0].vec3_value;
+      } else if (Str::eq(prop_name, "physics_component.obb.y_axis")) {
+        entity_template->physics_component.obb.y_axis = prop_values[0].vec3_value;
       } else if (Str::eq(prop_name, "physics_component.obb.extents")) {
         entity_template->physics_component.obb.extents = prop_values[0].vec3_value;
       } else if (Str::eq(prop_name, "spatial_component.position")) {
