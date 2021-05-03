@@ -11,26 +11,83 @@ Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
 RaycastResult Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
   // Gabor Szauer, Game Physics Cookbook, “Raycast Oriented Bounding Box”
   v3 obb_z_axis = cross(obb->x_axis, obb->y_axis);
+
+  // Get vector pointing from origin of ray to center of OBB
   v3 p = obb->center - ray->origin;
+
+  // Project direction of ray onto each axis of OBB
   v3 f = v3(
     dot(obb->x_axis, ray->direction),
     dot(obb->y_axis, ray->direction),
     dot(obb_z_axis, ray->direction)
   );
+
+  // Project p into every axis of OBB
   v3 e = v3(
     dot(obb->x_axis, p),
     dot(obb->y_axis, p),
     dot(obb_z_axis, p)
   );
 
-  if (sin(g_t) > 0.0f) {
-    return {
-      .did_intersect = true,
-      .distance = 2.0f,
-    };
-  } else {
+  // Calculate slab intersection points for ray
+  // `t is the distance along the ray (or “time” along the ray, as Szauer
+  // calls it) that the intersection happens at.
+  real32 t[6] = {};
+  for_range_named (i, 0, 3) {
+    if (f[i] == 0) {
+      if (-e[i] - obb->extents[i] > 0 || -e[i] + obb->extents[i] < 0) {
+        // If the ray is parallel to the slab being tested, and the origin
+        // of the ray is not inside the slab, we have no hit.
+        return {};
+      }
+      f[i] = 0.00001f; // Avoid division by zero
+    }
+    t[i * 2 + 0] = (e[i] + obb->extents[i]) / f[i]; // min
+    t[i * 2 + 1] = (e[i] - obb->extents[i]) / f[i]; // max
+  }
+
+  // After the above loop, we've hit all three slabs. We now need to find the
+  // largest minimum `t^{min}` and smallest maximum `t^{max}`.
+  real32 tmin = max(
+    max(
+      min(t[0], t[1]),
+      min(t[2], t[3])
+    ),
+    min(t[4], t[5])
+  );
+  real32 tmax = min(
+    min(
+      max(t[0], t[1]),
+      max(t[2], t[3])
+    ),
+    max(t[4], t[5])
+  );
+
+  // If `tmax` < 0, the ray is intersecting the OBB in the negative direction.
+  // This means the OBB is behind the origin of the ray, and this should not
+  // count as an intersection.
+  if (tmax < 0.0f) {
     return {};
   }
+
+  // If `tmin` > `tmax`, the ray does not intersect the OBB.
+  if (tmin > tmax) {
+    return {};
+  }
+
+  // If `tmin` < 0, the ray started inside of the OBB. This means `tmax` is a
+  // valid intersection.
+  if (tmin < 0.0f) {
+    return {
+      .did_intersect = true,
+      .distance = tmax,
+    };
+  }
+
+  return {
+    .did_intersect = true,
+    .distance = tmin,
+  };
 }
 
 
