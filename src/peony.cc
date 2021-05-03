@@ -14,6 +14,8 @@
 
 #include "peony.hpp"
 
+global real64 g_t;
+
 #include "log.cpp"
 #include "pack.cpp"
 #include "util.cpp"
@@ -215,6 +217,7 @@ void run_main_loop(State *state) {
         state->perf_counters.dt_average = dt_hist_sum / DT_HIST_LENGTH;
 
         state->t += state->dt;
+        g_t = state->t;
       }
 
       // Count FPS.
