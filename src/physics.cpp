@@ -8,6 +8,11 @@ Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
 }
 
 
+bool32 Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
+  return sin(g_t) > 0.0f;
+}
+
+
 bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
   // This is the separating axis test (sometimes abbreviated SAT).
@@ -140,8 +145,8 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
 }
 
 
-PhysicsComponent* Physics::find_collision(
-  PhysicsComponent *physics_component,
+PhysicsComponent* Physics::find_physics_component_collision(
+  PhysicsComponent *self,
   PhysicsComponentSet *physics_component_set
 ) {
   for_each (candidate, physics_component_set->components) {
@@ -149,13 +154,37 @@ PhysicsComponent* Physics::find_collision(
       continue;
     }
 
-    if (physics_component == candidate) {
+    if (self == candidate) {
       continue;
     }
 
     if (Physics::intersect_obb_obb(
-      &physics_component->transformed_obb, &candidate->transformed_obb
+      &self->transformed_obb, &candidate->transformed_obb
     )) {
+      return candidate;
+    }
+  }
+
+  return nullptr;
+}
+
+
+PhysicsComponent* Physics::find_ray_collision(
+  Ray *ray,
+  // TODO: Replace this with some kind of collision layers.
+  PhysicsComponent *physics_component_to_ignore_or_nullptr,
+  PhysicsComponentSet *physics_component_set
+) {
+  for_each (candidate, physics_component_set->components) {
+    if (!Entities::is_physics_component_valid(candidate)) {
+      continue;
+    }
+
+    if (physics_component_to_ignore_or_nullptr == candidate) {
+      continue;
+    }
+
+    if (Physics::intersect_obb_ray(&candidate->transformed_obb, ray)) {
       return candidate;
     }
   }
