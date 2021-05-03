@@ -17,15 +17,26 @@ struct Ray {
   v3 direction;
 };
 
+struct RaycastResult {
+  bool32 did_intersect;
+  real32 distance;
+};
+
+struct RayCollisionResult {
+  bool32 did_intersect;
+  real32 distance;
+  PhysicsComponent *collidee;
+};
+
 namespace Physics {
   Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
-  bool32 intersect_obb_ray(Obb *obb, Ray *ray);
+  RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
   bool32 intersect_obb_obb(Obb *obb1, Obb *obb2);
   PhysicsComponent* find_physics_component_collision(
     PhysicsComponent *physics_component,
     PhysicsComponentSet *physics_component_set
   );
-  PhysicsComponent* find_ray_collision(
+  RayCollisionResult find_ray_collision(
     Ray *ray,
     PhysicsComponent *physics_component_to_ignore_or_nullptr,
     PhysicsComponentSet *physics_component_set
