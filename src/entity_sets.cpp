@@ -79,7 +79,7 @@ m4 EntitySets::make_model_matrix(
       model_matrix = glm::translate(model_matrix, spatial_component->position);
       model_matrix = glm::scale(model_matrix, spatial_component->scale);
       model_matrix = model_matrix *
-        glm::toMat4(glm::normalize(spatial_component->rotation));
+        glm::toMat4(normalize(spatial_component->rotation));
       cache->last_model_matrix = model_matrix;
       cache->last_model_matrix_spatial_component = spatial_component;
     }
@@ -325,7 +325,7 @@ void EntitySets::make_bone_matrices_for_animation_bone(
       m4(1.0f),
       Util::aiVector3D_to_glm(&ai_channel->mPositionKeys[idx_anim_key].mValue)
     );
-    m4 rotation = glm::toMat4(glm::normalize(
+    m4 rotation = glm::toMat4(normalize(
       Util::aiQuaternion_to_glm(&ai_channel->mRotationKeys[idx_anim_key].mValue)
     ));
     m4 scaling = glm::scale(
@@ -501,7 +501,7 @@ void EntitySets::draw_all(
       ) {
         model_normal_matrix = m3(model_matrix);
       } else {
-        model_normal_matrix = m3(glm::transpose(glm::inverse(model_matrix)));
+        model_normal_matrix = m3(transpose(inverse(model_matrix)));
       }
 
       // Animations

@@ -17,15 +17,15 @@ State* init_state(
   state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
 
   state->builtin_textures = {
-    .shadowmap_3d_width = MIN(state->window_info.width, 2000),
-    .shadowmap_3d_height = MIN(state->window_info.width, 2000),
+    .shadowmap_3d_width = min(state->window_info.width, (uint32)2000),
+    .shadowmap_3d_height = min(state->window_info.width, (uint32)2000),
     .shadowmap_2d_width = 2560 * 2,
     .shadowmap_2d_height = 1440 * 2,
     .shadowmap_near_clip_dist = 0.05f,
     .shadowmap_far_clip_dist = 200.0f,
   };
 
-  state->dir_light_angle = DEG_TO_RAD32(55);
+  state->dir_light_angle = radians(55.0f);
 
   state->entity_loader_set = {
     .loaders = Array<EntityLoader>(

@@ -265,8 +265,8 @@ v3 Util::aiVector3D_to_glm(aiVector3D *vec) {
 }
 
 
-glm::quat Util::aiQuaternion_to_glm(aiQuaternion *quat) {
-  return glm::quat(quat->w, quat->x, quat->y, quat->z);
+quat Util::aiQuaternion_to_glm(aiQuaternion *rotation) {
+  return quat(rotation->w, rotation->x, rotation->y, rotation->z);
 }
 
 
@@ -451,3 +451,13 @@ v3 Util::get_orthogonal_vector(v3 *v) {
     return v3(0.0f, -v->z, v->y);
   }
 }
+
+
+uint32 Util::kb_to_b(uint32 value) { return value * 1024; }
+uint32 Util::mb_to_b(uint32 value) { return kb_to_b(value) * 1024; }
+uint32 Util::gb_to_b(uint32 value) { return mb_to_b(value) * 1024; }
+uint32 Util::tb_to_b(uint32 value) { return gb_to_b(value) * 1024; }
+real32 Util::b_to_kb(uint32 value) { return value / 1024.0f; }
+real32 Util::b_to_mb(uint32 value) { return b_to_kb(value) / 1024.0f; }
+real32 Util::b_to_gb(uint32 value) { return b_to_mb(value) / 1024.0f; }
+real32 Util::b_to_tb(uint32 value) { return b_to_gb(value) / 1024.0f; }

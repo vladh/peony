@@ -274,7 +274,7 @@ int main() {
 
   MemoryPool state_memory_pool = {};
   state_memory_pool.size = sizeof(State);
-  MemoryPool asset_memory_pool = {.size = MB_TO_B(1024)};
+  MemoryPool asset_memory_pool = {.size = Util::mb_to_b(1024)};
 
   WindowInfo window_info;
   Renderer::init_window(&window_info);

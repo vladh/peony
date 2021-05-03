@@ -21,7 +21,7 @@ void* Memory::push(
 ) {
   // If we had just init'd an empty pool, let's just give it some size.
   if (pool->size == 0) {
-    pool->size = MB_TO_B(256);
+    pool->size = Util::mb_to_b(256);
   }
 
   // If we haven't allocated anything in the pool, let's allocate something now.
@@ -29,7 +29,7 @@ void* Memory::push(
 #if USE_MEMORY_DEBUG_LOGS
     log_info(
       "Allocating memory pool: %.2fMB (%dB)",
-      B_TO_MB((real64)pool->size),
+      Util::b_to_mb((real64)pool->size),
       pool->size
     );
 #endif
@@ -60,9 +60,9 @@ void* Memory::push(
 #if USE_MEMORY_DEBUG_LOGS
   log_info(
     "Pusing to memory pool: %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
-    B_TO_MB((real64)item_size),
+    Util::b_to_mb((real64)item_size),
     item_size, item_debug_name,
-    B_TO_MB((real64)pool->used),
+    Util::b_to_mb((real64)pool->used),
     pool->used
   );
 #endif
@@ -73,8 +73,8 @@ void* Memory::push(
 
 void Memory::print_memory_pool(MemoryPool *pool) {
   log_info("MemoryPool:");
-  log_info("  Used: %.2fMB (%dB)", B_TO_MB((real64)pool->used), pool->used);
-  log_info("  Size: %.2fMB (%dB)", B_TO_MB((real64)pool->size), pool->size);
+  log_info("  Used: %.2fMB (%dB)", Util::b_to_mb((uint32)pool->used), pool->used);
+  log_info("  Size: %.2fMB (%dB)", Util::b_to_mb((uint32)pool->size), pool->size);
   log_info("  Items:");
   if (pool->n_items == 0) {
     log_info("    (none)");
@@ -85,7 +85,7 @@ void Memory::print_memory_pool(MemoryPool *pool) {
       "    %02d. %s, %.2fMB (%dB)",
       idx,
       pool->item_debug_names[idx],
-      B_TO_MB((real64)pool->item_debug_sizes[idx]),
+      Util::b_to_mb((real64)pool->item_debug_sizes[idx]),
       pool->item_debug_sizes[idx]
     );
   }

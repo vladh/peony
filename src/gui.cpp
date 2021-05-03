@@ -89,7 +89,7 @@ v2 Gui::get_text_dimensions(
 
     if (c < 32) {
       if (c == '\n') {
-        max_x = glm::max(max_x, curr_x);
+        max_x = max(max_x, curr_x);
         curr_x = 0.0f;
         curr_y += line_spacing;
       }
@@ -107,7 +107,7 @@ v2 Gui::get_text_dimensions(
     curr_y += Fonts::frac_px_to_px(character->advance.y);
   }
 
-  max_x = glm::max(max_x, curr_x);
+  max_x = max(max_x, curr_x);
   curr_y += line_height;
 
   return v2(max_x, curr_y);
@@ -119,7 +119,7 @@ v2 Gui::center_bb(
   v2 container_dimensions,
   v2 element_dimensions
 ) {
-  return glm::ceil(
+  return ceil(
     container_position + (container_dimensions / 2.0f) - (element_dimensions / 2.0f)
   );
 }
@@ -156,7 +156,7 @@ v2 Gui::add_element_to_container(
   container->content_dimensions = (
     (container->content_dimensions + required_space) * container->direction
   ) + (
-    glm::max(container->content_dimensions, required_space) * orthogonal_direction
+    max(container->content_dimensions, required_space) * orthogonal_direction
   );
   container->dimensions = container->content_dimensions +
     (container->padding * 2.0f) +
@@ -434,7 +434,7 @@ void Gui::draw_line(
 ) {
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
-  v2 delta = glm::normalize(end - start) * thickness;
+  v2 delta = normalize(end - start) * thickness;
 
   //    ----------->
   // 0------------------3
@@ -513,7 +513,7 @@ bool32 Gui::draw_toggle(
     GUI_BUTTON_DEFAULT_BORDER * 2.0f;
   v2 dimensions = v2(
     button_dimensions.x + GUI_TOGGLE_SPACING + text_dimensions.x,
-    glm::max(button_dimensions.y, text_dimensions.y)
+    max(button_dimensions.y, text_dimensions.y)
   );
 
   v2 position = add_element_to_container(container, dimensions);
@@ -601,7 +601,7 @@ void Gui::draw_named_value(
   );
   v2 dimensions = v2(
     value_text_dimensions.x + GUI_NAMED_VALUE_NAME_WIDTH,
-    glm::max(name_text_dimensions.y, value_text_dimensions.y)
+    max(name_text_dimensions.y, value_text_dimensions.y)
   );
 
   v2 position = add_element_to_container(container, dimensions);
@@ -707,7 +707,7 @@ void Gui::draw_console(
 
   FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, "body");
   real32 line_height = Fonts::font_unit_to_px(font_asset->height);
-  real32 line_spacing = glm::floor(
+  real32 line_spacing = floor(
     line_height * GUI_CONSOLE_LINE_SPACING_FACTOR
   );
 

@@ -1,14 +1,28 @@
 Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
-  m3 rotation = glm::toMat3(glm::normalize(spatial->rotation));
+  m3 rotation = glm::toMat3(normalize(spatial->rotation));
   obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
-  obb.x_axis = glm::normalize(rotation * obb.x_axis);
-  obb.y_axis = glm::normalize(rotation * obb.y_axis);
+  obb.x_axis = normalize(rotation * obb.x_axis);
+  obb.y_axis = normalize(rotation * obb.y_axis);
   obb.extents *= spatial->scale;
   return obb;
 }
 
 
 RaycastResult Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
+  // Gabor Szauer, Game Physics Cookbook, “Raycast Oriented Bounding Box”
+  v3 obb_z_axis = cross(obb->x_axis, obb->y_axis);
+  v3 p = obb->center - ray->origin;
+  v3 f = v3(
+    dot(obb->x_axis, ray->direction),
+    dot(obb->y_axis, ray->direction),
+    dot(obb_z_axis, ray->direction)
+  );
+  v3 e = v3(
+    dot(obb->x_axis, p),
+    dot(obb->y_axis, p),
+    dot(obb_z_axis, p)
+  );
+
   if (sin(g_t) > 0.0f) {
     return {
       .did_intersect = true,
@@ -58,16 +72,16 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   m3 r, abs_r;
 
   v3 obb1_axes[3] = {
-    obb1->x_axis, obb1->y_axis, glm::cross(obb1->x_axis, obb1->y_axis)
+    obb1->x_axis, obb1->y_axis, cross(obb1->x_axis, obb1->y_axis)
   };
   v3 obb2_axes[3] = {
-    obb2->x_axis, obb2->y_axis, glm::cross(obb2->x_axis, obb2->y_axis)
+    obb2->x_axis, obb2->y_axis, cross(obb2->x_axis, obb2->y_axis)
   };
 
   // Compute rotation matrix expressing obb2 in obb1's coordinate frame
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
-      r[i][j] = glm::dot(obb1_axes[i], obb2_axes[j]);
+      r[i][j] = dot(obb1_axes[i], obb2_axes[j]);
     }
   }
 
@@ -76,9 +90,9 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
 
   // Bring translation into obb1's coordinate frame
   t = v3(
-    glm::dot(t, obb1_axes[0]),
-    glm::dot(t, obb1_axes[1]),
-    glm::dot(t, obb1_axes[2])
+    dot(t, obb1_axes[0]),
+    dot(t, obb1_axes[1]),
+    dot(t, obb1_axes[2])
   );
 
   // Compute common subexpressions. Add in an epsilon term to counteract
@@ -86,7 +100,7 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   // is (near) null.
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
-      abs_r[i][j] = glm::abs(r[i][j]) + FLT_EPSILON;
+      abs_r[i][j] = abs(r[i][j]) + FLT_EPSILON;
     }
   }
 
@@ -96,7 +110,7 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
     rb = obb2->extents[0] * abs_r[i][0] +
       obb2->extents[1] * abs_r[i][1] +
       obb2->extents[2] * abs_r[i][2];
-    if (glm::abs(t[i]) > ra + rb) {
+    if (abs(t[i]) > ra + rb) {
       return false;
     }
   }
@@ -110,7 +124,7 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
     real32 abs_argument = t[0] * r[0][i] +
       t[1] * r[1][i] +
       t[2] * r[2][i];
-    if (glm::abs(abs_argument) > ra + rb) {
+    if (abs(abs_argument) > ra + rb) {
       return false;
     }
   }
@@ -118,63 +132,63 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   // Test axis L = A0 x B0
   ra = obb1->extents[1] * abs_r[2][0] + obb1->extents[2] * abs_r[1][0];
   rb = obb2->extents[1] * abs_r[0][2] + obb2->extents[2] * abs_r[0][1];
-  if (glm::abs(t[2] * r[1][0] - t[1] * r[2][0]) > ra + rb) {
+  if (abs(t[2] * r[1][0] - t[1] * r[2][0]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A0 x B1
   ra = obb1->extents[1] * abs_r[2][1] + obb1->extents[2] * abs_r[1][1];
   rb = obb2->extents[0] * abs_r[0][2] + obb2->extents[2] * abs_r[0][0];
-  if (glm::abs(t[2] * r[1][1] - t[1] * r[2][1]) > ra + rb) {
+  if (abs(t[2] * r[1][1] - t[1] * r[2][1]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A0 x B2
   ra = obb1->extents[1] * abs_r[2][2] + obb1->extents[2] * abs_r[1][2];
   rb = obb2->extents[0] * abs_r[0][1] + obb2->extents[1] * abs_r[0][0];
-  if (glm::abs(t[2] * r[1][2] - t[1] * r[2][2]) > ra + rb) {
+  if (abs(t[2] * r[1][2] - t[1] * r[2][2]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A1 x B0
   ra = obb1->extents[0] * abs_r[2][0] + obb1->extents[2] * abs_r[0][0];
   rb = obb2->extents[1] * abs_r[1][2] + obb2->extents[2] * abs_r[1][1];
-  if (glm::abs(t[0] * r[2][0] - t[2] * r[0][0]) > ra + rb) {
+  if (abs(t[0] * r[2][0] - t[2] * r[0][0]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A1 x B1
   ra = obb1->extents[0] * abs_r[2][1] + obb1->extents[2] * abs_r[0][1];
   rb = obb2->extents[0] * abs_r[1][2] + obb2->extents[2] * abs_r[1][0];
-  if (glm::abs(t[0] * r[2][1] - t[2] * r[0][1]) > ra + rb) {
+  if (abs(t[0] * r[2][1] - t[2] * r[0][1]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A1 x B2
   ra = obb1->extents[0] * abs_r[2][2] + obb1->extents[2] * abs_r[0][2];
   rb = obb2->extents[0] * abs_r[1][1] + obb2->extents[1] * abs_r[1][0];
-  if (glm::abs(t[0] * r[2][2] - t[2] * r[0][2]) > ra + rb) {
+  if (abs(t[0] * r[2][2] - t[2] * r[0][2]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A2 x B0
   ra = obb1->extents[0] * abs_r[1][0] + obb1->extents[1] * abs_r[0][0];
   rb = obb2->extents[1] * abs_r[2][2] + obb2->extents[2] * abs_r[2][1];
-  if (glm::abs(t[1] * r[0][0] - t[0] * r[1][0]) > ra + rb) {
+  if (abs(t[1] * r[0][0] - t[0] * r[1][0]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A2 x B1
   ra = obb1->extents[0] * abs_r[1][1] + obb1->extents[1] * abs_r[0][1];
   rb = obb2->extents[0] * abs_r[2][2] + obb2->extents[2] * abs_r[2][0];
-  if (glm::abs(t[1] * r[0][1] - t[0] * r[1][1]) > ra + rb) {
+  if (abs(t[1] * r[0][1] - t[0] * r[1][1]) > ra + rb) {
     return false;
   }
 
   // Test axis L = A2 x B2
   ra = obb1->extents[0] * abs_r[1][2] + obb1->extents[1] * abs_r[0][2];
   rb = obb2->extents[0] * abs_r[2][1] + obb2->extents[1] * abs_r[2][0];
-  if (glm::abs(t[1] * r[0][2] - t[0] * r[1][2]) > ra + rb) {
+  if (abs(t[1] * r[0][2] - t[0] * r[1][2]) > ra + rb) {
     return false;
   }
 
