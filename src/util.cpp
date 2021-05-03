@@ -442,3 +442,12 @@ real32 Util::round_to_nearest_multiple(real32 n, real32 multiple_of) {
 real64 Util::get_us_from_duration(chrono::duration<real64> duration) {
   return chrono::duration_cast<chrono::duration<real64>>(duration).count();
 }
+
+
+glm::vec3 Util::get_orthogonal_vector(glm::vec3 *v) {
+  if (v->z < v->x) {
+    return glm::vec3(v->y, -v->x, 0.0f);
+  } else {
+    return glm::vec3(0.0f, -v->z, v->y);
+  }
+}

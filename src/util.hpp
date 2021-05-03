@@ -41,6 +41,7 @@ namespace Util {
   );
   real32 round_to_nearest_multiple(real32 n, real32 multiple_of);
   real64 get_us_from_duration(chrono::duration<real64> duration);
+  glm::vec3 get_orthogonal_vector(glm::vec3 *v);
 };
 
 #endif

@@ -24,6 +24,28 @@ void DebugDraw::draw_line(
 }
 
 
+void DebugDraw::draw_ray(
+  DebugDrawState *debug_draw_state,
+  Ray *ray,
+  real32 length,
+  glm::vec4 color
+) {
+  glm::vec3 end_pos = ray->origin + ray->direction * length;
+  glm::vec3 x_axis = Util::get_orthogonal_vector(&ray->direction);
+  glm::vec3 z_axis = glm::cross(ray->direction, x_axis);
+  real32 chevron_size = 0.2f;
+  glm::vec3 chevron_1_pos = end_pos + ((-ray->direction + x_axis) * chevron_size);
+  glm::vec3 chevron_2_pos = end_pos + ((-ray->direction - x_axis) * chevron_size);
+  glm::vec3 chevron_3_pos = end_pos + ((-ray->direction + z_axis) * chevron_size);
+  glm::vec3 chevron_4_pos = end_pos + ((-ray->direction - z_axis) * chevron_size);
+  draw_line(debug_draw_state, ray->origin, end_pos, color);
+  draw_line(debug_draw_state, chevron_1_pos, end_pos, color);
+  draw_line(debug_draw_state, chevron_2_pos, end_pos, color);
+  draw_line(debug_draw_state, chevron_3_pos, end_pos, color);
+  draw_line(debug_draw_state, chevron_4_pos, end_pos, color);
+}
+
+
 void DebugDraw::draw_quad(
   DebugDrawState *debug_draw_state,
   glm::vec3 p1, // clockwise: top left
@@ -65,10 +87,10 @@ void DebugDraw::draw_obb(
   Obb *obb,
   glm::vec4 color
 ) {
-  glm::vec3 orthogonal_axis = glm::cross(obb->axes[0], obb->axes[1]);
-  glm::vec3 dir1 = obb->axes[0] * obb->extents[0];
-  glm::vec3 dir2 = obb->axes[1] * obb->extents[1];
-  glm::vec3 dir3 = orthogonal_axis * obb->extents[2];
+  glm::vec3 z_axis = glm::cross(obb->x_axis, obb->y_axis);
+  glm::vec3 dir1 = obb->x_axis * obb->extents[0];
+  glm::vec3 dir2 = obb->y_axis * obb->extents[1];
+  glm::vec3 dir3 = z_axis * obb->extents[2];
   glm::vec3 p1 = obb->center - dir1 + dir2 - dir3;
   glm::vec3 p2 = obb->center + dir1 + dir2 - dir3;
   glm::vec3 p3 = obb->center + dir1 + dir2 + dir3;
