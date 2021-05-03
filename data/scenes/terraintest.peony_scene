@@ -18,8 +18,8 @@ physics_component.obb.center = vec3(0.0, 3.2, 0.0)
 physics_component.obb.x_axis = vec3(1.0, 0.0, 0.0)
 physics_component.obb.y_axis = vec3(0.0, 1.0, 0.0)
 physics_component.obb.extents = vec3(2.5, 3.2, 2.5)
-spatial_component.position = vec3(-10.0, 6.5, 5.0)
-spatial_component.rotation = vec4(-30.0, 0.0, 1.0, 0.0)
+spatial_component.position = vec3(-10.0, 8.0, 5.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
 spatial_component.scale = vec3(0.2, 0.2, 0.2)
 behavior_component.behavior = char_movement_test
 

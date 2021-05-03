@@ -31,12 +31,18 @@ namespace BehaviorFunctions {
     Obb *obb = &physics_component->transformed_obb;
 
     // Update position
-    spatial_component->position.x = (real32)sin(state->t * 2.0f) * 5.0f;
-    spatial_component->position.z = (real32)cos(state->t * 2.0f) * 5.0f;
-    spatial_component->rotation.x = (real32)sin(state->t);
-    spatial_component->rotation.y = (real32)cos(state->t);
+#if 0
+    spatial_component->position.x = (real32)sin(state->t * 1.0f) * 4.0f;
+    spatial_component->position.z = (real32)cos(state->t * 1.0f) * 4.0f;
+#endif
+    spatial_component->position.x = -5.0f;
+    spatial_component->position.z = -5.0f;
+    spatial_component->rotation =
+      glm::angleAxis((real32)sin(state->t) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
+      glm::angleAxis(radians(90.0f), v3(1.0f, 0.0f, 0.0f));
 
     // Check collision with other entities
+#if 0
     {
       PhysicsComponent *collidee = Physics::find_physics_component_collision(
         physics_component, &state->physics_component_set
@@ -61,6 +67,7 @@ namespace BehaviorFunctions {
         );
       }
     }
+#endif
 
     // Check ray collision
     {
@@ -90,7 +97,7 @@ namespace BehaviorFunctions {
         DebugDraw::draw_ray(
           &state->debug_draw_state,
           &ray,
-          5.0f,
+          500.0f,
           v4(1.0f, 1.0f, 1.0f, 0.0f)
         );
       }
