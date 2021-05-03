@@ -71,7 +71,7 @@ struct PhysicsComponent {
 struct SpatialComponent {
   EntityHandle entity_handle;
   v3 position = v3(0.0f);
-  glm::quat rotation = glm::angleAxis(0.0f, v3(0.0f));
+  quat rotation = glm::angleAxis(0.0f, v3(0.0f));
   v3 scale = v3(0.0f);
   EntityHandle parent_entity_handle;
 };

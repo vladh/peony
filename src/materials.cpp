@@ -189,7 +189,7 @@ iv2 Materials::push_space_to_texture_atlas(
     new_space_position = iv2(0, atlas->max_allocated_position_per_axis.y);
   }
 
-  atlas->max_allocated_position_per_axis = glm::max(
+  atlas->max_allocated_position_per_axis = max(
     atlas->max_allocated_position_per_axis, new_space_end
   );
   atlas->next_position = new_space_position + iv2(space_size.x, 0);

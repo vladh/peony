@@ -32,7 +32,7 @@ void DebugDraw::draw_ray(
 ) {
   v3 end_pos = ray->origin + ray->direction * length;
   v3 x_axis = Util::get_orthogonal_vector(&ray->direction);
-  v3 z_axis = glm::cross(ray->direction, x_axis);
+  v3 z_axis = cross(ray->direction, x_axis);
   real32 chevron_size = 0.2f;
   v3 chevron_1_pos = end_pos + ((-ray->direction + x_axis) * chevron_size);
   v3 chevron_2_pos = end_pos + ((-ray->direction - x_axis) * chevron_size);
@@ -87,7 +87,7 @@ void DebugDraw::draw_obb(
   Obb *obb,
   v4 color
 ) {
-  v3 z_axis = glm::cross(obb->x_axis, obb->y_axis);
+  v3 z_axis = cross(obb->x_axis, obb->y_axis);
   v3 dir1 = obb->x_axis * obb->extents[0];
   v3 dir2 = obb->y_axis * obb->extents[1];
   v3 dir3 = z_axis * obb->extents[2];

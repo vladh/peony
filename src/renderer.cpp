@@ -1093,7 +1093,7 @@ void Renderer::render(State *state) {
     // Point lights
     {
       m4 perspective_projection = glm::perspective(
-        glm::radians(90.0f),
+        radians(90.0f),
         (
           (real32)state->builtin_textures.shadowmap_3d_width /
           (real32)state->builtin_textures.shadowmap_3d_height

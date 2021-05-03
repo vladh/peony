@@ -503,7 +503,7 @@ bool32 PeonyFileParser::parse_scene_file(
       } else if (Str::eq(prop_name, "spatial_component.rotation")) {
         entity_template->spatial_component.rotation =
           glm::angleAxis(
-            glm::radians(prop_values[0].vec4_value[0]),
+            radians(prop_values[0].vec4_value[0]),
             v3(
               prop_values[0].vec4_value[1],
               prop_values[0].vec4_value[2],

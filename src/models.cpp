@@ -145,7 +145,7 @@ void Models::load_animations(
 ) {
   m4 scene_root_transform =
     Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
-  m4 inverse_scene_root_transform = glm::inverse(scene_root_transform);
+  m4 inverse_scene_root_transform = inverse(scene_root_transform);
 
   animation_component->n_animations = scene->mNumAnimations;
   for_range_named (idx_animation, 0, scene->mNumAnimations) {
@@ -225,7 +225,7 @@ void Models::load_mesh(
   Pack indices_pack
 ) {
   mesh->transform = transform;
-  m3 normal_matrix = m3(glm::transpose(glm::inverse(transform)));
+  m3 normal_matrix = m3(transpose(inverse(transform)));
   mesh->mode = GL_TRIANGLES;
 
   mesh->indices_pack = indices_pack;
@@ -256,7 +256,7 @@ void Models::load_mesh(
       )
     );
 
-    vertex->normal = glm::normalize(
+    vertex->normal = normalize(
       normal_matrix *
       v3(
         ai_mesh->mNormals[idx].x,
@@ -647,7 +647,7 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
           *child_spatial_component = {
             .entity_handle = child_entity->handle,
             .position = v3(0.0f),
-            .rotation = glm::angleAxis(glm::radians(0.0f), v3(0.0f)),
+            .rotation = glm::angleAxis(radians(0.0f), v3(0.0f)),
             .scale = v3(0.0f),
             .parent_entity_handle = entity_loader->entity_handle,
           };

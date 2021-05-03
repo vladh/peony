@@ -25,10 +25,10 @@ void Cameras::update_matrices_perspective(
     return;
   }
 
-  camera->front = glm::normalize(v3(
-    cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
-    -sin(glm::radians(camera->pitch)),
-    sin(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch))
+  camera->front = normalize(v3(
+    cos(radians(camera->yaw)) * cos(radians(camera->pitch)),
+    -sin(radians(camera->pitch)),
+    sin(radians(camera->yaw)) * cos(radians(camera->pitch))
   ));
 
   camera->view = glm::lookAt(
@@ -36,13 +36,13 @@ void Cameras::update_matrices_perspective(
   );
 
   camera->projection = glm::perspective(
-    glm::radians(camera->horizontal_fov),
+    radians(camera->horizontal_fov),
     (real32)window_width / (real32)window_height,
     camera->near_clip_dist, camera->far_clip_dist
   );
   // https://en.wikipedia.org/wiki/Field_of_view_in_video_games#Field_of_view_calculations
-  camera->vertical_fov = (real32)RAD_TO_DEG(2 * atan(
-    tan(DEG_TO_RAD(camera->horizontal_fov) / 2) * window_height / window_width
+  camera->vertical_fov = (real32)degrees(2 * atan(
+    tan(radians(camera->horizontal_fov) / 2) * window_height / window_width
   ));
 }
 
@@ -81,7 +81,7 @@ void Cameras::move_front_back(
 void Cameras::move_left_right(
   Camera *camera, real32 sign, real64 dt
 ) {
-  v3 direction = glm::normalize(glm::cross(
+  v3 direction = normalize(cross(
     camera->front, camera->up
   ));
   camera->position += (sign * camera->speed * (real32)dt) * direction;

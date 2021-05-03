@@ -562,7 +562,7 @@ void World::create_internal_entities(State *state) {
     entity_loader->spatial_component = {
       .entity_handle = entity->handle,
       .position = v3(0.0f),
-      .rotation = glm::angleAxis(glm::radians(0.0f), v3(1.0f, 0.0f, 0.0f)),
+      .rotation = glm::angleAxis(radians(0.0f), v3(1.0f, 0.0f, 0.0f)),
       .scale = v3(75.0f),
     };
     strcpy(*(model_loader->material_names.push()), "skysphere");

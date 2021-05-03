@@ -46,5 +46,6 @@ typedef glm::ivec4 iv4;
 typedef glm::mat2 m2;
 typedef glm::mat3 m3;
 typedef glm::mat4 m4;
+typedef glm::quat quat;
 
 #endif
