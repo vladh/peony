@@ -57,7 +57,7 @@ void log_aimatrix4x4(aiMatrix4x4 *t) {
 }
 
 
-void log_mat4(glm::mat4 *t) {
+void log_mat4(m4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0][0], (*t)[1][0], (*t)[2][0], (*t)[3][0]);
   log_info("(%f, %f, %f, %f)", (*t)[0][1], (*t)[1][1], (*t)[2][1], (*t)[3][1]);
   log_info("(%f, %f, %f, %f)", (*t)[0][2], (*t)[1][2], (*t)[2][2], (*t)[3][2]);
@@ -65,16 +65,16 @@ void log_mat4(glm::mat4 *t) {
 }
 
 
-void log_vec2(glm::vec2 *t) {
+void log_vec2(v2 *t) {
   log_info("(%f, %f)", (*t)[0], (*t)[1]);
 }
 
 
-void log_vec3(glm::vec3 *t) {
+void log_vec3(v3 *t) {
   log_info("(%f, %f, %f)", (*t)[0], (*t)[1], (*t)[2]);
 }
 
 
-void log_vec4(glm::vec4 *t) {
+void log_vec4(v4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0], (*t)[1], (*t)[2], (*t)[3]);
 }

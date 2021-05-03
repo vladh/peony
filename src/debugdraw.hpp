@@ -6,8 +6,8 @@ constexpr uint32 DEBUGDRAW_VERTEX_LENGTH = 7;
 constexpr size_t DEBUGDRAW_VERTEX_SIZE = sizeof(real32) * DEBUGDRAW_VERTEX_LENGTH;
 
 struct DebugDrawVertex {
-  glm::vec3 position;
-  glm::vec4 color;
+  v3 position;
+  v4 color;
 };
 
 struct DebugDrawState {
@@ -26,40 +26,40 @@ namespace DebugDraw {
   );
   void draw_line(
     DebugDrawState *debug_draw_state,
-    glm::vec3 start_pos,
-    glm::vec3 end_pos,
-    glm::vec4 color
+    v3 start_pos,
+    v3 end_pos,
+    v4 color
   );
   void draw_ray(
     DebugDrawState *debug_draw_state,
     Ray *ray,
     real32 length,
-    glm::vec4 color
+    v4 color
   );
   void draw_quad(
     DebugDrawState *debug_draw_state,
-    glm::vec3 p1, // clockwise: top left
-    glm::vec3 p2, // top right
-    glm::vec3 p3, // bottom right
-    glm::vec3 p4, // bottom left
-    glm::vec4 color
+    v3 p1, // clockwise: top left
+    v3 p2, // top right
+    v3 p3, // bottom right
+    v3 p4, // bottom left
+    v4 color
   );
   void draw_box(
     DebugDrawState *debug_draw_state,
-    glm::vec3 p1, // clockwise top face: top left
-    glm::vec3 p2, // top right
-    glm::vec3 p3, // bottom right
-    glm::vec3 p4, // top left
-    glm::vec3 p5, // clockwise bottom face: top left
-    glm::vec3 p6, // top right
-    glm::vec3 p7, // bottom right
-    glm::vec3 p8, // top left
-    glm::vec4 color
+    v3 p1, // clockwise top face: top left
+    v3 p2, // top right
+    v3 p3, // bottom right
+    v3 p4, // top left
+    v3 p5, // clockwise bottom face: top left
+    v3 p6, // top right
+    v3 p7, // bottom right
+    v3 p8, // top left
+    v4 color
   );
   void draw_obb(
     DebugDrawState *debug_draw_state,
     Obb *obb,
-    glm::vec4 color
+    v4 color
   );
   void render(DebugDrawState *debug_draw_state);
   DebugDrawState* init_debug_draw_state(

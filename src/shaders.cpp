@@ -180,7 +180,7 @@ void Shaders::set_float(
 
 
 void Shaders::set_vec2(
-  ShaderAsset *shader_asset, const char *uniform_name, glm::vec2 *value
+  ShaderAsset *shader_asset, const char *uniform_name, v2 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -190,7 +190,7 @@ void Shaders::set_vec2(
 
 
 void Shaders::set_vec3(
-  ShaderAsset *shader_asset, const char *uniform_name, glm::vec3 *value
+  ShaderAsset *shader_asset, const char *uniform_name, v3 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -200,7 +200,7 @@ void Shaders::set_vec3(
 
 
 void Shaders::set_vec4(
-  ShaderAsset *shader_asset, const char *uniform_name, glm::vec4 *value
+  ShaderAsset *shader_asset, const char *uniform_name, v4 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -210,7 +210,7 @@ void Shaders::set_vec4(
 
 
 void Shaders::set_mat2(
-  ShaderAsset *shader_asset, const char *uniform_name, glm::mat2 *mat
+  ShaderAsset *shader_asset, const char *uniform_name, m2 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -220,7 +220,7 @@ void Shaders::set_mat2(
 
 
 void Shaders::set_mat3(
-  ShaderAsset *shader_asset, const char *uniform_name, glm::mat3 *mat
+  ShaderAsset *shader_asset, const char *uniform_name, m3 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -230,7 +230,7 @@ void Shaders::set_mat3(
 
 
 void Shaders::set_mat4_multiple(
-  ShaderAsset *shader_asset, uint32 n, const char *uniform_name, glm::mat4 *mat
+  ShaderAsset *shader_asset, uint32 n, const char *uniform_name, m4 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {
@@ -240,7 +240,7 @@ void Shaders::set_mat4_multiple(
 
 
 void Shaders::set_mat4(
-  ShaderAsset *shader_asset, const char *uniform_name, glm::mat4 *mat
+  ShaderAsset *shader_asset, const char *uniform_name, m4 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
   if (location >= 0) {

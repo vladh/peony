@@ -554,7 +554,7 @@ void Renderer::copy_scene_data_to_ubo(
     sizeof(state->shadowmap_2d_transforms)
   );
 
-  shader_common->camera_position = glm::vec4(state->camera_active->position, 1.0f);
+  shader_common->camera_position = v4(state->camera_active->position, 1.0f);
   shader_common->camera_pitch = (float)state->camera_active->pitch;
 
   shader_common->camera_horizontal_fov = state->camera_active->horizontal_fov;
@@ -595,7 +595,7 @@ void Renderer::copy_scene_data_to_ubo(
     }
 
     if (light_component->type == LightType::point) {
-      shader_common->point_light_position[n_point_lights] = glm::vec4(
+      shader_common->point_light_position[n_point_lights] = v4(
         spatial_component->position, 1.0f
       );
       shader_common->point_light_color[n_point_lights] =
@@ -605,9 +605,9 @@ void Renderer::copy_scene_data_to_ubo(
       n_point_lights++;
     } else if (light_component->type == LightType::directional) {
       shader_common->directional_light_position[n_directional_lights] =
-        glm::vec4(spatial_component->position, 1.0f);
+        v4(spatial_component->position, 1.0f);
       shader_common->directional_light_direction[n_directional_lights] =
-        glm::vec4(light_component->direction, 1.0f);
+        v4(light_component->direction, 1.0f);
       shader_common->directional_light_color[n_directional_lights] =
         light_component->color;
       shader_common->directional_light_attenuation[n_directional_lights] =
@@ -673,7 +673,7 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
 
-  glm::vec2 mouse_pos = glm::vec2(x, y);
+  v2 mouse_pos = v2(x, y);
   Input::update_mouse(&state->input_state, mouse_pos);
 
   if (state->is_cursor_enabled) {
@@ -918,7 +918,7 @@ void Renderer::render_scene_ui(State *state) {
     Gui::draw_heading(
       &state->gui_state,
       state->gui_state.heading_text,
-      glm::vec4(0.0f, 0.33f, 0.93f, state->gui_state.heading_opacity)
+      v4(0.0f, 0.33f, 0.93f, state->gui_state.heading_opacity)
     );
     if (state->gui_state.heading_fadeout_delay > 0.0f) {
       state->gui_state.heading_fadeout_delay -= (real32)state->dt;
@@ -932,7 +932,7 @@ void Renderer::render_scene_ui(State *state) {
     strcpy(debug_text, "Peony debug info: ");
     strcat(debug_text, state->current_scene_name);
     GuiContainer *container = Gui::make_container(
-      &state->gui_state, debug_text, glm::vec2(25.0f, 25.0f)
+      &state->gui_state, debug_text, v2(25.0f, 25.0f)
     );
 
     sprintf(debug_text, "%dx%d", state->window_info.width, state->window_info.height);
@@ -1043,7 +1043,7 @@ void Renderer::render_scene_ui(State *state) {
   {
 #if 1
     GuiContainer *container = Gui::make_container(
-      &state->gui_state, "Entities", glm::vec2(state->window_info.width - 400.0f, 25.0f)
+      &state->gui_state, "Entities", v2(state->window_info.width - 400.0f, 25.0f)
     );
     World::get_scene_text_representation(debug_text, state);
     Gui::draw_body_text(&state->gui_state, container, debug_text);
@@ -1053,7 +1053,7 @@ void Renderer::render_scene_ui(State *state) {
   {
 #if 1
     GuiContainer *container = Gui::make_container(
-      &state->gui_state, "Materials", glm::vec2(state->window_info.width - 600.0f, 25.0f)
+      &state->gui_state, "Materials", v2(state->window_info.width - 600.0f, 25.0f)
     );
     World::get_materials_text_representation(debug_text, state);
     Gui::draw_body_text(&state->gui_state, container, debug_text);
@@ -1092,7 +1092,7 @@ void Renderer::render(State *state) {
   {
     // Point lights
     {
-      glm::mat4 perspective_projection = glm::perspective(
+      m4 perspective_projection = glm::perspective(
         glm::radians(90.0f),
         (
           (real32)state->builtin_textures.shadowmap_3d_width /
@@ -1120,7 +1120,7 @@ void Renderer::render(State *state) {
           continue;
         }
 
-        glm::vec3 position = spatial_component->position;
+        v3 position = spatial_component->position;
 
         for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
           state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
@@ -1163,7 +1163,7 @@ void Renderer::render(State *state) {
       );
       real32 ortho_width = 100.0f;
       real32 ortho_height = ortho_width / ortho_ratio;
-      glm::mat4 ortho_projection = glm::ortho(
+      m4 ortho_projection = glm::ortho(
         -ortho_width, ortho_width,
         -ortho_height, ortho_height,
         state->builtin_textures.shadowmap_near_clip_dist,
@@ -1191,7 +1191,7 @@ void Renderer::render(State *state) {
         state->shadowmap_2d_transforms[idx_light] = ortho_projection * glm::lookAt(
           spatial_component->position,
           spatial_component->position + light_component->direction,
-          glm::vec3(0.0f, -1.0f, 0.0f)
+          v3(0.0f, -1.0f, 0.0f)
         );
 
         glViewport(

@@ -26,13 +26,13 @@ namespace RenderPass {
 };
 
 struct ShaderCommon {
-  glm::mat4 view;
-  glm::mat4 projection;
-  glm::mat4 ui_projection;
-  glm::mat4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
-  glm::mat4 shadowmap_2d_transforms[MAX_N_LIGHTS];
+  m4 view;
+  m4 projection;
+  m4 ui_projection;
+  m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+  m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
 
-  glm::vec3 camera_position;
+  v3 camera_position;
   float camera_pitch;
 
   float camera_horizontal_fov;
@@ -55,14 +55,14 @@ struct ShaderCommon {
   int window_width;
   int window_height;
 
-  glm::vec4 point_light_position[MAX_N_LIGHTS];
-  glm::vec4 point_light_color[MAX_N_LIGHTS];
-  glm::vec4 point_light_attenuation[MAX_N_LIGHTS];
+  v4 point_light_position[MAX_N_LIGHTS];
+  v4 point_light_color[MAX_N_LIGHTS];
+  v4 point_light_attenuation[MAX_N_LIGHTS];
 
-  glm::vec4 directional_light_position[MAX_N_LIGHTS];
-  glm::vec4 directional_light_direction[MAX_N_LIGHTS];
-  glm::vec4 directional_light_color[MAX_N_LIGHTS];
-  glm::vec4 directional_light_attenuation[MAX_N_LIGHTS];
+  v4 directional_light_position[MAX_N_LIGHTS];
+  v4 directional_light_direction[MAX_N_LIGHTS];
+  v4 directional_light_color[MAX_N_LIGHTS];
+  v4 directional_light_attenuation[MAX_N_LIGHTS];
 };
 
 namespace Renderer {
@@ -70,7 +70,7 @@ namespace Renderer {
   // in the light calculations. We need to scale the position
   // by some factor such that the shadow map covers the biggest
   // possible area.
-  constexpr glm::vec3 DIRECTIONAL_LIGHT_DISTANCE = glm::vec3(
+  constexpr v3 DIRECTIONAL_LIGHT_DISTANCE = v3(
     75.0f, 15.0f, 75.0f
   );
 

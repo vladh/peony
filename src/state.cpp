@@ -5,7 +5,7 @@ State* init_state(
 ) {
   state->window_info = window_info;
 
-  state->background_color = glm::vec4(0.81f, 0.93f, 1.00f, 1.0f);
+  state->background_color = v4(0.81f, 0.93f, 1.00f, 1.0f);
 
   state->materials = Array<Material>(
     asset_memory_pool, MAX_N_MATERIALS, "materials"
@@ -67,7 +67,7 @@ State* init_state(
       asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1
     )
   };
-  state->bone_matrix_pool.bone_matrices = Array<glm::mat4>(
+  state->bone_matrix_pool.bone_matrices = Array<m4>(
     asset_memory_pool,
     MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
     "bone_matrices",

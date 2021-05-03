@@ -7,7 +7,7 @@ void Cameras::update_matrices_ortho(
 
   camera->view = glm::lookAt(
     camera->position,
-    glm::vec3(0.0f, 0.0f, 0.0f),
+    v3(0.0f, 0.0f, 0.0f),
     camera->up
   );
 
@@ -25,7 +25,7 @@ void Cameras::update_matrices_perspective(
     return;
   }
 
-  camera->front = glm::normalize(glm::vec3(
+  camera->front = glm::normalize(v3(
     cos(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch)),
     -sin(glm::radians(camera->pitch)),
     sin(glm::radians(camera->yaw)) * cos(glm::radians(camera->pitch))
@@ -81,7 +81,7 @@ void Cameras::move_front_back(
 void Cameras::move_left_right(
   Camera *camera, real32 sign, real64 dt
 ) {
-  glm::vec3 direction = glm::normalize(glm::cross(
+  v3 direction = glm::normalize(glm::cross(
     camera->front, camera->up
   ));
   camera->position += (sign * camera->speed * (real32)dt) * direction;
@@ -96,7 +96,7 @@ void Cameras::move_up_down(
 
 
 void Cameras::update_mouse(
-  Camera *camera, glm::vec2 mouse_offset
+  Camera *camera, v2 mouse_offset
 ) {
   camera->yaw += mouse_offset.x;
   camera->pitch += mouse_offset.y;
@@ -118,9 +118,9 @@ Camera* Cameras::init_camera(
   camera->type = new_type;
   camera->yaw = -45.0f;
   camera->pitch = 0.0f;
-  camera->position = glm::vec3(-7.0f, 3.0f, 7.0f);
-  camera->front = glm::vec3(0.0f, 0.0f, 0.0f);
-  camera->up = glm::vec3(0.0f, 1.0f, 0.0f);
+  camera->position = v3(-7.0f, 3.0f, 7.0f);
+  camera->front = v3(0.0f, 0.0f, 0.0f);
+  camera->up = v3(0.0f, 1.0f, 0.0f);
   camera->speed = 5.0f;
   camera->horizontal_fov = 60.0f;
   camera->vertical_fov = 0.0f; // Filled in later

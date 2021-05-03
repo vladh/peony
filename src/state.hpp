@@ -20,7 +20,7 @@ struct PerfCounters {
 };
 
 struct BoneMatrixPool {
-  Array<glm::mat4> bone_matrices;
+  Array<m4> bone_matrices;
   Array<real64> times;
   uint32 n_bone_matrix_sets;
 };
@@ -46,7 +46,7 @@ struct State {
   bool32 is_cursor_enabled;
   bool32 should_limit_fps;
   bool32 should_use_wireframe;
-  glm::vec4 background_color;
+  v4 background_color;
   uint32 n_valid_model_loaders;
   uint32 n_valid_entity_loaders;
 
@@ -83,8 +83,8 @@ struct State {
   uint32 ubo_shader_common;
   ShaderCommon shader_common;
 
-  glm::mat4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
-  glm::mat4 shadowmap_2d_transforms[MAX_N_LIGHTS];
+  m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+  m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
   BuiltinTextures builtin_textures;
 };
 

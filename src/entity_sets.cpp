@@ -3,7 +3,7 @@ uint32 EntitySets::push_to_bone_matrix_pool(BoneMatrixPool *pool) {
 }
 
 
-glm::mat4* EntitySets::get_bone_matrix(
+m4* EntitySets::get_bone_matrix(
   BoneMatrixPool *pool,
   uint32 idx,
   uint32 idx_bone,
@@ -54,12 +54,12 @@ Entity* EntitySets::add_entity_to_set(
 }
 
 
-glm::mat4 EntitySets::make_model_matrix(
+m4 EntitySets::make_model_matrix(
   SpatialComponentSet *spatial_component_set,
   SpatialComponent *spatial_component,
   ModelMatrixCache *cache
 ) {
-  glm::mat4 model_matrix = glm::mat4(1.0f);
+  m4 model_matrix = m4(1.0f);
 
   if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
     SpatialComponent *parent = spatial_component_set->components[
@@ -93,7 +93,7 @@ void EntitySets::update_light_components(
   LightComponentSet *light_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t,
-  glm::vec3 camera_position,
+  v3 camera_position,
   real32 dir_light_angle
 ) {
   for_each (light_component, light_component_set->components) {
@@ -119,7 +119,7 @@ void EntitySets::update_light_components(
     if (light_component->type == LightType::directional) {
       spatial_component->position = camera_position +
         -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
-      light_component->direction = glm::vec3(
+      light_component->direction = v3(
         sin(dir_light_angle), -cos(dir_light_angle), 0.0f
       );
     }
@@ -166,7 +166,7 @@ void EntitySets::update_animation_components(
 
       // If we have no anim keys, just return the identity matrix.
       if (bone->n_anim_keys == 0) {
-        animation_component->bone_matrices[idx_bone] = glm::mat4(1.0f);
+        animation_component->bone_matrices[idx_bone] = m4(1.0f);
 
       // If we only have one anim key, just return that.
       } else if (bone->n_anim_keys == 1) {
@@ -192,21 +192,21 @@ void EntitySets::update_animation_components(
         real64 t0 = *get_bone_matrix_time(
           bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key
         );
-        glm::mat4 transform_t0 = *get_bone_matrix(
+        m4 transform_t0 = *get_bone_matrix(
           bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key
         );
 
         real64 t1 = *get_bone_matrix_time(
           bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key + 1
         );
-        glm::mat4 transform_t1 = *get_bone_matrix(
+        m4 transform_t1 = *get_bone_matrix(
           bone_matrix_pool, animation->idx_bone_matrix_set, idx_bone, idx_anim_key + 1
         );
 
         real32 lerp_factor = (real32)((animation_timepoint - t0) / (t1 - t0));
 
         // NOTE: This is probably bad if we have scaling in our transform?
-        glm::mat4 interpolated_matrix =
+        m4 interpolated_matrix =
           (transform_t0 * (1.0f - lerp_factor)) + (transform_t1 * lerp_factor);
 
         animation_component->bone_matrices[idx_bone] = interpolated_matrix;
@@ -296,7 +296,7 @@ void EntitySets::make_bone_matrices_for_animation_bone(
     );
     real64 anim_key_time = ai_channel->mPositionKeys[idx_anim_key].mTime;
 
-    glm::mat4 *bone_matrix = get_bone_matrix(
+    m4 *bone_matrix = get_bone_matrix(
       bone_matrix_pool,
       animation_component->animations[idx_animation].idx_bone_matrix_set,
       idx_bone,
@@ -310,7 +310,7 @@ void EntitySets::make_bone_matrices_for_animation_bone(
       idx_anim_key
     );
 
-    glm::mat4 parent_transform = glm::mat4(1.0f);
+    m4 parent_transform = m4(1.0f);
 
     if (idx_bone > 0) {
       parent_transform = *get_bone_matrix(
@@ -321,19 +321,19 @@ void EntitySets::make_bone_matrices_for_animation_bone(
       );
     }
 
-    glm::mat4 translation = glm::translate(
-      glm::mat4(1.0f),
+    m4 translation = glm::translate(
+      m4(1.0f),
       Util::aiVector3D_to_glm(&ai_channel->mPositionKeys[idx_anim_key].mValue)
     );
-    glm::mat4 rotation = glm::toMat4(glm::normalize(
+    m4 rotation = glm::toMat4(glm::normalize(
       Util::aiQuaternion_to_glm(&ai_channel->mRotationKeys[idx_anim_key].mValue)
     ));
-    glm::mat4 scaling = glm::scale(
-      glm::mat4(1.0f),
+    m4 scaling = glm::scale(
+      m4(1.0f),
       Util::aiVector3D_to_glm(&ai_channel->mScalingKeys[idx_anim_key].mValue)
     );
 
-    glm::mat4 anim_transform = translation * rotation * scaling;
+    m4 anim_transform = translation * rotation * scaling;
     *bone_matrix = parent_transform * anim_transform;
     *time = anim_key_time;
   }
@@ -371,9 +371,9 @@ void EntitySets::draw(
   DrawableComponentSet *drawable_component_set,
   DrawableComponent *drawable_component,
   Material *material,
-  glm::mat4 *model_matrix,
-  glm::mat3 *model_normal_matrix,
-  glm::mat4 *bone_matrices,
+  m4 *model_matrix,
+  m3 *model_normal_matrix,
+  m4 *bone_matrices,
   ShaderAsset *standard_depth_shader_asset
 ) {
   ShaderAsset *shader_asset = nullptr;
@@ -451,7 +451,7 @@ void EntitySets::draw_all(
   real64 t,
   DebugDrawState *debug_draw_state
 ) {
-  ModelMatrixCache cache = {glm::mat4(1.0f), nullptr};
+  ModelMatrixCache cache = {m4(1.0f), nullptr};
 
   for_each (drawable_component, drawable_component_set->components) {
     if (!Models::is_drawable_component_valid(drawable_component)) {
@@ -480,9 +480,9 @@ void EntitySets::draw_all(
     SpatialComponent *spatial_component =
       spatial_component_set->components[drawable_component->entity_handle];
 
-    glm::mat4 model_matrix = glm::mat4(1.0f);
-    glm::mat3 model_normal_matrix = glm::mat3(1.0f);
-    glm::mat4 *bone_matrices = nullptr;
+    m4 model_matrix = m4(1.0f);
+    m3 model_normal_matrix = m3(1.0f);
+    m4 *bone_matrices = nullptr;
 
     if (Entities::is_spatial_component_valid(spatial_component)) {
       // We only need to calculate the normal matrix if we have non-uniform
@@ -499,9 +499,9 @@ void EntitySets::draw_all(
         spatial_component->scale.x == spatial_component->scale.y &&
         spatial_component->scale.y == spatial_component->scale.z
       ) {
-        model_normal_matrix = glm::mat3(model_matrix);
+        model_normal_matrix = m3(model_matrix);
       } else {
-        model_normal_matrix = glm::mat3(glm::transpose(glm::inverse(model_matrix)));
+        model_normal_matrix = m3(glm::transpose(glm::inverse(model_matrix)));
       }
 
       // Animations

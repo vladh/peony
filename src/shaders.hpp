@@ -47,15 +47,15 @@ namespace Shaders {
   void set_int(ShaderAsset *shader_asset, const char *name, uint32 value);
   void set_bool(ShaderAsset *shader_asset, const char *name, bool value);
   void set_float(ShaderAsset *shader_asset, const char *name, float value);
-  void set_vec2(ShaderAsset *shader_asset, const char *name, glm::vec2 *value);
-  void set_vec3(ShaderAsset *shader_asset, const char *name, glm::vec3 *value);
-  void set_vec4(ShaderAsset *shader_asset, const char *name, glm::vec4 *value);
-  void set_mat2(ShaderAsset *shader_asset, const char *name, glm::mat2 *mat);
-  void set_mat3(ShaderAsset *shader_asset, const char *name, glm::mat3 *mat);
+  void set_vec2(ShaderAsset *shader_asset, const char *name, v2 *value);
+  void set_vec3(ShaderAsset *shader_asset, const char *name, v3 *value);
+  void set_vec4(ShaderAsset *shader_asset, const char *name, v4 *value);
+  void set_mat2(ShaderAsset *shader_asset, const char *name, m2 *mat);
+  void set_mat3(ShaderAsset *shader_asset, const char *name, m3 *mat);
   void set_mat4_multiple(
-    ShaderAsset *shader_asset, uint32 n, const char *uniform_name, glm::mat4 *mat
+    ShaderAsset *shader_asset, uint32 n, const char *uniform_name, m4 *mat
   );
-  void set_mat4(ShaderAsset *shader_asset, const char *name, glm::mat4 *mat);
+  void set_mat4(ShaderAsset *shader_asset, const char *name, m4 *mat);
   void reset_texture_units(ShaderAsset *shader_asset);
   uint32 add_texture_unit(
     ShaderAsset *shader_asset,

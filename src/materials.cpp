@@ -143,11 +143,11 @@ TextureType Materials::texture_type_from_string(const char* str) {
 
 TextureAtlas* Materials::init_texture_atlas(
   TextureAtlas* atlas,
-  glm::ivec2 size
+  iv2 size
 ) {
   atlas->size = size;
-  atlas->next_position = glm::ivec2(0, 0);
-  atlas->max_allocated_position_per_axis = glm::ivec2(0, 0);
+  atlas->next_position = iv2(0, 0);
+  atlas->max_allocated_position_per_axis = iv2(0, 0);
 
   glGenTextures(1, &atlas->texture_name);
   glBindTexture(GL_TEXTURE_2D, atlas->texture_name);
@@ -165,15 +165,15 @@ TextureAtlas* Materials::init_texture_atlas(
   return atlas;
 }
 
-glm::ivec2 Materials::push_space_to_texture_atlas(
+iv2 Materials::push_space_to_texture_atlas(
   TextureAtlas* atlas,
-  glm::ivec2 space_size
+  iv2 space_size
 ) {
   // New space in a texture is first allocated along the x-axis.
   // If we run over the end of the x-axis, we go to the next "row" from the
   // beginning of the x-axis.
-  glm::ivec2 new_space_position = atlas->next_position;
-  glm::ivec2 new_space_end = atlas->next_position + space_size;
+  iv2 new_space_position = atlas->next_position;
+  iv2 new_space_end = atlas->next_position + space_size;
 
   // If we run past the end of the y-axis, we've filled up the texture.
   // This is a problem. We'll start reallocating from the beginning,
@@ -181,18 +181,18 @@ glm::ivec2 Materials::push_space_to_texture_atlas(
   if (new_space_end.y > atlas->size.y) {
     log_error("Ran past y-axis end of TextureAtlas.");
     // Maybe we just start overwriting stuff here.
-    new_space_position = glm::ivec2(0, 0);
+    new_space_position = iv2(0, 0);
   }
 
   // If we run past the end of the x-axis, move on to the next row.
   if (new_space_end.x > atlas->size.x) {
-    new_space_position = glm::ivec2(0, atlas->max_allocated_position_per_axis.y);
+    new_space_position = iv2(0, atlas->max_allocated_position_per_axis.y);
   }
 
   atlas->max_allocated_position_per_axis = glm::max(
     atlas->max_allocated_position_per_axis, new_space_end
   );
-  atlas->next_position = new_space_position + glm::ivec2(space_size.x, 0);
+  atlas->next_position = new_space_position + iv2(space_size.x, 0);
   return new_space_position;
 }
 

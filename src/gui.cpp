@@ -2,7 +2,7 @@ void Gui::update_screen_dimensions(
   GuiState *gui_state,
   uint32 new_window_width, uint32 new_window_height
 ) {
-  gui_state->window_dimensions = glm::vec2(new_window_width, new_window_height);
+  gui_state->window_dimensions = v2(new_window_width, new_window_height);
 }
 
 
@@ -68,7 +68,7 @@ void Gui::render(GuiState *gui_state) {
 }
 
 
-glm::vec2 Gui::get_text_dimensions(
+v2 Gui::get_text_dimensions(
   FontAsset *font_asset, const char *str
 ) {
   // NOTE: This returns the dimensions around the main body of the text.
@@ -110,14 +110,14 @@ glm::vec2 Gui::get_text_dimensions(
   max_x = glm::max(max_x, curr_x);
   curr_y += line_height;
 
-  return glm::vec2(max_x, curr_y);
+  return v2(max_x, curr_y);
 }
 
 
-glm::vec2 Gui::center_bb(
-  glm::vec2 container_position,
-  glm::vec2 container_dimensions,
-  glm::vec2 element_dimensions
+v2 Gui::center_bb(
+  v2 container_position,
+  v2 container_dimensions,
+  v2 element_dimensions
 ) {
   return glm::ceil(
     container_position + (container_dimensions / 2.0f) - (element_dimensions / 2.0f)
@@ -125,8 +125,8 @@ glm::vec2 Gui::center_bb(
 }
 
 
-glm::vec2 Gui::add_element_to_container(
-  GuiContainer *container, glm::vec2 element_dimensions
+v2 Gui::add_element_to_container(
+  GuiContainer *container, v2 element_dimensions
 ) {
   // When adding a new element, we need to ensure we have enough space.
   //
@@ -143,12 +143,12 @@ glm::vec2 Gui::add_element_to_container(
   // has buttons, we will add (20 + element_margin) to its height, and ensure
   // its width is at least (200 + padding).
 
-  glm::vec2 new_element_position = container->next_element_position;
-  glm::vec2 orthogonal_direction = glm::vec2(
+  v2 new_element_position = container->next_element_position;
+  v2 orthogonal_direction = v2(
     container->direction.y, container->direction.x
   );
 
-  glm::vec2 required_space = element_dimensions;
+  v2 required_space = element_dimensions;
   if (container->n_elements > 0) {
     required_space += (container->element_margin * container->direction);
   }
@@ -160,7 +160,7 @@ glm::vec2 Gui::add_element_to_container(
   );
   container->dimensions = container->content_dimensions +
     (container->padding * 2.0f) +
-    glm::vec2(0.0f, container->title_bar_height);
+    v2(0.0f, container->title_bar_height);
 
   container->next_element_position = container->position +
     (
@@ -168,7 +168,7 @@ glm::vec2 Gui::add_element_to_container(
       container->direction
     ) +
     (
-      (container->padding + glm::vec2(0.0f, container->title_bar_height)) *
+      (container->padding + v2(0.0f, container->title_bar_height)) *
       orthogonal_direction
     );
 
@@ -185,22 +185,22 @@ void Gui::draw_container(
   draw_rect(
     gui_state,
     container->position,
-    glm::vec2(
+    v2(
       container->dimensions.x, container->title_bar_height
     ),
     GUI_MAIN_DARKEN_COLOR
   );
 
-  glm::vec2 text_dimensions = get_text_dimensions(
+  v2 text_dimensions = get_text_dimensions(
     Fonts::get_by_name(&gui_state->font_assets, "body"),
     container->title
   );
-  glm::vec2 centered_text_position = center_bb(
+  v2 centered_text_position = center_bb(
     container->position,
-    glm::vec2(container->dimensions.x, container->title_bar_height),
+    v2(container->dimensions.x, container->title_bar_height),
     text_dimensions
   );
-  glm::vec2 text_position = glm::vec2(
+  v2 text_position = v2(
     container->position.x + container->padding.x,
     centered_text_position.y
   );
@@ -221,15 +221,15 @@ void Gui::draw_container(
 
   draw_rect(
     gui_state,
-    container->position + glm::vec2(0.0, container->title_bar_height),
-    container->dimensions - glm::vec2(0.0, container->title_bar_height),
+    container->position + v2(0.0, container->title_bar_height),
+    container->dimensions - v2(0.0, container->title_bar_height),
     GUI_WINDOW_BG_COLOR
   );
 }
 
 
 GuiContainer* Gui::make_container(
-  GuiState *gui_state, const char *title, glm::vec2 position
+  GuiState *gui_state, const char *title, v2 position
 ) {
   GuiContainer *container = nullptr;
   for_each (container_candidate, gui_state->containers) {
@@ -245,7 +245,7 @@ GuiContainer* Gui::make_container(
       Input::is_mouse_in_bb(
         gui_state->input_state,
         container->position,
-        container->position + glm::vec2(
+        container->position + v2(
           container->dimensions.x, container->title_bar_height
         )
       ) &&
@@ -258,15 +258,15 @@ GuiContainer* Gui::make_container(
 
     // Draw the container with the information from the previous frame
     // if there is anything in it.
-    if (container->content_dimensions != glm::vec2(0.0f, 0.0f)) {
+    if (container->content_dimensions != v2(0.0f, 0.0f)) {
       draw_container(gui_state, container);
     }
   } else {
     container = gui_state->containers.push();
     container->title = title;
     container->position = position;
-    container->direction = glm::vec2(0.0f, 1.0f);
-    container->padding = glm::vec2(20.0f);
+    container->direction = v2(0.0f, 1.0f);
+    container->padding = v2(20.0f);
     container->title_bar_height = 40.0f;
     container->element_margin = 20.0f;
   }
@@ -274,10 +274,10 @@ GuiContainer* Gui::make_container(
   // In all cases, clear this container.
   container->n_elements = 0;
   container->dimensions = container->padding * 2.0f;
-  container->content_dimensions = glm::vec2(0.0f, 0.0f);
+  container->content_dimensions = v2(0.0f, 0.0f);
   container->next_element_position = container->position +
     container->padding +
-    glm::vec2(0.0f, container->title_bar_height);
+    v2(0.0f, container->title_bar_height);
 
   return container;
 }
@@ -286,8 +286,8 @@ GuiContainer* Gui::make_container(
 void Gui::draw_text(
   GuiState *gui_state,
   const char* font_name, const char *str,
-  glm::vec2 position,
-  glm::vec4 color
+  v2 position,
+  v4 color
 ) {
   FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, font_name);
 
@@ -370,13 +370,13 @@ void Gui::draw_text(
 void Gui::draw_text_shadow(
   GuiState *gui_state,
   const char* font_name, const char *str,
-  glm::vec2 position,
-  glm::vec4 color
+  v2 position,
+  v4 color
 ) {
   draw_text(
     gui_state,
     font_name, str, position + GUI_TEXT_SHADOW_OFFSET,
-    glm::vec4(0.0f, 0.0f, 0.0f, color.a * 0.2f)
+    v4(0.0f, 0.0f, 0.0f, color.a * 0.2f)
   );
 }
 
@@ -384,11 +384,11 @@ void Gui::draw_text_shadow(
 void Gui::draw_heading(
   GuiState *gui_state,
   const char *str,
-  glm::vec4 color
+  v4 color
 ) {
-  glm::vec2 position = glm::vec2(
+  v2 position = v2(
     center_bb(
-      glm::vec2(0.0f, 0.0f),
+      v2(0.0f, 0.0f),
       gui_state->window_dimensions,
       get_text_dimensions(
         Fonts::get_by_name(&gui_state->font_assets, "heading"),
@@ -404,9 +404,9 @@ void Gui::draw_heading(
 
 void Gui::draw_rect(
   GuiState *gui_state,
-  glm::vec2 position,
-  glm::vec2 dimensions,
-  glm::vec4 color
+  v2 position,
+  v2 dimensions,
+  v4 color
 ) {
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
@@ -429,12 +429,12 @@ void Gui::draw_rect(
 
 void Gui::draw_line(
   GuiState *gui_state,
-  glm::vec2 start, glm::vec2 end,
-  real32 thickness, glm::vec4 color
+  v2 start, v2 end,
+  real32 thickness, v4 color
 ) {
   // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
   // Flip the y axis before drawing.
-  glm::vec2 delta = glm::normalize(end - start) * thickness;
+  v2 delta = glm::normalize(end - start) * thickness;
 
   //    ----------->
   // 0------------------3
@@ -463,34 +463,34 @@ void Gui::draw_line(
 
 void Gui::draw_frame(
   GuiState *gui_state,
-  glm::vec2 position, glm::vec2 bottomright,
-  glm::vec2 thickness, glm::vec4 color
+  v2 position, v2 bottomright,
+  v2 thickness, v4 color
 ) {
   draw_line(
     gui_state,
-    glm::vec2(position.x, position.y),
-    glm::vec2(bottomright.x, position.y),
+    v2(position.x, position.y),
+    v2(bottomright.x, position.y),
     thickness.y,
     color
   );
   draw_line(
     gui_state,
-    glm::vec2(position.x, bottomright.y - thickness.y),
-    glm::vec2(bottomright.x, bottomright.y - thickness.y),
+    v2(position.x, bottomright.y - thickness.y),
+    v2(bottomright.x, bottomright.y - thickness.y),
     thickness.y,
     color
   );
   draw_line(
     gui_state,
-    glm::vec2(position.x, position.y),
-    glm::vec2(position.x, bottomright.y),
+    v2(position.x, position.y),
+    v2(position.x, bottomright.y),
     thickness.x,
     color
   );
   draw_line(
     gui_state,
-    glm::vec2(bottomright.x - thickness.x, position.y),
-    glm::vec2(bottomright.x - thickness.x, bottomright.y),
+    v2(bottomright.x - thickness.x, position.y),
+    v2(bottomright.x - thickness.x, bottomright.y),
     thickness.x,
     color
   );
@@ -505,29 +505,29 @@ bool32 Gui::draw_toggle(
 ) {
   bool32 is_pressed = false;
 
-  glm::vec2 text_dimensions = get_text_dimensions(
+  v2 text_dimensions = get_text_dimensions(
     Fonts::get_by_name(&gui_state->font_assets, "body"),
     text
   );
-  glm::vec2 button_dimensions = GUI_TOGGLE_BUTTON_SIZE +
+  v2 button_dimensions = GUI_TOGGLE_BUTTON_SIZE +
     GUI_BUTTON_DEFAULT_BORDER * 2.0f;
-  glm::vec2 dimensions = glm::vec2(
+  v2 dimensions = v2(
     button_dimensions.x + GUI_TOGGLE_SPACING + text_dimensions.x,
     glm::max(button_dimensions.y, text_dimensions.y)
   );
 
-  glm::vec2 position = add_element_to_container(container, dimensions);
+  v2 position = add_element_to_container(container, dimensions);
 
-  glm::vec2 button_bottomright = position + button_dimensions;
-  glm::vec2 text_centered_position = center_bb(
+  v2 button_bottomright = position + button_dimensions;
+  v2 text_centered_position = center_bb(
     position, button_dimensions, text_dimensions
   );
-  glm::vec2 text_position = glm::vec2(
+  v2 text_position = v2(
     position.x + button_dimensions.x + GUI_TOGGLE_SPACING,
     text_centered_position.y
   );
 
-  glm::vec4 button_color;
+  v4 button_color;
   if (*toggle_state) {
     button_color = GUI_MAIN_COLOR;
   } else {
@@ -585,11 +585,11 @@ void Gui::draw_named_value(
   const char *name_text,
   const char *value_text
 ) {
-  glm::vec2 name_text_dimensions = get_text_dimensions(
+  v2 name_text_dimensions = get_text_dimensions(
     Fonts::get_by_name(&gui_state->font_assets, "body-bold"),
     name_text
   );
-  glm::vec2 value_text_dimensions = get_text_dimensions(
+  v2 value_text_dimensions = get_text_dimensions(
     Fonts::get_by_name(&gui_state->font_assets, "body"),
     value_text
   );
@@ -599,12 +599,12 @@ void Gui::draw_named_value(
   value_text_dimensions.x = Util::round_to_nearest_multiple(
     value_text_dimensions.x, 50.0f
   );
-  glm::vec2 dimensions = glm::vec2(
+  v2 dimensions = v2(
     value_text_dimensions.x + GUI_NAMED_VALUE_NAME_WIDTH,
     glm::max(name_text_dimensions.y, value_text_dimensions.y)
   );
 
-  glm::vec2 position = add_element_to_container(container, dimensions);
+  v2 position = add_element_to_container(container, dimensions);
 
   draw_text(
     gui_state,
@@ -613,8 +613,8 @@ void Gui::draw_named_value(
     GUI_LIGHT_TEXT_COLOR
   );
 
-  glm::vec2 value_text_position = position +
-    glm::vec2(GUI_NAMED_VALUE_NAME_WIDTH, 0.0f);
+  v2 value_text_position = position +
+    v2(GUI_NAMED_VALUE_NAME_WIDTH, 0.0f);
   draw_text(
     gui_state,
     "body", value_text,
@@ -629,11 +629,11 @@ void Gui::draw_body_text(
   GuiContainer *container,
   const char *text
 ) {
-  glm::vec2 dimensions = get_text_dimensions(
+  v2 dimensions = get_text_dimensions(
     Fonts::get_by_name(&gui_state->font_assets, "body"),
     text
   );
-  glm::vec2 position = add_element_to_container(container, dimensions);
+  v2 position = add_element_to_container(container, dimensions);
   draw_text(gui_state, "body", text, position, GUI_LIGHT_TEXT_COLOR);
 }
 
@@ -645,20 +645,20 @@ bool32 Gui::draw_button(
 ) {
   bool32 is_pressed = false;
 
-  glm::vec2 text_dimensions = get_text_dimensions(
+  v2 text_dimensions = get_text_dimensions(
     Fonts::get_by_name(&gui_state->font_assets, "body"),
     text
   );
-  glm::vec2 button_dimensions = text_dimensions +
+  v2 button_dimensions = text_dimensions +
     GUI_BUTTON_AUTOSIZE_PADDING +
     GUI_BUTTON_DEFAULT_BORDER * 2.0f;
 
-  glm::vec2 position = add_element_to_container(container, button_dimensions);
+  v2 position = add_element_to_container(container, button_dimensions);
 
-  glm::vec2 bottomright = position + button_dimensions;
-  glm::vec2 text_position = center_bb(position, button_dimensions, text_dimensions);
+  v2 bottomright = position + button_dimensions;
+  v2 text_position = center_bb(position, button_dimensions, text_dimensions);
 
-  glm::vec4 button_color = GUI_MAIN_COLOR;
+  v4 button_color = GUI_MAIN_COLOR;
 
   if (Input::is_mouse_in_bb(gui_state->input_state, position, bottomright)) {
     request_cursor(gui_state, gui_state->input_state->hand_cursor);
@@ -713,14 +713,14 @@ void Gui::draw_console(
 
   // Draw console log
   {
-    glm::vec2 next_element_position = glm::vec2(
+    v2 next_element_position = v2(
       GUI_CONSOLE_PADDING.x, GUI_MAX_CONSOLE_LOG_HEIGHT
     );
 
     draw_rect(
       gui_state,
-      glm::vec2(0.0f, 0.0f),
-      glm::vec2(
+      v2(0.0f, 0.0f),
+      v2(
         gui_state->window_dimensions.x,
         GUI_MAX_CONSOLE_LOG_HEIGHT
       ),
@@ -729,7 +729,7 @@ void Gui::draw_console(
 
     uint32 idx_line = gui_state->idx_console_log_start;
     while (idx_line != gui_state->idx_console_log_end) {
-      glm::vec2 text_dimensions = get_text_dimensions(
+      v2 text_dimensions = get_text_dimensions(
         font_asset, gui_state->console_log[idx_line]
       );
       next_element_position.y -= text_dimensions.y + line_spacing;
@@ -750,12 +750,12 @@ void Gui::draw_console(
   // Draw console input
   {
     real32 console_input_height = line_height + (2.0f * GUI_CONSOLE_PADDING.y);
-    glm::vec2 console_input_position = glm::vec2(0.0f, GUI_MAX_CONSOLE_LOG_HEIGHT);
+    v2 console_input_position = v2(0.0f, GUI_MAX_CONSOLE_LOG_HEIGHT);
 
     draw_rect(
       gui_state,
       console_input_position,
-      glm::vec2(
+      v2(
         gui_state->window_dimensions.x,
         console_input_height
       ),
@@ -809,8 +809,8 @@ GuiState* Gui::init_gui_state(
     memory_pool, 32, "gui_containers"
   );
   gui_state->input_state = input_state;
-  gui_state->window_dimensions = glm::vec2(window_width, window_height);
-  Materials::init_texture_atlas(&gui_state->texture_atlas, glm::ivec2(2000, 2000));
+  gui_state->window_dimensions = v2(window_width, window_height);
+  Materials::init_texture_atlas(&gui_state->texture_atlas, iv2(2000, 2000));
 
   // Shaders
   {

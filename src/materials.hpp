@@ -26,9 +26,9 @@ struct PersistentPbo {
 };
 
 struct TextureAtlas {
-  glm::ivec2 size;
-  glm::ivec2 next_position;
-  glm::ivec2 max_allocated_position_per_axis;
+  iv2 size;
+  iv2 next_position;
+  iv2 max_allocated_position_per_axis;
   uint32 texture_name;
 };
 
@@ -124,7 +124,7 @@ struct Material {
   uint32 idx_texture_uniform_names;
 
   // Hardcoded values for when we can't load a texture.
-  glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+  v4 albedo_static = v4(-1.0f, -1.0f, -1.0f, -1.0f);
   real32 metallic_static = -1.0f;
   real32 roughness_static = -1.0f;
   real32 ao_static = -1.0f;
@@ -152,11 +152,11 @@ namespace Materials {
   TextureType texture_type_from_string(const char* str);
   TextureAtlas* init_texture_atlas(
     TextureAtlas* atlas,
-    glm::ivec2 size
+    iv2 size
   );
-  glm::ivec2 push_space_to_texture_atlas(
+  iv2 push_space_to_texture_atlas(
     TextureAtlas* atlas,
-    glm::ivec2 space_size
+    iv2 space_size
   );
   Material* init_material(
     Material *material,

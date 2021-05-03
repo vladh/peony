@@ -42,9 +42,9 @@ void Fonts::load_glyphs(
       continue;
     }
 
-    character->size = glm::ivec2(glyph->bitmap.width, glyph->bitmap.rows);
-    character->bearing = glm::ivec2(glyph->bitmap_left, glyph->bitmap_top);
-    character->advance = glm::ivec2(glyph->advance.x, glyph->advance.y);
+    character->size = iv2(glyph->bitmap.width, glyph->bitmap.rows);
+    character->bearing = iv2(glyph->bitmap_left, glyph->bitmap_top);
+    character->advance = iv2(glyph->advance.x, glyph->advance.y);
   }
 
   glActiveTexture(GL_TEXTURE0);
@@ -64,7 +64,7 @@ void Fonts::load_glyphs(
 
     Character *character = font_asset->characters[c];
 
-    glm::ivec2 tex_coords = Materials::push_space_to_texture_atlas(
+    iv2 tex_coords = Materials::push_space_to_texture_atlas(
       texture_atlas, character->size
     );
 

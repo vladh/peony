@@ -8,9 +8,9 @@ constexpr uint32 MAX_TEXT_INPUT_ARGUMENTS_LENGTH =
 
 struct InputState {
   GLFWwindow *window;
-  glm::vec2 mouse_pos;
-  glm::vec2 mouse_offset;
-  glm::vec2 mouse_3d_offset;
+  v2 mouse_pos;
+  v2 mouse_offset;
+  v2 mouse_3d_offset;
   real64 mouse_3d_sensitivity;
   bool32 mouse_button_states[GLFW_MOUSE_BUTTON_LAST];
   uint32 n_mouse_button_state_changes_this_frame[GLFW_MOUSE_BUTTON_LAST];
@@ -45,7 +45,7 @@ namespace Input {
     InputState *input_state, int button
   );
   void update_mouse(
-    InputState *input_state, glm::vec2 new_mouse_pos
+    InputState *input_state, v2 new_mouse_pos
   );
   void clear_text_input(InputState *input_state);
   void enable_text_input(InputState *input_state);
@@ -70,7 +70,7 @@ namespace Input {
     InputState *input_state, int key
   );
   bool32 is_mouse_in_bb(
-    InputState *input_state, glm::vec2 topleft, glm::vec2 bottomright
+    InputState *input_state, v2 topleft, v2 bottomright
   );
   void set_cursor(
     InputState *input_state, GLFWcursor *new_cursor

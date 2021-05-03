@@ -1,5 +1,5 @@
 Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
-  glm::mat3 rotation = glm::toMat3(glm::normalize(spatial->rotation));
+  m3 rotation = glm::toMat3(glm::normalize(spatial->rotation));
   obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
   obb.x_axis = glm::normalize(rotation * obb.x_axis);
   obb.y_axis = glm::normalize(rotation * obb.y_axis);
@@ -12,12 +12,12 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
   // This is the separating axis test (sometimes abbreviated SAT).
   real32 ra, rb;
-  glm::mat3 r, abs_r;
+  m3 r, abs_r;
 
-  glm::vec3 obb1_axes[3] = {
+  v3 obb1_axes[3] = {
     obb1->x_axis, obb1->y_axis, glm::cross(obb1->x_axis, obb1->y_axis)
   };
-  glm::vec3 obb2_axes[3] = {
+  v3 obb2_axes[3] = {
     obb2->x_axis, obb2->y_axis, glm::cross(obb2->x_axis, obb2->y_axis)
   };
 
@@ -29,10 +29,10 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
   }
 
   // Compute translation vector t
-  glm::vec3 t = obb2->center - obb1->center;
+  v3 t = obb2->center - obb1->center;
 
   // Bring translation into obb1's coordinate frame
-  t = glm::vec3(
+  t = v3(
     glm::dot(t, obb1_axes[0]),
     glm::dot(t, obb1_axes[1]),
     glm::dot(t, obb1_axes[2])

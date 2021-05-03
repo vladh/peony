@@ -10,7 +10,7 @@ struct MaterialTemplate {
   char depth_shader_asset_frag_path[MAX_TOKEN_LENGTH];
   char depth_shader_asset_geom_path[MAX_TOKEN_LENGTH];
 
-  glm::vec4 albedo_static = glm::vec4(-1.0f, -1.0f, -1.0f, -1.0f);
+  v4 albedo_static = v4(-1.0f, -1.0f, -1.0f, -1.0f);
   real32 metallic_static = -1.0f;
   real32 roughness_static = -1.0f;
   real32 ao_static = -1.0f;
@@ -44,9 +44,9 @@ union PropValue {
   char string_value[MAX_TOKEN_LENGTH];
   bool32 boolean_value;
   real32 number_value;
-  glm::vec2 vec2_value;
-  glm::vec3 vec3_value;
-  glm::vec4 vec4_value;
+  v2 vec2_value;
+  v3 vec3_value;
+  v4 vec4_value;
 };
 
 namespace PeonyFileParser {
@@ -88,9 +88,9 @@ namespace PeonyFileParser {
   bool32 get_token(char *token, FILE *f);
   bool32 get_non_trivial_token(char *token, FILE *f);
   void parse_header(char *token, FILE *f);
-  void parse_vec2(char *token, FILE *f, glm::vec2 *parsed_vector);
-  void parse_vec3(char *token, FILE *f, glm::vec3 *parsed_vector);
-  void parse_vec4(char *token, FILE *f, glm::vec4 *parsed_vector);
+  void parse_vec2(char *token, FILE *f, v2 *parsed_vector);
+  void parse_vec3(char *token, FILE *f, v3 *parsed_vector);
+  void parse_vec4(char *token, FILE *f, v4 *parsed_vector);
   uint32 parse_property(
     char *token,
     FILE *f,
