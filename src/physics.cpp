@@ -122,38 +122,36 @@ RayCollisionResult Physics::find_ray_collision(
 }
 
 
-bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
+bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
   // This is the separating axis test (sometimes abbreviated SAT).
-  real32 ra, rb;
+  real32 a_radius, b_radius, a_to_b;
   m3 r, abs_r;
 
-  v3 obb1_axes[3] = {
-    obb1->x_axis, obb1->y_axis, cross(obb1->x_axis, obb1->y_axis)
+  v3 a_axes[3] = {
+    a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis)
   };
-  v3 obb2_axes[3] = {
-    obb2->x_axis, obb2->y_axis, cross(obb2->x_axis, obb2->y_axis)
+  v3 b_axes[3] = {
+    b->x_axis, b->y_axis, cross(b->x_axis, b->y_axis)
   };
 
-  // Compute rotation matrix expressing obb2 in obb1's coordinate frame
+  // Compute rotation matrix expressing b in a's coordinate frame
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
-      r[i][j] = dot(obb1_axes[i], obb2_axes[j]);
+      r[i][j] = dot(a_axes[i], b_axes[j]);
     }
   }
 
   // Compute translation vector t
-  v3 t = obb2->center - obb1->center;
+  v3 t = b->center - a->center;
 
-  // Bring translation into obb1's coordinate frame
+  // Bring translation into a's coordinate frame
   t = v3(
-    dot(t, obb1_axes[0]),
-    dot(t, obb1_axes[1]),
-    dot(t, obb1_axes[2])
+    dot(t, a_axes[0]),
+    dot(t, a_axes[1]),
+    dot(t, a_axes[2])
   );
 
-  // We want to remember if the two OBBs share one axis, in which case we can
-  // skip checking their cross product axes.
   bool32 do_obbs_share_one_axis = false;
 
   // Compute common subexpressions. Add in an epsilon term to counteract
@@ -168,94 +166,104 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
     }
   }
 
-  // obb1.x, obb1.y, obb1.z
+  // Test axes a.x, a.y, a.z
   for_range_named (i, 0, 3) {
-    ra = obb1->extents[i];
-    rb = obb2->extents[0] * abs_r[i][0] +
-      obb2->extents[1] * abs_r[i][1] +
-      obb2->extents[2] * abs_r[i][2];
-    if (abs(t[i]) > ra + rb) {
+    a_radius = a->extents[i];
+    b_radius = b->extents[0] * abs_r[i][0] +
+      b->extents[1] * abs_r[i][1] +
+      b->extents[2] * abs_r[i][2];
+    a_to_b = abs(t[i]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
   }
 
-  // obb2.x, obb2.y, obb2.z
+  // Test axes b.x, b.y, b.z
   for_range_named (i, 0, 3) {
-    ra = obb1->extents[0] * abs_r[0][i] +
-      obb1->extents[1] * abs_r[1][i] +
-      obb1->extents[2] * abs_r[2][i];
-    rb = obb2->extents[i];
-    real32 abs_argument = t[0] * r[0][i] +
-      t[1] * r[1][i] +
-      t[2] * r[2][i];
-    if (abs(abs_argument) > ra + rb) {
+    a_radius = a->extents[0] * abs_r[0][i] +
+      a->extents[1] * abs_r[1][i] +
+      a->extents[2] * abs_r[2][i];
+    b_radius = b->extents[i];
+    a_to_b = abs(t[0] * r[0][i] + t[1] * r[1][i] + t[2] * r[2][i]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
   }
 
   if (do_obbs_share_one_axis) {
-    log_info("PARALLEL, SKIPPING CROSS AXES");
+    // If the two OBBs share one axis, we can skip checking their cross product
+    // axes altogether.
+    // NOTE: (@vladh) It's not 100% clear to me why this is.
   } else {
-    // Test axis L = obb1.x x obb2.x
-    ra = obb1->extents[1] * abs_r[2][0] + obb1->extents[2] * abs_r[1][0];
-    rb = obb2->extents[1] * abs_r[0][2] + obb2->extents[2] * abs_r[0][1];
-    if (abs(t[2] * r[1][0] - t[1] * r[2][0]) > ra + rb) {
+    // Test axis a.x x b.x
+    a_radius = a->extents[1] * abs_r[2][0] + a->extents[2] * abs_r[1][0];
+    b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
+    a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.x x obb2.y
-    ra = obb1->extents[1] * abs_r[2][1] + obb1->extents[2] * abs_r[1][1];
-    rb = obb2->extents[0] * abs_r[0][2] + obb2->extents[2] * abs_r[0][0];
-    if (abs(t[2] * r[1][1] - t[1] * r[2][1]) > ra + rb) {
+    // Test axis a.x x b.y
+    a_radius = a->extents[1] * abs_r[2][1] + a->extents[2] * abs_r[1][1];
+    b_radius = b->extents[0] * abs_r[0][2] + b->extents[2] * abs_r[0][0];
+    a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.x x obb2.z
-    ra = obb1->extents[1] * abs_r[2][2] + obb1->extents[2] * abs_r[1][2];
-    rb = obb2->extents[0] * abs_r[0][1] + obb2->extents[1] * abs_r[0][0];
-    if (abs(t[2] * r[1][2] - t[1] * r[2][2]) > ra + rb) {
+    // Test axis a.x x b.z
+    a_radius = a->extents[1] * abs_r[2][2] + a->extents[2] * abs_r[1][2];
+    b_radius = b->extents[0] * abs_r[0][1] + b->extents[1] * abs_r[0][0];
+    a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.y x obb2.x
-    ra = obb1->extents[0] * abs_r[2][0] + obb1->extents[2] * abs_r[0][0];
-    rb = obb2->extents[1] * abs_r[1][2] + obb2->extents[2] * abs_r[1][1];
-    if (abs(t[0] * r[2][0] - t[2] * r[0][0]) > ra + rb) {
+    // Test axis a.y x b.x
+    a_radius = a->extents[0] * abs_r[2][0] + a->extents[2] * abs_r[0][0];
+    b_radius = b->extents[1] * abs_r[1][2] + b->extents[2] * abs_r[1][1];
+    a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.y x obb2.y
-    ra = obb1->extents[0] * abs_r[2][1] + obb1->extents[2] * abs_r[0][1];
-    rb = obb2->extents[0] * abs_r[1][2] + obb2->extents[2] * abs_r[1][0];
-    if (abs(t[0] * r[2][1] - t[2] * r[0][1]) > ra + rb) {
+    // Test axis a.y x b.y
+    a_radius = a->extents[0] * abs_r[2][1] + a->extents[2] * abs_r[0][1];
+    b_radius = b->extents[0] * abs_r[1][2] + b->extents[2] * abs_r[1][0];
+    a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.y x obb2.z
-    ra = obb1->extents[0] * abs_r[2][2] + obb1->extents[2] * abs_r[0][2];
-    rb = obb2->extents[0] * abs_r[1][1] + obb2->extents[1] * abs_r[1][0];
-    if (abs(t[0] * r[2][2] - t[2] * r[0][2]) > ra + rb) {
+    // Test axis a.y x b.z
+    a_radius = a->extents[0] * abs_r[2][2] + a->extents[2] * abs_r[0][2];
+    b_radius = b->extents[0] * abs_r[1][1] + b->extents[1] * abs_r[1][0];
+    a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.z x obb2.x
-    ra = obb1->extents[0] * abs_r[1][0] + obb1->extents[1] * abs_r[0][0];
-    rb = obb2->extents[1] * abs_r[2][2] + obb2->extents[2] * abs_r[2][1];
-    if (abs(t[1] * r[0][0] - t[0] * r[1][0]) > ra + rb) {
+    // Test axis a.z x b.x
+    a_radius = a->extents[0] * abs_r[1][0] + a->extents[1] * abs_r[0][0];
+    b_radius = b->extents[1] * abs_r[2][2] + b->extents[2] * abs_r[2][1];
+    a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.z x obb2.y
-    ra = obb1->extents[0] * abs_r[1][1] + obb1->extents[1] * abs_r[0][1];
-    rb = obb2->extents[0] * abs_r[2][2] + obb2->extents[2] * abs_r[2][0];
-    if (abs(t[1] * r[0][1] - t[0] * r[1][1]) > ra + rb) {
+    // Test axis a.z x b.y
+    a_radius = a->extents[0] * abs_r[1][1] + a->extents[1] * abs_r[0][1];
+    b_radius = b->extents[0] * abs_r[2][2] + b->extents[2] * abs_r[2][0];
+    a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
 
-    // Test axis L = obb1.z x obb2.z
-    ra = obb1->extents[0] * abs_r[1][2] + obb1->extents[1] * abs_r[0][2];
-    rb = obb2->extents[0] * abs_r[2][1] + obb2->extents[1] * abs_r[2][0];
-    if (abs(t[1] * r[0][2] - t[0] * r[1][2]) > ra + rb) {
+    // Test axis a.z x b.z
+    a_radius = a->extents[0] * abs_r[1][2] + a->extents[1] * abs_r[0][2];
+    b_radius = b->extents[0] * abs_r[2][1] + b->extents[1] * abs_r[2][0];
+    a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
+    if (a_to_b > a_radius + b_radius) {
       return false;
     }
   }
