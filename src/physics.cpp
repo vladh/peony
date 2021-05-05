@@ -152,16 +152,23 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
     dot(t, obb1_axes[2])
   );
 
+  // We want to remember if the two OBBs share one axis, in which case we can
+  // skip checking their cross product axes.
+  bool32 do_obbs_share_one_axis = false;
+
   // Compute common subexpressions. Add in an epsilon term to counteract
   // arithmetic errors when two edges are parallel and their cross product
   // is (near) null.
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
       abs_r[i][j] = abs(r[i][j]) + FLT_EPSILON;
+      if (abs_r[i][j] >= 1.0f) {
+        do_obbs_share_one_axis = true;
+      }
     }
   }
 
-  // Test axes L = A0, L = A1, L = A2 (axes of obb1)
+  // obb1.x, obb1.y, obb1.z
   for_range_named (i, 0, 3) {
     ra = obb1->extents[i];
     rb = obb2->extents[0] * abs_r[i][0] +
@@ -172,7 +179,7 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
     }
   }
 
-  // Test axes L = B0, L = B1, L = B2 (axes of obb2)
+  // obb2.x, obb2.y, obb2.z
   for_range_named (i, 0, 3) {
     ra = obb1->extents[0] * abs_r[0][i] +
       obb1->extents[1] * abs_r[1][i] +
@@ -186,67 +193,71 @@ bool32 Physics::intersect_obb_obb(Obb *obb1, Obb *obb2) {
     }
   }
 
-  // Test axis L = A0 x B0
-  ra = obb1->extents[1] * abs_r[2][0] + obb1->extents[2] * abs_r[1][0];
-  rb = obb2->extents[1] * abs_r[0][2] + obb2->extents[2] * abs_r[0][1];
-  if (abs(t[2] * r[1][0] - t[1] * r[2][0]) > ra + rb) {
-    return false;
-  }
+  if (do_obbs_share_one_axis) {
+    log_info("PARALLEL, SKIPPING CROSS AXES");
+  } else {
+    // Test axis L = obb1.x x obb2.x
+    ra = obb1->extents[1] * abs_r[2][0] + obb1->extents[2] * abs_r[1][0];
+    rb = obb2->extents[1] * abs_r[0][2] + obb2->extents[2] * abs_r[0][1];
+    if (abs(t[2] * r[1][0] - t[1] * r[2][0]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A0 x B1
-  ra = obb1->extents[1] * abs_r[2][1] + obb1->extents[2] * abs_r[1][1];
-  rb = obb2->extents[0] * abs_r[0][2] + obb2->extents[2] * abs_r[0][0];
-  if (abs(t[2] * r[1][1] - t[1] * r[2][1]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.x x obb2.y
+    ra = obb1->extents[1] * abs_r[2][1] + obb1->extents[2] * abs_r[1][1];
+    rb = obb2->extents[0] * abs_r[0][2] + obb2->extents[2] * abs_r[0][0];
+    if (abs(t[2] * r[1][1] - t[1] * r[2][1]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A0 x B2
-  ra = obb1->extents[1] * abs_r[2][2] + obb1->extents[2] * abs_r[1][2];
-  rb = obb2->extents[0] * abs_r[0][1] + obb2->extents[1] * abs_r[0][0];
-  if (abs(t[2] * r[1][2] - t[1] * r[2][2]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.x x obb2.z
+    ra = obb1->extents[1] * abs_r[2][2] + obb1->extents[2] * abs_r[1][2];
+    rb = obb2->extents[0] * abs_r[0][1] + obb2->extents[1] * abs_r[0][0];
+    if (abs(t[2] * r[1][2] - t[1] * r[2][2]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A1 x B0
-  ra = obb1->extents[0] * abs_r[2][0] + obb1->extents[2] * abs_r[0][0];
-  rb = obb2->extents[1] * abs_r[1][2] + obb2->extents[2] * abs_r[1][1];
-  if (abs(t[0] * r[2][0] - t[2] * r[0][0]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.y x obb2.x
+    ra = obb1->extents[0] * abs_r[2][0] + obb1->extents[2] * abs_r[0][0];
+    rb = obb2->extents[1] * abs_r[1][2] + obb2->extents[2] * abs_r[1][1];
+    if (abs(t[0] * r[2][0] - t[2] * r[0][0]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A1 x B1
-  ra = obb1->extents[0] * abs_r[2][1] + obb1->extents[2] * abs_r[0][1];
-  rb = obb2->extents[0] * abs_r[1][2] + obb2->extents[2] * abs_r[1][0];
-  if (abs(t[0] * r[2][1] - t[2] * r[0][1]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.y x obb2.y
+    ra = obb1->extents[0] * abs_r[2][1] + obb1->extents[2] * abs_r[0][1];
+    rb = obb2->extents[0] * abs_r[1][2] + obb2->extents[2] * abs_r[1][0];
+    if (abs(t[0] * r[2][1] - t[2] * r[0][1]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A1 x B2
-  ra = obb1->extents[0] * abs_r[2][2] + obb1->extents[2] * abs_r[0][2];
-  rb = obb2->extents[0] * abs_r[1][1] + obb2->extents[1] * abs_r[1][0];
-  if (abs(t[0] * r[2][2] - t[2] * r[0][2]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.y x obb2.z
+    ra = obb1->extents[0] * abs_r[2][2] + obb1->extents[2] * abs_r[0][2];
+    rb = obb2->extents[0] * abs_r[1][1] + obb2->extents[1] * abs_r[1][0];
+    if (abs(t[0] * r[2][2] - t[2] * r[0][2]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A2 x B0
-  ra = obb1->extents[0] * abs_r[1][0] + obb1->extents[1] * abs_r[0][0];
-  rb = obb2->extents[1] * abs_r[2][2] + obb2->extents[2] * abs_r[2][1];
-  if (abs(t[1] * r[0][0] - t[0] * r[1][0]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.z x obb2.x
+    ra = obb1->extents[0] * abs_r[1][0] + obb1->extents[1] * abs_r[0][0];
+    rb = obb2->extents[1] * abs_r[2][2] + obb2->extents[2] * abs_r[2][1];
+    if (abs(t[1] * r[0][0] - t[0] * r[1][0]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A2 x B1
-  ra = obb1->extents[0] * abs_r[1][1] + obb1->extents[1] * abs_r[0][1];
-  rb = obb2->extents[0] * abs_r[2][2] + obb2->extents[2] * abs_r[2][0];
-  if (abs(t[1] * r[0][1] - t[0] * r[1][1]) > ra + rb) {
-    return false;
-  }
+    // Test axis L = obb1.z x obb2.y
+    ra = obb1->extents[0] * abs_r[1][1] + obb1->extents[1] * abs_r[0][1];
+    rb = obb2->extents[0] * abs_r[2][2] + obb2->extents[2] * abs_r[2][0];
+    if (abs(t[1] * r[0][1] - t[0] * r[1][1]) > ra + rb) {
+      return false;
+    }
 
-  // Test axis L = A2 x B2
-  ra = obb1->extents[0] * abs_r[1][2] + obb1->extents[1] * abs_r[0][2];
-  rb = obb2->extents[0] * abs_r[2][1] + obb2->extents[1] * abs_r[2][0];
-  if (abs(t[1] * r[0][2] - t[0] * r[1][2]) > ra + rb) {
-    return false;
+    // Test axis L = obb1.z x obb2.z
+    ra = obb1->extents[0] * abs_r[1][2] + obb1->extents[1] * abs_r[0][2];
+    rb = obb2->extents[0] * abs_r[2][1] + obb2->extents[1] * abs_r[2][0];
+    if (abs(t[1] * r[0][2] - t[0] * r[1][2]) > ra + rb) {
+      return false;
+    }
   }
 
   // Since no separating axis is found, the OBBs must be intersecting
