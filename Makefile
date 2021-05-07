@@ -1,7 +1,7 @@
 TARGET = peony
 BINPATH = build/
 CC = g++
-CFLAGS = -I${HOME}/opt/include -std=c++2a -g -Wall -Wno-deprecated-volatile
+CFLAGS = -I${HOME}/opt/include -std=c++2a -g3 -D_FORTIFY_SOURCE=2 -O2 -Wall -Werror -Wno-deprecated-volatile -pedantic
 LDFLAGS = -lm -lglfw -lassimp -lfreetype
 
 OBJECTS = src/peony.cc
