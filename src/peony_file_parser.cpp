@@ -460,6 +460,11 @@ bool32 PeonyFileParser::parse_scene_file(
         token
       );
     } else if (is_token_name(token)) {
+      if (entity_template == nullptr) {
+        log_fatal("Tried to parse file, but encountered data before header.");
+        assert(false); // A little hint for the compiler
+      }
+
       n_values = parse_property(
         token, f, prop_name, prop_value_types, prop_values
       );

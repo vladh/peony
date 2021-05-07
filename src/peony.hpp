@@ -40,7 +40,13 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #define STB_IMAGE_IMPLEMENTATION
+#pragma warning(push, 0)
+#pragma warning(disable: 6011)
+#pragma warning(disable: 6308)
+#pragma warning(disable: 6262)
+#pragma warning(disable: 28182)
 #include <stb/stb_image.h>
+#pragma warning(pop)
 #if 0
 #define TSL_NO_EXCEPTIONS
 #include <tsl/robin_map.h>

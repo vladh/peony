@@ -34,16 +34,14 @@ void* Memory::push(
     );
 #endif
 
-#if USE_MEMORY_DEBUG_LOGS
-    auto t0 = debug_start_timer();
-#endif
     pool->memory = (uint8*)malloc(pool->size);
-#if USE_MEMORY_DEBUG_LOGS
-    real64 dur = debug_end_timer(t0);
-    log_info("Malloc took %.0fms", dur);
-#endif
+    if (!pool->memory) {
+      log_fatal("Could not allocate memory. Buy more RAM!");
+      assert(false); // A little hint for the compiler
+    }
 
     memset(pool->memory, 0, pool->size);
+    assert(pool->memory);
   }
   assert(pool->used + item_size <= pool->size);
 

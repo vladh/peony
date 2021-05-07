@@ -935,16 +935,16 @@ void Renderer::render_scene_ui(State *state) {
       &state->gui_state, debug_text, v2(25.0f, 25.0f)
     );
 
-    sprintf(debug_text, "%dx%d", state->window_info.width, state->window_info.height);
+    sprintf(debug_text, "%ux%u", state->window_info.width, state->window_info.height);
     Gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
 
     sprintf(
-      debug_text, "%dx%d",
+      debug_text, "%ux%u",
       state->window_info.screencoord_width, state->window_info.screencoord_height
     );
     Gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
 
-    sprintf(debug_text, "%d fps", state->perf_counters.last_fps);
+    sprintf(debug_text, "%u fps", state->perf_counters.last_fps);
     Gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
 
     sprintf(debug_text, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
@@ -953,30 +953,30 @@ void Renderer::render_scene_ui(State *state) {
     sprintf(debug_text, state->is_world_loaded ? "yes" : "no");
     Gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
 
-    sprintf(debug_text, "%d", state->materials.length);
+    sprintf(debug_text, "%u", state->materials.length);
     Gui::draw_named_value(
       &state->gui_state, container, "materials.length", debug_text
     );
 
-    sprintf(debug_text, "%d", state->entity_set.entities.length);
+    sprintf(debug_text, "%u", state->entity_set.entities.length);
     Gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
 
-    sprintf(debug_text, "%d", state->model_loaders.length);
+    sprintf(debug_text, "%u", state->model_loaders.length);
     Gui::draw_named_value(
       &state->gui_state, container, "model_loaders.length", debug_text
     );
 
-    sprintf(debug_text, "%d", state->n_valid_model_loaders);
+    sprintf(debug_text, "%u", state->n_valid_model_loaders);
     Gui::draw_named_value(
       &state->gui_state, container, "n_valid_model_loaders", debug_text
     );
 
-    sprintf(debug_text, "%d", state->entity_loader_set.loaders.length);
+    sprintf(debug_text, "%u", state->entity_loader_set.loaders.length);
     Gui::draw_named_value(
       &state->gui_state, container, "entity_loader_set.length", debug_text
     );
 
-    sprintf(debug_text, "%d", state->n_valid_entity_loaders);
+    sprintf(debug_text, "%u", state->n_valid_entity_loaders);
     Gui::draw_named_value(
       &state->gui_state, container, "n_valid_entity_loaders", debug_text
     );
