@@ -10,6 +10,7 @@
 :: -O2 - Maximise speed
 :: -Oi - Generate intrinsic functions to run faster
 :: -W4 - Show most warnings
+:: -WX - Turn warnings into errors
 :: -WL - Append second line of info to errors
 :: -Z7 - Add debugging info to object files
 :: -Zo - Generate debugging info for optimised code
@@ -17,6 +18,9 @@
 :: -fp:fast - Simplify floating point precision to run faster
 :: -nologo - Remove banner message
 :: -sdl - Enable additional security checks
+:: -guard:cf - Add control flow guard security checks
+:: -analyze - Enable static analysis
+:: /permissive- - Specify standards conformance mode to the compiler
 
 :: Linker flags
 :: ---------------------
@@ -40,17 +44,21 @@ set compiler_flags=/I "C:/opt/include/" ^
 -MP18 ^
 -W4 ^
 -WL ^
+-WX ^
 -Z7 ^
 -Zo ^
 -diagnostics:column ^
 -fp:fast ^
 -nologo ^
 -sdl ^
+-guard:cf ^
+-analyze ^
+-permissive- ^
 -std:c++latest ^
 -wd4100 -wd4127 -wd4201 ^
-/D_ITERATOR_DEBUG_LEVEL=0
+/D_ITERATOR_DEBUG_LEVEL=0 ^
+-O2
 :: -GL
-:: -O2
 :: -Oi
 
 set linker_flags=/LIBPATH:"C:/opt/lib/" ^
