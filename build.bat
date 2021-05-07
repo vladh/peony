@@ -20,7 +20,8 @@
 :: -sdl - Enable additional security checks
 :: -guard:cf - Add control flow guard security checks
 :: -analyze - Enable static analysis
-:: /permissive- - Specify standards conformance mode to the compiler
+:: -permissive- - Specify standards conformance mode to the compiler
+:: -fsanitize=address - Enable AddressSanitizer
 
 :: Linker flags
 :: ---------------------
@@ -54,6 +55,7 @@ set compiler_flags=/I "C:/opt/include/" ^
 -guard:cf ^
 -analyze ^
 -permissive- ^
+-fsanitize=address ^
 -std:c++latest ^
 -wd4100 -wd4127 -wd4201 ^
 /D_ITERATOR_DEBUG_LEVEL=0 ^
