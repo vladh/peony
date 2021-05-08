@@ -40,6 +40,14 @@ struct RayCollisionResult {
 namespace Physics {
   Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
   RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
+  void update_manifold_for_face_axis(
+    CollisionManifold *manifold,
+    real32 sep, uint32 axis, v3 normal
+  );
+  void update_manifold_for_edge_axis(
+    CollisionManifold *manifold,
+    real32 sep, uint32 axis, v3 normal
+  );
   CollisionManifold intersect_obb_obb(Obb *obb1, Obb *obb2);
   CollisionManifold find_physics_component_collision(
     PhysicsComponent *physics_component,

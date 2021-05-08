@@ -7,11 +7,9 @@ namespace BehaviorFunctions {
       return;
     }
 
-    spatial_component->position = v3(
-      (real32)sin(state->t) * 15.0f,
-      (real32)((sin(state->t * 2.0f) + 1.5) * 3.0f),
-      (real32)cos(state->t) * 15.0f
-    );
+    spatial_component->rotation =
+      glm::angleAxis((real32)sin(1.0f - state->t), v3(0.0f, 1.0f, 0.0f)) *
+      glm::angleAxis((real32)cos(1.0f - state->t), v3(1.0f, 0.0f, 0.0f));
   }
 
   void char_movement_test(State *state, EntityHandle entity_handle) {
@@ -34,9 +32,9 @@ namespace BehaviorFunctions {
 #if 1
     spatial_component->position.x = (real32)sin(state->t * 1.0f) * 4.0f;
     spatial_component->position.z = (real32)cos(state->t * 1.0f) * 4.0f;
-    /* spatial_component->rotation = */
-    /*   glm::angleAxis((real32)sin(state->t) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) * */
-    /*   glm::angleAxis((real32)cos(state->t), v3(1.0f, 0.0f, 0.0f)); */
+    spatial_component->rotation =
+      glm::angleAxis((real32)sin(state->t) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
+      glm::angleAxis((real32)cos(state->t), v3(1.0f, 0.0f, 0.0f));
 #endif
 #if 0
     spatial_component->position.x = -5.0f;
@@ -54,22 +52,34 @@ namespace BehaviorFunctions {
       );
 
       if (manifold.did_collide) {
-        DebugDraw::draw_obb(
-          &state->debug_draw_state,
-          obb,
-          v4(1.0f, 0.0f, 0.0f, 1.0f)
-        );
+        v4 color;
+        if (manifold.axis <= 5) {
+          color = v4(1.0f, 0.0f, 0.0f, 1.0f);
+        } else {
+          color = v4(1.0f, 1.0f, 0.0f, 1.0f);
+        }
+        DebugDraw::draw_obb(&state->debug_draw_state, obb, color);
         DebugDraw::draw_obb(
           &state->debug_draw_state,
           &manifold.collidee->transformed_obb,
-          v4(1.0f, 0.0f, 0.0f, 1.0f)
+          color
         );
         DebugDraw::draw_line(
           &state->debug_draw_state,
           obb->center,
           obb->center + manifold.normal * 100.0f,
-          v4(1.0f, 0.0f, 0.0f, 1.0f)
+          color
         );
+        console_log("manifold.axis = %d", manifold.axis);
+        console_log("manifold.sep_max = %f", manifold.sep_max);
+        console_log(
+          "manifold.normal = (%f, %f, %f)",
+          manifold.normal.x,
+          manifold.normal.y,
+          manifold.normal.z
+        );
+        console_log("length(manifold.normal) = %f", length(manifold.normal));
+        console_log("---");
       } else {
         DebugDraw::draw_obb(
           &state->debug_draw_state,
