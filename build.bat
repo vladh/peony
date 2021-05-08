@@ -53,15 +53,16 @@ set compiler_flags=/I "C:/opt/include/" ^
 -nologo ^
 -sdl ^
 -guard:cf ^
--analyze ^
 -permissive- ^
 -fsanitize=address ^
 -std:c++latest ^
 -wd4100 -wd4127 -wd4201 ^
-/D_ITERATOR_DEBUG_LEVEL=0 ^
--O2
-:: -GL
-:: -Oi
+-O2 ^
+-GL ^
+-Oi
+:: -analyze
+:: /analyze:stacksize 999999
+:: /D_ITERATOR_DEBUG_LEVEL=0
 
 set linker_flags=/LIBPATH:"C:/opt/lib/" ^
 -INCREMENTAL:NO ^
