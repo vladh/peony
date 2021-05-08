@@ -33,7 +33,8 @@ physics_component.obb.y_axis = vec3(0.0, 1.0, 0.0)
 physics_component.obb.extents = vec3(1.2, 5.0, 1.0)
 spatial_component.position = vec3(5.0, 10.0, -5.0)
 spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
-spatial_component.scale = vec3(5.0, 0.5, 5.0)
+spatial_component.scale = vec3(3.0, 3.0, 3.0)
+behavior_component.behavior = test
 
 ; > island
 ; model_path = island/island.obj

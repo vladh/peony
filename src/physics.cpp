@@ -122,12 +122,46 @@ RayCollisionResult Physics::find_ray_collision(
 }
 
 
+void Physics::update_manifold_for_face_axis(
+  CollisionManifold *manifold,
+  real32 sep, uint32 axis, v3 normal
+) {
+  if (sep > manifold->sep_max) {
+    manifold->sep_max = sep;
+    manifold->axis = axis;
+    manifold->normal = normal;
+  }
+}
+
+
+void Physics::update_manifold_for_edge_axis(
+  CollisionManifold *manifold,
+  real32 sep, uint32 axis, v3 normal
+) {
+  real32 normal_len = length(normal);
+  sep /= normal_len;
+  if (sep > manifold->sep_max) {
+    manifold->sep_max = sep;
+    manifold->axis = axis;
+    manifold->normal = normal / normal_len;
+  }
+}
+
+
 CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
   // This is the separating axis test (sometimes abbreviated SAT).
   CollisionManifold manifold = {.sep_max = -FLT_MAX};
-  real32 a_radius, b_radius, a_to_b, sep;
-  m3 r, abs_r;
+  // The radius from a/b's center to its outer vertex
+  real32 a_radius, b_radius;
+  // The distance between a and b
+  real32 a_to_b;
+  // The separation between a and b
+  real32 sep;
+  // The rotation matrix expression b in a's coordinate frame
+  m3 r;
+  // abs(r) is used in a lot of calculations so we precompute it
+  m3 abs_r;
 
   v3 a_axes[3] = {
     a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis)
@@ -144,13 +178,13 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
   }
 
   // Compute translation vector t
-  v3 t = b->center - a->center;
+  v3 t_translation = b->center - a->center;
 
   // Bring translation into a's coordinate frame
-  t = v3(
-    dot(t, a_axes[0]),
-    dot(t, a_axes[1]),
-    dot(t, a_axes[2])
+  v3 t = v3(
+    dot(t_translation, a_axes[0]),
+    dot(t_translation, a_axes[1]),
+    dot(t_translation, a_axes[2])
   );
 
   bool32 do_obbs_share_one_axis = false;
@@ -176,13 +210,7 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[i]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    console_log("a manifold.sep_max %f", manifold.sep_max);
-    if (sep > manifold.sep_max) {
-      console_log("a axis");
-      manifold.sep_max = sep;
-      manifold.axis = i;
-      manifold.normal = a_axes[i];
-    }
+    update_manifold_for_face_axis(&manifold, sep, i, a_axes[i]);
   }
 
   // Test axes b.x, b.y, b.z
@@ -194,13 +222,7 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[0] * r[0][i] + t[1] * r[1][i] + t[2] * r[2][i]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    console_log("b manifold.sep_max %f", manifold.sep_max);
-    if (sep > manifold.sep_max) {
-      console_log("b axis");
-      manifold.sep_max = sep;
-      manifold.axis = 3 + i;
-      manifold.normal = b_axes[i];
-    }
+    update_manifold_for_face_axis(&manifold, sep, 3 + i, b_axes[i]);
   }
 
   if (do_obbs_share_one_axis) {
@@ -212,77 +234,77 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_radius = a->extents[1] * abs_r[2][0] + a->extents[2] * abs_r[1][0];
     b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
     a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 6, v3(0.0f, -r[2][0], r[1][0]));
 
     // Test axis a.x x b.y
     a_radius = a->extents[1] * abs_r[2][1] + a->extents[2] * abs_r[1][1];
     b_radius = b->extents[0] * abs_r[0][2] + b->extents[2] * abs_r[0][0];
     a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 7, v3(0.0f, -r[2][1], r[1][1]));
 
     // Test axis a.x x b.z
     a_radius = a->extents[1] * abs_r[2][2] + a->extents[2] * abs_r[1][2];
     b_radius = b->extents[0] * abs_r[0][1] + b->extents[1] * abs_r[0][0];
     a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 8, v3(0.0f, -r[2][2], r[1][2]));
 
     // Test axis a.y x b.x
     a_radius = a->extents[0] * abs_r[2][0] + a->extents[2] * abs_r[0][0];
     b_radius = b->extents[1] * abs_r[1][2] + b->extents[2] * abs_r[1][1];
     a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 9, v3(r[2][0], 0.0f, -r[0][0]));
 
     // Test axis a.y x b.y
     a_radius = a->extents[0] * abs_r[2][1] + a->extents[2] * abs_r[0][1];
     b_radius = b->extents[0] * abs_r[1][2] + b->extents[2] * abs_r[1][0];
     a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 10, v3(r[2][1], 0.0f, -r[0][1]));
 
     // Test axis a.y x b.z
     a_radius = a->extents[0] * abs_r[2][2] + a->extents[2] * abs_r[0][2];
     b_radius = b->extents[0] * abs_r[1][1] + b->extents[1] * abs_r[1][0];
     a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 11, v3(r[2][2], 0.0f, -r[0][2]));
 
     // Test axis a.z x b.x
     a_radius = a->extents[0] * abs_r[1][0] + a->extents[1] * abs_r[0][0];
     b_radius = b->extents[1] * abs_r[2][2] + b->extents[2] * abs_r[2][1];
     a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 12, v3(-r[1][0], r[0][0], 0.0f));
 
     // Test axis a.z x b.y
     a_radius = a->extents[0] * abs_r[1][1] + a->extents[1] * abs_r[0][1];
     b_radius = b->extents[0] * abs_r[2][2] + b->extents[2] * abs_r[2][0];
     a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 13, v3(-r[1][1], r[0][1], 0.0f));
 
     // Test axis a.z x b.z
     a_radius = a->extents[0] * abs_r[1][2] + a->extents[1] * abs_r[0][2];
     b_radius = b->extents[0] * abs_r[2][1] + b->extents[1] * abs_r[2][0];
     a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
-    if (a_to_b > a_radius + b_radius) {
-      return manifold;
-    }
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    update_manifold_for_edge_axis(&manifold, sep, 14, v3(-r[1][2], r[0][2], 0.0f));
   }
 
   // Correct normal direction
-  if (dot(manifold.normal, t) < 0.0f) {
+  if (dot(manifold.normal, t_translation) < 0.0f) {
     manifold.normal = -manifold.normal;
   }
 
