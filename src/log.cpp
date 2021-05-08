@@ -35,7 +35,6 @@ void log_warning(const char *format, ...) {
 
 void log_info(const char *format, ...) {
   va_list vargs;
-
   fprintf(stdout, "info  | ");
   va_start(vargs, format);
   vfprintf(stdout, format, vargs);
@@ -77,4 +76,28 @@ void log_vec3(v3 *t) {
 
 void log_vec4(v4 *t) {
   log_info("(%f, %f, %f, %f)", (*t)[0], (*t)[1], (*t)[2], (*t)[3]);
+}
+
+
+void console_log(const char *format, ...) {
+  char text[GUI_MAX_CONSOLE_LINE_LENGTH];
+  va_list vargs;
+  va_start(vargs, format);
+  vsnprintf(text, sizeof(text), format, vargs);
+  va_end(vargs);
+
+  // Fill array in back-to-front.
+  if (g_console.idx_log_start == 0) {
+    g_console.idx_log_start = GUI_MAX_N_CONSOLE_LINES - 1;
+  } else {
+    g_console.idx_log_start--;
+  }
+  if (g_console.idx_log_start == g_console.idx_log_end) {
+    if (g_console.idx_log_end == 0) {
+      g_console.idx_log_end = GUI_MAX_N_CONSOLE_LINES - 1;
+    } else {
+      g_console.idx_log_end--;
+    }
+  }
+  strcpy(g_console.log[g_console.idx_log_start], text);
 }

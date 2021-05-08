@@ -656,15 +656,10 @@ bool32 World::load_scene(
   const char *scene_name,
   State *state
 ) {
-  char log_text[512] = {0};
-
   // If the current scene has not finished loading, we can neither
   // unload it nor load a new one.
   if (!state->is_world_loaded) {
-    Gui::console_print(
-      &state->gui_state,
-      "Cannot load or unload scene while loading is already in progress."
-    );
+    console_log("Cannot load or unload scene while loading is already in progress.");
     return false;
   }
 
@@ -674,9 +669,7 @@ bool32 World::load_scene(
   strcat(scene_path, SCENE_EXTENSION);
   strcat(scene_path, "\0");
 
-  strcpy(log_text, "Loading scene: ");
-  strcat(log_text, scene_path);
-  Gui::console_print(&state->gui_state, log_text);
+  console_log("Loading scene: %s", scene_path);
 
   // Get some memory for everything we need
   MemoryPool temp_memory_pool = {};
@@ -689,9 +682,7 @@ bool32 World::load_scene(
   );
 
   if (!could_load_file) {
-    strcpy(log_text, "Could not load scene: ");
-    strcat(log_text, scene_path);
-    Gui::console_print(&state->gui_state, log_text);
+    console_log("Could not load scene: %s", scene_path);
     return false;
   }
 

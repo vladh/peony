@@ -23,6 +23,13 @@ struct GuiContainer {
   real32 element_margin;
 };
 
+struct GameConsole {
+  bool32 is_enabled;
+  char log[GUI_MAX_N_CONSOLE_LINES][GUI_MAX_CONSOLE_LINE_LENGTH];
+  uint32 idx_log_start;
+  uint32 idx_log_end;
+};
+
 struct GuiState {
   ShaderAsset shader_asset;
   InputState *input_state;
@@ -43,12 +50,6 @@ struct GuiState {
   const char *heading_text;
   real32 heading_fadeout_duration;
   real32 heading_fadeout_delay;
-
-  // Console
-  bool32 is_console_enabled;
-  char console_log[GUI_MAX_N_CONSOLE_LINES][GUI_MAX_CONSOLE_LINE_LENGTH];
-  uint32 idx_console_log_start;
-  uint32 idx_console_log_end;
 };
 
 namespace Gui {
@@ -167,10 +168,6 @@ namespace Gui {
   void draw_console(
     GuiState *gui_state,
     char *console_input_text
-  );
-  void console_print(
-    GuiState *gui_state,
-    const char *text
   );
   GuiState* init_gui_state(
     GuiState *gui_state,

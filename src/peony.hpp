@@ -7,14 +7,14 @@
 #include <vld.h>
 #endif
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include <stdio.h>
-#include <signal.h>
 #include <float.h>
+#include <math.h>
+#include <signal.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 #ifdef _WIN32
 #include <intrin.h>

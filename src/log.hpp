@@ -10,5 +10,6 @@ void log_aimatrix4x4(aiMatrix4x4* matrix);
 void log_mat4(m4 *t);
 void log_vec3(v3 *t);
 void log_vec4(v4 *t);
+void console_log(const char *format, ...);
 
 #endif
