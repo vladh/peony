@@ -54,12 +54,12 @@ set compiler_flags=/I "C:/opt/include/" ^
 -sdl ^
 -guard:cf ^
 -permissive- ^
--fsanitize=address ^
 -std:c++latest ^
 -wd4100 -wd4127 -wd4201 ^
 -O2 ^
 -GL ^
 -Oi
+:: -fsanitize=address
 :: -analyze
 :: /analyze:stacksize 999999
 :: /D_ITERATOR_DEBUG_LEVEL=0
