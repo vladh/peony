@@ -122,10 +122,11 @@ RayCollisionResult Physics::find_ray_collision(
 }
 
 
-bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
+CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
   // This is the separating axis test (sometimes abbreviated SAT).
-  real32 a_radius, b_radius, a_to_b;
+  CollisionManifold manifold = {.sep_max = -FLT_MAX};
+  real32 a_radius, b_radius, a_to_b, sep;
   m3 r, abs_r;
 
   v3 a_axes[3] = {
@@ -173,8 +174,14 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
       b->extents[1] * abs_r[i][1] +
       b->extents[2] * abs_r[i][2];
     a_to_b = abs(t[i]);
-    if (a_to_b > a_radius + b_radius) {
-      return false;
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    console_log("a manifold.sep_max %f", manifold.sep_max);
+    if (sep > manifold.sep_max) {
+      console_log("a axis");
+      manifold.sep_max = sep;
+      manifold.axis = i;
+      manifold.normal = a_axes[i];
     }
   }
 
@@ -185,8 +192,14 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
       a->extents[2] * abs_r[2][i];
     b_radius = b->extents[i];
     a_to_b = abs(t[0] * r[0][i] + t[1] * r[1][i] + t[2] * r[2][i]);
-    if (a_to_b > a_radius + b_radius) {
-      return false;
+    sep = a_to_b - (a_radius + b_radius);
+    if (sep > 0) { return manifold; }
+    console_log("b manifold.sep_max %f", manifold.sep_max);
+    if (sep > manifold.sep_max) {
+      console_log("b axis");
+      manifold.sep_max = sep;
+      manifold.axis = 3 + i;
+      manifold.normal = b_axes[i];
     }
   }
 
@@ -200,7 +213,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
     a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.x x b.y
@@ -208,7 +221,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[0] * abs_r[0][2] + b->extents[2] * abs_r[0][0];
     a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.x x b.z
@@ -216,7 +229,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[0] * abs_r[0][1] + b->extents[1] * abs_r[0][0];
     a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.y x b.x
@@ -224,7 +237,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[1] * abs_r[1][2] + b->extents[2] * abs_r[1][1];
     a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.y x b.y
@@ -232,7 +245,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[0] * abs_r[1][2] + b->extents[2] * abs_r[1][0];
     a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.y x b.z
@@ -240,7 +253,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[0] * abs_r[1][1] + b->extents[1] * abs_r[1][0];
     a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.z x b.x
@@ -248,7 +261,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[1] * abs_r[2][2] + b->extents[2] * abs_r[2][1];
     a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.z x b.y
@@ -256,7 +269,7 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[0] * abs_r[2][2] + b->extents[2] * abs_r[2][0];
     a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
 
     // Test axis a.z x b.z
@@ -264,16 +277,23 @@ bool32 Physics::intersect_obb_obb(Obb *a, Obb *b) {
     b_radius = b->extents[0] * abs_r[2][1] + b->extents[1] * abs_r[2][0];
     a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
     if (a_to_b > a_radius + b_radius) {
-      return false;
+      return manifold;
     }
   }
 
+  // Correct normal direction
+  if (dot(manifold.normal, t) < 0.0f) {
+    manifold.normal = -manifold.normal;
+  }
+
   // Since no separating axis is found, the OBBs must be intersecting
-  return true;
+  // NOTE: manifold.collidee should be filled in by the caller.
+  manifold.did_collide = true;
+  return manifold;
 }
 
 
-PhysicsComponent* Physics::find_physics_component_collision(
+CollisionManifold Physics::find_physics_component_collision(
   PhysicsComponent *self,
   PhysicsComponentSet *physics_component_set
 ) {
@@ -286,12 +306,14 @@ PhysicsComponent* Physics::find_physics_component_collision(
       continue;
     }
 
-    if (Physics::intersect_obb_obb(
+    CollisionManifold manifold = Physics::intersect_obb_obb(
       &self->transformed_obb, &candidate->transformed_obb
-    )) {
-      return candidate;
+    );
+    if (manifold.did_collide) {
+      manifold.collidee = candidate;
+      return manifold;
     }
   }
 
-  return nullptr;
+  return CollisionManifold{};
 }

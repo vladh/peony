@@ -12,6 +12,15 @@ struct Obb {
   v3 extents;
 };
 
+struct CollisionManifold {
+  bool32 did_collide;
+  PhysicsComponent *collidee;
+  // Axis of least penetration, so greatest separation
+  real32 sep_max;
+  uint32 axis;
+  v3 normal;
+};
+
 struct Ray {
   v3 origin;
   v3 direction;
@@ -31,8 +40,8 @@ struct RayCollisionResult {
 namespace Physics {
   Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
   RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
-  bool32 intersect_obb_obb(Obb *obb1, Obb *obb2);
-  PhysicsComponent* find_physics_component_collision(
+  CollisionManifold intersect_obb_obb(Obb *obb1, Obb *obb2);
+  CollisionManifold find_physics_component_collision(
     PhysicsComponent *physics_component,
     PhysicsComponentSet *physics_component_set
   );

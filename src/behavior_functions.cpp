@@ -34,9 +34,9 @@ namespace BehaviorFunctions {
 #if 1
     spatial_component->position.x = (real32)sin(state->t * 1.0f) * 4.0f;
     spatial_component->position.z = (real32)cos(state->t * 1.0f) * 4.0f;
-    spatial_component->rotation =
-      glm::angleAxis((real32)sin(state->t) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
-      glm::angleAxis((real32)cos(state->t), v3(1.0f, 0.0f, 0.0f));
+    /* spatial_component->rotation = */
+    /*   glm::angleAxis((real32)sin(state->t) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) * */
+    /*   glm::angleAxis((real32)cos(state->t), v3(1.0f, 0.0f, 0.0f)); */
 #endif
 #if 0
     spatial_component->position.x = -5.0f;
@@ -49,11 +49,11 @@ namespace BehaviorFunctions {
     // Check collision with other entities
 #if 1
     {
-      PhysicsComponent *collidee = Physics::find_physics_component_collision(
+      CollisionManifold manifold = Physics::find_physics_component_collision(
         physics_component, &state->physics_component_set
       );
 
-      if (collidee) {
+      if (manifold.did_collide) {
         DebugDraw::draw_obb(
           &state->debug_draw_state,
           obb,
@@ -61,7 +61,13 @@ namespace BehaviorFunctions {
         );
         DebugDraw::draw_obb(
           &state->debug_draw_state,
-          &collidee->transformed_obb,
+          &manifold.collidee->transformed_obb,
+          v4(1.0f, 0.0f, 0.0f, 1.0f)
+        );
+        DebugDraw::draw_line(
+          &state->debug_draw_state,
+          obb->center,
+          obb->center + manifold.normal * 100.0f,
           v4(1.0f, 0.0f, 0.0f, 1.0f)
         );
       } else {

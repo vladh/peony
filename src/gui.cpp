@@ -701,7 +701,7 @@ void Gui::draw_console(
   GuiState *gui_state,
   char *console_input_text
 ) {
-  if (!gui_state->is_console_enabled) {
+  if (!g_console.is_enabled) {
     return;
   }
 
@@ -727,15 +727,15 @@ void Gui::draw_console(
       GUI_CONSOLE_BG_COLOR
     );
 
-    uint32 idx_line = gui_state->idx_console_log_start;
-    while (idx_line != gui_state->idx_console_log_end) {
+    uint32 idx_line = g_console.idx_log_start;
+    while (idx_line != g_console.idx_log_end) {
       v2 text_dimensions = get_text_dimensions(
-        font_asset, gui_state->console_log[idx_line]
+        font_asset, g_console.log[idx_line]
       );
       next_element_position.y -= text_dimensions.y + line_spacing;
       draw_text(
         gui_state,
-        "body", gui_state->console_log[idx_line],
+        "body", g_console.log[idx_line],
         next_element_position,
         GUI_LIGHT_TEXT_COLOR
       );
@@ -769,28 +769,6 @@ void Gui::draw_console(
       GUI_LIGHT_TEXT_COLOR
     );
   }
-}
-
-
-void Gui::console_print(
-  GuiState *gui_state,
-  const char *text
-) {
-  // Fill array in back-to-front.
-  if (gui_state->idx_console_log_start == 0) {
-    gui_state->idx_console_log_start = GUI_MAX_N_CONSOLE_LINES - 1;
-  } else {
-    gui_state->idx_console_log_start--;
-  }
-  if (gui_state->idx_console_log_start == gui_state->idx_console_log_end) {
-    if (gui_state->idx_console_log_end == 0) {
-      gui_state->idx_console_log_end = GUI_MAX_N_CONSOLE_LINES - 1;
-    } else {
-      gui_state->idx_console_log_end--;
-    }
-  }
-  strcpy(gui_state->console_log[gui_state->idx_console_log_start], text);
-  strcat(gui_state->console_log[gui_state->idx_console_log_start], "\0");
 }
 
 

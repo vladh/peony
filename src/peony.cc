@@ -15,6 +15,7 @@
 #include "peony.hpp"
 
 global real64 g_t;
+global GameConsole g_console;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -41,10 +42,7 @@ global real64 g_t;
 
 
 void handle_console_command(State *state) {
-  char output_buffer[MAX_TEXT_INPUT_LENGTH + 256] = {0};
-  strcpy(output_buffer, GUI_CONSOLE_SYMBOL);
-  strcat(output_buffer, state->input_state.text_input);
-  Gui::console_print(&state->gui_state, output_buffer);
+  console_log("%s%s", GUI_CONSOLE_SYMBOL, state->input_state.text_input);
 
   char command[MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
   char arguments[MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {0};
@@ -57,8 +55,7 @@ void handle_console_command(State *state) {
   );
 
   if (Str::eq(command, "help")) {
-    Gui::console_print(
-      &state->gui_state,
+    console_log(
       "Some useful commands\n"
       "--------------------\n"
       "loadscene <scene_name>: Load a scene\n"
@@ -73,9 +70,7 @@ void handle_console_command(State *state) {
       arguments
     );
   } else {
-    strcpy(output_buffer, "Unknown command: ");
-    strcat(output_buffer, command);
-    Gui::console_print(&state->gui_state, output_buffer);
+    console_log("Unknown command: %s", command);
   }
 
   Str::clear(state->input_state.text_input);
@@ -84,11 +79,11 @@ void handle_console_command(State *state) {
 
 void process_input(GLFWwindow *window, State *state) {
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
-    if (state->gui_state.is_console_enabled) {
-      state->gui_state.is_console_enabled = false;
+    if (g_console.is_enabled) {
+      g_console.is_enabled = false;
       Input::disable_text_input(&state->input_state);
     } else {
-      state->gui_state.is_console_enabled = true;
+      g_console.is_enabled = true;
       Input::enable_text_input(&state->input_state);
     }
   }
@@ -338,7 +333,7 @@ int main() {
     &state->input_state,
     state->window_info.width, state->window_info.height
   );
-  Gui::console_print(&state->gui_state, "Hello world!");
+  console_log("Hello world!");
 
   DebugDraw::init_debug_draw_state(
     &state->debug_draw_state,
