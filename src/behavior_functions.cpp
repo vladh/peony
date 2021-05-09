@@ -73,12 +73,6 @@ namespace BehaviorFunctions {
           obb->center + manifold.normal * 100.0f,
           color
         );
-        DebugDraw::draw_line(
-          &state->debug_draw_state,
-          manifold.collidee->transformed_obb.center,
-          manifold.collidee->transformed_obb.center + manifold.normal * 100.0f,
-          color
-        );
         console_log("manifold.axis = %d", manifold.axis);
         console_log("manifold.sep_max = %f", manifold.sep_max);
         console_log(
