@@ -148,41 +148,108 @@ void Physics::update_manifold_for_edge_axis(
 }
 
 
+/*!
+This function gets the nearest contact point between two edges. It's used
+to determine a collision point for a box collision that has happened
+edge-to-edge.
+
+should_use_a_midpoint
+---------------------
+If this is true, and the contact point is outside the edge (in the case of
+an edge-face contact) then we use a's midpoint, otherwise we use b's.
+
+Resources
+---------
+This function is heavily based on code from Ian Millington's Cyclone Physics
+engine.
+
+idmillington/cyclone-physics/blob/master/src/collide_fine.cpp#contactPoint()
+*/
+v3 Physics::get_edge_contact_point(
+  v3 a_edge_point,
+  v3 a_axis,
+  real32 a_axis_length,
+  v3 b_edge_point,
+  v3 b_axis,
+  real32 b_axis_length,
+  bool32 should_use_a_midpoint
+) {
+  real32 a_axis_sqlen = length2(a_axis);
+  real32 b_axis_sqlen = length2(b_axis);
+  real32 a_b_axes_dotprod = dot(b_axis, a_axis);
+
+  v3 a_ep_to_b_ep = a_edge_point - b_edge_point;
+  real32 a_ep_projection = dot(a_axis, a_ep_to_b_ep);
+  real32 b_ep_projection = dot(b_axis, a_ep_to_b_ep);
+
+  real32 denom = a_axis_sqlen * b_axis_sqlen - a_b_axes_dotprod * a_b_axes_dotprod;
+
+  // Zero denominator indicates parallel lines
+  if (abs(denom) < 0.0001f) {
+    return should_use_a_midpoint ? a_edge_point : b_edge_point;
+  }
+
+  real32 mua = (
+    a_b_axes_dotprod * b_ep_projection - b_axis_sqlen * a_ep_projection
+  ) / denom;
+  real32 mub = (
+    a_axis_sqlen * b_ep_projection - a_b_axes_dotprod * a_ep_projection
+  ) / denom;
+
+  // If either of the edges has the nearest point out of bounds, then the edges
+  // aren't crossed, we have an edge-face contact. Our point is on the edge,
+  // which we know from the should_use_a_midpoint parameter.
+  if (
+    mua > a_axis_length ||
+    mua < -a_axis_length ||
+    mub > b_axis_length ||
+    mub < -b_axis_length
+  ) {
+    return should_use_a_midpoint ? a_edge_point : b_edge_point;
+  } else {
+    v3 contact_a_component = a_edge_point + a_axis * mua;
+    v3 contact_b_component = b_edge_point + b_axis * mub;
+
+    return contact_a_component * 0.5f + contact_b_component * 0.5f;
+  }
+}
+
+
+/*!
+This function implements collision detection between two OBBs.
+
+We're using the separating axis test (SAT) to check which axes, if any,
+separates the two.
+
+For manifold generation, we're using the methods described by Dirk Gregorius,
+namely Sutherland-Hodgman clipping for face-something, and "just find the
+closes two points on the edges" for edge-edge.
+
+A note about normal calculation for the cross axes
+--------------------------------------------------
+Normally, we would calculate the normal as the axis we're using,
+so the cross product between the a axis and the b axis. We're not
+actually calculating this directly for SAT, because we're using the r
+matrix as a way around this. However, we do need this axis for the normal.
+Randy Gaul calculates a normal from the r matrix, which I have included
+as a comment. However, this is not orthogonal to both a's axis and b's axis.
+This might still be fine but I've left the cross product in, to be safe.
+We might look into using the r matrix method as an optimisation.
+
+Resources
+---------
+* Christer Ericson, Real-Time Collision Detection, 4.4
+* Dirk Gregorius's GDC 2013 and GDC 2015 talks
+* Randy Gaul's blog post
+  "Deriving OBB to OBB Intersection and Manifold Generation"
+* Ian Millington's Cyclone Physics engine (but not for face-something!)
+*/
 CollisionManifold Physics::intersect_obb_obb(
   Obb *a,
   Obb *b,
   SpatialComponent *spatial_a,
   SpatialComponent *spatial_b
 ) {
-  /*
-  This function implements collision detection between two OBBs.
-
-  We're using the separating axis test (SAT) to check which axes, if any,
-  separates the two.
-
-  For manifold generation, we're using the methods described by Dirk Gregorius,
-  namely Sutherland-Hodgman clipping for face-something, and "just find the
-  closes two points on the edges" for edge-edge.
-
-  A note about normal calculation for the cross axes
-  --------------------------------------------------
-  Normally, we would calculate the normal as the axis we're using,
-  so the cross product between the a axis and the b axis. We're not
-  actually calculating this directly for SAT, because we're using the r
-  matrix as a way around this. However, we do need this axis for the normal.
-  Randy Gaul calculates a normal from the r matrix, which I have included
-  as a comment. However, this is not orthogonal to both a's axis and b's axis.
-  This might still be fine but I've left the cross product in, to be safe.
-  We might look into using the r matrix method as an optimisation.
-
-  Resources
-  ---------
-  * Christer Ericson, Real-Time Collision Detection, 4.4
-  * Dirk Gregorius's GDC 2013 and GDC 2015 talks
-  * Randy Gaul's blog post
-    "Deriving OBB to OBB Intersection and Manifold Generation"
-  * Ian Millington's Cyclone Physics engine (but not for face-something!)
-  */
   CollisionManifold manifold = {.sep_max = -FLT_MAX};
   // The radius from a/b's center to its outer vertex
   real32 a_radius, b_radius;
@@ -258,6 +325,9 @@ CollisionManifold Physics::intersect_obb_obb(
     if (sep > 0) { return manifold; }
     update_manifold_for_face_axis(&manifold, sep, 3 + i, b_axes[i]);
   }
+
+  // Out of the first 6 axes, keep track of the best one
+  uint32 face_axis_with_max_separation = manifold.axis;
 
   if (do_obbs_share_one_axis) {
     // If the two OBBs share one axis, we can skip checking their cross product
@@ -389,6 +459,16 @@ CollisionManifold Physics::intersect_obb_obb(
     a_edge_point = a_cob * a_edge_point + a->center;
     b_edge_point = b_cob * b_edge_point + b->center;
 
+    v3 contact_point = get_edge_contact_point(
+      a_edge_point,
+      a_axes[a_axis],
+      a->extents[a_axis],
+      b_edge_point,
+      b_axes[b_axis],
+      b->extents[b_axis],
+      face_axis_with_max_separation > 2
+    );
+
     DebugDraw::draw_point(
       g_dds,
       a_edge_point,
@@ -398,6 +478,12 @@ CollisionManifold Physics::intersect_obb_obb(
     DebugDraw::draw_point(
       g_dds,
       b_edge_point,
+      0.1f,
+      v4(1.0f, 0.0f, 1.0f, 1.0f)
+    );
+    DebugDraw::draw_point(
+      g_dds,
+      contact_point,
       0.1f,
       v4(1.0f, 0.0f, 1.0f, 1.0f)
     );
