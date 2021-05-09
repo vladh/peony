@@ -49,6 +49,15 @@ namespace Physics {
     CollisionManifold *manifold,
     real32 sep, uint32 axis, v3 normal
   );
+  v3 get_edge_contact_point(
+    v3 a_edge_point,
+    v3 a_axis,
+    real32 a_axis_length,
+    v3 b_edge_point,
+    v3 b_axis,
+    real32 b_axis_length,
+    bool32 should_use_a_midpoint
+  );
   CollisionManifold intersect_obb_obb(
     Obb *a,
     Obb *b,
