@@ -108,6 +108,22 @@ void DebugDraw::draw_obb(
 }
 
 
+void DebugDraw::draw_point(
+  DebugDrawState *debug_draw_state,
+  v3 position,
+  real32 size,
+  v4 color
+) {
+  Obb obb = {
+    .center=position,
+    .x_axis=v3(1.0f, 0.0f, 0.0f),
+    .y_axis=v3(0.0f, 1.0f, 0.0f),
+    .extents=v3(size),
+  };
+  draw_obb(debug_draw_state, &obb, color);
+}
+
+
 void DebugDraw::render(DebugDrawState *debug_draw_state) {
   glBindVertexArray(debug_draw_state->vao);
   glBindBuffer(GL_ARRAY_BUFFER, debug_draw_state->vbo);

@@ -154,8 +154,35 @@ CollisionManifold Physics::intersect_obb_obb(
   SpatialComponent *spatial_a,
   SpatialComponent *spatial_b
 ) {
-  // Christer Ericson, Real-Time Collision Detection, 4.4
-  // This is the separating axis test (sometimes abbreviated SAT).
+  /*
+  This function implements collision detection between two OBBs.
+
+  We're using the separating axis test (SAT) to check which axes, if any,
+  separates the two.
+
+  For manifold generation, we're using the methods described by Dirk Gregorius,
+  namely Sutherland-Hodgman clipping for face-something, and "just find the
+  closes two points on the edges" for edge-edge.
+
+  A note about normal calculation for the cross axes
+  --------------------------------------------------
+  Normally, we would calculate the normal as the axis we're using,
+  so the cross product between the a axis and the b axis. We're not
+  actually calculating this directly for SAT, because we're using the r
+  matrix as a way around this. However, we do need this axis for the normal.
+  Randy Gaul calculates a normal from the r matrix, which I have included
+  as a comment. However, this is not orthogonal to both a's axis and b's axis.
+  This might still be fine but I've left the cross product in, to be safe.
+  We might look into using the r matrix method as an optimisation.
+
+  Resources
+  ---------
+  * Christer Ericson, Real-Time Collision Detection, 4.4
+  * Dirk Gregorius's GDC 2013 and GDC 2015 talks
+  * Randy Gaul's blog post
+    "Deriving OBB to OBB Intersection and Manifold Generation"
+  * Ian Millington's Cyclone Physics engine (but not for face-something!)
+  */
   CollisionManifold manifold = {.sep_max = -FLT_MAX};
   // The radius from a/b's center to its outer vertex
   real32 a_radius, b_radius;
@@ -184,7 +211,7 @@ CollisionManifold Physics::intersect_obb_obb(
     }
   }
 
-  // Compute translation vector t
+  // Compute translation vector
   v3 t_translation = b->center - a->center;
 
   // Bring translation into a's coordinate frame
@@ -237,22 +264,14 @@ CollisionManifold Physics::intersect_obb_obb(
     // axes altogether.
     // NOTE: (@vladh) It's not 100% clear to me why this is.
   } else {
-    if (g_use_cross) {
-      console_log("Using cross");
-    } else {
-      console_log("Not using cross");
-    }
     // Test axis a.x x b.x
     a_radius = a->extents[1] * abs_r[2][0] + a->extents[2] * abs_r[1][0];
     b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
     a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[0], b_axes[0]);
-    } else {
-      normal = v3(0.0f, -r[2][0], r[1][0]);
-    }
+    // normal = v3(0.0f, -r[2][0], r[1][0]);
+    normal = normalize(cross(a_axes[0], b_axes[0]));
     update_manifold_for_edge_axis(&manifold, sep, 6, normal);
 
     // Test axis a.x x b.y
@@ -261,17 +280,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[0], b_axes[1]);
-    } else {
-      normal = v3(0.0f, r[2][1], -r[1][1]);
-    }
-    DebugDraw::draw_line(
-      g_dds, a->center, a->center + a_axes[0] * 100.0f, v4(1.0f, 0.0f, 0.0f, 1.0f)
-    );
-    DebugDraw::draw_line(
-      g_dds, b->center, b->center + b_axes[1] * 100.0f, v4(1.0f, 0.0f, 0.0f, 1.0f)
-    );
+    // normal = v3(0.0f, r[2][1], -r[1][1]);
+    normal = normalize(cross(a_axes[0], b_axes[1]));
     update_manifold_for_edge_axis(&manifold, sep, 7, normal);
 
     // Test axis a.x x b.z
@@ -280,11 +290,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[0], b_axes[2]);
-    } else {
-      normal = v3(0.0f, -r[2][2], r[1][2]);
-    }
+    // normal = v3(0.0f, -r[2][2], r[1][2]);
+    normal = normalize(cross(a_axes[0], b_axes[2]));
     update_manifold_for_edge_axis(&manifold, sep, 8, normal);
 
     // Test axis a.y x b.x
@@ -293,11 +300,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[1], b_axes[0]);
-    } else {
-      normal = v3(r[2][0], 0.0f, -r[0][0]);
-    }
+    // normal = v3(r[2][0], 0.0f, -r[0][0]);
+    normal = normalize(cross(a_axes[1], b_axes[0]));
     update_manifold_for_edge_axis(&manifold, sep, 9, normal);
 
     // Test axis a.y x b.y
@@ -306,11 +310,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[1], b_axes[1]);
-    } else {
-      normal = v3(r[2][1], 0.0f, -r[0][1]);
-    }
+    // normal = v3(r[2][1], 0.0f, -r[0][1]);
+    normal = normalize(cross(a_axes[1], b_axes[1]));
     update_manifold_for_edge_axis(&manifold, sep, 10, normal);
 
     // Test axis a.y x b.z
@@ -319,11 +320,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[1], b_axes[2]);
-    } else {
-      normal = v3(r[2][2], 0.0f, -r[0][2]);
-    }
+    // normal = v3(r[2][2], 0.0f, -r[0][2]);
+    normal = normalize(cross(a_axes[1], b_axes[2]));
     update_manifold_for_edge_axis(&manifold, sep, 11, normal);
 
     // Test axis a.z x b.x
@@ -332,11 +330,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[2], b_axes[0]);
-    } else {
-      normal = v3(-r[1][0], r[0][0], 0.0f);
-    }
+    // normal = v3(-r[1][0], r[0][0], 0.0f);
+    normal = normalize(cross(a_axes[2], b_axes[0]));
     update_manifold_for_edge_axis(&manifold, sep, 12, normal);
 
     // Test axis a.z x b.y
@@ -345,11 +340,8 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[2], b_axes[1]);
-    } else {
-      normal = v3(-r[1][1], r[0][1], 0.0f);
-    }
+    // normal = v3(-r[1][1], r[0][1], 0.0f);
+    normal = normalize(cross(a_axes[2], b_axes[1]));
     update_manifold_for_edge_axis(&manifold, sep, 13, normal);
 
     // Test axis a.z x b.z
@@ -358,17 +350,57 @@ CollisionManifold Physics::intersect_obb_obb(
     a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    if (g_use_cross) {
-      normal = cross(a_axes[2], b_axes[2]);
-    } else {
-      normal = v3(-r[1][2], r[0][2], 0.0f);
-    }
+    // normal = v3(-r[1][2], r[0][2], 0.0f);
+    normal = normalize(cross(a_axes[2], b_axes[2]));
     update_manifold_for_edge_axis(&manifold, sep, 14, normal);
   }
 
   // Correct normal direction
   if (dot(manifold.normal, t_translation) < 0.0f) {
     manifold.normal = -manifold.normal;
+  }
+
+  if (manifold.axis < 6) {
+    // This is where face-something will go.
+  } else {
+    uint32 edge_axis = manifold.axis - 6;
+    uint32 a_axis = edge_axis / 3;
+    uint32 b_axis = edge_axis % 3;
+
+    v3 a_edge_point = a->extents;
+    v3 b_edge_point = b->extents;
+    for_range_named (i, 0, 3) {
+      if (i == a_axis) {
+        a_edge_point[i] = 0;
+      } else if (dot(a_axes[i], manifold.normal) < 0) {
+        a_edge_point[i] = -a_edge_point[i];
+      }
+
+      if (i == b_axis) {
+        b_edge_point[i] = 0;
+      } else if (dot(b_axes[i], manifold.normal) > 0) {
+        b_edge_point[i] = -b_edge_point[i];
+      }
+    }
+
+    // Change basis into world space
+    m3 a_cob = m3(a_axes[0], a_axes[1], a_axes[2]);
+    m3 b_cob = m3(b_axes[0], b_axes[1], b_axes[2]);
+    a_edge_point = a_cob * a_edge_point + a->center;
+    b_edge_point = b_cob * b_edge_point + b->center;
+
+    DebugDraw::draw_point(
+      g_dds,
+      a_edge_point,
+      0.1f,
+      v4(1.0f, 0.0f, 1.0f, 1.0f)
+    );
+    DebugDraw::draw_point(
+      g_dds,
+      b_edge_point,
+      0.1f,
+      v4(1.0f, 0.0f, 1.0f, 1.0f)
+    );
   }
 
   // Since no separating axis is found, the OBBs must be intersecting

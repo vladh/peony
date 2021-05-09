@@ -61,6 +61,12 @@ namespace DebugDraw {
     Obb *obb,
     v4 color
   );
+  void draw_point(
+    DebugDrawState *debug_draw_state,
+    v3 position,
+    real32 size,
+    v4 color
+  );
   void render(DebugDrawState *debug_draw_state);
   DebugDrawState* init_debug_draw_state(
     DebugDrawState *debug_draw_state,
