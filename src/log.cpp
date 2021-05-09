@@ -87,17 +87,17 @@ void console_log(const char *format, ...) {
   va_end(vargs);
 
   // Fill array in back-to-front.
-  if (g_console.idx_log_start == 0) {
-    g_console.idx_log_start = GUI_MAX_N_CONSOLE_LINES - 1;
+  if (g_console->idx_log_start == 0) {
+    g_console->idx_log_start = GUI_MAX_N_CONSOLE_LINES - 1;
   } else {
-    g_console.idx_log_start--;
+    g_console->idx_log_start--;
   }
-  if (g_console.idx_log_start == g_console.idx_log_end) {
-    if (g_console.idx_log_end == 0) {
-      g_console.idx_log_end = GUI_MAX_N_CONSOLE_LINES - 1;
+  if (g_console->idx_log_start == g_console->idx_log_end) {
+    if (g_console->idx_log_end == 0) {
+      g_console->idx_log_end = GUI_MAX_N_CONSOLE_LINES - 1;
     } else {
-      g_console.idx_log_end--;
+      g_console->idx_log_end--;
     }
   }
-  strcpy(g_console.log[g_console.idx_log_start], text);
+  strcpy(g_console->log[g_console->idx_log_start], text);
 }

@@ -3,6 +3,7 @@
 
 struct SpatialComponent;
 struct PhysicsComponent;
+struct SpatialComponentSet;
 struct PhysicsComponentSet;
 
 struct Obb {
@@ -48,10 +49,17 @@ namespace Physics {
     CollisionManifold *manifold,
     real32 sep, uint32 axis, v3 normal
   );
-  CollisionManifold intersect_obb_obb(Obb *obb1, Obb *obb2);
+  CollisionManifold intersect_obb_obb(
+    Obb *a,
+    Obb *b,
+    SpatialComponent *spatial_a,
+    SpatialComponent *spatial_b
+  );
   CollisionManifold find_physics_component_collision(
-    PhysicsComponent *physics_component,
-    PhysicsComponentSet *physics_component_set
+    PhysicsComponent *self_physics,
+    SpatialComponent *self_spatial,
+    PhysicsComponentSet *physics_component_set,
+    SpatialComponentSet *spatial_component_set
   );
   RayCollisionResult find_ray_collision(
     Ray *ray,

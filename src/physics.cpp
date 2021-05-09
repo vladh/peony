@@ -148,7 +148,12 @@ void Physics::update_manifold_for_edge_axis(
 }
 
 
-CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
+CollisionManifold Physics::intersect_obb_obb(
+  Obb *a,
+  Obb *b,
+  SpatialComponent *spatial_a,
+  SpatialComponent *spatial_b
+) {
   // Christer Ericson, Real-Time Collision Detection, 4.4
   // This is the separating axis test (sometimes abbreviated SAT).
   CollisionManifold manifold = {.sep_max = -FLT_MAX};
@@ -162,6 +167,8 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
   m3 r;
   // abs(r) is used in a lot of calculations so we precompute it
   m3 abs_r;
+  // We need to keep track of the normal on the edge axes
+  v3 normal;
 
   v3 a_axes[3] = {
     a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis)
@@ -230,13 +237,23 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     // axes altogether.
     // NOTE: (@vladh) It's not 100% clear to me why this is.
   } else {
+    if (g_use_cross) {
+      console_log("Using cross");
+    } else {
+      console_log("Not using cross");
+    }
     // Test axis a.x x b.x
     a_radius = a->extents[1] * abs_r[2][0] + a->extents[2] * abs_r[1][0];
     b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
     a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 6, v3(0.0f, -r[2][0], r[1][0]));
+    if (g_use_cross) {
+      normal = cross(a_axes[0], b_axes[0]);
+    } else {
+      normal = v3(0.0f, -r[2][0], r[1][0]);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 6, normal);
 
     // Test axis a.x x b.y
     a_radius = a->extents[1] * abs_r[2][1] + a->extents[2] * abs_r[1][1];
@@ -244,7 +261,18 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 7, v3(0.0f, -r[2][1], r[1][1]));
+    if (g_use_cross) {
+      normal = cross(a_axes[0], b_axes[1]);
+    } else {
+      normal = v3(0.0f, r[2][1], -r[1][1]);
+    }
+    DebugDraw::draw_line(
+      g_dds, a->center, a->center + a_axes[0] * 100.0f, v4(1.0f, 0.0f, 0.0f, 1.0f)
+    );
+    DebugDraw::draw_line(
+      g_dds, b->center, b->center + b_axes[1] * 100.0f, v4(1.0f, 0.0f, 0.0f, 1.0f)
+    );
+    update_manifold_for_edge_axis(&manifold, sep, 7, normal);
 
     // Test axis a.x x b.z
     a_radius = a->extents[1] * abs_r[2][2] + a->extents[2] * abs_r[1][2];
@@ -252,7 +280,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 8, v3(0.0f, -r[2][2], r[1][2]));
+    if (g_use_cross) {
+      normal = cross(a_axes[0], b_axes[2]);
+    } else {
+      normal = v3(0.0f, -r[2][2], r[1][2]);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 8, normal);
 
     // Test axis a.y x b.x
     a_radius = a->extents[0] * abs_r[2][0] + a->extents[2] * abs_r[0][0];
@@ -260,7 +293,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 9, v3(r[2][0], 0.0f, -r[0][0]));
+    if (g_use_cross) {
+      normal = cross(a_axes[1], b_axes[0]);
+    } else {
+      normal = v3(r[2][0], 0.0f, -r[0][0]);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 9, normal);
 
     // Test axis a.y x b.y
     a_radius = a->extents[0] * abs_r[2][1] + a->extents[2] * abs_r[0][1];
@@ -268,7 +306,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 10, v3(r[2][1], 0.0f, -r[0][1]));
+    if (g_use_cross) {
+      normal = cross(a_axes[1], b_axes[1]);
+    } else {
+      normal = v3(r[2][1], 0.0f, -r[0][1]);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 10, normal);
 
     // Test axis a.y x b.z
     a_radius = a->extents[0] * abs_r[2][2] + a->extents[2] * abs_r[0][2];
@@ -276,7 +319,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 11, v3(r[2][2], 0.0f, -r[0][2]));
+    if (g_use_cross) {
+      normal = cross(a_axes[1], b_axes[2]);
+    } else {
+      normal = v3(r[2][2], 0.0f, -r[0][2]);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 11, normal);
 
     // Test axis a.z x b.x
     a_radius = a->extents[0] * abs_r[1][0] + a->extents[1] * abs_r[0][0];
@@ -284,7 +332,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 12, v3(-r[1][0], r[0][0], 0.0f));
+    if (g_use_cross) {
+      normal = cross(a_axes[2], b_axes[0]);
+    } else {
+      normal = v3(-r[1][0], r[0][0], 0.0f);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 12, normal);
 
     // Test axis a.z x b.y
     a_radius = a->extents[0] * abs_r[1][1] + a->extents[1] * abs_r[0][1];
@@ -292,7 +345,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 13, v3(-r[1][1], r[0][1], 0.0f));
+    if (g_use_cross) {
+      normal = cross(a_axes[2], b_axes[1]);
+    } else {
+      normal = v3(-r[1][1], r[0][1], 0.0f);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 13, normal);
 
     // Test axis a.z x b.z
     a_radius = a->extents[0] * abs_r[1][2] + a->extents[1] * abs_r[0][2];
@@ -300,7 +358,12 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
     a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
     sep = a_to_b - (a_radius + b_radius);
     if (sep > 0) { return manifold; }
-    update_manifold_for_edge_axis(&manifold, sep, 14, v3(-r[1][2], r[0][2], 0.0f));
+    if (g_use_cross) {
+      normal = cross(a_axes[2], b_axes[2]);
+    } else {
+      normal = v3(-r[1][2], r[0][2], 0.0f);
+    }
+    update_manifold_for_edge_axis(&manifold, sep, 14, normal);
   }
 
   // Correct normal direction
@@ -316,23 +379,34 @@ CollisionManifold Physics::intersect_obb_obb(Obb *a, Obb *b) {
 
 
 CollisionManifold Physics::find_physics_component_collision(
-  PhysicsComponent *self,
-  PhysicsComponentSet *physics_component_set
+  PhysicsComponent *self_physics,
+  SpatialComponent *self_spatial,
+  PhysicsComponentSet *physics_component_set,
+  SpatialComponentSet *spatial_component_set
 ) {
-  for_each (candidate, physics_component_set->components) {
-    if (!Entities::is_physics_component_valid(candidate)) {
+  for_each (candidate_physics, physics_component_set->components) {
+    if (!Entities::is_physics_component_valid(candidate_physics)) {
       continue;
     }
+    SpatialComponent *candidate_spatial =
+      spatial_component_set->components[candidate_physics->entity_handle];
+    if (!candidate_spatial) {
+      log_error("Could not get SpatialComponent for candidate");
+      return CollisionManifold{};
+    }
 
-    if (self == candidate) {
+    if (self_physics == candidate_physics) {
       continue;
     }
 
     CollisionManifold manifold = Physics::intersect_obb_obb(
-      &self->transformed_obb, &candidate->transformed_obb
+      &self_physics->transformed_obb,
+      &candidate_physics->transformed_obb,
+      self_spatial,
+      candidate_spatial
     );
     if (manifold.did_collide) {
-      manifold.collidee = candidate;
+      manifold.collidee = candidate_physics;
       return manifold;
     }
   }
