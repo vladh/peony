@@ -48,7 +48,10 @@ namespace BehaviorFunctions {
 #if 1
     {
       CollisionManifold manifold = Physics::find_physics_component_collision(
-        physics_component, &state->physics_component_set
+        physics_component,
+        spatial_component,
+        &state->physics_component_set,
+        &state->spatial_component_set
       );
 
       if (manifold.did_collide) {
@@ -68,6 +71,12 @@ namespace BehaviorFunctions {
           &state->debug_draw_state,
           obb->center,
           obb->center + manifold.normal * 100.0f,
+          color
+        );
+        DebugDraw::draw_line(
+          &state->debug_draw_state,
+          manifold.collidee->transformed_obb.center,
+          manifold.collidee->transformed_obb.center + manifold.normal * 100.0f,
           color
         );
         console_log("manifold.axis = %d", manifold.axis);

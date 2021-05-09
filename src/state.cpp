@@ -80,5 +80,8 @@ State* init_state(
     true
   );
 
+  g_console = &state->game_console;
+  g_dds = &state->debug_draw_state;
+
   return state;
 }

@@ -701,7 +701,7 @@ void Gui::draw_console(
   GuiState *gui_state,
   char *console_input_text
 ) {
-  if (!g_console.is_enabled) {
+  if (!g_console->is_enabled) {
     return;
   }
 
@@ -727,15 +727,15 @@ void Gui::draw_console(
       GUI_CONSOLE_BG_COLOR
     );
 
-    uint32 idx_line = g_console.idx_log_start;
-    while (idx_line != g_console.idx_log_end) {
+    uint32 idx_line = g_console->idx_log_start;
+    while (idx_line != g_console->idx_log_end) {
       v2 text_dimensions = get_text_dimensions(
-        font_asset, g_console.log[idx_line]
+        font_asset, g_console->log[idx_line]
       );
       next_element_position.y -= text_dimensions.y + line_spacing;
       draw_text(
         gui_state,
-        "body", g_console.log[idx_line],
+        "body", g_console->log[idx_line],
         next_element_position,
         GUI_LIGHT_TEXT_COLOR
       );

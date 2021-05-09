@@ -59,6 +59,7 @@ struct State {
 
   GuiState gui_state;
   DebugDrawState debug_draw_state;
+  GameConsole game_console;
 
   EntitySet entity_set;
   EntityLoaderSet entity_loader_set;

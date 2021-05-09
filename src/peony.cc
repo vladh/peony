@@ -15,7 +15,9 @@
 #include "peony.hpp"
 
 global real64 g_t;
-global GameConsole g_console;
+global GameConsole *g_console;
+global DebugDrawState *g_dds;
+global bool32 g_use_cross = false;
 
 #include "log.cpp"
 #include "pack.cpp"
@@ -79,11 +81,11 @@ void handle_console_command(State *state) {
 
 void process_input(GLFWwindow *window, State *state) {
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
-    if (g_console.is_enabled) {
-      g_console.is_enabled = false;
+    if (state->game_console.is_enabled) {
+      state->game_console.is_enabled = false;
       Input::disable_text_input(&state->input_state);
     } else {
-      g_console.is_enabled = true;
+      state->game_console.is_enabled = true;
       Input::enable_text_input(&state->input_state);
     }
   }
@@ -146,6 +148,10 @@ void process_input(GLFWwindow *window, State *state) {
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_C)) {
     state->is_cursor_enabled = !state->is_cursor_enabled;
     Renderer::update_drawing_options(state, window);
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_X)) {
+    g_use_cross = !g_use_cross;
   }
 
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_R)) {
