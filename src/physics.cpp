@@ -215,6 +215,85 @@ v3 Physics::get_edge_contact_point(
 }
 
 
+Face Physics::get_incident_face(
+  m3 *cob, // incident change of base
+  v3 e, // incident extents
+  v3 c, // incident_center
+  v3 n // incident normal
+) {
+  Face face;
+  v3 abs_n = abs(n);
+
+  if (abs_n.x > abs_n.y && abs_n.x > abs_n.z) {
+    if (n.x > 0.0f) {
+      face = {
+        .vertices = {
+          v3(e.x,  e.y, -e.z),
+          v3(e.x,  e.y,  e.z),
+          v3(e.x, -e.y,  e.z),
+          v3(e.x, -e.y, -e.z),
+        },
+      };
+    } else {
+      face = {
+        .vertices = {
+          v3(-e.x, -e.y,  e.z),
+          v3(-e.x,  e.y,  e.z),
+          v3(-e.x,  e.y, -e.z),
+          v3(-e.x, -e.y, -e.z),
+        },
+      };
+    }
+  } else if ( abs_n.y > abs_n.x && abs_n.y > abs_n.z ) {
+    if (n.y > 0.0f) {
+      face = {
+        .vertices = {
+          v3(-e.x,  e.y,  e.z),
+          v3( e.x,  e.y,  e.z),
+          v3( e.x,  e.y, -e.z),
+          v3(-e.x,  e.y, -e.z),
+        },
+      };
+    } else {
+      face = {
+        .vertices = {
+          v3( e.x, -e.y,  e.z),
+          v3(-e.x, -e.y,  e.z),
+          v3(-e.x, -e.y, -e.z),
+          v3( e.x, -e.y, -e.z),
+        },
+      };
+    }
+  } else {
+    if (n.z > 0.0f) {
+      face = {
+        .vertices = {
+          v3(-e.x,  e.y,  e.z),
+          v3(-e.x, -e.y,  e.z),
+          v3( e.x, -e.y,  e.z),
+          v3( e.x,  e.y,  e.z),
+        },
+      };
+    } else {
+      face = {
+        .vertices = {
+          v3( e.x, -e.y, -e.z),
+          v3(-e.x, -e.y, -e.z),
+          v3(-e.x,  e.y, -e.z),
+          v3( e.x,  e.y, -e.z),
+        },
+      };
+    }
+  }
+
+  for_range (0, 4) {
+    face.vertices[idx] = *cob * face.vertices[idx] + c;
+  }
+
+  return face;
+}
+
+
 /*!
 This function implements collision detection between two OBBs.
 
@@ -271,6 +350,11 @@ CollisionManifold Physics::intersect_obb_obb(
     b->x_axis, b->y_axis, cross(b->x_axis, b->y_axis)
   };
 
+  // Change basis into world space
+  // cob = change of base
+  m3 a_cob = m3(a_axes[0], a_axes[1], a_axes[2]);
+  m3 b_cob = m3(b_axes[0], b_axes[1], b_axes[2]);
+
   // Compute rotation matrix expressing b in a's coordinate frame
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
@@ -302,6 +386,9 @@ CollisionManifold Physics::intersect_obb_obb(
     }
   }
 
+  real32 face_max_sep = -FLT_MAX;
+  real32 edge_max_sep = -FLT_MAX;
+
   // Test axes a.x, a.y, a.z
   for_range_named (i, 0, 3) {
     a_radius = a->extents[i];
@@ -310,6 +397,7 @@ CollisionManifold Physics::intersect_obb_obb(
       b->extents[2] * abs_r[i][2];
     a_to_b = abs(t[i]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > face_max_sep) { face_max_sep = sep; }
     if (sep > 0) { return manifold; }
     update_manifold_for_face_axis(&manifold, sep, i, a_axes[i]);
   }
@@ -322,6 +410,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[i];
     a_to_b = abs(t[0] * r[0][i] + t[1] * r[1][i] + t[2] * r[2][i]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > face_max_sep) { face_max_sep = sep; }
     if (sep > 0) { return manifold; }
     update_manifold_for_face_axis(&manifold, sep, 3 + i, b_axes[i]);
   }
@@ -339,6 +428,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
     a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(0.0f, -r[2][0], r[1][0]);
     normal = normalize(cross(a_axes[0], b_axes[0]));
@@ -349,6 +439,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[0] * abs_r[0][2] + b->extents[2] * abs_r[0][0];
     a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(0.0f, r[2][1], -r[1][1]);
     normal = normalize(cross(a_axes[0], b_axes[1]));
@@ -359,6 +450,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[0] * abs_r[0][1] + b->extents[1] * abs_r[0][0];
     a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(0.0f, -r[2][2], r[1][2]);
     normal = normalize(cross(a_axes[0], b_axes[2]));
@@ -369,6 +461,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[1] * abs_r[1][2] + b->extents[2] * abs_r[1][1];
     a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(r[2][0], 0.0f, -r[0][0]);
     normal = normalize(cross(a_axes[1], b_axes[0]));
@@ -379,6 +472,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[0] * abs_r[1][2] + b->extents[2] * abs_r[1][0];
     a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(r[2][1], 0.0f, -r[0][1]);
     normal = normalize(cross(a_axes[1], b_axes[1]));
@@ -389,6 +483,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[0] * abs_r[1][1] + b->extents[1] * abs_r[1][0];
     a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(r[2][2], 0.0f, -r[0][2]);
     normal = normalize(cross(a_axes[1], b_axes[2]));
@@ -399,6 +494,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[1] * abs_r[2][2] + b->extents[2] * abs_r[2][1];
     a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(-r[1][0], r[0][0], 0.0f);
     normal = normalize(cross(a_axes[2], b_axes[0]));
@@ -409,6 +505,7 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[0] * abs_r[2][2] + b->extents[2] * abs_r[2][0];
     a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(-r[1][1], r[0][1], 0.0f);
     normal = normalize(cross(a_axes[2], b_axes[1]));
@@ -419,11 +516,15 @@ CollisionManifold Physics::intersect_obb_obb(
     b_radius = b->extents[0] * abs_r[2][1] + b->extents[1] * abs_r[2][0];
     a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
     sep = a_to_b - (a_radius + b_radius);
+    if (sep > edge_max_sep) { edge_max_sep = sep; }
     if (sep > 0) { return manifold; }
     // normal = v3(-r[1][2], r[0][2], 0.0f);
     normal = normalize(cross(a_axes[2], b_axes[2]));
     update_manifold_for_edge_axis(&manifold, sep, 14, normal);
   }
+
+  console_log("face_max_sep %f", face_max_sep);
+  console_log("edge_max_sep %f", edge_max_sep);
 
   // Correct normal direction
   if (dot(manifold.normal, t_translation) < 0.0f) {
@@ -431,8 +532,65 @@ CollisionManifold Physics::intersect_obb_obb(
   }
 
   if (manifold.axis < 6) {
-    // This is where face-something will go.
+    // Face-something collision
+    v3 reference_extents, incident_extents, reference_center, incident_center;
+    m3 reference_cob, incident_cob;
+
+    if (manifold.axis < 3) {
+      manifold.normal = -manifold.normal;
+      reference_extents = a->extents;
+      reference_cob = a_cob;
+      reference_center = a->center;
+      incident_extents = b->extents;
+      incident_cob = b_cob;
+      incident_center = b->center;
+    } else {
+      reference_extents = b->extents;
+      reference_cob = b_cob;
+      reference_center = b->center;
+      incident_extents = a->extents;
+      incident_cob = a_cob;
+      incident_center = a->center;
+    }
+
+    Face incident_face = get_incident_face(
+      &incident_cob, incident_extents, incident_center, manifold.normal
+    );
+
+    DebugDraw::draw_quad(
+      g_dds,
+      incident_face.vertices[0],
+      incident_face.vertices[1],
+      incident_face.vertices[2],
+      incident_face.vertices[3],
+      v4(0.0f, 1.0f, 0.0f, 1.0f)
+    );
+    DebugDraw::draw_point(
+      g_dds,
+      incident_face.vertices[0],
+      0.1f,
+      v4(0.0f, 1.0f, 0.0f, 1.0f)
+    );
+    DebugDraw::draw_point(
+      g_dds,
+      incident_face.vertices[1],
+      0.1f,
+      v4(0.0f, 1.0f, 0.0f, 1.0f)
+    );
+    DebugDraw::draw_point(
+      g_dds,
+      incident_face.vertices[2],
+      0.1f,
+      v4(0.0f, 1.0f, 0.0f, 1.0f)
+    );
+    DebugDraw::draw_point(
+      g_dds,
+      incident_face.vertices[3],
+      0.1f,
+      v4(0.0f, 1.0f, 0.0f, 1.0f)
+    );
   } else {
+    // Edge-edge collision
     uint32 edge_axis = manifold.axis - 6;
     uint32 a_axis = edge_axis / 3;
     uint32 b_axis = edge_axis % 3;
@@ -453,9 +611,6 @@ CollisionManifold Physics::intersect_obb_obb(
       }
     }
 
-    // Change basis into world space
-    m3 a_cob = m3(a_axes[0], a_axes[1], a_axes[2]);
-    m3 b_cob = m3(b_axes[0], b_axes[1], b_axes[2]);
     a_edge_point = a_cob * a_edge_point + a->center;
     b_edge_point = b_cob * b_edge_point + b->center;
 
@@ -466,26 +621,13 @@ CollisionManifold Physics::intersect_obb_obb(
       b_edge_point,
       b_axes[b_axis],
       b->extents[b_axis],
-      face_axis_with_max_separation > 2
-    );
-
-    DebugDraw::draw_point(
-      g_dds,
-      a_edge_point,
-      0.1f,
-      v4(1.0f, 0.0f, 1.0f, 1.0f)
-    );
-    DebugDraw::draw_point(
-      g_dds,
-      b_edge_point,
-      0.1f,
-      v4(1.0f, 0.0f, 1.0f, 1.0f)
+      face_axis_with_max_separation >= 3
     );
     DebugDraw::draw_point(
       g_dds,
       contact_point,
       0.1f,
-      v4(1.0f, 0.0f, 1.0f, 1.0f)
+      v4(0.0f, 1.0f, 0.0f, 1.0f)
     );
   }
 

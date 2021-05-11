@@ -33,8 +33,8 @@ namespace BehaviorFunctions {
     spatial_component->position.x = (real32)sin(state->t * 1.0f) * 4.0f;
     spatial_component->position.z = (real32)cos(state->t * 1.0f) * 4.0f;
     spatial_component->rotation =
-      glm::angleAxis((real32)sin(state->t) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
-      glm::angleAxis((real32)cos(state->t), v3(1.0f, 0.0f, 0.0f));
+      glm::angleAxis((real32)sin(state->t * 3.0f) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
+      glm::angleAxis((real32)cos(state->t * 2.0f), v3(1.0f, 0.0f, 0.0f));
 #endif
 #if 0
     spatial_component->position.x = -5.0f;
