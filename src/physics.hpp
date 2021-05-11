@@ -13,6 +13,10 @@ struct Obb {
   v3 extents;
 };
 
+struct Face {
+  v3 vertices[4];
+};
+
 struct CollisionManifold {
   bool32 did_collide;
   PhysicsComponent *collidee;
@@ -57,6 +61,12 @@ namespace Physics {
     v3 b_axis,
     real32 b_axis_length,
     bool32 should_use_a_midpoint
+  );
+  Face get_incident_face(
+    m3 *cob,
+    v3 e,
+    v3 c,
+    v3 n
   );
   CollisionManifold intersect_obb_obb(
     Obb *a,
