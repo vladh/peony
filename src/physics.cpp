@@ -343,15 +343,10 @@ CollisionManifold Physics::intersect_obb_obb(
   // We need to keep track of the normal on the edge axes
   v3 normal;
 
-  v3 a_axes[3] = {
-    a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis)
-  };
-  v3 b_axes[3] = {
-    b->x_axis, b->y_axis, cross(b->x_axis, b->y_axis)
-  };
+  v3 a_axes[3] = {a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis)};
+  v3 b_axes[3] = {b->x_axis, b->y_axis, cross(b->x_axis, b->y_axis)};
 
-  // Change basis into world space
-  // cob = change of base
+  // Change basis into world space (cob = change of base)
   m3 a_cob = m3(a_axes[0], a_axes[1], a_axes[2]);
   m3 b_cob = m3(b_axes[0], b_axes[1], b_axes[2]);
 
@@ -372,6 +367,11 @@ CollisionManifold Physics::intersect_obb_obb(
     dot(t_translation, a_axes[2])
   );
 
+  // If the two OBBs share one axis, we can skip checking their cross product
+  // axes altogether. At the very least, if e.g. a.x and b.x are parallel,
+  // their cross product will give us something we can't use. I'm not sure why
+  // we're not skipping the specific axes specifically, and we're skipping
+  // everything instead.
   bool32 do_obbs_share_one_axis = false;
 
   // Compute common subexpressions. Add in an epsilon term to counteract
@@ -379,8 +379,8 @@ CollisionManifold Physics::intersect_obb_obb(
   // is (near) null.
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
-      abs_r[i][j] = abs(r[i][j]) + FLT_EPSILON;
-      if (abs_r[i][j] >= 1.0f) {
+      abs_r[i][j] = abs(r[i][j]);
+      if (abs_r[i][j] + PARALLEL_FACE_TOLERANCE >= 1.0f) {
         do_obbs_share_one_axis = true;
       }
     }
@@ -389,7 +389,7 @@ CollisionManifold Physics::intersect_obb_obb(
   real32 face_max_sep = -FLT_MAX;
   real32 edge_max_sep = -FLT_MAX;
 
-  // Test axes a.x, a.y, a.z
+  // Test a's face axes (a.x, a.y, a.z)
   for_range_named (i, 0, 3) {
     a_radius = a->extents[i];
     b_radius = b->extents[0] * abs_r[i][0] +
@@ -402,7 +402,7 @@ CollisionManifold Physics::intersect_obb_obb(
     update_manifold_for_face_axis(&manifold, sep, i, a_axes[i]);
   }
 
-  // Test axes b.x, b.y, b.z
+  // Test b's face axes (b.x, b.y, b.z)
   for_range_named (i, 0, 3) {
     a_radius = a->extents[0] * abs_r[0][i] +
       a->extents[1] * abs_r[1][i] +
@@ -418,109 +418,30 @@ CollisionManifold Physics::intersect_obb_obb(
   // Out of the first 6 axes, keep track of the best one
   uint32 face_axis_with_max_separation = manifold.axis;
 
-  if (do_obbs_share_one_axis) {
-    // If the two OBBs share one axis, we can skip checking their cross product
-    // axes altogether.
-    // NOTE: (@vladh) It's not 100% clear to me why this is.
-  } else {
-    // Test axis a.x x b.x
-    a_radius = a->extents[1] * abs_r[2][0] + a->extents[2] * abs_r[1][0];
-    b_radius = b->extents[1] * abs_r[0][2] + b->extents[2] * abs_r[0][1];
-    a_to_b = abs(t[2] * r[1][0] - t[1] * r[2][0]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(0.0f, -r[2][0], r[1][0]);
-    normal = normalize(cross(a_axes[0], b_axes[0]));
-    update_manifold_for_edge_axis(&manifold, sep, 6, normal);
-
-    // Test axis a.x x b.y
-    a_radius = a->extents[1] * abs_r[2][1] + a->extents[2] * abs_r[1][1];
-    b_radius = b->extents[0] * abs_r[0][2] + b->extents[2] * abs_r[0][0];
-    a_to_b = abs(t[2] * r[1][1] - t[1] * r[2][1]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(0.0f, r[2][1], -r[1][1]);
-    normal = normalize(cross(a_axes[0], b_axes[1]));
-    update_manifold_for_edge_axis(&manifold, sep, 7, normal);
-
-    // Test axis a.x x b.z
-    a_radius = a->extents[1] * abs_r[2][2] + a->extents[2] * abs_r[1][2];
-    b_radius = b->extents[0] * abs_r[0][1] + b->extents[1] * abs_r[0][0];
-    a_to_b = abs(t[2] * r[1][2] - t[1] * r[2][2]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(0.0f, -r[2][2], r[1][2]);
-    normal = normalize(cross(a_axes[0], b_axes[2]));
-    update_manifold_for_edge_axis(&manifold, sep, 8, normal);
-
-    // Test axis a.y x b.x
-    a_radius = a->extents[0] * abs_r[2][0] + a->extents[2] * abs_r[0][0];
-    b_radius = b->extents[1] * abs_r[1][2] + b->extents[2] * abs_r[1][1];
-    a_to_b = abs(t[0] * r[2][0] - t[2] * r[0][0]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(r[2][0], 0.0f, -r[0][0]);
-    normal = normalize(cross(a_axes[1], b_axes[0]));
-    update_manifold_for_edge_axis(&manifold, sep, 9, normal);
-
-    // Test axis a.y x b.y
-    a_radius = a->extents[0] * abs_r[2][1] + a->extents[2] * abs_r[0][1];
-    b_radius = b->extents[0] * abs_r[1][2] + b->extents[2] * abs_r[1][0];
-    a_to_b = abs(t[0] * r[2][1] - t[2] * r[0][1]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(r[2][1], 0.0f, -r[0][1]);
-    normal = normalize(cross(a_axes[1], b_axes[1]));
-    update_manifold_for_edge_axis(&manifold, sep, 10, normal);
-
-    // Test axis a.y x b.z
-    a_radius = a->extents[0] * abs_r[2][2] + a->extents[2] * abs_r[0][2];
-    b_radius = b->extents[0] * abs_r[1][1] + b->extents[1] * abs_r[1][0];
-    a_to_b = abs(t[0] * r[2][2] - t[2] * r[0][2]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(r[2][2], 0.0f, -r[0][2]);
-    normal = normalize(cross(a_axes[1], b_axes[2]));
-    update_manifold_for_edge_axis(&manifold, sep, 11, normal);
-
-    // Test axis a.z x b.x
-    a_radius = a->extents[0] * abs_r[1][0] + a->extents[1] * abs_r[0][0];
-    b_radius = b->extents[1] * abs_r[2][2] + b->extents[2] * abs_r[2][1];
-    a_to_b = abs(t[1] * r[0][0] - t[0] * r[1][0]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(-r[1][0], r[0][0], 0.0f);
-    normal = normalize(cross(a_axes[2], b_axes[0]));
-    update_manifold_for_edge_axis(&manifold, sep, 12, normal);
-
-    // Test axis a.z x b.y
-    a_radius = a->extents[0] * abs_r[1][1] + a->extents[1] * abs_r[0][1];
-    b_radius = b->extents[0] * abs_r[2][2] + b->extents[2] * abs_r[2][0];
-    a_to_b = abs(t[1] * r[0][1] - t[0] * r[1][1]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(-r[1][1], r[0][1], 0.0f);
-    normal = normalize(cross(a_axes[2], b_axes[1]));
-    update_manifold_for_edge_axis(&manifold, sep, 13, normal);
-
-    // Test axis a.z x b.z
-    a_radius = a->extents[0] * abs_r[1][2] + a->extents[1] * abs_r[0][2];
-    b_radius = b->extents[0] * abs_r[2][1] + b->extents[1] * abs_r[2][0];
-    a_to_b = abs(t[1] * r[0][2] - t[0] * r[1][2]);
-    sep = a_to_b - (a_radius + b_radius);
-    if (sep > edge_max_sep) { edge_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    // normal = v3(-r[1][2], r[0][2], 0.0f);
-    normal = normalize(cross(a_axes[2], b_axes[2]));
-    update_manifold_for_edge_axis(&manifold, sep, 14, normal);
+  if (!do_obbs_share_one_axis) {
+    // Test cross axes (a[i] x b[j])
+    for_range_named(i, 0, 3) {
+      for_range_named(j, 0, 3) {
+        // These numbers look really crazy, but it's not so bad if you look at
+        // the table they come from.
+        // See Christer Ericson, Real-Time Collision Detection, Table 4.1
+        a_radius =
+          a->extents[i == 0 ? 1 : 0] * abs_r[i < 2 ? 2 : 1][j] +
+          a->extents[i < 2 ? 2 : 1] * abs_r[i == 0 ? 1 : 0][j];
+        b_radius =
+          b->extents[j == 0 ? 1 : 0] * abs_r[i][j < 2 ? 2 : 1] +
+          b->extents[j < 2 ? 2 : 1] * abs_r[i][j == 0 ? 1 : 0];
+        a_to_b = abs(
+          t[(2 + i) % 3] * r[(1 + i) % 3][j] -
+          t[(1 + i) % 3] * r[(2 + i) % 3][j]
+        );
+        sep = a_to_b - (a_radius + b_radius);
+        if (sep > edge_max_sep) { edge_max_sep = sep; }
+        if (sep > 0) { return manifold; }
+        normal = normalize(cross(a_axes[i], b_axes[j]));
+        update_manifold_for_edge_axis(&manifold, sep, 6 + i + j, normal);
+      }
+    }
   }
 
   console_log("face_max_sep %f", face_max_sep);
