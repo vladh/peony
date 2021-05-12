@@ -953,6 +953,9 @@ void Renderer::render_scene_ui(State *state) {
     snprintf(debug_text, dt_size, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
     Gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
 
+    snprintf(debug_text, dt_size, "%.2f", 1.0f + state->timescale_diff);
+    Gui::draw_named_value(&state->gui_state, container, "ts", debug_text);
+
     snprintf(debug_text, dt_size, state->is_world_loaded ? "yes" : "no");
     Gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
 

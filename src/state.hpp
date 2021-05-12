@@ -41,6 +41,7 @@ struct State {
   // NOTE: `t` and `dt` will not change when gameplay is paused.
   real64 t; // us
   real64 dt; // us
+  real64 timescale_diff;
   PerfCounters perf_counters;
 
   bool32 is_cursor_enabled;

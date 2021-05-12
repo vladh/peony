@@ -159,6 +159,14 @@ void process_input(GLFWwindow *window, State *state) {
     state->should_pause = !state->should_pause;
   }
 
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_MINUS)) {
+    state->timescale_diff -= 0.1f;
+  }
+
+  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_EQUAL)) {
+    state->timescale_diff += 0.1f;
+  }
+
   if (Input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
     state->should_hide_ui = !state->should_hide_ui;
   }
@@ -200,6 +208,9 @@ void run_main_loop(State *state) {
       // If we should pause, stop time-based events.
       if (!state->should_pause) {
         state->dt = Util::get_us_from_duration(frame_start - last_frame_start);
+        if (state->timescale_diff != 0.0f) {
+          state->dt *= 1.0f + state->timescale_diff;
+        }
 
         state->perf_counters.dt_hist[state->perf_counters.dt_hist_idx] = state->dt;
         state->perf_counters.dt_hist_idx++;
