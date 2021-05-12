@@ -70,9 +70,7 @@ namespace Renderer {
   // in the light calculations. We need to scale the position
   // by some factor such that the shadow map covers the biggest
   // possible area.
-  constexpr v3 DIRECTIONAL_LIGHT_DISTANCE = v3(
-    75.0f, 15.0f, 75.0f
-  );
+  constexpr v3 DIRECTIONAL_LIGHT_DISTANCE = v3(75.0f, 15.0f, 75.0f);
 
   const char* render_pass_to_string(RenderPassFlag render_pass);
   RenderPassFlag render_pass_from_string(const char* str);
