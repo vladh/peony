@@ -379,8 +379,8 @@ CollisionManifold Physics::intersect_obb_obb(
   // is (near) null.
   for_range_named (i, 0, 3) {
     for_range_named (j, 0, 3) {
-      abs_r[i][j] = abs(r[i][j]);
-      if (abs_r[i][j] + PARALLEL_FACE_TOLERANCE >= 1.0f) {
+      abs_r[i][j] = abs(r[i][j]) + PARALLEL_FACE_TOLERANCE;
+      if (abs_r[i][j] >= 1.0f) {
         do_obbs_share_one_axis = true;
       }
     }
