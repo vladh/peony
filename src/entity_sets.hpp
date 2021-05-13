@@ -51,7 +51,7 @@ struct PhysicsComponentSet {
   Array<PhysicsComponent> components;
 };
 
-namespace EntitySets {
+namespace entitysets {
   uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool);
   m4* get_bone_matrix(
     BoneMatrixPool *pool,

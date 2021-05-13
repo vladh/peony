@@ -43,20 +43,20 @@ global DebugDrawState *g_dds;
 
 
 void handle_console_command(State *state) {
-  console_log("%s%s", GUI_CONSOLE_SYMBOL, state->input_state.text_input);
+  logs::console("%s%s", GUI_CONSOLE_SYMBOL, state->input_state.text_input);
 
   char command[MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
   char arguments[MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {0};
 
-  Str::split_on_first_occurrence(
+  str::split_on_first_occurrence(
     state->input_state.text_input,
     command, MAX_TEXT_INPUT_COMMAND_LENGTH,
     arguments, MAX_TEXT_INPUT_ARGUMENTS_LENGTH,
     ' '
   );
 
-  if (Str::eq(command, "help")) {
-    console_log(
+  if (str::eq(command, "help")) {
+    logs::console(
       "Some useful commands\n"
       "--------------------\n"
       "loadscene <scene_name>: Load a scene\n"
@@ -64,41 +64,41 @@ void handle_console_command(State *state) {
       "Use texture \"none\" to disable.\n"
       "help: show help"
     );
-  } else if (Str::eq(command, "loadscene")) {
-    World::load_scene(arguments, state);
-  } else if (Str::eq(command, "renderdebug")) {
-    state->renderdebug_displayed_texture_type = Materials::texture_type_from_string(
+  } else if (str::eq(command, "loadscene")) {
+    world::load_scene(arguments, state);
+  } else if (str::eq(command, "renderdebug")) {
+    state->renderdebug_displayed_texture_type = materials::texture_type_from_string(
       arguments
     );
   } else {
-    console_log("Unknown command: %s", command);
+    logs::console("Unknown command: %s", command);
   }
 
-  Str::clear(state->input_state.text_input);
+  str::clear(state->input_state.text_input);
 }
 
 
 void process_input(GLFWwindow *window, State *state) {
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
     if (state->game_console.is_enabled) {
       state->game_console.is_enabled = false;
-      Input::disable_text_input(&state->input_state);
+      input::disable_text_input(&state->input_state);
     } else {
       state->game_console.is_enabled = true;
-      Input::enable_text_input(&state->input_state);
+      input::enable_text_input(&state->input_state);
     }
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_ENTER)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_ENTER)) {
     handle_console_command(state);
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
-    Input::do_text_input_backspace(&state->input_state);
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
+    input::do_text_input_backspace(&state->input_state);
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
-    Input::clear_text_input(&state->input_state);
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
+    input::clear_text_input(&state->input_state);
   }
 
   if (state->input_state.is_text_input_enabled) {
@@ -107,77 +107,77 @@ void process_input(GLFWwindow *window, State *state) {
   }
 
   // Continuous
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_W)) {
-    Cameras::move_front_back(state->camera_active, 1, state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_W)) {
+    cameras::move_front_back(state->camera_active, 1, state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_S)) {
-    Cameras::move_front_back(state->camera_active, -1, state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_S)) {
+    cameras::move_front_back(state->camera_active, -1, state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_A)) {
-    Cameras::move_left_right(state->camera_active, -1, state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_A)) {
+    cameras::move_left_right(state->camera_active, -1, state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_D)) {
-    Cameras::move_left_right(state->camera_active, 1, state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_D)) {
+    cameras::move_left_right(state->camera_active, 1, state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_Z)) {
-    World::update_light_position(state, 0.10f * (real32)state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_Z)) {
+    world::update_light_position(state, 0.10f * (real32)state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_X)) {
-    World::update_light_position(state, -0.10f * (real32)state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_X)) {
+    world::update_light_position(state, -0.10f * (real32)state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_SPACE)) {
-    Cameras::move_up_down(state->camera_active, 1, state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_SPACE)) {
+    cameras::move_up_down(state->camera_active, 1, state->dt);
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_LEFT_CONTROL)) {
-    Cameras::move_up_down(state->camera_active, -1, state->dt);
+  if (input::is_key_down(&state->input_state, GLFW_KEY_LEFT_CONTROL)) {
+    cameras::move_up_down(state->camera_active, -1, state->dt);
   }
 
   // Transient
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
     glfwSetWindowShouldClose(window, true);
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_C)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_C)) {
     state->is_cursor_enabled = !state->is_cursor_enabled;
-    Renderer::update_drawing_options(state, window);
+    renderer::update_drawing_options(state, window);
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_R)) {
-    World::load_scene(
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_R)) {
+    world::load_scene(
       state->current_scene_name, state
     );
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_TAB)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_TAB)) {
     state->should_pause = !state->should_pause;
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_MINUS)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_MINUS)) {
     state->timescale_diff -= 0.1f;
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_EQUAL)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_EQUAL)) {
     state->timescale_diff += 0.1f;
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
     state->should_hide_ui = !state->should_hide_ui;
   }
 
-  if (Input::is_key_down(&state->input_state, GLFW_KEY_ENTER)) {
+  if (input::is_key_down(&state->input_state, GLFW_KEY_ENTER)) {
     state->should_manually_advance_to_next_frame = true;
   }
 
-  if (Input::is_key_now_down(&state->input_state, GLFW_KEY_0)) {
-    World::destroy_scene(state);
-    Renderer::set_heading(state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
+  if (input::is_key_now_down(&state->input_state, GLFW_KEY_0)) {
+    world::destroy_scene(state);
+    renderer::set_heading(state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
   }
 }
 
@@ -207,7 +207,7 @@ void run_main_loop(State *state) {
 
       // If we should pause, stop time-based events.
       if (!state->should_pause) {
-        state->dt = Util::get_us_from_duration(frame_start - last_frame_start);
+        state->dt = util::get_us_from_duration(frame_start - last_frame_start);
         if (state->timescale_diff != 0.0f) {
           state->dt *= 1.0f + state->timescale_diff;
         }
@@ -235,21 +235,21 @@ void run_main_loop(State *state) {
         state->perf_counters.last_fps = n_frames_this_second;
         n_frames_this_second = 0;
         if (state->should_hide_ui) {
-          log_info("%.2f ms", state->perf_counters.dt_average * 1000.0f);
+          logs::info("%.2f ms", state->perf_counters.dt_average * 1000.0f);
         }
       }
 
       // NOTE: Don't render on the very first frame. This avoids flashing that happens in
       // fullscreen. There is a better way to handle this, but whatever, figure it out later.
       if (n_frames_since_start > 1) {
-        World::update(state);
-        Renderer::render(state);
+        world::update(state);
+        renderer::render(state);
       }
       if (state->is_manual_frame_advance_enabled) {
         state->should_manually_advance_to_next_frame = false;
       }
-      Input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
-      Input::reset_n_key_state_changes_this_frame(&state->input_state);
+      input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
+      input::reset_n_key_state_changes_this_frame(&state->input_state);
 
       if (state->should_limit_fps) {
         std::this_thread::sleep_until(time_frame_should_end);
@@ -281,16 +281,16 @@ int main() {
 
   MemoryPool state_memory_pool = {};
   state_memory_pool.size = sizeof(State);
-  MemoryPool asset_memory_pool = {.size = Util::mb_to_b(1024)};
+  MemoryPool asset_memory_pool = {.size = util::mb_to_b(1024)};
 
   WindowInfo window_info;
-  Renderer::init_window(&window_info);
+  renderer::init_window(&window_info);
   if (!window_info.window) {
     return -1;
   }
 
   State *state = init_state(
-    (State*)Memory::push(
+    (State*)memory::push(
       &state_memory_pool, sizeof(State), "state"
     ),
     &asset_memory_pool,
@@ -299,60 +299,60 @@ int main() {
 
   std::mutex loading_thread_mutex;
   std::thread loading_thread_1 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, state, 1
+    tasks::run_loading_loop, &loading_thread_mutex, state, 1
   );
   std::thread loading_thread_2 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, state, 2
+    tasks::run_loading_loop, &loading_thread_mutex, state, 2
   );
   std::thread loading_thread_3 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, state, 3
+    tasks::run_loading_loop, &loading_thread_mutex, state, 3
   );
   std::thread loading_thread_4 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, state, 4
+    tasks::run_loading_loop, &loading_thread_mutex, state, 4
   );
   std::thread loading_thread_5 = std::thread(
-    Tasks::run_loading_loop, &loading_thread_mutex, state, 5
+    tasks::run_loading_loop, &loading_thread_mutex, state, 5
   );
 
-  Renderer::update_drawing_options(state, window_info.window);
+  renderer::update_drawing_options(state, window_info.window);
 
   MemoryAndState memory_and_state = {&asset_memory_pool, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
-  Materials::init_texture_name_pool(
+  materials::init_texture_name_pool(
     &state->texture_name_pool, &asset_memory_pool, 64, 4
   );
-  Renderer::init_g_buffer(
+  renderer::init_g_buffer(
     &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
   );
-  Renderer::init_l_buffer(
+  renderer::init_l_buffer(
     &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
   );
-  Renderer::init_blur_buffers(
+  renderer::init_blur_buffers(
     &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
   );
-  Renderer::init_shadowmaps(
+  renderer::init_shadowmaps(
     &asset_memory_pool, &state->builtin_textures
   );
-  Renderer::init_ubo(state);
-  World::init(state);
+  renderer::init_ubo(state);
+  world::init(state);
 
-  Materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
+  materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 
-  Gui::init_gui_state(
+  gui::init_gui_state(
     &state->gui_state,
     &asset_memory_pool,
     &state->input_state,
     state->window_info.width, state->window_info.height
   );
-  console_log("Hello world!");
+  logs::console("Hello world!");
 
-  DebugDraw::init_debug_draw_state(
+  debugdraw::init_debug_draw_state(
     &state->debug_draw_state,
     &asset_memory_pool
   );
 
-  Cameras::init_camera(
+  cameras::init_camera(
     &state->camera_main,
     CameraType::perspective,
     state->window_info.width,
@@ -360,7 +360,7 @@ int main() {
   );
   state->camera_active = &state->camera_main;
 
-  Input::init_input_state(
+  input::init_input_state(
     &state->input_state,
     state->window_info.window
   );
@@ -373,11 +373,11 @@ int main() {
   loading_thread_4.join();
   loading_thread_5.join();
 
-  Renderer::destroy_window();
-  Memory::destroy_memory_pool(&state_memory_pool);
-  Memory::destroy_memory_pool(&asset_memory_pool);
+  renderer::destroy_window();
+  memory::destroy_memory_pool(&state_memory_pool);
+  memory::destroy_memory_pool(&asset_memory_pool);
 
-  log_info("Bye!");
+  logs::info("Bye!");
 
   return 0;
 }

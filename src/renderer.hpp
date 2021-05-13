@@ -65,7 +65,7 @@ struct ShaderCommon {
   v4 directional_light_attenuation[MAX_N_LIGHTS];
 };
 
-namespace Renderer {
+namespace renderer {
   // The position is used in positioning the shadow map, but not
   // in the light calculations. We need to scale the position
   // by some factor such that the shadow map covers the biggest

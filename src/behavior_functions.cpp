@@ -1,9 +1,9 @@
-namespace BehaviorFunctions {
+namespace behavior_functions {
   void test(State *state, EntityHandle entity_handle) {
     SpatialComponent *spatial_component =
       state->spatial_component_set.components[entity_handle];
     if (!spatial_component) {
-      log_error("Could not get SpatialComponent for BehaviorComponent");
+      logs::error("Could not get SpatialComponent for BehaviorComponent");
       return;
     }
 
@@ -16,14 +16,14 @@ namespace BehaviorFunctions {
     SpatialComponent *spatial_component =
       state->spatial_component_set.components[entity_handle];
     if (!spatial_component) {
-      log_error("Could not get SpatialComponent for BehaviorComponent");
+      logs::error("Could not get SpatialComponent for BehaviorComponent");
       return;
     }
 
     PhysicsComponent *physics_component =
       state->physics_component_set.components[entity_handle];
     if (!physics_component) {
-      log_error("Could not get PhysicsComponent for BehaviorComponent");
+      logs::error("Could not get PhysicsComponent for BehaviorComponent");
       return;
     }
     Obb *obb = &physics_component->transformed_obb;
@@ -56,7 +56,7 @@ namespace BehaviorFunctions {
     // Check collision with other entities
 #if 1
     {
-      CollisionManifold manifold = Physics::find_physics_component_collision(
+      CollisionManifold manifold = physics::find_physics_component_collision(
         physics_component,
         spatial_component,
         &state->physics_component_set,
@@ -70,30 +70,30 @@ namespace BehaviorFunctions {
         } else {
           color = v4(1.0f, 1.0f, 0.0f, 1.0f);
         }
-        DebugDraw::draw_obb(&state->debug_draw_state, obb, color);
-        DebugDraw::draw_obb(
+        debugdraw::draw_obb(&state->debug_draw_state, obb, color);
+        debugdraw::draw_obb(
           &state->debug_draw_state,
           &manifold.collidee->transformed_obb,
           color
         );
-        DebugDraw::draw_line(
+        debugdraw::draw_line(
           &state->debug_draw_state,
           obb->center,
           obb->center + manifold.normal * 100.0f,
           color
         );
-        console_log("manifold.axis = %d", manifold.axis);
-        console_log("manifold.sep_max = %f", manifold.sep_max);
-        console_log(
+        logs::console("manifold.axis = %d", manifold.axis);
+        logs::console("manifold.sep_max = %f", manifold.sep_max);
+        logs::console(
           "manifold.normal = (%f, %f, %f)",
           manifold.normal.x,
           manifold.normal.y,
           manifold.normal.z
         );
-        console_log("length(manifold.normal) = %f", length(manifold.normal));
-        console_log("---");
+        logs::console("length(manifold.normal) = %f", length(manifold.normal));
+        logs::console("---");
       } else {
-        DebugDraw::draw_obb(
+        debugdraw::draw_obb(
           &state->debug_draw_state,
           obb,
           v4(1.0f, 1.0f, 1.0f, 1.0f)
@@ -109,26 +109,26 @@ namespace BehaviorFunctions {
         .origin = obb->center + obb->y_axis * obb->extents[1],
         .direction = obb->y_axis,
       };
-      RayCollisionResult ray_collision_result = Physics::find_ray_collision(
+      RayCollisionResult ray_collision_result = physics::find_ray_collision(
         &ray,
         physics_component,
         &state->physics_component_set
       );
 
       if (ray_collision_result.did_intersect) {
-        DebugDraw::draw_ray(
+        debugdraw::draw_ray(
           &state->debug_draw_state,
           &ray,
           ray_collision_result.distance,
           v4(1.0f, 0.0f, 0.0f, 0.0f)
         );
-        DebugDraw::draw_obb(
+        debugdraw::draw_obb(
           &state->debug_draw_state,
           &ray_collision_result.collidee->transformed_obb,
           v4(1.0f, 0.0f, 0.0f, 1.0f)
         );
       } else {
-        DebugDraw::draw_ray(
+        debugdraw::draw_ray(
           &state->debug_draw_state,
           &ray,
           500.0f,
@@ -145,6 +145,6 @@ void (*BEHAVIOR_FUNCTION_MAP[(uint32)Behavior::length]) (
   State *state, EntityHandle entity_handle
 ) {
   nullptr,
-  BehaviorFunctions::test,
-  BehaviorFunctions::char_movement_test
+  behavior_functions::test,
+  behavior_functions::char_movement_test
 };

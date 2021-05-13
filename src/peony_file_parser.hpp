@@ -49,7 +49,7 @@ union PropValue {
   v4 vec4_value;
 };
 
-namespace PeonyFileParser {
+namespace peonyparser {
   constexpr uint32 MAX_N_FILE_ENTRIES = 128;
 
   constexpr const char TOKEN_SPACE = ' ';

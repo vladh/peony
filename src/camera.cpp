@@ -1,4 +1,4 @@
-void Cameras::update_matrices_ortho(
+void cameras::update_matrices_ortho(
   Camera *camera, uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
@@ -18,7 +18,7 @@ void Cameras::update_matrices_ortho(
 }
 
 
-void Cameras::update_matrices_perspective(
+void cameras::update_matrices_perspective(
   Camera *camera, uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
@@ -47,7 +47,7 @@ void Cameras::update_matrices_perspective(
 }
 
 
-void Cameras::update_matrices(
+void cameras::update_matrices(
   Camera *camera, uint32 window_width, uint32 window_height
 ) {
   if (window_width == 0 || window_height == 0) {
@@ -62,7 +62,7 @@ void Cameras::update_matrices(
 }
 
 
-void Cameras::update_ui_matrices(
+void cameras::update_ui_matrices(
   Camera *camera, uint32 window_width, uint32 window_height
 ) {
   camera->ui_projection = glm::ortho(
@@ -71,14 +71,14 @@ void Cameras::update_ui_matrices(
 }
 
 
-void Cameras::move_front_back(
+void cameras::move_front_back(
   Camera *camera, real32 sign, real64 dt
 ) {
   camera->position += (sign * camera->speed * (real32)dt) * camera->front;
 }
 
 
-void Cameras::move_left_right(
+void cameras::move_left_right(
   Camera *camera, real32 sign, real64 dt
 ) {
   v3 direction = normalize(cross(
@@ -88,14 +88,14 @@ void Cameras::move_left_right(
 }
 
 
-void Cameras::move_up_down(
+void cameras::move_up_down(
   Camera *camera, real32 sign, real64 dt
 ) {
   camera->position += (sign * camera->speed * (real32)dt) * camera->up;
 }
 
 
-void Cameras::update_mouse(
+void cameras::update_mouse(
   Camera *camera, v2 mouse_offset
 ) {
   camera->yaw += mouse_offset.x;
@@ -109,7 +109,7 @@ void Cameras::update_mouse(
 }
 
 
-Camera* Cameras::init_camera(
+Camera* cameras::init_camera(
   Camera *camera,
   CameraType new_type,
   uint32 window_width,

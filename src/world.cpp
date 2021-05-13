@@ -1,4 +1,4 @@
-void World::get_entity_text_representation(
+void world::get_entity_text_representation(
   char *text,
   State *state,
   Entity *entity,
@@ -11,25 +11,25 @@ void World::get_entity_text_representation(
   // Children will be drawn under their parents.
   if (
     depth == 0 &&
-    Entities::is_spatial_component_valid(spatial_component) &&
+    entities::is_spatial_component_valid(spatial_component) &&
     spatial_component->parent_entity_handle != Entity::no_entity_handle
   ) {
     return;
   }
 
-  bool32 has_spatial_component = Entities::is_spatial_component_valid(
+  bool32 has_spatial_component = entities::is_spatial_component_valid(
     spatial_component
   );
-  bool32 has_drawable_component = Models::is_drawable_component_valid(
+  bool32 has_drawable_component = models::is_drawable_component_valid(
     state->drawable_component_set.components[handle]
   );
-  bool32 has_light_component = Entities::is_light_component_valid(
+  bool32 has_light_component = entities::is_light_component_valid(
     state->light_component_set.components[handle]
   );
-  bool32 has_behavior_component = Entities::is_behavior_component_valid(
+  bool32 has_behavior_component = entities::is_behavior_component_valid(
     state->behavior_component_set.components[handle]
   );
-  bool32 has_animation_component = Entities::is_animation_component_valid(
+  bool32 has_animation_component = entities::is_animation_component_valid(
     state->animation_component_set.components[handle]
   );
 
@@ -71,7 +71,7 @@ void World::get_entity_text_representation(
     strcat(text, " +A");
   }
 
-  if (Entities::is_spatial_component_valid(spatial_component)) {
+  if (entities::is_spatial_component_valid(spatial_component)) {
     // NOTE: This is super slow lol.
     uint32 n_children_found = 0;
     for_each (child_spatial_component, state->spatial_component_set.components) {
@@ -108,7 +108,7 @@ void World::get_entity_text_representation(
 }
 
 
-void World::get_scene_text_representation(char *text, State *state) {
+void world::get_scene_text_representation(char *text, State *state) {
   text[0] = '\0';
 
   for_each (entity, state->entity_set.entities) {
@@ -121,7 +121,7 @@ void World::get_scene_text_representation(char *text, State *state) {
 }
 
 
-void World::get_materials_text_representation(char *text, State *state) {
+void world::get_materials_text_representation(char *text, State *state) {
   text[0] = '\0';
 
   strcat(text, "Internal:\n");
@@ -143,7 +143,7 @@ void World::get_materials_text_representation(char *text, State *state) {
 }
 
 
-void World::update_light_position(State *state, real32 amount) {
+void world::update_light_position(State *state, real32 amount) {
   for_each (light_component, state->light_component_set.components) {
     if (light_component->type == LightType::directional) {
       state->dir_light_angle += amount;
@@ -153,7 +153,7 @@ void World::update_light_position(State *state, real32 amount) {
 }
 
 
-void World::create_model_loader_from_entity_template(
+void world::create_model_loader_from_entity_template(
   EntityTemplate *entity_template,
   EntityHandle entity_handle,
   Array<ModelLoader> *model_loaders,
@@ -161,7 +161,7 @@ void World::create_model_loader_from_entity_template(
 ) {
   ModelLoader *model_loader = model_loaders->push();
 
-  Models::init_model_loader(
+  models::init_model_loader(
     model_loader,
     entity_template->model_source,
     entity_template->model_path_or_builtin_model_name
@@ -178,14 +178,14 @@ void World::create_model_loader_from_entity_template(
 }
 
 
-void World::create_entity_loader_from_entity_template(
+void world::create_entity_loader_from_entity_template(
   EntityTemplate *entity_template,
   EntityHandle entity_handle,
   EntityLoaderSet *entity_loader_set,
   State *state
 ) {
   EntityLoader *entity_loader = entity_loader_set->loaders[entity_handle];
-  Models::init_entity_loader(
+  models::init_entity_loader(
     entity_loader,
     entity_template->entity_debug_name,
     entity_template->model_path_or_builtin_model_name,
@@ -199,15 +199,15 @@ void World::create_entity_loader_from_entity_template(
 }
 
 
-void World::create_internal_materials(State *state) {
+void world::create_internal_materials(State *state) {
   MemoryPool temp_memory_pool = {};
 
   // unknown
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "unknown"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "unknown", ShaderType::standard,
@@ -217,31 +217,31 @@ void World::create_internal_materials(State *state) {
 
   // lighting
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "lighting"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "lighting", ShaderType::standard,
       "screenquad.vert", "lighting.frag", ""
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_position_texture, "g_position_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_normal_texture, "g_normal_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_albedo_texture, "g_albedo_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
@@ -249,48 +249,48 @@ void World::create_internal_materials(State *state) {
 #if USE_BLOOM
   // preblur
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "preblur"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "blur", ShaderType::standard,
       "screenquad.vert", "blur.frag", ""
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.l_bright_color_texture, "source_texture"
     );
   }
 
   // blur1
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "blur1"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "blur", ShaderType::standard,
       "screenquad.vert", "blur.frag", ""
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.blur2_texture, "source_texture"
     );
   }
 
   // blur2
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "blur2"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "blur", ShaderType::standard,
       "screenquad.vert", "blur.frag", ""
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.blur1_texture, "source_texture"
     );
   }
@@ -298,85 +298,85 @@ void World::create_internal_materials(State *state) {
 
   // postprocessing
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "postprocessing"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "postprocessing", ShaderType::standard,
       "screenquad.vert", "postprocessing.frag", ""
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "l_color_texture"
     );
 #if USE_BLOOM
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.blur2_texture, "bloom_texture"
     );
 #endif
     // Uncomment to use fog.
-    /* Materials::add_texture_to-material( */
+    /* materials::add_texture_to-material( */
     /*   material, *state->l_depth_texture, "l_depth_texture" */
     /* ); */
   }
 
   // renderdebug
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "renderdebug"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "renderdebug", ShaderType::standard,
       "screenquad.vert", "renderdebug.frag", ""
     );
 
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_position_texture, "g_position_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_normal_texture, "g_normal_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_albedo_texture, "g_albedo_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
     );
 
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.g_position_texture, "l_color_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "l_bright_color_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "l_depth_texture"
     );
 
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "blur1_texture"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "blur2_texture"
     );
 
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
     );
-    Materials::add_texture_to_material(
+    materials::add_texture_to_material(
       material, *state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
 
   // skysphere
   {
-    Material *material = Materials::init_material(
+    Material *material = materials::init_material(
       state->materials.push(), "skysphere"
     );
-    Shaders::init_shader_asset(
+    shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
       "skysphere", ShaderType::standard,
@@ -389,14 +389,14 @@ void World::create_internal_materials(State *state) {
   // in the array of materials, so we know where non-internal materials start.
   state->first_non_internal_material_idx = state->materials.length;
 
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void World::create_internal_entities(State *state) {
+void world::create_internal_entities(State *state) {
   MemoryPool temp_memory_pool = {};
 
-  Shaders::init_shader_asset(
+  shaders::init_shader_asset(
     &state->standard_depth_shader_asset,
     &temp_memory_pool,
     "standard_depth", ShaderType::depth,
@@ -406,17 +406,17 @@ void World::create_internal_entities(State *state) {
 
   // Lighting screenquad
   {
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "screenquad_lighting"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader,
       ModelSource::data,
       "screenquad_lighting"
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "screenquad_lighting",
       "screenquad_lighting",
@@ -429,18 +429,18 @@ void World::create_internal_entities(State *state) {
 #if USE_BLOOM
   // Preblur screenquad
   {
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "screenquad_preblur"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader
       entity_loader,
       ModelSource::data,
       "screenquad_preblur"
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "screenquad_preblur",
       "screenquad_preblur",
@@ -452,17 +452,17 @@ void World::create_internal_entities(State *state) {
 
   // Blur 1 screenquad
   {
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "screenquad_blur1"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader,
       ModelSource::data,
       "screenquad_blur1"
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "screenquad_blur1",
       "screenquad_blur1",
@@ -474,17 +474,17 @@ void World::create_internal_entities(State *state) {
 
   // Blur 2 screenquad
   {
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "screenquad_blur2"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader,
       ModelSource::data,
       "screenquad_blur2",
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "screenquad_blur2",
       "screenquad_blur2",
@@ -497,17 +497,17 @@ void World::create_internal_entities(State *state) {
 
   // Postprocessing screenquad
   {
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "screenquad_postprocessing"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader,
       ModelSource::data,
       "screenquad_postprocessing"
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "screenquad_postprocessing",
       "screenquad_postprocessing",
@@ -519,17 +519,17 @@ void World::create_internal_entities(State *state) {
 
   // Debug screenquad
   {
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "screenquad_renderdebug"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader,
       ModelSource::data,
       "screenquad_renderdebug"
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "screenquad_renderdebug",
       "screenquad_renderdebug",
@@ -542,17 +542,17 @@ void World::create_internal_entities(State *state) {
   // Skysphere
   {
 #if 1
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, "skysphere"
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    Models::init_model_loader(
+    models::init_model_loader(
       model_loader,
       ModelSource::data,
       "skysphere"
     );
-    Models::init_entity_loader(
+    models::init_entity_loader(
       entity_loader,
       "skysphere",
       "skysphere",
@@ -574,22 +574,22 @@ void World::create_internal_entities(State *state) {
   // entities start.
   state->entity_set.first_non_internal_handle = state->entity_set.next_handle;
 
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void World::destroy_model_loaders(State *state) {
+void world::destroy_model_loaders(State *state) {
   state->model_loaders.clear();
 }
 
 
-void World::destroy_non_internal_materials(State *state) {
+void world::destroy_non_internal_materials(State *state) {
   for (
     uint32 idx = state->first_non_internal_material_idx;
     idx < state->materials.length;
     idx++
   ) {
-    Materials::destroy_material(state->materials[idx]);
+    materials::destroy_material(state->materials[idx]);
   }
 
   state->materials.delete_elements_after_index(
@@ -598,13 +598,13 @@ void World::destroy_non_internal_materials(State *state) {
 }
 
 
-void World::destroy_non_internal_entities(State *state) {
+void world::destroy_non_internal_entities(State *state) {
   for (
     uint32 idx = state->entity_set.first_non_internal_handle;
     idx < state->entity_set.entities.length;
     idx++
   ) {
-    Models::destroy_drawable_component(
+    models::destroy_drawable_component(
       state->drawable_component_set.components[idx]
     );
   }
@@ -634,11 +634,11 @@ void World::destroy_non_internal_entities(State *state) {
 }
 
 
-void World::destroy_scene(State *state) {
+void world::destroy_scene(State *state) {
   // If the current scene has not finished loading, we can neither
   // unload it nor load a new one.
   if (!state->is_world_loaded) {
-    log_info(
+    logs::info(
       "Cannot load or unload scene while loading is already in progress."
     );
     return;
@@ -652,14 +652,14 @@ void World::destroy_scene(State *state) {
 }
 
 
-bool32 World::load_scene(
+bool32 world::load_scene(
   const char *scene_name,
   State *state
 ) {
   // If the current scene has not finished loading, we can neither
   // unload it nor load a new one.
   if (!state->is_world_loaded) {
-    console_log("Cannot load or unload scene while loading is already in progress.");
+    logs::console("Cannot load or unload scene while loading is already in progress.");
     return false;
   }
 
@@ -669,7 +669,7 @@ bool32 World::load_scene(
   strcat(scene_path, SCENE_EXTENSION);
   strcat(scene_path, "\0");
 
-  console_log("Loading scene: %s", scene_path);
+  logs::console("Loading scene: %s", scene_path);
 
   // Get some memory for everything we need
   MemoryPool temp_memory_pool = {};
@@ -677,12 +677,12 @@ bool32 World::load_scene(
   // Get EntityTemplates
   StackArray<EntityTemplate, 128> entity_templates;
   uint32 n_entities = 0;
-  bool32 could_load_file = PeonyFileParser::parse_scene_file(
+  bool32 could_load_file = peonyparser::parse_scene_file(
     scene_path, &entity_templates, &n_entities
   );
 
   if (!could_load_file) {
-    console_log("Could not load scene: %s", scene_path);
+    logs::console("Could not load scene: %s", scene_path);
     return false;
   }
 
@@ -697,7 +697,7 @@ bool32 World::load_scene(
     for_each (material_name, entity_template->material_names) {
       bool32 does_material_already_exist = false;
       for_each (used_material, used_materials) {
-        if (Str::eq(*material_name, *used_material)) {
+        if (str::eq(*material_name, *used_material)) {
           does_material_already_exist = true;
           break;
         }
@@ -713,9 +713,9 @@ bool32 World::load_scene(
   for_each (used_material, used_materials) {
     material_template = {};
     char path[MAX_PATH];
-    PeonyFileParser::get_material_path(path, *used_material);
-    PeonyFileParser::parse_material_file(path, &material_template);
-    Materials::create_material_from_template(
+    peonyparser::get_material_path(path, *used_material);
+    peonyparser::parse_material_file(path, &material_template);
+    materials::create_material_from_template(
       state->materials.push(),
       &material_template,
       &state->builtin_textures,
@@ -726,7 +726,7 @@ bool32 World::load_scene(
   // Create entity, ModelLoader, EntityLoader
   for_range (0, n_entities) {
     EntityTemplate *entity_template = entity_templates[idx];
-    Entity *entity = EntitySets::add_entity_to_set(
+    Entity *entity = entitysets::add_entity_to_set(
       &state->entity_set, entity_template->entity_debug_name
     );
 
@@ -737,14 +737,14 @@ bool32 World::load_scene(
     // in both.
     ModelLoader *found_model_loader = state->model_loaders.find(
       [entity_template](ModelLoader *candidate_model_loader) -> bool32 {
-        return Str::eq(
+        return str::eq(
           entity_template->model_path_or_builtin_model_name,
           candidate_model_loader->model_path_or_builtin_model_name
         );
       }
     );
     if (found_model_loader) {
-      log_info(
+      logs::info(
         "Skipping already-loaded model %s",
         entity_template->model_path_or_builtin_model_name
       );
@@ -766,23 +766,23 @@ bool32 World::load_scene(
   }
 
   // Clean up
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 
   return true;
 }
 
 
-void World::init(State *state) {
+void world::init(State *state) {
   create_internal_materials(state);
   create_internal_entities(state);
 }
 
 
-bool32 World::check_all_entities_loaded(State *state) {
+bool32 world::check_all_entities_loaded(State *state) {
   bool are_all_done_loading = true;
 
   for_each (material, state->materials) {
-    bool is_done_loading = Materials::prepare_material_and_check_if_done(
+    bool is_done_loading = materials::prepare_material_and_check_if_done(
       material,
       &state->persistent_pbo,
       &state->texture_name_pool,
@@ -795,11 +795,11 @@ bool32 World::check_all_entities_loaded(State *state) {
 
   uint32 new_n_valid_model_loaders = 0;
   for_each (model_loader, state->model_loaders) {
-    if (!Entities::is_model_loader_valid(model_loader)) {
+    if (!entities::is_model_loader_valid(model_loader)) {
       continue;
     }
     new_n_valid_model_loaders++;
-    bool is_done_loading = Models::prepare_model_loader_and_check_if_done(
+    bool is_done_loading = models::prepare_model_loader_and_check_if_done(
       model_loader,
       &state->persistent_pbo,
       &state->texture_name_pool,
@@ -814,26 +814,26 @@ bool32 World::check_all_entities_loaded(State *state) {
 
   uint32 new_n_valid_entity_loaders = 0;
   for_each (entity_loader, state->entity_loader_set.loaders) {
-    if (!Entities::is_entity_loader_valid(entity_loader)) {
+    if (!entities::is_entity_loader_valid(entity_loader)) {
       continue;
     }
     new_n_valid_entity_loaders++;
 
     ModelLoader *model_loader = state->model_loaders.find(
       [entity_loader](ModelLoader *candidate_model_loader) -> bool32 {
-        return Str::eq(
+        return str::eq(
           entity_loader->model_path_or_builtin_model_name,
           candidate_model_loader->model_path_or_builtin_model_name
         );
       }
     );
     if (!model_loader) {
-      log_fatal(
+      logs::fatal(
         "Encountered an EntityLoader for which we cannot find the ModelLoader."
       );
     }
 
-    bool is_done_loading = Models::prepare_entity_loader_and_check_if_done(
+    bool is_done_loading = models::prepare_entity_loader_and_check_if_done(
       entity_loader,
       &state->entity_set,
       model_loader,
@@ -865,20 +865,20 @@ bool32 World::check_all_entities_loaded(State *state) {
 }
 
 
-void World::update(State *state) {
+void world::update(State *state) {
   if (state->is_world_loaded && !state->was_world_ever_loaded) {
-    World::load_scene(DEFAULT_SCENE, state);
+    world::load_scene(DEFAULT_SCENE, state);
     state->was_world_ever_loaded = true;
   }
 
-  Cameras::update_matrices(
+  cameras::update_matrices(
     state->camera_active,
     state->window_info.width,
     state->window_info.height
   );
   state->is_world_loaded = check_all_entities_loaded(state);
 
-  EntitySets::update_light_components(
+  entitysets::update_light_components(
     &state->light_component_set,
     &state->spatial_component_set,
     state->t,
@@ -886,21 +886,21 @@ void World::update(State *state) {
     state->dir_light_angle
   );
 
-  EntitySets::update_behavior_components(
+  entitysets::update_behavior_components(
     state,
     &state->behavior_component_set,
     &state->spatial_component_set,
     state->t
   );
 
-  EntitySets::update_animation_components(
+  entitysets::update_animation_components(
     &state->animation_component_set,
     &state->spatial_component_set,
     state->t,
     &state->bone_matrix_pool
   );
 
-  EntitySets::update_physics_components(
+  entitysets::update_physics_components(
     &state->physics_component_set,
     &state->spatial_component_set
   );

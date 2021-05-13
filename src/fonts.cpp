@@ -1,9 +1,9 @@
-real32 Fonts::frac_px_to_px(uint32 n) {
+real32 fonts::frac_px_to_px(uint32 n) {
   return (real32)(n >> 6);
 }
 
 
-real32 Fonts::font_unit_to_px(uint32 n) {
+real32 fonts::font_unit_to_px(uint32 n) {
   // NOTE: We should be dividing by units_per_em here...probably?
   // This is because we expect height etc. to be in "font units".
   // But treating these metrics as "fractional pixels" seems to work,
@@ -13,20 +13,20 @@ real32 Fonts::font_unit_to_px(uint32 n) {
 }
 
 
-FontAsset* Fonts::get_by_name(
+FontAsset* fonts::get_by_name(
   Array<FontAsset> *assets, const char *name
 ) {
   for_each (asset, *assets) {
-    if (Str::eq(asset->name, name)) {
+    if (str::eq(asset->name, name)) {
       return asset;
     }
   }
-  log_warning("Could not find FontAsset with name %s", name);
+  logs::warning("Could not find FontAsset with name %s", name);
   return nullptr;
 }
 
 
-void Fonts::load_glyphs(
+void fonts::load_glyphs(
   FontAsset *font_asset,
   FT_Face face,
   TextureAtlas *texture_atlas
@@ -38,7 +38,7 @@ void Fonts::load_glyphs(
     Character *character = font_asset->characters.push();
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-      log_error("Failed to load glyph %s", c);
+      logs::error("Failed to load glyph %s", c);
       continue;
     }
 
@@ -64,12 +64,12 @@ void Fonts::load_glyphs(
 
     Character *character = font_asset->characters[c];
 
-    iv2 tex_coords = Materials::push_space_to_texture_atlas(
+    iv2 tex_coords = materials::push_space_to_texture_atlas(
       texture_atlas, character->size
     );
 
     if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-      log_error("Failed to load glyph %s", c);
+      logs::error("Failed to load glyph %s", c);
       continue;
     }
 
@@ -86,7 +86,7 @@ void Fonts::load_glyphs(
 }
 
 
-FontAsset* Fonts::init_font_asset(
+FontAsset* fonts::init_font_asset(
   FontAsset *font_asset,
   MemoryPool *memory_pool,
   TextureAtlas *texture_atlas,
@@ -110,11 +110,11 @@ FontAsset* Fonts::init_font_asset(
 
   FT_Face face;
   if (FT_New_Face(*ft_library, path, 0, &face)) {
-    log_error("Could not load font at %s", path);
+    logs::error("Could not load font at %s", path);
   }
   FT_Set_Pixel_Sizes(face, 0, font_asset->font_size);
   if (!FT_IS_SCALABLE(face)) {
-    log_fatal("Font face not scalable, don't know what to do.");
+    logs::fatal("Font face not scalable, don't know what to do.");
   }
   font_asset->units_per_em = face->units_per_EM;
   font_asset->ascender = face->ascender;

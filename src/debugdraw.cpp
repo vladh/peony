@@ -1,4 +1,4 @@
-void DebugDraw::push_vertices(
+void debugdraw::push_vertices(
   DebugDrawState *debug_draw_state,
   DebugDrawVertex vertices[],
   uint32 n_vertices
@@ -11,7 +11,7 @@ void DebugDraw::push_vertices(
 }
 
 
-void DebugDraw::draw_line(
+void debugdraw::draw_line(
   DebugDrawState *debug_draw_state,
   v3 start_pos,
   v3 end_pos,
@@ -24,14 +24,14 @@ void DebugDraw::draw_line(
 }
 
 
-void DebugDraw::draw_ray(
+void debugdraw::draw_ray(
   DebugDrawState *debug_draw_state,
   Ray *ray,
   real32 length,
   v4 color
 ) {
   v3 end_pos = ray->origin + ray->direction * length;
-  v3 x_axis = Util::get_orthogonal_vector(&ray->direction);
+  v3 x_axis = util::get_orthogonal_vector(&ray->direction);
   v3 z_axis = cross(ray->direction, x_axis);
   real32 chevron_size = 0.2f;
   v3 chevron_1_pos = end_pos + ((-ray->direction + x_axis) * chevron_size);
@@ -46,7 +46,7 @@ void DebugDraw::draw_ray(
 }
 
 
-void DebugDraw::draw_quad(
+void debugdraw::draw_quad(
   DebugDrawState *debug_draw_state,
   v3 p1, // clockwise: top left
   v3 p2, // top right
@@ -61,7 +61,7 @@ void DebugDraw::draw_quad(
 }
 
 
-void DebugDraw::draw_box(
+void debugdraw::draw_box(
   DebugDrawState *debug_draw_state,
   v3 p1, // clockwise top face: top left
   v3 p2, // top right
@@ -82,7 +82,7 @@ void DebugDraw::draw_box(
 }
 
 
-void DebugDraw::draw_obb(
+void debugdraw::draw_obb(
   DebugDrawState *debug_draw_state,
   Obb *obb,
   v4 color
@@ -108,7 +108,7 @@ void DebugDraw::draw_obb(
 }
 
 
-void DebugDraw::draw_point(
+void debugdraw::draw_point(
   DebugDrawState *debug_draw_state,
   v3 position,
   real32 size,
@@ -124,7 +124,7 @@ void DebugDraw::draw_point(
 }
 
 
-void DebugDraw::render(DebugDrawState *debug_draw_state) {
+void debugdraw::render(DebugDrawState *debug_draw_state) {
   glBindVertexArray(debug_draw_state->vao);
   glBindBuffer(GL_ARRAY_BUFFER, debug_draw_state->vbo);
   glBufferData(
@@ -141,7 +141,7 @@ void DebugDraw::render(DebugDrawState *debug_draw_state) {
 }
 
 
-DebugDrawState* DebugDraw::init_debug_draw_state(
+DebugDrawState* debugdraw::init_debug_draw_state(
   DebugDrawState* debug_draw_state,
   MemoryPool *memory_pool
 ) {
@@ -149,7 +149,7 @@ DebugDrawState* DebugDraw::init_debug_draw_state(
 
   // Shaders
   {
-     Shaders::init_shader_asset(
+     shaders::init_shader_asset(
       &debug_draw_state->shader_asset,
       &temp_memory_pool,
       "debugdraw", ShaderType::standard,
@@ -186,7 +186,7 @@ DebugDrawState* DebugDraw::init_debug_draw_state(
     );
   }
 
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 
   return debug_draw_state;
 }

@@ -1,4 +1,4 @@
-const char* Renderer::render_pass_to_string(RenderPassFlag render_pass) {
+const char* renderer::render_pass_to_string(RenderPassFlag render_pass) {
   if (render_pass == RenderPass::none) {
     return "none";
   } else if (render_pass == RenderPass::shadowcaster) {
@@ -24,45 +24,45 @@ const char* Renderer::render_pass_to_string(RenderPassFlag render_pass) {
   } else if (render_pass == RenderPass::renderdebug) {
     return "renderdebug";
   } else {
-    log_error("Don't know how to convert RenderPass to string: %d", render_pass);
+    logs::error("Don't know how to convert RenderPass to string: %d", render_pass);
     return "<unknown>";
   }
 }
 
 
-RenderPassFlag Renderer::render_pass_from_string(const char* str) {
-  if (Str::eq(str, "none")) {
+RenderPassFlag renderer::render_pass_from_string(const char* str) {
+  if (str::eq(str, "none")) {
     return RenderPass::none;
-  } else if (Str::eq(str, "shadowcaster")) {
+  } else if (str::eq(str, "shadowcaster")) {
     return RenderPass::shadowcaster;
-  } else if (Str::eq(str, "deferred")) {
+  } else if (str::eq(str, "deferred")) {
     return RenderPass::deferred;
-  } else if (Str::eq(str, "forward_depth")) {
+  } else if (str::eq(str, "forward_depth")) {
     return RenderPass::forward_depth;
-  } else if (Str::eq(str, "forward_nodepth")) {
+  } else if (str::eq(str, "forward_nodepth")) {
     return RenderPass::forward_nodepth;
-  } else if (Str::eq(str, "forward_skybox")) {
+  } else if (str::eq(str, "forward_skybox")) {
     return RenderPass::forward_skybox;
-  } else if (Str::eq(str, "lighting")) {
+  } else if (str::eq(str, "lighting")) {
     return RenderPass::lighting;
-  } else if (Str::eq(str, "postprocessing")) {
+  } else if (str::eq(str, "postprocessing")) {
     return RenderPass::postprocessing;
-  } else if (Str::eq(str, "preblur")) {
+  } else if (str::eq(str, "preblur")) {
     return RenderPass::preblur;
-  } else if (Str::eq(str, "blur1")) {
+  } else if (str::eq(str, "blur1")) {
     return RenderPass::blur1;
-  } else if (Str::eq(str, "blur2")) {
+  } else if (str::eq(str, "blur2")) {
     return RenderPass::blur2;
-  } else if (Str::eq(str, "renderdebug")) {
+  } else if (str::eq(str, "renderdebug")) {
     return RenderPass::renderdebug;
   } else {
-    log_fatal("Could not parse RenderPass: %s", str);
+    logs::fatal("Could not parse RenderPass: %s", str);
     return RenderPass::none;
   }
 }
 
 
-void Renderer::resize_renderer_buffers(
+void renderer::resize_renderer_buffers(
   MemoryPool *memory_pool,
   Array<Material> *materials,
   BuiltinTextures *builtin_textures,
@@ -105,13 +105,13 @@ void Renderer::resize_renderer_buffers(
           material->textures[idx_texture] = *builtin_textures->blur2_texture;
         }
       }
-      Materials::bind_texture_uniforms(material);
+      materials::bind_texture_uniforms(material);
     }
   }
 }
 
 
-void Renderer::init_ubo(State *state) {
+void renderer::init_ubo(State *state) {
   glGenBuffers(1, &state->ubo_shader_common);
   glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
   glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
@@ -120,7 +120,7 @@ void Renderer::init_ubo(State *state) {
 }
 
 
-void Renderer::init_shadowmaps(
+void renderer::init_shadowmaps(
   MemoryPool *memory_pool,
   BuiltinTextures *builtin_textures
 ) {
@@ -147,11 +147,11 @@ void Renderer::init_shadowmaps(
 
   // #slow
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
+    logs::fatal("Framebuffer not complete!");
   }
 
-  builtin_textures->shadowmaps_3d_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->shadowmaps_3d_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "shadowmaps_3d_texture"
     ),
     GL_TEXTURE_CUBE_MAP_ARRAY,
@@ -185,11 +185,11 @@ void Renderer::init_shadowmaps(
 
   // #slow
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
+    logs::fatal("Framebuffer not complete!");
   }
 
-  builtin_textures->shadowmaps_2d_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->shadowmaps_2d_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "shadowmaps_2d_texture"
     ),
     GL_TEXTURE_2D_ARRAY,
@@ -201,7 +201,7 @@ void Renderer::init_shadowmaps(
 }
 
 
-void Renderer::init_g_buffer(
+void renderer::init_g_buffer(
   MemoryPool *memory_pool,
   BuiltinTextures *builtin_textures,
   uint32 width,
@@ -220,8 +220,8 @@ void Renderer::init_g_buffer(
   glGenTextures(1, &g_albedo_texture_name);
   glGenTextures(1, &g_pbr_texture_name);
 
-  builtin_textures->g_position_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->g_position_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "g_position_texture"
     ),
     GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name,
@@ -229,8 +229,8 @@ void Renderer::init_g_buffer(
   );
   builtin_textures->g_position_texture->is_builtin = true;
 
-  builtin_textures->g_normal_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->g_normal_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "g_normal_texture"
     ),
     GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name,
@@ -238,8 +238,8 @@ void Renderer::init_g_buffer(
   );
   builtin_textures->g_normal_texture->is_builtin = true;
 
-  builtin_textures->g_albedo_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->g_albedo_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "g_albedo_texture"
     ),
     GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name,
@@ -247,8 +247,8 @@ void Renderer::init_g_buffer(
   );
   builtin_textures->g_albedo_texture->is_builtin = true;
 
-  builtin_textures->g_pbr_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->g_pbr_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "g_pbr_texture"
     ),
     GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name,
@@ -326,12 +326,12 @@ void Renderer::init_g_buffer(
   );
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
+    logs::fatal("Framebuffer not complete!");
   }
 }
 
 
-void Renderer::init_l_buffer(
+void renderer::init_l_buffer(
   MemoryPool *memory_pool,
   BuiltinTextures *builtin_textures,
   uint32 width,
@@ -343,8 +343,8 @@ void Renderer::init_l_buffer(
   uint32 l_color_texture_name;
   glGenTextures(1, &l_color_texture_name);
 
-  builtin_textures->l_color_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->l_color_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "l_color_texture"
     ),
     GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
@@ -370,8 +370,8 @@ void Renderer::init_l_buffer(
   uint32 l_bright_color_texture_name;
   glGenTextures(1, &l_bright_color_texture_name);
 
-  builtin_textures->l_bright_color_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->l_bright_color_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "l_bright_color_texture"
     ),
     GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
@@ -413,8 +413,8 @@ void Renderer::init_l_buffer(
   uint32 l_depth_texture_name;
   glGenTextures(1, &l_depth_texture_name);
 
-  builtin_textures->l_depth_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->l_depth_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "l_depth_texture"
     ),
     GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
@@ -439,12 +439,12 @@ void Renderer::init_l_buffer(
 #endif
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
+    logs::fatal("Framebuffer not complete!");
   }
 }
 
 
-void Renderer::init_blur_buffers(
+void renderer::init_blur_buffers(
   MemoryPool *memory_pool,
   BuiltinTextures *builtin_textures,
   uint32 width,
@@ -458,8 +458,8 @@ void Renderer::init_blur_buffers(
   uint32 blur1_texture_name;
   glGenTextures(1, &blur1_texture_name);
 
-  builtin_textures->blur1_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->blur1_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "blur1_texture"
     ),
     GL_TEXTURE_2D, TextureType::blur1, blur1_texture_name,
@@ -487,8 +487,8 @@ void Renderer::init_blur_buffers(
   uint32 blur2_texture_name;
   glGenTextures(1, &blur2_texture_name);
 
-  builtin_textures->blur2_texture = Materials::init_texture(
-    (Texture*)Memory::push(
+  builtin_textures->blur2_texture = materials::init_texture(
+    (Texture*)memory::push(
       memory_pool, sizeof(Texture), "blur2_texture"
     ),
     GL_TEXTURE_2D, TextureType::blur2, blur2_texture_name,
@@ -512,12 +512,12 @@ void Renderer::init_blur_buffers(
   );
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-    log_fatal("Framebuffer not complete!");
+    logs::fatal("Framebuffer not complete!");
   }
 }
 
 
-void Renderer::update_drawing_options(State *state, GLFWwindow *window) {
+void renderer::update_drawing_options(State *state, GLFWwindow *window) {
   if (state->is_cursor_enabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   } else {
@@ -532,7 +532,7 @@ void Renderer::update_drawing_options(State *state, GLFWwindow *window) {
 }
 
 
-void Renderer::copy_scene_data_to_ubo(
+void renderer::copy_scene_data_to_ubo(
   State *state,
   uint32 current_shadow_light_idx,
   uint32 current_shadow_light_type,
@@ -588,8 +588,8 @@ void Renderer::copy_scene_data_to_ubo(
       state->spatial_component_set.components[light_component->entity_handle];
 
     if (!(
-      Entities::is_light_component_valid(light_component) &&
-      Entities::is_spatial_component_valid(spatial_component)
+      entities::is_light_component_valid(light_component) &&
+      entities::is_spatial_component_valid(spatial_component)
     )) {
       continue;
     }
@@ -623,31 +623,31 @@ void Renderer::copy_scene_data_to_ubo(
 }
 
 
-void Renderer::copy_scene_data_to_ubo(State *state) {
+void renderer::copy_scene_data_to_ubo(State *state) {
   copy_scene_data_to_ubo(state, 0, 0, false);
 }
 
 
-void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void renderer::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
   MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
-  log_info(
+  logs::info(
     "Window is now: %d x %d", state->window_info.width, state->window_info.height
   );
   state->window_info.width = width;
   state->window_info.height = height;
-  Cameras::update_matrices(
+  cameras::update_matrices(
     state->camera_active,
     state->window_info.width,
     state->window_info.height
   );
-  Cameras::update_ui_matrices(
+  cameras::update_ui_matrices(
     state->camera_active,
     state->window_info.width,
     state->window_info.height
   );
-  Gui::update_screen_dimensions(
+  gui::update_screen_dimensions(
     &state->gui_state, state->window_info.width, state->window_info.height
   );
   resize_renderer_buffers(
@@ -660,26 +660,26 @@ void Renderer::framebuffer_size_callback(GLFWwindow* window, int width, int heig
 }
 
 
-void Renderer::mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+void renderer::mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
 
-  Input::update_mouse_button(&state->input_state, button, action, mods);
-  Gui::update_mouse_button(&state->gui_state);
+  input::update_mouse_button(&state->input_state, button, action, mods);
+  gui::update_mouse_button(&state->gui_state);
 }
 
 
-void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
+void renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
 
   v2 mouse_pos = v2(x, y);
-  Input::update_mouse(&state->input_state, mouse_pos);
+  input::update_mouse(&state->input_state, mouse_pos);
 
   if (state->is_cursor_enabled) {
-    Gui::update_mouse(&state->gui_state);
+    gui::update_mouse(&state->gui_state);
   } else {
-    Cameras::update_mouse(
+    cameras::update_mouse(
       state->camera_active,
       state->input_state.mouse_3d_offset
     );
@@ -687,43 +687,43 @@ void Renderer::mouse_callback(GLFWwindow *window, real64 x, real64 y) {
 }
 
 
-void Renderer::key_callback(
+void renderer::key_callback(
   GLFWwindow* window,
   int key, int scancode, int action, int mods
 ) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
-  Input::update_keys(&state->input_state, key, scancode, action, mods);
+  input::update_keys(&state->input_state, key, scancode, action, mods);
 }
 
 
-void Renderer::char_callback(
+void renderer::char_callback(
   GLFWwindow* window, uint32 codepoint
 ) {
   MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
   State *state = memory_and_state->state;
-  Input::update_text_input(&state->input_state, codepoint);
+  input::update_text_input(&state->input_state, codepoint);
 }
 
 
-void Renderer::init_window(WindowInfo *window_info) {
+void renderer::init_window(WindowInfo *window_info) {
   strcpy(window_info->title, "hi lol");
 
   glfwInit();
 
-  log_info("Using OpenGL 4.1");
+  logs::info("Using OpenGL 4.1");
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_SAMPLES, 4);
 
 #if defined(__APPLE__)
-  log_info("Using GLFW_OPENGL_FORWARD_COMPAT");
+  logs::info("Using GLFW_OPENGL_FORWARD_COMPAT");
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
   if (USE_OPENGL_DEBUG) {
-    log_info("Using OpenGL debug context");
+    logs::info("Using OpenGL debug context");
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
   }
 
@@ -770,7 +770,7 @@ void Renderer::init_window(WindowInfo *window_info) {
 #endif
 
   if (!window) {
-    log_fatal("Failed to create GLFW window");
+    logs::fatal("Failed to create GLFW window");
     return;
   }
   window_info->window = window;
@@ -779,18 +779,18 @@ void Renderer::init_window(WindowInfo *window_info) {
   glfwSwapInterval(0);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    log_fatal("Failed to initialize GLAD");
+    logs::fatal("Failed to initialize GLAD");
     return;
   }
 
   if (!GLAD_GL_ARB_texture_cube_map_array) {
-    log_fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
+    logs::fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
   }
   if (!GLAD_GL_ARB_texture_storage) {
-    log_fatal("No support for GLAD_GL_ARB_texture_storage");
+    logs::fatal("No support for GLAD_GL_ARB_texture_storage");
   }
   if (!GLAD_GL_ARB_buffer_storage) {
-    log_warning("No support for GLAD_GL_ARB_buffer_storage");
+    logs::warning("No support for GLAD_GL_ARB_buffer_storage");
   }
 
   // TODO: Remove GL_EXT_debug_marker from GLAD
@@ -805,13 +805,13 @@ void Renderer::init_window(WindowInfo *window_info) {
       if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(Util::debug_message_callback, nullptr);
+        glDebugMessageCallback(util::debug_message_callback, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
       } else {
-        log_fatal("Tried to initialise OpenGL debug output but couldn't");
+        logs::fatal("Tried to initialise OpenGL debug output but couldn't");
       }
     } else {
-      log_warning(
+      logs::warning(
         "Tried to initialise OpenGL debug output but none of "
         "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
         "are supported on this system. Skipping."
@@ -843,45 +843,45 @@ void Renderer::init_window(WindowInfo *window_info) {
 }
 
 
-void Renderer::destroy_window() {
+void renderer::destroy_window() {
   glfwTerminate();
 }
 
 
-void Renderer::reload_shaders(State *state) {
+void renderer::reload_shaders(State *state) {
   MemoryPool temp_memory_pool = {};
 
   for_each (material, state->materials) {
-    Shaders::load_shader_asset(
+    shaders::load_shader_asset(
       &material->shader_asset,
       &temp_memory_pool
     );
-    if (Shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
-      Shaders::load_shader_asset(
+    if (shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
+      shaders::load_shader_asset(
         &material->depth_shader_asset,
         &temp_memory_pool
       );
     }
   }
 
-  Shaders::load_shader_asset(
+  shaders::load_shader_asset(
     &state->standard_depth_shader_asset,
     &temp_memory_pool
   );
 
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void Renderer::render_scene(
+void renderer::render_scene(
   State *state,
   RenderPassFlag render_pass,
   RenderMode render_mode
 ) {
 #if 0
-  log_info("RenderPass: %s", render_pass_to_string(render_pass));
+  logs::info("RenderPass: %s", render_pass_to_string(render_pass));
 #endif
-  EntitySets::draw_all(
+  entitysets::draw_all(
     &state->entity_set,
     &state->drawable_component_set,
     &state->spatial_component_set,
@@ -897,7 +897,7 @@ void Renderer::render_scene(
 }
 
 
-void Renderer::set_heading(
+void renderer::set_heading(
   State *state,
   const char *text, real32 opacity,
   real32 fadeout_duration, real32 fadeout_delay
@@ -909,14 +909,14 @@ void Renderer::set_heading(
 }
 
 
-void Renderer::render_scene_ui(State *state) {
+void renderer::render_scene_ui(State *state) {
   char debug_text[1 << 14];
   size_t dt_size = sizeof(debug_text);
 
-  Gui::start_drawing(&state->gui_state);
+  gui::start_drawing(&state->gui_state);
 
   if (state->gui_state.heading_opacity > 0.0f) {
-    Gui::draw_heading(
+    gui::draw_heading(
       &state->gui_state,
       state->gui_state.heading_text,
       v4(0.0f, 0.33f, 0.93f, state->gui_state.heading_opacity)
@@ -932,62 +932,62 @@ void Renderer::render_scene_ui(State *state) {
   {
     strcpy(debug_text, "Peony debug info: ");
     strcat(debug_text, state->current_scene_name);
-    GuiContainer *container = Gui::make_container(
+    GuiContainer *container = gui::make_container(
       &state->gui_state, debug_text, v2(25.0f, 25.0f)
     );
 
     snprintf(
       debug_text, dt_size, "%ux%u", state->window_info.width, state->window_info.height
     );
-    Gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
 
     snprintf(
       debug_text, dt_size, "%ux%u",
       state->window_info.screencoord_width, state->window_info.screencoord_height
     );
-    Gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
 
     snprintf(debug_text, dt_size, "%u fps", state->perf_counters.last_fps);
-    Gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
 
     snprintf(debug_text, dt_size, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
-    Gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
 
     snprintf(debug_text, dt_size, "%.2f", 1.0f + state->timescale_diff);
-    Gui::draw_named_value(&state->gui_state, container, "ts", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "ts", debug_text);
 
     snprintf(debug_text, dt_size, state->is_world_loaded ? "yes" : "no");
-    Gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
 
     snprintf(debug_text, dt_size, "%u", state->materials.length);
-    Gui::draw_named_value(
+    gui::draw_named_value(
       &state->gui_state, container, "materials.length", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", state->entity_set.entities.length);
-    Gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
+    gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
 
     snprintf(debug_text, dt_size, "%u", state->model_loaders.length);
-    Gui::draw_named_value(
+    gui::draw_named_value(
       &state->gui_state, container, "model_loaders.length", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", state->n_valid_model_loaders);
-    Gui::draw_named_value(
+    gui::draw_named_value(
       &state->gui_state, container, "n_valid_model_loaders", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", state->entity_loader_set.loaders.length);
-    Gui::draw_named_value(
+    gui::draw_named_value(
       &state->gui_state, container, "entity_loader_set.length", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", state->n_valid_entity_loaders);
-    Gui::draw_named_value(
+    gui::draw_named_value(
       &state->gui_state, container, "n_valid_entity_loaders", debug_text
     );
 
-    if (Gui::draw_toggle(
+    if (gui::draw_toggle(
       &state->gui_state, container, "Wireframe mode", &state->should_use_wireframe
     )) {
       state->should_use_wireframe = !state->should_use_wireframe;
@@ -998,7 +998,7 @@ void Renderer::render_scene_ui(State *state) {
       }
     }
 
-    if (Gui::draw_toggle(
+    if (gui::draw_toggle(
       &state->gui_state, container, "FPS limit", &state->should_limit_fps
     )) {
       state->should_limit_fps = !state->should_limit_fps;
@@ -1009,7 +1009,7 @@ void Renderer::render_scene_ui(State *state) {
       }
     }
 
-    if (Gui::draw_toggle(
+    if (gui::draw_toggle(
       &state->gui_state, container, "Manual frame advance", &state->is_manual_frame_advance_enabled
     )) {
       state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
@@ -1020,7 +1020,7 @@ void Renderer::render_scene_ui(State *state) {
       }
     }
 
-    if (Gui::draw_toggle(
+    if (gui::draw_toggle(
       &state->gui_state, container, "Pause", &state->should_pause
     )) {
       state->should_pause = !state->should_pause;
@@ -1031,50 +1031,50 @@ void Renderer::render_scene_ui(State *state) {
       }
     }
 
-    if (Gui::draw_button(
+    if (gui::draw_button(
       &state->gui_state, container, "Reload shaders"
     )) {
       reload_shaders(state);
       set_heading(state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
-    if (Gui::draw_button(
+    if (gui::draw_button(
       &state->gui_state, container, "Delete PBO"
     )) {
-      Materials::delete_persistent_pbo(&state->persistent_pbo);
+      materials::delete_persistent_pbo(&state->persistent_pbo);
       set_heading(state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }
 
   {
 #if 1
-    GuiContainer *container = Gui::make_container(
+    GuiContainer *container = gui::make_container(
       &state->gui_state, "Entities", v2(state->window_info.width - 400.0f, 25.0f)
     );
-    World::get_scene_text_representation(debug_text, state);
-    Gui::draw_body_text(&state->gui_state, container, debug_text);
+    world::get_scene_text_representation(debug_text, state);
+    gui::draw_body_text(&state->gui_state, container, debug_text);
 #endif
   }
 
   {
 #if 1
-    GuiContainer *container = Gui::make_container(
+    GuiContainer *container = gui::make_container(
       &state->gui_state, "Materials", v2(state->window_info.width - 600.0f, 25.0f)
     );
-    World::get_materials_text_representation(debug_text, state);
-    Gui::draw_body_text(&state->gui_state, container, debug_text);
+    world::get_materials_text_representation(debug_text, state);
+    gui::draw_body_text(&state->gui_state, container, debug_text);
 #endif
   }
 
-  Gui::draw_console(
+  gui::draw_console(
     &state->gui_state, state->input_state.text_input
   );
-  Gui::render(&state->gui_state);
+  gui::render(&state->gui_state);
 }
 
 
-void Renderer::render(State *state) {
-  Renderer::copy_scene_data_to_ubo(state);
+void renderer::render(State *state) {
+  renderer::copy_scene_data_to_ubo(state);
 
   // Clear framebuffers
   {
@@ -1119,9 +1119,9 @@ void Renderer::render(State *state) {
           state->spatial_component_set.components[light_component->entity_handle];
 
         if (!(
-          Entities::is_light_component_valid(light_component) &&
+          entities::is_light_component_valid(light_component) &&
           light_component->type == LightType::point &&
-          Entities::is_spatial_component_valid(spatial_component)
+          entities::is_spatial_component_valid(spatial_component)
         )) {
           continue;
         }
@@ -1148,8 +1148,8 @@ void Renderer::render(State *state) {
         );
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        Renderer::copy_scene_data_to_ubo(
-          state, idx_light, Entities::light_type_to_int(light_component->type), false
+        renderer::copy_scene_data_to_ubo(
+          state, idx_light, entities::light_type_to_int(light_component->type), false
         );
         render_scene(
           state,
@@ -1187,9 +1187,9 @@ void Renderer::render(State *state) {
           state->spatial_component_set.components[light_component->entity_handle];
 
         if (!(
-          Entities::is_light_component_valid(light_component) &&
+          entities::is_light_component_valid(light_component) &&
           light_component->type == LightType::directional &&
-          Entities::is_spatial_component_valid(spatial_component)
+          entities::is_spatial_component_valid(spatial_component)
         )) {
           continue;
         }
@@ -1211,8 +1211,8 @@ void Renderer::render(State *state) {
         );
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        Renderer::copy_scene_data_to_ubo(
-          state, idx_light, Entities::light_type_to_int(light_component->type), false
+        renderer::copy_scene_data_to_ubo(
+          state, idx_light, entities::light_type_to_int(light_component->type), false
         );
         render_scene(
           state,
@@ -1319,7 +1319,7 @@ void Renderer::render(State *state) {
 
     // Debug draw pass
     {
-      DebugDraw::render(&state->debug_draw_state);
+      debugdraw::render(&state->debug_draw_state);
     }
   }
 
@@ -1329,26 +1329,26 @@ void Renderer::render(State *state) {
   // Blur pass
   {
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-    Renderer::copy_scene_data_to_ubo(state, 0, 0, true);
+    renderer::copy_scene_data_to_ubo(state, 0, 0, true);
     render_scene(
       state, RenderPass::preblur, RenderMode::regular
     );
 
     glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-    Renderer::copy_scene_data_to_ubo(state, 0, 0, false);
+    renderer::copy_scene_data_to_ubo(state, 0, 0, false);
     render_scene(
       state, RenderPass::blur2, RenderMode::regular
     );
 
     for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-      Renderer::copy_scene_data_to_ubo(state, 0, 0, true);
+      renderer::copy_scene_data_to_ubo(state, 0, 0, true);
       render_scene(
         state, RenderPass::blur1, RenderMode::regular
       );
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-      Renderer::copy_scene_data_to_ubo(state, 0, 0, false);
+      renderer::copy_scene_data_to_ubo(state, 0, 0, false);
       render_scene(
         state, RenderPass::blur1, RenderMode::regular
       );

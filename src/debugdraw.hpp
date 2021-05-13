@@ -18,7 +18,7 @@ struct DebugDrawState {
   uint32 n_vertices_pushed;
 };
 
-namespace DebugDraw {
+namespace debugdraw {
   void push_vertices(
     DebugDrawState *debug_draw_state,
     DebugDrawVertex vertices[],

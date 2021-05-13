@@ -1,4 +1,4 @@
-Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
+Obb physics::transform_obb(Obb obb, SpatialComponent *spatial) {
   m3 rotation = glm::toMat3(normalize(spatial->rotation));
   obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
   obb.x_axis = normalize(rotation * obb.x_axis);
@@ -8,7 +8,7 @@ Obb Physics::transform_obb(Obb obb, SpatialComponent *spatial) {
 }
 
 
-RaycastResult Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
+RaycastResult physics::intersect_obb_ray(Obb *obb, Ray *ray) {
   // Gabor Szauer, Game Physics Cookbook, “Raycast Oriented Bounding Box”
   v3 obb_z_axis = cross(obb->x_axis, obb->y_axis);
 
@@ -91,14 +91,14 @@ RaycastResult Physics::intersect_obb_ray(Obb *obb, Ray *ray) {
 }
 
 
-RayCollisionResult Physics::find_ray_collision(
+RayCollisionResult physics::find_ray_collision(
   Ray *ray,
   // TODO: Replace this with some kind of collision layers.
   PhysicsComponent *physics_component_to_ignore_or_nullptr,
   PhysicsComponentSet *physics_component_set
 ) {
   for_each (candidate, physics_component_set->components) {
-    if (!Entities::is_physics_component_valid(candidate)) {
+    if (!entities::is_physics_component_valid(candidate)) {
       continue;
     }
 
@@ -106,7 +106,7 @@ RayCollisionResult Physics::find_ray_collision(
       continue;
     }
 
-    RaycastResult raycast_result = Physics::intersect_obb_ray(
+    RaycastResult raycast_result = physics::intersect_obb_ray(
       &candidate->transformed_obb, ray
     );
     if (raycast_result.did_intersect) {
@@ -122,7 +122,7 @@ RayCollisionResult Physics::find_ray_collision(
 }
 
 
-void Physics::update_manifold_for_face_axis(
+void physics::update_manifold_for_face_axis(
   CollisionManifold *manifold,
   real32 sep, uint32 axis, v3 normal
 ) {
@@ -134,7 +134,7 @@ void Physics::update_manifold_for_face_axis(
 }
 
 
-void Physics::update_manifold_for_edge_axis(
+void physics::update_manifold_for_edge_axis(
   CollisionManifold *manifold,
   real32 sep, uint32 axis, v3 normal
 ) {
@@ -165,7 +165,7 @@ engine.
 
 idmillington/cyclone-physics/blob/master/src/collide_fine.cpp#contactPoint()
 */
-v3 Physics::get_edge_contact_point(
+v3 physics::get_edge_contact_point(
   v3 a_edge_point,
   v3 a_axis,
   real32 a_axis_length,
@@ -215,7 +215,7 @@ v3 Physics::get_edge_contact_point(
 }
 
 
-Face Physics::get_incident_face(
+Face physics::get_incident_face(
   m3 *cob, // incident change of base
   v3 e, // incident extents
   v3 c, // incident_center
@@ -323,7 +323,7 @@ Resources
   "Deriving OBB to OBB Intersection and Manifold Generation"
 * Ian Millington's Cyclone Physics engine (but not for face-something!)
 */
-CollisionManifold Physics::intersect_obb_obb(
+CollisionManifold physics::intersect_obb_obb(
   Obb *a,
   Obb *b,
   SpatialComponent *spatial_a,
@@ -444,8 +444,8 @@ CollisionManifold Physics::intersect_obb_obb(
     }
   }
 
-  console_log("face_max_sep %f", face_max_sep);
-  console_log("edge_max_sep %f", edge_max_sep);
+  logs::console("face_max_sep %f", face_max_sep);
+  logs::console("edge_max_sep %f", edge_max_sep);
 
   // Correct normal direction
   if (dot(manifold.normal, t_translation) < 0.0f) {
@@ -478,7 +478,7 @@ CollisionManifold Physics::intersect_obb_obb(
       &incident_cob, incident_extents, incident_center, manifold.normal
     );
 
-    DebugDraw::draw_quad(
+    debugdraw::draw_quad(
       g_dds,
       incident_face.vertices[0],
       incident_face.vertices[1],
@@ -486,25 +486,25 @@ CollisionManifold Physics::intersect_obb_obb(
       incident_face.vertices[3],
       v4(0.0f, 1.0f, 0.0f, 1.0f)
     );
-    DebugDraw::draw_point(
+    debugdraw::draw_point(
       g_dds,
       incident_face.vertices[0],
       0.1f,
       v4(0.0f, 1.0f, 0.0f, 1.0f)
     );
-    DebugDraw::draw_point(
+    debugdraw::draw_point(
       g_dds,
       incident_face.vertices[1],
       0.1f,
       v4(0.0f, 1.0f, 0.0f, 1.0f)
     );
-    DebugDraw::draw_point(
+    debugdraw::draw_point(
       g_dds,
       incident_face.vertices[2],
       0.1f,
       v4(0.0f, 1.0f, 0.0f, 1.0f)
     );
-    DebugDraw::draw_point(
+    debugdraw::draw_point(
       g_dds,
       incident_face.vertices[3],
       0.1f,
@@ -544,7 +544,7 @@ CollisionManifold Physics::intersect_obb_obb(
       b->extents[b_axis],
       face_axis_with_max_separation >= 3
     );
-    DebugDraw::draw_point(
+    debugdraw::draw_point(
       g_dds,
       contact_point,
       0.1f,
@@ -559,20 +559,20 @@ CollisionManifold Physics::intersect_obb_obb(
 }
 
 
-CollisionManifold Physics::find_physics_component_collision(
+CollisionManifold physics::find_physics_component_collision(
   PhysicsComponent *self_physics,
   SpatialComponent *self_spatial,
   PhysicsComponentSet *physics_component_set,
   SpatialComponentSet *spatial_component_set
 ) {
   for_each (candidate_physics, physics_component_set->components) {
-    if (!Entities::is_physics_component_valid(candidate_physics)) {
+    if (!entities::is_physics_component_valid(candidate_physics)) {
       continue;
     }
     SpatialComponent *candidate_spatial =
       spatial_component_set->components[candidate_physics->entity_handle];
     if (!candidate_spatial) {
-      log_error("Could not get SpatialComponent for candidate");
+      logs::error("Could not get SpatialComponent for candidate");
       return CollisionManifold{};
     }
 
@@ -580,7 +580,7 @@ CollisionManifold Physics::find_physics_component_collision(
       continue;
     }
 
-    CollisionManifold manifold = Physics::intersect_obb_obb(
+    CollisionManifold manifold = physics::intersect_obb_obb(
       &self_physics->transformed_obb,
       &candidate_physics->transformed_obb,
       self_spatial,

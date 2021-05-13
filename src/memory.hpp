@@ -18,7 +18,7 @@ struct MemoryPool {
 #endif
 };
 
-namespace Memory {
+namespace memory {
   void reset_memory_pool(MemoryPool *pool);
   void zero_out_memory_pool(MemoryPool *pool);
   void* push(

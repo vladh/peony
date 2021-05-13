@@ -13,7 +13,7 @@ public:
   T *items = nullptr;
 
   void alloc() {
-    this->items = (T*)Memory::push(
+    this->items = (T*)memory::push(
       this->memory_pool,
       sizeof(T) * this->capacity,
       this->debug_name

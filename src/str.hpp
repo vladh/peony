@@ -1,7 +1,7 @@
 #ifndef STR_HPP
 #define STR_HPP
 
-namespace Str {
+namespace str {
   void split_on_first_occurrence(
     const char *str,
     char *part1, size_t part1_length,

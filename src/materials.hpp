@@ -131,7 +131,7 @@ struct Material {
   bool32 should_use_normal_map = false;
 };
 
-namespace Materials {
+namespace materials {
   Texture* init_texture(
     Texture *texture,
     TextureType type,

@@ -29,8 +29,7 @@ struct ShaderAsset {
   char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
 };
 
-namespace Shaders {
-
+namespace shaders {
   const char* shader_type_to_string(ShaderType shader_type);
   ShaderType shader_type_from_string(const char* str);
   void assert_shader_status_ok(uint32 shader, const char* path);

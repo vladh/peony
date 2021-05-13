@@ -1,7 +1,7 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-namespace World {
+namespace world {
   void get_entity_text_representation(
     char *text, State *state, Entity *entity, uint8 depth
   );

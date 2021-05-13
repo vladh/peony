@@ -1,4 +1,4 @@
-unsigned char* Util::load_image(
+unsigned char* util::load_image(
   const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
 ) {
   stbi_set_flip_vertically_on_load(should_flip);
@@ -6,28 +6,28 @@ unsigned char* Util::load_image(
     path, width, height, n_channels, 0
   );
   if (!image_data) {
-    log_fatal("Could not open file %s.", path);
+    logs::fatal("Could not open file %s.", path);
   }
   return image_data;
 }
 
 
-unsigned char* Util::load_image(
+unsigned char* util::load_image(
   const char *path, int32 *width, int32 *height, int32 *n_channels
 ) {
   return load_image(path, width, height, n_channels, true);
 }
 
 
-void Util::free_image(unsigned char *image_data) {
+void util::free_image(unsigned char *image_data) {
   stbi_image_free(image_data);
 }
 
 
-uint32 Util::get_file_size(const char *path) {
+uint32 util::get_file_size(const char *path) {
   FILE *f = fopen(path, "rb");
   if (!f) {
-    log_error("Could not open file %s.", path);
+    logs::error("Could not open file %s.", path);
     return 0;
   }
   fseek(f, 0, SEEK_END);
@@ -37,21 +37,21 @@ uint32 Util::get_file_size(const char *path) {
 }
 
 
-const char* Util::load_file(MemoryPool *memory_pool, const char *path) {
+const char* util::load_file(MemoryPool *memory_pool, const char *path) {
   FILE *f = fopen(path, "rb");
   if (!f) {
-    log_error("Could not open file %s.", path);
+    logs::error("Could not open file %s.", path);
     return nullptr;
   }
   fseek(f, 0, SEEK_END);
   uint32 file_size = ftell(f);
   fseek(f, 0, SEEK_SET);
 
-  char *string = (char*)Memory::push(memory_pool, file_size + 1, path);
+  char *string = (char*)memory::push(memory_pool, file_size + 1, path);
   size_t result = fread(string, file_size, 1, f);
   fclose(f);
   if (result != 1) {
-    log_error("Could not read from file %s.", path);
+    logs::error("Could not read from file %s.", path);
     return nullptr;
   }
 
@@ -59,10 +59,10 @@ const char* Util::load_file(MemoryPool *memory_pool, const char *path) {
   return string;
 }
 
-const char* Util::load_file(char *string, const char *path) {
+const char* util::load_file(char *string, const char *path) {
   FILE *f = fopen(path, "rb");
   if (!f) {
-    log_error("Could not open file %s.", path);
+    logs::error("Could not open file %s.", path);
     return nullptr;
   }
   fseek(f, 0, SEEK_END);
@@ -72,7 +72,7 @@ const char* Util::load_file(char *string, const char *path) {
   size_t result = fread(string, file_size, 1, f);
   fclose(f);
   if (result != 1) {
-    log_error("Could not read from file %s.", path);
+    logs::error("Could not read from file %s.", path);
     return nullptr;
   }
 
@@ -80,7 +80,7 @@ const char* Util::load_file(char *string, const char *path) {
   return string;
 }
 
-const char* Util::stringify_glenum(GLenum thing) {
+const char* util::stringify_glenum(GLenum thing) {
   switch (thing) {
     case 0:
       return "(none)";
@@ -123,12 +123,12 @@ const char* Util::stringify_glenum(GLenum thing) {
     case GL_RGBA:
       return "GL_RGBA";
     default:
-      log_warning("Unknown GLenum %d", thing);
+      logs::warning("Unknown GLenum %d", thing);
       return "Unknown GLenum";
   }
 }
 
-GLenum Util::get_texture_format_from_n_components(int32 n_components) {
+GLenum util::get_texture_format_from_n_components(int32 n_components) {
   if (n_components == 1) {
     return GL_RED;
   } else if (n_components == 3) {
@@ -136,20 +136,20 @@ GLenum Util::get_texture_format_from_n_components(int32 n_components) {
   } else if (n_components == 4) {
     return GL_BGRA;
   } else {
-    log_fatal("Don't know what to do with n_components = %d", n_components);
+    logs::fatal("Don't know what to do with n_components = %d", n_components);
     return 0;
   }
 }
 
 
-real64 Util::random(real64 min, real64 max) {
+real64 util::random(real64 min, real64 max) {
   uint32 r = rand();
   real64 r_normalized = (real64)r / (real64)RAND_MAX;
   return min + ((r_normalized) * (max - min));
 }
 
 
-void Util::make_plane(
+void util::make_plane(
   MemoryPool *memory_pool,
   uint32 x_size, uint32 z_size,
   uint32 n_x_segments, uint32 n_z_segments,
@@ -162,10 +162,10 @@ void Util::make_plane(
   uint32 n_total_vertices = (n_x_segments + 1) * (n_z_segments + 1);
   uint32 index_data_length = (n_x_segments) * (n_z_segments) * 6;
 
-  *vertex_data = (Vertex*)Memory::push(
+  *vertex_data = (Vertex*)memory::push(
     memory_pool, sizeof(Vertex) * n_total_vertices, "plane_vertex_data"
   );
-  *index_data = (uint32*)Memory::push(
+  *index_data = (uint32*)memory::push(
     memory_pool, sizeof(uint32) * index_data_length, "plane_index_data"
   );
 
@@ -207,7 +207,7 @@ void Util::make_plane(
 }
 
 
-void Util::make_sphere(
+void util::make_sphere(
   MemoryPool *memory_pool,
   uint32 n_x_segments, uint32 n_y_segments,
   uint32 *n_vertices, uint32 *n_indices,
@@ -219,10 +219,10 @@ void Util::make_sphere(
   uint32 total_n_vertices = (n_x_segments + 1) * (n_y_segments + 1);
   uint32 index_data_length = (n_x_segments + 1) * (n_y_segments) * 2;
 
-  *vertex_data = (Vertex*)Memory::push(
+  *vertex_data = (Vertex*)memory::push(
     memory_pool, sizeof(Vertex) * total_n_vertices, "sphere_vertex_data"
   );
-  *index_data = (uint32*)Memory::push(
+  *index_data = (uint32*)memory::push(
     memory_pool, sizeof(uint32) * index_data_length, "sphere_index_data"
   );
 
@@ -260,17 +260,17 @@ void Util::make_sphere(
 }
 
 
-v3 Util::aiVector3D_to_glm(aiVector3D *vec) {
+v3 util::aiVector3D_to_glm(aiVector3D *vec) {
   return v3(vec->x, vec->y, vec->z);
 }
 
 
-quat Util::aiQuaternion_to_glm(aiQuaternion *rotation) {
+quat util::aiQuaternion_to_glm(aiQuaternion *rotation) {
   return quat(rotation->w, rotation->x, rotation->y, rotation->z);
 }
 
 
-m4 Util::aimatrix4x4_to_glm(aiMatrix4x4 *from) {
+m4 util::aimatrix4x4_to_glm(aiMatrix4x4 *from) {
   m4 to;
 
   to[0][0] = (GLfloat)from->a1;
@@ -297,9 +297,9 @@ m4 Util::aimatrix4x4_to_glm(aiMatrix4x4 *from) {
 }
 
 
-void Util::print_texture_internalformat_info(GLenum internal_format) {
+void util::print_texture_internalformat_info(GLenum internal_format) {
   if (!GLAD_GL_ARB_internalformat_query) {
-    log_warning(
+    logs::warning(
       "Not printing texture_internalformat as this feature is not supported "
       "on this system."
     );
@@ -307,7 +307,7 @@ void Util::print_texture_internalformat_info(GLenum internal_format) {
   }
 
   if (!GLAD_GL_ARB_internalformat_query2) {
-    log_warning(
+    logs::warning(
       "Printing texture_internalformat, but some information may be missing, "
       "as internalformat_query2 is not supported on this system."
     );
@@ -327,15 +327,15 @@ void Util::print_texture_internalformat_info(GLenum internal_format) {
     GL_TEXTURE_2D, internal_format, GL_TEXTURE_IMAGE_TYPE, 1, &optimal_image_type
   );
 
-  log_info("internal format: %s", stringify_glenum(internal_format));
-  log_info("preferred format: %s", stringify_glenum(preferred_format));
-  log_info("optimal image format: %s", stringify_glenum(optimal_image_format));
-  log_info("optimal image type: %s", stringify_glenum(optimal_image_type));
-  log_newline();
+  logs::info("internal format: %s", stringify_glenum(internal_format));
+  logs::info("preferred format: %s", stringify_glenum(preferred_format));
+  logs::info("optimal image format: %s", stringify_glenum(optimal_image_format));
+  logs::info("optimal image type: %s", stringify_glenum(optimal_image_type));
+  logs::print_newline();
 }
 
 
-void APIENTRY Util::debug_message_callback(
+void APIENTRY util::debug_message_callback(
   GLenum source, GLenum type, unsigned int id, GLenum severity, GLsizei length,
   const char *message, const void *userParam
 ) {
@@ -362,89 +362,89 @@ void APIENTRY Util::debug_message_callback(
     return;
   }
 
-  log_warning("Debug message (%d): %s", id, message);
+  logs::warning("Debug message (%d): %s", id, message);
 
   switch (source) {
     case GL_DEBUG_SOURCE_API:
-      log_warning("Source: API");
+      logs::warning("Source: API");
       break;
     case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-      log_warning("Source: Window System");
+      logs::warning("Source: Window System");
       break;
     case GL_DEBUG_SOURCE_SHADER_COMPILER:
-      log_warning("Source: Shader Compiler");
+      logs::warning("Source: Shader Compiler");
       break;
     case GL_DEBUG_SOURCE_THIRD_PARTY:
-      log_warning("Source: Third Party");
+      logs::warning("Source: Third Party");
       break;
     case GL_DEBUG_SOURCE_APPLICATION:
-      log_warning("Source: Application");
+      logs::warning("Source: Application");
       break;
     case GL_DEBUG_SOURCE_OTHER:
-      log_warning("Source: Other");
+      logs::warning("Source: Other");
       break;
   }
 
   switch (type) {
     case GL_DEBUG_TYPE_ERROR:
-      log_warning("Type: Error");
+      logs::warning("Type: Error");
       break;
     case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-      log_warning("Type: Deprecated Behaviour");
+      logs::warning("Type: Deprecated Behaviour");
       break;
     case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-      log_warning("Type: Undefined Behaviour");
+      logs::warning("Type: Undefined Behaviour");
       break;
     case GL_DEBUG_TYPE_PORTABILITY:
-      log_warning("Type: Portability");
+      logs::warning("Type: Portability");
       break;
     case GL_DEBUG_TYPE_PERFORMANCE:
-      log_warning("Type: Performance");
+      logs::warning("Type: Performance");
       break;
     case GL_DEBUG_TYPE_MARKER:
-      log_warning("Type: Marker");
+      logs::warning("Type: Marker");
       break;
     case GL_DEBUG_TYPE_PUSH_GROUP:
-      log_warning("Type: Push Group");
+      logs::warning("Type: Push Group");
       break;
     case GL_DEBUG_TYPE_POP_GROUP:
-      log_warning("Type: Pop Group");
+      logs::warning("Type: Pop Group");
       break;
     case GL_DEBUG_TYPE_OTHER:
-      log_warning("Type: Other");
+      logs::warning("Type: Other");
       break;
   }
 
   switch (severity) {
     case GL_DEBUG_SEVERITY_HIGH:
-      log_warning("Severity: high");
+      logs::warning("Severity: high");
       break;
     case GL_DEBUG_SEVERITY_MEDIUM:
-      log_warning("Severity: medium");
+      logs::warning("Severity: medium");
       break;
     case GL_DEBUG_SEVERITY_LOW:
-      log_warning("Severity: low");
+      logs::warning("Severity: low");
       break;
     case GL_DEBUG_SEVERITY_NOTIFICATION:
-      log_warning("Severity: notification");
+      logs::warning("Severity: notification");
       break;
   }
 
-  log_newline();
+  logs::print_newline();
 }
 
 
-real32 Util::round_to_nearest_multiple(real32 n, real32 multiple_of) {
+real32 util::round_to_nearest_multiple(real32 n, real32 multiple_of) {
   return (floor((n) / multiple_of) * multiple_of) + multiple_of;
 }
 
 
-real64 Util::get_us_from_duration(chrono::duration<real64> duration) {
+real64 util::get_us_from_duration(chrono::duration<real64> duration) {
   return chrono::duration_cast<chrono::duration<real64>>(duration).count();
 }
 
 
-v3 Util::get_orthogonal_vector(v3 *v) {
+v3 util::get_orthogonal_vector(v3 *v) {
   if (v->z < v->x) {
     return v3(v->y, -v->x, 0.0f);
   } else {
@@ -453,11 +453,11 @@ v3 Util::get_orthogonal_vector(v3 *v) {
 }
 
 
-uint32 Util::kb_to_b(uint32 value) { return value * 1024; }
-uint32 Util::mb_to_b(uint32 value) { return kb_to_b(value) * 1024; }
-uint32 Util::gb_to_b(uint32 value) { return mb_to_b(value) * 1024; }
-uint32 Util::tb_to_b(uint32 value) { return gb_to_b(value) * 1024; }
-real32 Util::b_to_kb(uint32 value) { return value / 1024.0f; }
-real32 Util::b_to_mb(uint32 value) { return b_to_kb(value) / 1024.0f; }
-real32 Util::b_to_gb(uint32 value) { return b_to_mb(value) / 1024.0f; }
-real32 Util::b_to_tb(uint32 value) { return b_to_gb(value) / 1024.0f; }
+uint32 util::kb_to_b(uint32 value) { return value * 1024; }
+uint32 util::mb_to_b(uint32 value) { return kb_to_b(value) * 1024; }
+uint32 util::gb_to_b(uint32 value) { return mb_to_b(value) * 1024; }
+uint32 util::tb_to_b(uint32 value) { return gb_to_b(value) * 1024; }
+real32 util::b_to_kb(uint32 value) { return value / 1024.0f; }
+real32 util::b_to_mb(uint32 value) { return b_to_kb(value) / 1024.0f; }
+real32 util::b_to_gb(uint32 value) { return b_to_mb(value) / 1024.0f; }
+real32 util::b_to_tb(uint32 value) { return b_to_gb(value) / 1024.0f; }

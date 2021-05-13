@@ -1,4 +1,4 @@
-const char* Shaders::shader_type_to_string(ShaderType shader_type) {
+const char* shaders::shader_type_to_string(ShaderType shader_type) {
   if (shader_type == ShaderType::none) {
     return "none";
   } else if (shader_type == ShaderType::standard) {
@@ -6,13 +6,13 @@ const char* Shaders::shader_type_to_string(ShaderType shader_type) {
   } else if (shader_type == ShaderType::depth) {
     return "depth";
   } else {
-    log_error("Could not get string for ShaderType: %d", shader_type);
+    logs::error("Could not get string for ShaderType: %d", shader_type);
     return "<unknown>";
   }
 }
 
 
-ShaderType Shaders::shader_type_from_string(const char* str) {
+ShaderType shaders::shader_type_from_string(const char* str) {
   if (strcmp(str, "none") == 0) {
     return ShaderType::none;
   } else if (strcmp(str, "standard") == 0) {
@@ -20,41 +20,41 @@ ShaderType Shaders::shader_type_from_string(const char* str) {
   } else if (strcmp(str, "depth") == 0) {
     return ShaderType::depth;
   } else {
-    log_fatal("Could not parse ShaderType: %s", str);
+    logs::fatal("Could not parse ShaderType: %s", str);
     return ShaderType::none;
   }
 }
 
 
-void Shaders::assert_shader_status_ok(uint32 new_shader, const char *path) {
+void shaders::assert_shader_status_ok(uint32 new_shader, const char *path) {
   int32 status;
   glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);
 
   if (status != 1) {
     char message[MAX_GENEROUS_STRING_LENGTH];
     glGetShaderInfoLog(new_shader, MAX_GENEROUS_STRING_LENGTH, NULL, message);
-    log_info("Compiling shader %s: (status %d) (message %s)", path, status, message);
-    log_error("Shader compilation failed");
+    logs::info("Compiling shader %s: (status %d) (message %s)", path, status, message);
+    logs::error("Shader compilation failed");
     exit(EXIT_FAILURE);
   }
 }
 
 
-void Shaders::assert_program_status_ok(uint32 new_program) {
+void shaders::assert_program_status_ok(uint32 new_program) {
   int32 status;
   glGetProgramiv(new_program, GL_LINK_STATUS, &status);
 
   if (status != 1) {
     char message[MAX_GENEROUS_STRING_LENGTH];
     glGetProgramInfoLog(new_program, MAX_GENEROUS_STRING_LENGTH, NULL, message);
-    log_info("Compiling program %d: (status %d) (message %s)", new_program, status, message);
-    log_error("Program loading failed");
+    logs::info("Compiling program %d: (status %d) (message %s)", new_program, status, message);
+    logs::error("Program loading failed");
     exit(EXIT_FAILURE);
   }
 }
 
 
-uint32 Shaders::make_shader(const char *path, const char *source, GLenum shader_type) {
+uint32 shaders::make_shader(const char *path, const char *source, GLenum shader_type) {
   uint32 shader = glCreateShader(shader_type);
   glShaderSource(shader, 1, &source, NULL);
   glCompileShader(shader);
@@ -63,7 +63,7 @@ uint32 Shaders::make_shader(const char *path, const char *source, GLenum shader_
 }
 
 
-uint32 Shaders::make_program(uint32 vertex_shader, uint32 fragment_shader) {
+uint32 shaders::make_program(uint32 vertex_shader, uint32 fragment_shader) {
   uint32 new_program = glCreateProgram();
   glAttachShader(new_program, vertex_shader);
   glAttachShader(new_program, fragment_shader);
@@ -75,7 +75,7 @@ uint32 Shaders::make_program(uint32 vertex_shader, uint32 fragment_shader) {
 }
 
 
-uint32 Shaders::make_program(
+uint32 shaders::make_program(
   uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
 ) {
   uint32 new_program = glCreateProgram();
@@ -91,39 +91,39 @@ uint32 Shaders::make_program(
 }
 
 
-const char* Shaders::load_file(MemoryPool *memory_pool, const char *path) {
+const char* shaders::load_file(MemoryPool *memory_pool, const char *path) {
   char full_path[MAX_PATH];
   strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
   strcat(full_path, path);
-  uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
-  uint32 f2_size = Util::get_file_size(full_path);
-  char *file_memory = (char*)Memory::push(
+  uint32 f1_size = util::get_file_size(SHADER_COMMON_PATH);
+  uint32 f2_size = util::get_file_size(full_path);
+  char *file_memory = (char*)memory::push(
     memory_pool, f1_size + f2_size + 1, full_path
   );
-  Util::load_file(file_memory, SHADER_COMMON_PATH);
-  Util::load_file(file_memory + f1_size, full_path);
+  util::load_file(file_memory, SHADER_COMMON_PATH);
+  util::load_file(file_memory + f1_size, full_path);
   return file_memory;
 }
 
 
-const char* Shaders::load_frag_file(MemoryPool *memory_pool, const char *path) {
+const char* shaders::load_frag_file(MemoryPool *memory_pool, const char *path) {
   char full_path[MAX_PATH];
   strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
   strcat(full_path, path);
-  uint32 f1_size = Util::get_file_size(SHADER_COMMON_PATH);
-  uint32 f2_size = Util::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
-  uint32 f3_size = Util::get_file_size(full_path);
-  char *file_memory = (char*)Memory::push(
+  uint32 f1_size = util::get_file_size(SHADER_COMMON_PATH);
+  uint32 f2_size = util::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
+  uint32 f3_size = util::get_file_size(full_path);
+  char *file_memory = (char*)memory::push(
     memory_pool, f1_size + f2_size + f3_size + 1, full_path
   );
-  Util::load_file(file_memory, SHADER_COMMON_PATH);
-  Util::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
-  Util::load_file(file_memory + f1_size + f2_size, full_path);
+  util::load_file(file_memory, SHADER_COMMON_PATH);
+  util::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
+  util::load_file(file_memory + f1_size + f2_size, full_path);
   return file_memory;
 }
 
 
-int32 Shaders::get_uniform_location(
+int32 shaders::get_uniform_location(
   ShaderAsset *shader_asset,
   const char *uniform_name
 ) {
@@ -138,21 +138,21 @@ int32 Shaders::get_uniform_location(
   GLint location = glGetUniformLocation(shader_asset->program, uniform_name);
 
   if (location == -1) {
-    log_error("Could not get uniform: %s", uniform_name);
+    logs::error("Could not get uniform: %s", uniform_name);
   } else {
-    log_info("Missed uniform cache for %s", uniform_name);
+    logs::info("Missed uniform cache for %s", uniform_name);
   }
 
   return location;
 }
 
 
-bool32 Shaders::is_shader_asset_valid(ShaderAsset *shader_asset) {
+bool32 shaders::is_shader_asset_valid(ShaderAsset *shader_asset) {
   return shader_asset->program > 0;
 }
 
 
-void Shaders::set_int(
+void shaders::set_int(
   ShaderAsset *shader_asset, const char *uniform_name, uint32 value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -162,14 +162,14 @@ void Shaders::set_int(
 }
 
 
-void Shaders::set_bool(
+void shaders::set_bool(
   ShaderAsset *shader_asset, const char *uniform_name, bool value
 ) {
   set_int(shader_asset, uniform_name, (uint32)value);
 }
 
 
-void Shaders::set_float(
+void shaders::set_float(
   ShaderAsset *shader_asset, const char *uniform_name, float value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -179,7 +179,7 @@ void Shaders::set_float(
 }
 
 
-void Shaders::set_vec2(
+void shaders::set_vec2(
   ShaderAsset *shader_asset, const char *uniform_name, v2 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -189,7 +189,7 @@ void Shaders::set_vec2(
 }
 
 
-void Shaders::set_vec3(
+void shaders::set_vec3(
   ShaderAsset *shader_asset, const char *uniform_name, v3 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -199,7 +199,7 @@ void Shaders::set_vec3(
 }
 
 
-void Shaders::set_vec4(
+void shaders::set_vec4(
   ShaderAsset *shader_asset, const char *uniform_name, v4 *value
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -209,7 +209,7 @@ void Shaders::set_vec4(
 }
 
 
-void Shaders::set_mat2(
+void shaders::set_mat2(
   ShaderAsset *shader_asset, const char *uniform_name, m2 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -219,7 +219,7 @@ void Shaders::set_mat2(
 }
 
 
-void Shaders::set_mat3(
+void shaders::set_mat3(
   ShaderAsset *shader_asset, const char *uniform_name, m3 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -229,7 +229,7 @@ void Shaders::set_mat3(
 }
 
 
-void Shaders::set_mat4_multiple(
+void shaders::set_mat4_multiple(
   ShaderAsset *shader_asset, uint32 n, const char *uniform_name, m4 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -239,7 +239,7 @@ void Shaders::set_mat4_multiple(
 }
 
 
-void Shaders::set_mat4(
+void shaders::set_mat4(
   ShaderAsset *shader_asset, const char *uniform_name, m4 *mat
 ) {
   int32 location = get_uniform_location(shader_asset, uniform_name);
@@ -249,12 +249,12 @@ void Shaders::set_mat4(
 }
 
 
-void Shaders::reset_texture_units(ShaderAsset *shader_asset) {
+void shaders::reset_texture_units(ShaderAsset *shader_asset) {
   shader_asset->n_texture_units = 0;
 }
 
 
-uint32 Shaders::add_texture_unit(
+uint32 shaders::add_texture_unit(
   ShaderAsset *shader_asset,
   uint32 new_texture_unit,
   GLenum new_texture_unit_type
@@ -266,7 +266,7 @@ uint32 Shaders::add_texture_unit(
 }
 
 
-void Shaders::load_uniforms(ShaderAsset *shader_asset) {
+void shaders::load_uniforms(ShaderAsset *shader_asset) {
   for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
     shader_asset->intrinsic_uniform_locations[idx] = -1;
   }
@@ -310,10 +310,10 @@ void Shaders::load_uniforms(ShaderAsset *shader_asset) {
 }
 
 
-void Shaders::load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
+void shaders::load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
   shader_asset->did_set_texture_uniforms = false;
 
-  if (!Str::is_empty(shader_asset->geom_path)) {
+  if (!str::is_empty(shader_asset->geom_path)) {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,
@@ -345,7 +345,7 @@ void Shaders::load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_po
 }
 
 
-ShaderAsset* Shaders::init_shader_asset(
+ShaderAsset* shaders::init_shader_asset(
   ShaderAsset *shader_asset,
   MemoryPool *memory_pool,
   const char *new_name, ShaderType new_type,
@@ -366,6 +366,6 @@ ShaderAsset* Shaders::init_shader_asset(
 }
 
 
-void Shaders::destroy_shader_asset(ShaderAsset *shader_asset) {
+void shaders::destroy_shader_asset(ShaderAsset *shader_asset) {
   glDeleteProgram(shader_asset->program);
 }

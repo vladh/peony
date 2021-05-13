@@ -21,7 +21,7 @@ struct Task {
   BoneMatrixPool *bone_matrix_pool;
 };
 
-namespace Tasks {
+namespace tasks {
   static const char* task_type_to_str(TaskType type);
   void run_task(Task *task);
   void run_loading_loop(

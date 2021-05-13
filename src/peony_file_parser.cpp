@@ -1,54 +1,54 @@
-void PeonyFileParser::get_material_path(char *path, const char *name) {
+void peonyparser::get_material_path(char *path, const char *name) {
   strcpy(path, MATERIAL_FILE_DIRECTORY);
   strcat(path, name);
   strcat(path, MATERIAL_FILE_EXTENSION);
 }
 
-void PeonyFileParser::print_material_template(MaterialTemplate *material_template) {
-  log_info("MaterialTemplate");
-  log_info("  name: %s", material_template->name);
-  log_info("  shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
-  log_info("  shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
-  log_info("  shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
-  log_info(
+void peonyparser::print_material_template(MaterialTemplate *material_template) {
+  logs::info("MaterialTemplate");
+  logs::info("  name: %s", material_template->name);
+  logs::info("  shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
+  logs::info("  shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
+  logs::info("  shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
+  logs::info(
     "  depth_shader_asset_vert_path: %s",
     material_template->depth_shader_asset_vert_path
   );
-  log_info(
+  logs::info(
     "  depth_shader_asset_frag_path: %s",
     material_template->depth_shader_asset_frag_path
   );
-  log_info(
+  logs::info(
     "  depth_shader_asset_geom_path: %s",
     material_template->depth_shader_asset_geom_path
   );
-  log_info("  albedo_static:");
-  log_vec4(&material_template->albedo_static);
-  log_info("  metallic_static: %f", material_template->metallic_static);
-  log_info("  roughness_static: %f", material_template->roughness_static);
-  log_info("  ao_static: %f", material_template->ao_static);
-  log_info("  n_textures: %d", material_template->n_textures);
+  logs::info("  albedo_static:");
+  logs::print_v4(&material_template->albedo_static);
+  logs::info("  metallic_static: %f", material_template->metallic_static);
+  logs::info("  roughness_static: %f", material_template->roughness_static);
+  logs::info("  ao_static: %f", material_template->ao_static);
+  logs::info("  n_textures: %d", material_template->n_textures);
   for (
     uint32 idx_texture = 0;
     idx_texture < material_template->n_textures;
     idx_texture++
   ) {
-    log_info(
+    logs::info(
       "  texture %s (%s, %s)",
       material_template->texture_uniform_names[idx_texture],
-      Materials::texture_type_to_string(
+      materials::texture_type_to_string(
         material_template->texture_types[idx_texture]
       ),
       material_template->texture_paths[idx_texture]
     );
   }
-  log_info("  n_builtin_textures: %d", material_template->n_builtin_textures);
+  logs::info("  n_builtin_textures: %d", material_template->n_builtin_textures);
   for (
     uint32 idx_texture = 0;
     idx_texture < material_template->n_builtin_textures;
     idx_texture++
   ) {
-    log_info(
+    logs::info(
       "  built-in texture %s",
       material_template->builtin_texture_names[idx_texture]
     );
@@ -56,57 +56,57 @@ void PeonyFileParser::print_material_template(MaterialTemplate *material_templat
 }
 
 
-void PeonyFileParser::print_entity_template(EntityTemplate *entity_template) {
-  log_info("EntityTemplate");
-  log_info("  name: %s", entity_template->entity_debug_name);
-  log_info(
+void peonyparser::print_entity_template(EntityTemplate *entity_template) {
+  logs::info("EntityTemplate");
+  logs::info("  name: %s", entity_template->entity_debug_name);
+  logs::info(
     "  model_path_or_builtin_model_name: %s",
     entity_template->model_path_or_builtin_model_name
   );
-  log_info("  model_source: %d", entity_template->model_source);
-  log_info("  material_names.length: %d", entity_template->material_names.length);
-  log_info("  material_names:");
+  logs::info("  model_source: %d", entity_template->model_source);
+  logs::info("  material_names.length: %d", entity_template->material_names.length);
+  logs::info("  material_names:");
   for_each (material_name, entity_template->material_names) {
-    log_info(*material_name);
+    logs::info(*material_name);
   }
-  log_info("  render_pass: %d", entity_template->render_pass);
-  Entities::print_spatial_component(&entity_template->spatial_component);
+  logs::info("  render_pass: %d", entity_template->render_pass);
+  entities::print_spatial_component(&entity_template->spatial_component);
 }
 
 
-void PeonyFileParser::print_value(PropValue value, PropValueType type) {
+void peonyparser::print_value(PropValue value, PropValueType type) {
   if (type == PropValueType::unknown) {
-    log_info("<unknown>");
+    logs::info("<unknown>");
   } else if (type == PropValueType::string) {
-    log_info("%s", value.string_value);
+    logs::info("%s", value.string_value);
   } else if (type == PropValueType::boolean) {
-    log_info("%d", value.boolean_value);
+    logs::info("%d", value.boolean_value);
   } else if (type == PropValueType::number) {
-    log_info("%f", value.number_value);
+    logs::info("%f", value.number_value);
   } else if (type == PropValueType::vec2) {
-    log_vec2(&value.vec2_value);
+    logs::print_v2(&value.vec2_value);
   } else if (type == PropValueType::vec3) {
-    log_vec3(&value.vec3_value);
+    logs::print_v3(&value.vec3_value);
   } else if (type == PropValueType::vec4) {
-    log_vec4(&value.vec4_value);
+    logs::print_v4(&value.vec4_value);
   } else {
-    log_info("<invalid>");
+    logs::info("<invalid>");
   }
 }
 
 
-bool32 PeonyFileParser::is_char_whitespace(const char target) {
+bool32 peonyparser::is_char_whitespace(const char target) {
   return target == TOKEN_NEWLINE ||
     target == TOKEN_SPACE;
 }
 
 
-bool32 PeonyFileParser::is_token_whitespace(const char *token) {
+bool32 peonyparser::is_token_whitespace(const char *token) {
   return is_char_whitespace(token[0]);
 }
 
 
-bool32 PeonyFileParser::is_char_allowed_in_name(const char target) {
+bool32 peonyparser::is_char_allowed_in_name(const char target) {
   return isalpha(target) ||
     isdigit(target) ||
     target == '_' ||
@@ -116,7 +116,7 @@ bool32 PeonyFileParser::is_char_allowed_in_name(const char target) {
 }
 
 
-bool32 PeonyFileParser::is_token_name(const char *token) {
+bool32 peonyparser::is_token_name(const char *token) {
   for_range (0, strlen(token)) {
     if (!is_char_allowed_in_name(token[idx])) {
       return false;
@@ -126,7 +126,7 @@ bool32 PeonyFileParser::is_token_name(const char *token) {
 }
 
 
-bool32 PeonyFileParser::is_char_token_boundary(char target) {
+bool32 peonyparser::is_char_token_boundary(char target) {
   return is_char_whitespace(target) ||
     target == TOKEN_HEADER_START ||
     target == TOKEN_ELEMENT_SEPARATOR ||
@@ -139,29 +139,29 @@ bool32 PeonyFileParser::is_char_token_boundary(char target) {
 }
 
 
-void PeonyFileParser::get_value_from_token(
+void peonyparser::get_value_from_token(
   char *token,
   FILE *f,
   PropValueType *prop_value_type,
   PropValue *prop_value
 ) {
   // NOTE: Type names the can start a value: vec2, vec3, vec4
-  if (Str::eq(token, "vec2")) {
+  if (str::eq(token, "vec2")) {
     *prop_value_type = PropValueType::vec2;
     parse_vec2(token, f, &prop_value->vec2_value);
-  } else if (Str::eq(token, "vec3")) {
+  } else if (str::eq(token, "vec3")) {
     *prop_value_type = PropValueType::vec3;
     parse_vec3(token, f, &prop_value->vec3_value);
-  } else if (Str::eq(token, "vec4")) {
+  } else if (str::eq(token, "vec4")) {
     *prop_value_type = PropValueType::vec4;
     parse_vec4(token, f, &prop_value->vec4_value);
-  } else if (Str::eq(token, "true")) {
+  } else if (str::eq(token, "true")) {
     *prop_value_type = PropValueType::boolean;
     prop_value->boolean_value = true;
-  } else if (Str::eq(token, "false")) {
+  } else if (str::eq(token, "false")) {
     *prop_value_type = PropValueType::boolean;
     prop_value->boolean_value = false;
-  } else if (Str::eq(token, "0.0") || strtod(token, nullptr) != 0.0f) {
+  } else if (str::eq(token, "0.0") || strtod(token, nullptr) != 0.0f) {
     // NOTE: `strtod()` returns 0.0 if parsing fails, so we need to check
     // if our value actually was 0.0;
     *prop_value_type = PropValueType::number;
@@ -173,7 +173,7 @@ void PeonyFileParser::get_value_from_token(
 }
 
 
-bool32 PeonyFileParser::get_token(char *token, FILE *f) {
+bool32 peonyparser::get_token(char *token, FILE *f) {
   uint32 idx_token = 0;
   bool32 could_get_token = true;
 
@@ -200,7 +200,7 @@ bool32 PeonyFileParser::get_token(char *token, FILE *f) {
     }
 
     if (idx_token >= MAX_TOKEN_LENGTH) {
-      log_error("Reached max token length for token %s.", token);
+      logs::error("Reached max token length for token %s.", token);
       break;
     }
   }
@@ -211,7 +211,7 @@ bool32 PeonyFileParser::get_token(char *token, FILE *f) {
 }
 
 
-bool32 PeonyFileParser::get_non_trivial_token(char *token, FILE *f) {
+bool32 peonyparser::get_non_trivial_token(char *token, FILE *f) {
   bool32 could_get_token;
   do {
     could_get_token = get_token(token, f);
@@ -227,13 +227,13 @@ bool32 PeonyFileParser::get_non_trivial_token(char *token, FILE *f) {
 }
 
 
-void PeonyFileParser::parse_header(char *token, FILE *f) {
+void peonyparser::parse_header(char *token, FILE *f) {
   get_non_trivial_token(token, f);
   assert(is_token_name(token));
 }
 
 
-void PeonyFileParser::parse_vec2(char *token, FILE *f, v2 *parsed_vector) {
+void peonyparser::parse_vec2(char *token, FILE *f, v2 *parsed_vector) {
   get_non_trivial_token(token, f);
   assert(token[0] == TOKEN_TUPLE_START);
   get_non_trivial_token(token, f);
@@ -245,7 +245,7 @@ void PeonyFileParser::parse_vec2(char *token, FILE *f, v2 *parsed_vector) {
 }
 
 
-void PeonyFileParser::parse_vec3(char *token, FILE *f, v3 *parsed_vector) {
+void peonyparser::parse_vec3(char *token, FILE *f, v3 *parsed_vector) {
   get_non_trivial_token(token, f);
   assert(token[0] == TOKEN_TUPLE_START);
   get_non_trivial_token(token, f);
@@ -259,7 +259,7 @@ void PeonyFileParser::parse_vec3(char *token, FILE *f, v3 *parsed_vector) {
 }
 
 
-void PeonyFileParser::parse_vec4(char *token, FILE *f, v4 *parsed_vector) {
+void peonyparser::parse_vec4(char *token, FILE *f, v4 *parsed_vector) {
   get_non_trivial_token(token, f);
   assert(token[0] == TOKEN_TUPLE_START);
   get_non_trivial_token(token, f);
@@ -275,7 +275,7 @@ void PeonyFileParser::parse_vec4(char *token, FILE *f, v4 *parsed_vector) {
 }
 
 
-uint32 PeonyFileParser::parse_property(
+uint32 peonyparser::parse_property(
   char *token,
   FILE *f,
   char prop_name[MAX_TOKEN_LENGTH],
@@ -320,13 +320,13 @@ uint32 PeonyFileParser::parse_property(
 }
 
 
-void PeonyFileParser::parse_material_file(
+void peonyparser::parse_material_file(
   const char *path, MaterialTemplate *material_template
 ) {
   FILE *f = fopen(path, "r");
 
   if (!f) {
-    log_fatal("Could not open file %s.", path);
+    logs::fatal("Could not open file %s.", path);
     return;
   }
 
@@ -345,45 +345,45 @@ void PeonyFileParser::parse_material_file(
         token, f, prop_name, prop_value_types, prop_values
       );
 
-      if (Str::eq(prop_name, "shader_asset.vert_path")) {
+      if (str::eq(prop_name, "shader_asset.vert_path")) {
         strcpy(
           material_template->shader_asset_vert_path,
           prop_values[0].string_value
         );
-      } else if (Str::eq(prop_name, "shader_asset.frag_path")) {
+      } else if (str::eq(prop_name, "shader_asset.frag_path")) {
         strcpy(
           material_template->shader_asset_frag_path,
           prop_values[0].string_value
         );
-      } else if (Str::eq(prop_name, "shader_asset.geom_path")) {
+      } else if (str::eq(prop_name, "shader_asset.geom_path")) {
         strcpy(
           material_template->shader_asset_geom_path,
           prop_values[0].string_value
         );
-      } else if (Str::eq(prop_name, "depth_shader_asset.vert_path")) {
+      } else if (str::eq(prop_name, "depth_shader_asset.vert_path")) {
         strcpy(
           material_template->depth_shader_asset_vert_path,
           prop_values[0].string_value
         );
-      } else if (Str::eq(prop_name, "depth_shader_asset.frag_path")) {
+      } else if (str::eq(prop_name, "depth_shader_asset.frag_path")) {
         strcpy(
           material_template->depth_shader_asset_frag_path,
           prop_values[0].string_value
         );
-      } else if (Str::eq(prop_name, "depth_shader_asset.geom_path")) {
+      } else if (str::eq(prop_name, "depth_shader_asset.geom_path")) {
         strcpy(
           material_template->depth_shader_asset_geom_path,
           prop_values[0].string_value
         );
-      } else if (Str::eq(prop_name, "albedo_static")) {
+      } else if (str::eq(prop_name, "albedo_static")) {
         material_template->albedo_static = prop_values[0].vec4_value;
-      } else if (Str::eq(prop_name, "metallic_static")) {
+      } else if (str::eq(prop_name, "metallic_static")) {
         material_template->metallic_static =
           prop_values[0].number_value;
-      } else if (Str::eq(prop_name, "roughness_static")) {
+      } else if (str::eq(prop_name, "roughness_static")) {
         material_template->roughness_static =
           prop_values[0].number_value;
-      } else if (Str::eq(prop_name, "ao_static")) {
+      } else if (str::eq(prop_name, "ao_static")) {
         material_template->ao_static =
           prop_values[0].number_value;
       } else if (
@@ -395,7 +395,7 @@ void PeonyFileParser::parse_material_file(
           prop_name + TEXTURE_PREFIX_LENGTH
         );
         material_template->texture_types[idx_texture] =
-          Materials::texture_type_from_string(prop_values[0].string_value);
+          materials::texture_type_from_string(prop_values[0].string_value);
         strcpy(
           material_template->texture_paths[idx_texture],
           prop_values[1].string_value
@@ -413,13 +413,13 @@ void PeonyFileParser::parse_material_file(
         );
         material_template->n_builtin_textures++;
       } else {
-        log_info("Unhandled prop_name %s with values:", prop_name);
+        logs::info("Unhandled prop_name %s with values:", prop_name);
         for_range_named (idx_value, 0, n_values) {
           print_value(prop_values[idx_value], prop_value_types[idx_value]);
         }
       }
     } else {
-      log_info("Unhandled token: %s", token);
+      logs::info("Unhandled token: %s", token);
     }
   }
 
@@ -427,7 +427,7 @@ void PeonyFileParser::parse_material_file(
 }
 
 
-bool32 PeonyFileParser::parse_scene_file(
+bool32 peonyparser::parse_scene_file(
   const char *path,
   StackArray<EntityTemplate, 128> *entity_templates,
   uint32 *n_entities
@@ -438,7 +438,7 @@ bool32 PeonyFileParser::parse_scene_file(
   FILE *f = fopen(path, "r");
 
   if (!f) {
-    log_error("Could not open file %s.", path);
+    logs::error("Could not open file %s.", path);
     return false;
   }
 
@@ -461,7 +461,7 @@ bool32 PeonyFileParser::parse_scene_file(
       );
     } else if (is_token_name(token)) {
       if (entity_template == nullptr) {
-        log_fatal("Tried to parse file, but encountered data before header.");
+        logs::fatal("Tried to parse file, but encountered data before header.");
         assert(false); // A little hint for the compiler
       }
 
@@ -469,43 +469,43 @@ bool32 PeonyFileParser::parse_scene_file(
         token, f, prop_name, prop_value_types, prop_values
       );
 
-      if (Str::eq(prop_name, "model_path")) {
+      if (str::eq(prop_name, "model_path")) {
         strcpy(
           entity_template->model_path_or_builtin_model_name,
           prop_values[0].string_value
         );
         entity_template->model_source = ModelSource::file;
-      } else if (Str::eq(prop_name, "builtin_model_name")) {
+      } else if (str::eq(prop_name, "builtin_model_name")) {
         strcpy(
           entity_template->model_path_or_builtin_model_name,
           prop_values[0].string_value
         );
         entity_template->model_source = ModelSource::data;
-      } else if (Str::eq(prop_name, "materials")) {
+      } else if (str::eq(prop_name, "materials")) {
         for_range_named (idx_value, 0, n_values) {
           strcpy(
             *(entity_template->material_names.push()),
             prop_values[idx_value].string_value
           );
         }
-      } else if (Str::eq(prop_name, "render_passes")) {
+      } else if (str::eq(prop_name, "render_passes")) {
         RenderPassFlag render_pass = RenderPass::none;
         for_range_named (idx_value, 0, n_values) {
           render_pass = render_pass |
-            Renderer::render_pass_from_string(prop_values[idx_value].string_value);
+            renderer::render_pass_from_string(prop_values[idx_value].string_value);
         }
         entity_template->render_pass = render_pass;
-      } else if (Str::eq(prop_name, "physics_component.obb.center")) {
+      } else if (str::eq(prop_name, "physics_component.obb.center")) {
         entity_template->physics_component.obb.center = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "physics_component.obb.x_axis")) {
+      } else if (str::eq(prop_name, "physics_component.obb.x_axis")) {
         entity_template->physics_component.obb.x_axis = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "physics_component.obb.y_axis")) {
+      } else if (str::eq(prop_name, "physics_component.obb.y_axis")) {
         entity_template->physics_component.obb.y_axis = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "physics_component.obb.extents")) {
+      } else if (str::eq(prop_name, "physics_component.obb.extents")) {
         entity_template->physics_component.obb.extents = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "spatial_component.position")) {
+      } else if (str::eq(prop_name, "spatial_component.position")) {
         entity_template->spatial_component.position = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "spatial_component.rotation")) {
+      } else if (str::eq(prop_name, "spatial_component.rotation")) {
         entity_template->spatial_component.rotation =
           glm::angleAxis(
             radians(prop_values[0].vec4_value[0]),
@@ -515,28 +515,28 @@ bool32 PeonyFileParser::parse_scene_file(
               prop_values[0].vec4_value[3]
             )
           );
-      } else if (Str::eq(prop_name, "spatial_component.scale")) {
+      } else if (str::eq(prop_name, "spatial_component.scale")) {
         entity_template->spatial_component.scale = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "light_component.type")) {
+      } else if (str::eq(prop_name, "light_component.type")) {
         entity_template->light_component.type =
-          Entities::light_type_from_string(prop_values[0].string_value);
-      } else if (Str::eq(prop_name, "light_component.direction")) {
+          entities::light_type_from_string(prop_values[0].string_value);
+      } else if (str::eq(prop_name, "light_component.direction")) {
         entity_template->light_component.direction = prop_values[0].vec3_value;
-      } else if (Str::eq(prop_name, "light_component.color")) {
+      } else if (str::eq(prop_name, "light_component.color")) {
         entity_template->light_component.color = prop_values[0].vec4_value;
-      } else if (Str::eq(prop_name, "light_component.attenuation")) {
+      } else if (str::eq(prop_name, "light_component.attenuation")) {
         entity_template->light_component.attenuation = prop_values[0].vec4_value;
-      } else if (Str::eq(prop_name, "behavior_component.behavior")) {
+      } else if (str::eq(prop_name, "behavior_component.behavior")) {
         entity_template->behavior_component.behavior =
-          Entities::behavior_from_string(prop_values[0].string_value);
+          entities::behavior_from_string(prop_values[0].string_value);
       } else {
-        log_info("Unhandled prop_name %s with values:", prop_name);
+        logs::info("Unhandled prop_name %s with values:", prop_name);
         for_range_named (idx_value, 0, n_values) {
           print_value(prop_values[idx_value], prop_value_types[idx_value]);
         }
       }
     } else {
-      log_info("Unhandled token: %s", token);
+      logs::info("Unhandled token: %s", token);
     }
   }
 

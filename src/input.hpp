@@ -28,7 +28,7 @@ struct InputState {
   char text_input[MAX_TEXT_INPUT_LENGTH];
 };
 
-namespace Input {
+namespace input {
   void update_mouse_button(
     InputState *input_state, int button, int action, int mods
   );

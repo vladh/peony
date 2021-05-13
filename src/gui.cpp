@@ -1,4 +1,4 @@
-void Gui::update_screen_dimensions(
+void gui::update_screen_dimensions(
   GuiState *gui_state,
   uint32 new_window_width, uint32 new_window_height
 ) {
@@ -6,38 +6,38 @@ void Gui::update_screen_dimensions(
 }
 
 
-void Gui::update_mouse_button(GuiState *gui_state) {
-  if (Input::is_mouse_button_now_up(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+void gui::update_mouse_button(GuiState *gui_state) {
+  if (input::is_mouse_button_now_up(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
     gui_state->container_being_moved = nullptr;
   }
 }
 
 
-void Gui::update_mouse(GuiState *gui_state) {
+void gui::update_mouse(GuiState *gui_state) {
   if (gui_state->container_being_moved) {
     gui_state->container_being_moved->position += gui_state->input_state->mouse_offset;
   }
 }
 
 
-void Gui::request_cursor(GuiState *gui_state, GLFWcursor *cursor) {
+void gui::request_cursor(GuiState *gui_state, GLFWcursor *cursor) {
   gui_state->requested_cursor = cursor;
 }
 
 
-void Gui::set_cursor(GuiState *gui_state) {
-  Input::set_cursor(gui_state->input_state, gui_state->requested_cursor);
+void gui::set_cursor(GuiState *gui_state) {
+  input::set_cursor(gui_state->input_state, gui_state->requested_cursor);
   gui_state->requested_cursor = nullptr;
 }
 
 
-void Gui::start_drawing(GuiState *gui_state) {
+void gui::start_drawing(GuiState *gui_state) {
   glBindVertexArray(gui_state->vao);
   glBindBuffer(GL_ARRAY_BUFFER, gui_state->vbo);
 }
 
 
-void Gui::push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices) {
+void gui::push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices) {
   // VAO/VBO must have been bound by start_drawing()
   glBufferSubData(
     GL_ARRAY_BUFFER,
@@ -50,14 +50,14 @@ void Gui::push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices
 }
 
 
-void Gui::render(GuiState *gui_state) {
+void gui::render(GuiState *gui_state) {
   glUseProgram(gui_state->shader_asset.program);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, gui_state->texture_atlas.texture_name);
 
   if (!gui_state->shader_asset.did_set_texture_uniforms) {
-    Shaders::set_int(&gui_state->shader_asset, "atlas_texture", 0);
+    shaders::set_int(&gui_state->shader_asset, "atlas_texture", 0);
     gui_state->shader_asset.did_set_texture_uniforms = true;
   }
 
@@ -68,14 +68,14 @@ void Gui::render(GuiState *gui_state) {
 }
 
 
-v2 Gui::get_text_dimensions(
+v2 gui::get_text_dimensions(
   FontAsset *font_asset, const char *str
 ) {
   // NOTE: This returns the dimensions around the main body of the text.
   // This does not include descenders.
-  real32 line_height = Fonts::font_unit_to_px(font_asset->height);
+  real32 line_height = fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
-  real32 ascender = Fonts::font_unit_to_px(font_asset->ascender);
+  real32 ascender = fonts::font_unit_to_px(font_asset->ascender);
 
   real32 start_x = 0.0f;
   real32 start_y = 0.0f - (line_height - ascender);
@@ -99,12 +99,12 @@ v2 Gui::get_text_dimensions(
     Character *character = font_asset->characters[c];
 
     if (!character) {
-      log_warning("Could not get character: %c", c);
+      logs::warning("Could not get character: %c", c);
       continue;
     }
 
-    curr_x += Fonts::frac_px_to_px(character->advance.x);
-    curr_y += Fonts::frac_px_to_px(character->advance.y);
+    curr_x += fonts::frac_px_to_px(character->advance.x);
+    curr_y += fonts::frac_px_to_px(character->advance.y);
   }
 
   max_x = max(max_x, curr_x);
@@ -114,7 +114,7 @@ v2 Gui::get_text_dimensions(
 }
 
 
-v2 Gui::center_bb(
+v2 gui::center_bb(
   v2 container_position,
   v2 container_dimensions,
   v2 element_dimensions
@@ -125,7 +125,7 @@ v2 Gui::center_bb(
 }
 
 
-v2 Gui::add_element_to_container(
+v2 gui::add_element_to_container(
   GuiContainer *container, v2 element_dimensions
 ) {
   // When adding a new element, we need to ensure we have enough space.
@@ -178,7 +178,7 @@ v2 Gui::add_element_to_container(
 }
 
 
-void Gui::draw_container(
+void gui::draw_container(
   GuiState *gui_state,
   GuiContainer *container
 ) {
@@ -192,7 +192,7 @@ void Gui::draw_container(
   );
 
   v2 text_dimensions = get_text_dimensions(
-    Fonts::get_by_name(&gui_state->font_assets, "body"),
+    fonts::get_by_name(&gui_state->font_assets, "body"),
     container->title
   );
   v2 centered_text_position = center_bb(
@@ -228,7 +228,7 @@ void Gui::draw_container(
 }
 
 
-GuiContainer* Gui::make_container(
+GuiContainer* gui::make_container(
   GuiState *gui_state, const char *title, v2 position
 ) {
   GuiContainer *container = nullptr;
@@ -242,14 +242,14 @@ GuiContainer* Gui::make_container(
   if (container) {
     // Check if we need to set this container as being moved.
     if (
-      Input::is_mouse_in_bb(
+      input::is_mouse_in_bb(
         gui_state->input_state,
         container->position,
         container->position + v2(
           container->dimensions.x, container->title_bar_height
         )
       ) &&
-      Input::is_mouse_button_now_down(
+      input::is_mouse_button_now_down(
         gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT
       )
     ) {
@@ -283,17 +283,17 @@ GuiContainer* Gui::make_container(
 }
 
 
-void Gui::draw_text(
+void gui::draw_text(
   GuiState *gui_state,
   const char* font_name, const char *str,
   v2 position,
   v4 color
 ) {
-  FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, font_name);
+  FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, font_name);
 
-  real32 line_height = Fonts::font_unit_to_px(font_asset->height);
+  real32 line_height = fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = line_height * GUI_LINE_SPACING_FACTOR;
-  real32 ascender = Fonts::font_unit_to_px(font_asset->ascender);
+  real32 ascender = fonts::font_unit_to_px(font_asset->ascender);
 
   // NOTE: When changing this code, remember that the text positioning logic
   // needs to be replicated in `get_text_dimensions()`!
@@ -317,13 +317,13 @@ void Gui::draw_text(
     Character *character = font_asset->characters[c];
 
     if (!character) {
-      log_warning("Could not get character: %c", c);
+      logs::warning("Could not get character: %c", c);
       continue;
     }
 
     real32 char_x = curr_x + character->bearing.x;
     real32 char_y = curr_y + (
-      Fonts::font_unit_to_px(font_asset->height) - character->bearing.y
+      fonts::font_unit_to_px(font_asset->height) - character->bearing.y
     );
 
     real32 tex_x = (real32)character->tex_coords.x / gui_state->texture_atlas.size.x;
@@ -334,8 +334,8 @@ void Gui::draw_text(
     real32 w = (real32)character->size.x;
     real32 h = (real32)character->size.y;
 
-    curr_x += Fonts::frac_px_to_px(character->advance.x);
-    curr_y += Fonts::frac_px_to_px(character->advance.y);
+    curr_x += fonts::frac_px_to_px(character->advance.x);
+    curr_y += fonts::frac_px_to_px(character->advance.y);
 
     // Skip glyphs with no pixels, like spaces.
     if (w <= 0 || h <= 0) {
@@ -367,7 +367,7 @@ void Gui::draw_text(
 }
 
 
-void Gui::draw_text_shadow(
+void gui::draw_text_shadow(
   GuiState *gui_state,
   const char* font_name, const char *str,
   v2 position,
@@ -381,7 +381,7 @@ void Gui::draw_text_shadow(
 }
 
 
-void Gui::draw_heading(
+void gui::draw_heading(
   GuiState *gui_state,
   const char *str,
   v4 color
@@ -391,7 +391,7 @@ void Gui::draw_heading(
       v2(0.0f, 0.0f),
       gui_state->window_dimensions,
       get_text_dimensions(
-        Fonts::get_by_name(&gui_state->font_assets, "heading"),
+        fonts::get_by_name(&gui_state->font_assets, "heading"),
         str
       )
     ).x,
@@ -402,7 +402,7 @@ void Gui::draw_heading(
 }
 
 
-void Gui::draw_rect(
+void gui::draw_rect(
   GuiState *gui_state,
   v2 position,
   v2 dimensions,
@@ -427,7 +427,7 @@ void Gui::draw_rect(
 }
 
 
-void Gui::draw_line(
+void gui::draw_line(
   GuiState *gui_state,
   v2 start, v2 end,
   real32 thickness, v4 color
@@ -461,7 +461,7 @@ void Gui::draw_line(
 }
 
 
-void Gui::draw_frame(
+void gui::draw_frame(
   GuiState *gui_state,
   v2 position, v2 bottomright,
   v2 thickness, v4 color
@@ -497,7 +497,7 @@ void Gui::draw_frame(
 }
 
 
-bool32 Gui::draw_toggle(
+bool32 gui::draw_toggle(
   GuiState *gui_state,
   GuiContainer *container,
   const char *text,
@@ -506,7 +506,7 @@ bool32 Gui::draw_toggle(
   bool32 is_pressed = false;
 
   v2 text_dimensions = get_text_dimensions(
-    Fonts::get_by_name(&gui_state->font_assets, "body"),
+    fonts::get_by_name(&gui_state->font_assets, "body"),
     text
   );
   v2 button_dimensions = GUI_TOGGLE_BUTTON_SIZE +
@@ -534,7 +534,7 @@ bool32 Gui::draw_toggle(
     button_color = GUI_LIGHT_COLOR;
   }
 
-  if (Input::is_mouse_in_bb(gui_state->input_state, position, button_bottomright)) {
+  if (input::is_mouse_in_bb(gui_state->input_state, position, button_bottomright)) {
     request_cursor(gui_state, gui_state->input_state->hand_cursor);
     if (*toggle_state) {
       button_color = GUI_MAIN_HOVER_COLOR;
@@ -542,11 +542,11 @@ bool32 Gui::draw_toggle(
       button_color = GUI_LIGHT_HOVER_COLOR;
     }
 
-    if (Input::is_mouse_button_now_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+    if (input::is_mouse_button_now_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
-    if (Input::is_mouse_button_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+    if (input::is_mouse_button_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       if (*toggle_state) {
         button_color = GUI_MAIN_ACTIVE_COLOR;
       } else {
@@ -579,24 +579,24 @@ bool32 Gui::draw_toggle(
 }
 
 
-void Gui::draw_named_value(
+void gui::draw_named_value(
   GuiState *gui_state,
   GuiContainer *container,
   const char *name_text,
   const char *value_text
 ) {
   v2 name_text_dimensions = get_text_dimensions(
-    Fonts::get_by_name(&gui_state->font_assets, "body-bold"),
+    fonts::get_by_name(&gui_state->font_assets, "body-bold"),
     name_text
   );
   v2 value_text_dimensions = get_text_dimensions(
-    Fonts::get_by_name(&gui_state->font_assets, "body"),
+    fonts::get_by_name(&gui_state->font_assets, "body"),
     value_text
   );
   // Sometimes we draw a value which is a rapidly changing number.
   // We don't want to container to wobble in size back and forth, so we round
   // the size of the value text to the next multiple of 50.
-  value_text_dimensions.x = Util::round_to_nearest_multiple(
+  value_text_dimensions.x = util::round_to_nearest_multiple(
     value_text_dimensions.x, 50.0f
   );
   v2 dimensions = v2(
@@ -624,13 +624,13 @@ void Gui::draw_named_value(
 }
 
 
-void Gui::draw_body_text(
+void gui::draw_body_text(
   GuiState *gui_state,
   GuiContainer *container,
   const char *text
 ) {
   v2 dimensions = get_text_dimensions(
-    Fonts::get_by_name(&gui_state->font_assets, "body"),
+    fonts::get_by_name(&gui_state->font_assets, "body"),
     text
   );
   v2 position = add_element_to_container(container, dimensions);
@@ -638,7 +638,7 @@ void Gui::draw_body_text(
 }
 
 
-bool32 Gui::draw_button(
+bool32 gui::draw_button(
   GuiState *gui_state,
   GuiContainer *container,
   const char *text
@@ -646,7 +646,7 @@ bool32 Gui::draw_button(
   bool32 is_pressed = false;
 
   v2 text_dimensions = get_text_dimensions(
-    Fonts::get_by_name(&gui_state->font_assets, "body"),
+    fonts::get_by_name(&gui_state->font_assets, "body"),
     text
   );
   v2 button_dimensions = text_dimensions +
@@ -660,15 +660,15 @@ bool32 Gui::draw_button(
 
   v4 button_color = GUI_MAIN_COLOR;
 
-  if (Input::is_mouse_in_bb(gui_state->input_state, position, bottomright)) {
+  if (input::is_mouse_in_bb(gui_state->input_state, position, bottomright)) {
     request_cursor(gui_state, gui_state->input_state->hand_cursor);
     button_color = GUI_MAIN_HOVER_COLOR;
 
-    if (Input::is_mouse_button_now_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+    if (input::is_mouse_button_now_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       is_pressed = true;
     }
 
-    if (Input::is_mouse_button_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+    if (input::is_mouse_button_down(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
       button_color = GUI_MAIN_ACTIVE_COLOR;
     }
   }
@@ -697,7 +697,7 @@ bool32 Gui::draw_button(
 }
 
 
-void Gui::draw_console(
+void gui::draw_console(
   GuiState *gui_state,
   char *console_input_text
 ) {
@@ -705,8 +705,8 @@ void Gui::draw_console(
     return;
   }
 
-  FontAsset *font_asset = Fonts::get_by_name(&gui_state->font_assets, "body");
-  real32 line_height = Fonts::font_unit_to_px(font_asset->height);
+  FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, "body");
+  real32 line_height = fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = floor(
     line_height * GUI_CONSOLE_LINE_SPACING_FACTOR
   );
@@ -772,7 +772,7 @@ void Gui::draw_console(
 }
 
 
-GuiState* Gui::init_gui_state(
+GuiState* gui::init_gui_state(
   GuiState* gui_state,
   MemoryPool *memory_pool,
   InputState *input_state,
@@ -788,11 +788,11 @@ GuiState* Gui::init_gui_state(
   );
   gui_state->input_state = input_state;
   gui_state->window_dimensions = v2(window_width, window_height);
-  Materials::init_texture_atlas(&gui_state->texture_atlas, iv2(2000, 2000));
+  materials::init_texture_atlas(&gui_state->texture_atlas, iv2(2000, 2000));
 
   // Shaders
   {
-     Shaders::init_shader_asset(
+     shaders::init_shader_asset(
       &gui_state->shader_asset,
       &temp_memory_pool,
       "gui_generic", ShaderType::standard,
@@ -805,29 +805,29 @@ GuiState* Gui::init_gui_state(
     FT_Library ft_library;
 
     if (FT_Init_FreeType(&ft_library)) {
-      log_error("Could not init FreeType");
+      logs::error("Could not init FreeType");
       return nullptr;
     }
 
-    Fonts::init_font_asset(
+    fonts::init_font_asset(
       gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "body", GUI_MAIN_FONT_REGULAR, 18
     );
 
-    Fonts::init_font_asset(
+    fonts::init_font_asset(
       gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "body-bold", GUI_MAIN_FONT_BOLD, 18
     );
 
-    Fonts::init_font_asset(
+    fonts::init_font_asset(
       gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "heading", GUI_MAIN_FONT_REGULAR, 42
     );
 
-    Fonts::init_font_asset(
+    fonts::init_font_asset(
       gui_state->font_assets.push(),
       memory_pool, &gui_state->texture_atlas,
       &ft_library, "title", GUI_MAIN_FONT_REGULAR, 64
@@ -871,7 +871,7 @@ GuiState* Gui::init_gui_state(
     );
   }
 
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 
   return gui_state;
 }
