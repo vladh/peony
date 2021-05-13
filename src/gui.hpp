@@ -52,7 +52,7 @@ struct GuiState {
   real32 heading_fadeout_delay;
 };
 
-namespace Gui {
+namespace gui {
   constexpr const char *GUI_MAIN_FONT_REGULAR = "SofiaProRegular.otf";
   constexpr const char *GUI_MAIN_FONT_BOLD = "SofiaProBold.otf";
   constexpr real32 GUI_LINE_SPACING_FACTOR = 1.8f;

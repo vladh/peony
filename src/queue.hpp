@@ -42,7 +42,7 @@ public:
 
   Queue(MemoryPool *memory_pool, uint32 new_max_size, const char *debug_name) {
     this->max_size = new_max_size;
-    this->items = (T*)Memory::push(memory_pool, sizeof(T) * this->max_size, debug_name);
+    this->items = (T*)memory::push(memory_pool, sizeof(T) * this->max_size, debug_name);
   }
 
   Queue(MemoryPool *memory_pool, uint32 new_size, uint32 new_max_size, T *new_items) {

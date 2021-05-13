@@ -1,4 +1,4 @@
-void Models::setup_mesh_vertex_buffers(
+void models::setup_mesh_vertex_buffers(
   Mesh *mesh,
   Vertex *vertex_data, uint32 n_vertices,
   uint32 *index_data, uint32 n_indices
@@ -65,7 +65,7 @@ void Models::setup_mesh_vertex_buffers(
 }
 
 
-bool32 Models::is_bone_only_node(aiNode *node) {
+bool32 models::is_bone_only_node(aiNode *node) {
   if (node->mNumMeshes > 0) {
     return false;
   }
@@ -79,7 +79,7 @@ bool32 Models::is_bone_only_node(aiNode *node) {
 }
 
 
-aiNode* Models::find_root_bone(const aiScene *scene) {
+aiNode* models::find_root_bone(const aiScene *scene) {
   // NOTE: To find the root bone, we find the first-level node (direct child
   // of root node) whose entire descendent tree has no meshes, including the
   // leaf nodes. Is this a perfect way of finding the root bone? Probably
@@ -97,7 +97,7 @@ aiNode* Models::find_root_bone(const aiScene *scene) {
 }
 
 
-void Models::add_bone_tree_to_animation_component(
+void models::add_bone_tree_to_animation_component(
   AnimationComponent *animation_component,
   aiNode *node,
   uint32 idx_parent
@@ -120,7 +120,7 @@ void Models::add_bone_tree_to_animation_component(
 }
 
 
-void Models::load_bones(
+void models::load_bones(
   AnimationComponent *animation_component,
   const aiScene *scene
 ) {
@@ -138,13 +138,13 @@ void Models::load_bones(
 }
 
 
-void Models::load_animations(
+void models::load_animations(
   AnimationComponent *animation_component,
   const aiScene *scene,
   BoneMatrixPool *bone_matrix_pool
 ) {
   m4 scene_root_transform =
-    Util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
+    util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
   m4 inverse_scene_root_transform = inverse(scene_root_transform);
 
   animation_component->n_animations = scene->mNumAnimations;
@@ -154,7 +154,7 @@ void Models::load_animations(
 
     *animation = {
       .duration = ai_animation->mDuration * ai_animation->mTicksPerSecond,
-      .idx_bone_matrix_set = EntitySets::push_to_bone_matrix_pool(bone_matrix_pool),
+      .idx_bone_matrix_set = entitysets::push_to_bone_matrix_pool(bone_matrix_pool),
     };
     strcpy(animation->name, ai_animation->mName.C_Str());
 
@@ -169,7 +169,7 @@ void Models::load_animations(
 
       for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
         aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
-        if (Str::eq(ai_channel->mNodeName.C_Str(), bone->name)) {
+        if (str::eq(ai_channel->mNodeName.C_Str(), bone->name)) {
           found_channel_idx = idx_channel;
           did_find_channel = true;
           break;
@@ -181,7 +181,7 @@ void Models::load_animations(
         continue;
       }
 
-      EntitySets::make_bone_matrices_for_animation_bone(
+      entitysets::make_bone_matrices_for_animation_bone(
         animation_component,
         ai_animation->mChannels[found_channel_idx],
         idx_animation,
@@ -198,7 +198,7 @@ void Models::load_animations(
 
       for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
         // #slow: We could avoid this multiplication here.
-        m4 *bone_matrix = EntitySets::get_bone_matrix(
+        m4 *bone_matrix = entitysets::get_bone_matrix(
           bone_matrix_pool,
           animation->idx_bone_matrix_set,
           idx_bone,
@@ -216,7 +216,7 @@ void Models::load_animations(
 }
 
 
-void Models::load_mesh(
+void models::load_mesh(
   Mesh *mesh,
   aiMesh *ai_mesh,
   const aiScene *scene,
@@ -232,11 +232,11 @@ void Models::load_mesh(
 
   // Vertices
   if (!ai_mesh->mNormals) {
-    log_warning("Model does not have normals.");
+    logs::warning("Model does not have normals.");
   }
 
   mesh->n_vertices = ai_mesh->mNumVertices;
-  mesh->vertices = (Vertex*)Memory::push(
+  mesh->vertices = (Vertex*)memory::push(
     &mesh->temp_memory_pool,
     mesh->n_vertices * sizeof(Vertex),
     "mesh_vertices"
@@ -281,7 +281,7 @@ void Models::load_mesh(
   }
 
   mesh->n_indices = n_indices;
-  mesh->indices = (uint32*)Memory::push(
+  mesh->indices = (uint32*)memory::push(
     &mesh->temp_memory_pool,
     mesh->n_indices * sizeof(uint32),
     "mesh_indices"
@@ -308,7 +308,7 @@ void Models::load_mesh(
     bool32 did_find_bone = false;
 
     for_range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
-      if (Str::eq(
+      if (str::eq(
         animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str()
       )) {
         did_find_bone = true;
@@ -324,7 +324,7 @@ void Models::load_mesh(
     // just make things more complicated. We set it multiple times, whatever.
     // It's the same value anyway.
     animation_component->bones[idx_found_bone].offset =
-      Util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix);
+      util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix);
 
     for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
       uint32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
@@ -343,19 +343,19 @@ void Models::load_mesh(
 }
 
 
-void Models::destroy_mesh(Mesh *mesh) {
+void models::destroy_mesh(Mesh *mesh) {
   glDeleteVertexArrays(1, &mesh->vao);
   glDeleteBuffers(1, &mesh->vbo);
   glDeleteBuffers(1, &mesh->ebo);
 }
 
 
-void Models::load_node(
+void models::load_node(
   ModelLoader *model_loader,
   aiNode *node, const aiScene *scene,
   m4 accumulated_transform, Pack indices_pack
 ) {
-  m4 node_transform = Util::aimatrix4x4_to_glm(&node->mTransformation);
+  m4 node_transform = util::aimatrix4x4_to_glm(&node->mTransformation);
   m4 transform = accumulated_transform * node_transform;
 
   for_range (0, node->mNumMeshes) {
@@ -377,7 +377,7 @@ void Models::load_node(
     // NOTE: We can only store 4 bits per pack element. Our indices can be way
     // bigger than that, but that's fine. We don't need that much precision.
     // Just smash the number down to a uint8.
-    pack_push(&new_indices_pack, (uint8)idx);
+    pack::push(&new_indices_pack, (uint8)idx);
     load_node(
       model_loader, node->mChildren[idx], scene, transform, new_indices_pack
     );
@@ -385,7 +385,7 @@ void Models::load_node(
 }
 
 
-void Models::load_model_from_file(
+void models::load_model_from_file(
   ModelLoader *model_loader,
   BoneMatrixPool *bone_matrix_pool
 ) {
@@ -412,7 +412,7 @@ void Models::load_model_from_file(
   END_TIMER(assimp_import);
 
   if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-    log_fatal("assimp error: %s", aiGetErrorString());
+    logs::fatal("assimp error: %s", aiGetErrorString());
     return;
   }
 
@@ -436,7 +436,7 @@ void Models::load_model_from_file(
 }
 
 
-void Models::load_model_from_data(
+void models::load_model_from_data(
   ModelLoader *model_loader
 ) {
   // NOTE: This function sets up mesh vertex buffers directly, and so is
@@ -449,14 +449,14 @@ void Models::load_model_from_data(
   uint32 n_indices = 0;
   GLenum mode = 0;
 
-  if (Str::eq(model_loader->model_path_or_builtin_model_name, "axes")) {
+  if (str::eq(model_loader->model_path_or_builtin_model_name, "axes")) {
     vertex_data = (Vertex*)AXES_VERTICES;
     n_vertices = 6;
     index_data = nullptr;
     n_indices = 0;
     mode = GL_LINES;
-  } else if (Str::eq(model_loader->model_path_or_builtin_model_name, "ocean")) {
-    Util::make_plane(
+  } else if (str::eq(model_loader->model_path_or_builtin_model_name, "ocean")) {
+    util::make_plane(
       &temp_memory_pool,
       200, 200,
       800, 800,
@@ -464,8 +464,8 @@ void Models::load_model_from_data(
       &vertex_data, &index_data
     );
     mode = GL_TRIANGLES;
-  } else if (Str::eq(model_loader->model_path_or_builtin_model_name, "skysphere")) {
-    Util::make_sphere(
+  } else if (str::eq(model_loader->model_path_or_builtin_model_name, "skysphere")) {
+    util::make_sphere(
       &temp_memory_pool,
       64, 64,
       &n_vertices, &n_indices,
@@ -473,7 +473,7 @@ void Models::load_model_from_data(
     );
     mode = GL_TRIANGLE_STRIP;
   } else if (
-    Str::starts_with(model_loader->model_path_or_builtin_model_name, "screenquad")
+    str::starts_with(model_loader->model_path_or_builtin_model_name, "screenquad")
   ) {
     vertex_data = (Vertex*)SCREENQUAD_VERTICES;
     n_vertices = 6;
@@ -481,7 +481,7 @@ void Models::load_model_from_data(
     n_indices = 0;
     mode = GL_TRIANGLES;
   } else {
-    log_fatal(
+    logs::fatal(
       "Could not find builtin model: %s",
       model_loader->model_path_or_builtin_model_name
     );
@@ -498,11 +498,11 @@ void Models::load_model_from_data(
   setup_mesh_vertex_buffers(mesh, vertex_data, n_vertices, index_data, n_indices);
   model_loader->state = ModelLoaderState::vertex_buffers_set_up;
 
-  Memory::destroy_memory_pool(&temp_memory_pool);
+  memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-bool32 Models::prepare_model_loader_and_check_if_done(
+bool32 models::prepare_model_loader_and_check_if_done(
   ModelLoader *model_loader,
   PersistentPbo *persistent_pbo,
   TextureNamePool *texture_name_pool,
@@ -511,7 +511,7 @@ bool32 Models::prepare_model_loader_and_check_if_done(
 ) {
   if (model_loader->state == ModelLoaderState::initialized) {
     if (model_loader->model_source != ModelSource::file) {
-      log_error(
+      logs::error(
         "Found model with model_source=file for which no vertex data was loaded."
       );
       return false;
@@ -541,7 +541,7 @@ bool32 Models::prepare_model_loader_and_check_if_done(
           mesh->vertices, mesh->n_vertices,
           mesh->indices, mesh->n_indices
         );
-        Memory::destroy_memory_pool(&mesh->temp_memory_pool);
+        memory::destroy_memory_pool(&mesh->temp_memory_pool);
       }
     }
     model_loader->state = ModelLoaderState::vertex_buffers_set_up;
@@ -552,7 +552,7 @@ bool32 Models::prepare_model_loader_and_check_if_done(
     for_range_named (idx_material, 0, model_loader->material_names.length) {
       for_range_named (idx_mesh, 0, model_loader->n_meshes) {
         Mesh *mesh = &model_loader->meshes[idx_mesh];
-        uint8 mesh_number = pack_get(&mesh->indices_pack, 0);
+        uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
         // For our model's mesh number `mesh_number`, we want to choose
         // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
         // we choose the 4th material for mesh number 4.
@@ -578,7 +578,7 @@ bool32 Models::prepare_model_loader_and_check_if_done(
 }
 
 
-bool32 Models::prepare_entity_loader_and_check_if_done(
+bool32 models::prepare_entity_loader_and_check_if_done(
   EntityLoader *entity_loader,
   EntitySet *entity_set,
   ModelLoader *model_loader,
@@ -635,12 +635,12 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
       for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
         Mesh *mesh = &model_loader->meshes[idx];
 
-        Entity *child_entity = EntitySets::add_entity_to_set(
+        Entity *child_entity = entitysets::add_entity_to_set(
           entity_set,
           entity_loader->name
         );
 
-        if (Entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
+        if (entities::is_spatial_component_valid(&entity_loader->spatial_component)) {
           SpatialComponent *child_spatial_component =
             spatial_component_set->components[child_entity->handle];
           assert(child_spatial_component);
@@ -675,7 +675,7 @@ bool32 Models::prepare_entity_loader_and_check_if_done(
 }
 
 
-ModelLoader* Models::init_model_loader(
+ModelLoader* models::init_model_loader(
   ModelLoader *model_loader,
   ModelSource model_source,
   const char *model_path_or_builtin_model_name
@@ -697,7 +697,7 @@ ModelLoader* Models::init_model_loader(
 }
 
 
-EntityLoader* Models::init_entity_loader(
+EntityLoader* models::init_entity_loader(
   EntityLoader *entity_loader,
   const char *name,
   const char *model_path_or_builtin_model_name,
@@ -717,19 +717,19 @@ EntityLoader* Models::init_entity_loader(
 }
 
 
-bool32 Models::is_mesh_valid(Mesh *mesh) {
+bool32 models::is_mesh_valid(Mesh *mesh) {
   return mesh->vao > 0;
 }
 
 
-bool32 Models::is_drawable_component_valid(
+bool32 models::is_drawable_component_valid(
   DrawableComponent *drawable_component
 ) {
   return is_mesh_valid(&drawable_component->mesh);
 }
 
 
-void Models::destroy_drawable_component(DrawableComponent *drawable_component) {
+void models::destroy_drawable_component(DrawableComponent *drawable_component) {
   if (!is_drawable_component_valid(drawable_component)) {
     return;
   }

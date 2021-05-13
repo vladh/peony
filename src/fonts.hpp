@@ -19,7 +19,7 @@ struct FontAsset {
   uint32 height;
 };
 
-namespace Fonts {
+namespace fonts {
   // NOTE: Unicode is only the same as ASCII until 0x7F.
   // We can change this to 0xFF when we add Unicode support.
   constexpr uint32 CHAR_MAX_CODEPOINT_TO_LOAD = 0x7F;

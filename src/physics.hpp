@@ -42,7 +42,7 @@ struct RayCollisionResult {
   PhysicsComponent *collidee;
 };
 
-namespace Physics {
+namespace physics {
   constexpr real32 PARALLEL_FACE_TOLERANCE = 1.0e-2;
   Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
   RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);

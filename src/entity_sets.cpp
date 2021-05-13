@@ -1,9 +1,9 @@
-uint32 EntitySets::push_to_bone_matrix_pool(BoneMatrixPool *pool) {
+uint32 entitysets::push_to_bone_matrix_pool(BoneMatrixPool *pool) {
   return pool->n_bone_matrix_sets++;
 }
 
 
-m4* EntitySets::get_bone_matrix(
+m4* entitysets::get_bone_matrix(
   BoneMatrixPool *pool,
   uint32 idx,
   uint32 idx_bone,
@@ -17,7 +17,7 @@ m4* EntitySets::get_bone_matrix(
 }
 
 
-real64* EntitySets::get_bone_matrix_time(
+real64* entitysets::get_bone_matrix_time(
   BoneMatrixPool *pool,
   uint32 idx,
   uint32 idx_bone,
@@ -31,7 +31,7 @@ real64* EntitySets::get_bone_matrix_time(
 }
 
 
-EntityHandle EntitySets::make_handle(
+EntityHandle entitysets::make_handle(
   EntitySet *entity_set
 ) {
   // NOTE: 0 is an invalid handle.
@@ -42,7 +42,7 @@ EntityHandle EntitySets::make_handle(
 }
 
 
-Entity* EntitySets::add_entity_to_set(
+Entity* entitysets::add_entity_to_set(
   EntitySet *entity_set,
   const char *debug_name
 ) {
@@ -54,7 +54,7 @@ Entity* EntitySets::add_entity_to_set(
 }
 
 
-m4 EntitySets::make_model_matrix(
+m4 entitysets::make_model_matrix(
   SpatialComponentSet *spatial_component_set,
   SpatialComponent *spatial_component,
   ModelMatrixCache *cache
@@ -68,7 +68,7 @@ m4 EntitySets::make_model_matrix(
     model_matrix = make_model_matrix(spatial_component_set, parent, cache);
   }
 
-  if (Entities::does_spatial_component_have_dimensions(spatial_component)) {
+  if (entities::does_spatial_component_have_dimensions(spatial_component)) {
     // TODO: This is somehow really #slow, the multiplication in particular.
     // Is there a better way?
     if (
@@ -89,7 +89,7 @@ m4 EntitySets::make_model_matrix(
 }
 
 
-void EntitySets::update_light_components(
+void entitysets::update_light_components(
   LightComponentSet *light_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t,
@@ -105,8 +105,8 @@ void EntitySets::update_light_components(
       spatial_component_set->components[light_component->entity_handle];
 
     if (!(
-      Entities::is_light_component_valid(light_component) &&
-      Entities::is_spatial_component_valid(spatial_component)
+      entities::is_light_component_valid(light_component) &&
+      entities::is_spatial_component_valid(spatial_component)
     )) {
       continue;
     }
@@ -118,7 +118,7 @@ void EntitySets::update_light_components(
     // For the sun! :)
     if (light_component->type == LightType::directional) {
       spatial_component->position = camera_position +
-        -light_component->direction * Renderer::DIRECTIONAL_LIGHT_DISTANCE;
+        -light_component->direction * renderer::DIRECTIONAL_LIGHT_DISTANCE;
       light_component->direction = v3(
         sin(dir_light_angle), -cos(dir_light_angle), 0.0f
       );
@@ -127,14 +127,14 @@ void EntitySets::update_light_components(
 }
 
 
-void EntitySets::update_behavior_components(
+void entitysets::update_behavior_components(
   State *state,
   BehaviorComponentSet *behavior_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t
 ) {
   for_each (behavior_component, behavior_component_set->components) {
-    if (!Entities::is_behavior_component_valid(behavior_component)) {
+    if (!entities::is_behavior_component_valid(behavior_component)) {
       continue;
     }
 
@@ -148,14 +148,14 @@ void EntitySets::update_behavior_components(
 }
 
 
-void EntitySets::update_animation_components(
+void entitysets::update_animation_components(
   AnimationComponentSet *animation_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t,
   BoneMatrixPool *bone_matrix_pool
 ) {
   for_each (animation_component, animation_component_set->components) {
-    if (!Entities::is_animation_component_valid(animation_component)) {
+    if (!entities::is_animation_component_valid(animation_component)) {
       continue;
     }
 
@@ -170,7 +170,7 @@ void EntitySets::update_animation_components(
 
       // If we only have one anim key, just return that.
       } else if (bone->n_anim_keys == 1) {
-        animation_component->bone_matrices[idx_bone] = *EntitySets::get_bone_matrix(
+        animation_component->bone_matrices[idx_bone] = *entitysets::get_bone_matrix(
           bone_matrix_pool,
           animation->idx_bone_matrix_set,
           idx_bone,
@@ -216,31 +216,31 @@ void EntitySets::update_animation_components(
 }
 
 
-void EntitySets::update_physics_components(
+void entitysets::update_physics_components(
   PhysicsComponentSet *physics_component_set,
   SpatialComponentSet *spatial_component_set
 ) {
   for_each (physics_component, physics_component_set->components) {
-    if (!Entities::is_physics_component_valid(physics_component)) {
+    if (!entities::is_physics_component_valid(physics_component)) {
       continue;
     }
 
     SpatialComponent *spatial_component =
       spatial_component_set->components[physics_component->entity_handle];
 
-    if (!Entities::is_spatial_component_valid(spatial_component)) {
-      log_warning("Tried to update physics component but it had no spatial component.");
+    if (!entities::is_spatial_component_valid(spatial_component)) {
+      logs::warning("Tried to update physics component but it had no spatial component.");
       continue;
     }
 
-    physics_component->transformed_obb = Physics::transform_obb(
+    physics_component->transformed_obb = physics::transform_obb(
       physics_component->obb, spatial_component
     );
   }
 }
 
 
-uint32 EntitySets::get_bone_matrix_anim_key_for_timepoint(
+uint32 entitysets::get_bone_matrix_anim_key_for_timepoint(
   BoneMatrixPool *bone_matrix_pool,
   AnimationComponent *animation_component,
   real64 animation_timepoint,
@@ -267,12 +267,12 @@ uint32 EntitySets::get_bone_matrix_anim_key_for_timepoint(
       idx_anim_key = 0;
     }
   } while (idx_anim_key != bone->last_anim_key);
-  log_fatal("Could not find anim key.");
+  logs::fatal("Could not find anim key.");
   return 0;
 }
 
 
-void EntitySets::make_bone_matrices_for_animation_bone(
+void entitysets::make_bone_matrices_for_animation_bone(
   AnimationComponent *animation_component,
   aiNodeAnim *ai_channel,
   uint32 idx_animation,
@@ -323,14 +323,14 @@ void EntitySets::make_bone_matrices_for_animation_bone(
 
     m4 translation = glm::translate(
       m4(1.0f),
-      Util::aiVector3D_to_glm(&ai_channel->mPositionKeys[idx_anim_key].mValue)
+      util::aiVector3D_to_glm(&ai_channel->mPositionKeys[idx_anim_key].mValue)
     );
     m4 rotation = glm::toMat4(normalize(
-      Util::aiQuaternion_to_glm(&ai_channel->mRotationKeys[idx_anim_key].mValue)
+      util::aiQuaternion_to_glm(&ai_channel->mRotationKeys[idx_anim_key].mValue)
     ));
     m4 scaling = glm::scale(
       m4(1.0f),
-      Util::aiVector3D_to_glm(&ai_channel->mScalingKeys[idx_anim_key].mValue)
+      util::aiVector3D_to_glm(&ai_channel->mScalingKeys[idx_anim_key].mValue)
     );
 
     m4 anim_transform = translation * rotation * scaling;
@@ -340,7 +340,7 @@ void EntitySets::make_bone_matrices_for_animation_bone(
 }
 
 
-AnimationComponent* EntitySets::find_animation_component(
+AnimationComponent* entitysets::find_animation_component(
   SpatialComponent *spatial_component,
   SpatialComponentSet *spatial_component_set,
   AnimationComponentSet *animation_component_set
@@ -348,7 +348,7 @@ AnimationComponent* EntitySets::find_animation_component(
   AnimationComponent *animation_component =
     animation_component_set->components[spatial_component->entity_handle];
 
-  if (Entities::is_animation_component_valid(animation_component)) {
+  if (entities::is_animation_component_valid(animation_component)) {
     return animation_component;
   }
 
@@ -366,7 +366,7 @@ AnimationComponent* EntitySets::find_animation_component(
 }
 
 
-void EntitySets::draw(
+void entitysets::draw(
   RenderMode render_mode,
   DrawableComponentSet *drawable_component_set,
   DrawableComponent *drawable_component,
@@ -381,7 +381,7 @@ void EntitySets::draw(
   if (render_mode == RenderMode::regular) {
     shader_asset = &material->shader_asset;
   } else if (render_mode == RenderMode::depth) {
-    if (Shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
+    if (shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
       shader_asset = &material->depth_shader_asset;
     } else {
       shader_asset = standard_depth_shader_asset;
@@ -417,12 +417,12 @@ void EntitySets::draw(
     uniform_idx++
   ) {
     const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-    if (Str::eq(uniform_name, "model_matrix")) {
-      Shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
-    } else if (Str::eq(uniform_name, "model_normal_matrix")) {
-      Shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
-    } else if (bone_matrices && Str::eq(uniform_name, "bone_matrices[0]")) {
-      Shaders::set_mat4_multiple(
+    if (str::eq(uniform_name, "model_matrix")) {
+      shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
+    } else if (str::eq(uniform_name, "model_normal_matrix")) {
+      shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
+    } else if (bone_matrices && str::eq(uniform_name, "bone_matrices[0]")) {
+      shaders::set_mat4_multiple(
         shader_asset, MAX_N_BONES, "bone_matrices[0]", bone_matrices
       );
     }
@@ -438,7 +438,7 @@ void EntitySets::draw(
 }
 
 
-void EntitySets::draw_all(
+void entitysets::draw_all(
   EntitySet *entity_set,
   DrawableComponentSet *drawable_component_set,
   SpatialComponentSet *spatial_component_set,
@@ -454,7 +454,7 @@ void EntitySets::draw_all(
   ModelMatrixCache cache = {m4(1.0f), nullptr};
 
   for_each (drawable_component, drawable_component_set->components) {
-    if (!Models::is_drawable_component_valid(drawable_component)) {
+    if (!models::is_drawable_component_valid(drawable_component)) {
       continue;
     }
 
@@ -463,18 +463,18 @@ void EntitySets::draw_all(
     }
 
 #if 0
-    log_info(
+    logs::info(
       "Drawing %s",
       entity_set->entities[drawable_component->entity_handle]->debug_name
     );
 #endif
 
-    Material *material = Materials::get_material_by_name(
+    Material *material = materials::get_material_by_name(
       materials, drawable_component->mesh.material_name
     );
 
     if (!material || material->state != MaterialState::complete) {
-      material = Materials::get_material_by_name(materials, "unknown");
+      material = materials::get_material_by_name(materials, "unknown");
     }
 
     SpatialComponent *spatial_component =
@@ -484,7 +484,7 @@ void EntitySets::draw_all(
     m3 model_normal_matrix = m3(1.0f);
     m4 *bone_matrices = nullptr;
 
-    if (Entities::is_spatial_component_valid(spatial_component)) {
+    if (entities::is_spatial_component_valid(spatial_component)) {
       // We only need to calculate the normal matrix if we have non-uniform
       // scaling.
       model_matrix = make_model_matrix(spatial_component_set, spatial_component, &cache);

@@ -21,7 +21,7 @@ struct Camera {
   real32 speed;
 };
 
-namespace Cameras {
+namespace cameras {
   void move_front_back(
     Camera *camera, real32 sign, real64 dt
   );

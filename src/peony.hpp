@@ -34,7 +34,7 @@ namespace chrono = std::chrono;
 #include <glm/gtx/quaternion.hpp>
 using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
   glm::ceil, glm::floor, glm::degrees, glm::radians, glm::transpose,
-  glm::inverse, glm::length, glm::length2, glm::epsilon;
+  glm::inverse, glm::length, glm::length2;
 
 #include <assimp/cimport.h>
 #include <assimp/scene.h>

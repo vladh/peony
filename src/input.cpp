@@ -1,4 +1,4 @@
-void Input::update_mouse_button(
+void input::update_mouse_button(
   InputState *input_state, int button, int action, int mods
 ) {
   bool32 new_state = (action == GLFW_PRESS);
@@ -9,21 +9,21 @@ void Input::update_mouse_button(
 }
 
 
-bool32 Input::is_mouse_button_down(
+bool32 input::is_mouse_button_down(
   InputState *input_state, int button
 ) {
   return input_state->mouse_button_states[button];
 }
 
 
-bool32 Input::is_mouse_button_up(
+bool32 input::is_mouse_button_up(
   InputState *input_state, int button
 ) {
   return !is_mouse_button_down(input_state, button);
 }
 
 
-bool32 Input::is_mouse_button_now_down(
+bool32 input::is_mouse_button_now_down(
   InputState *input_state, int button
 ) {
   return is_mouse_button_down(input_state, button) &&
@@ -31,7 +31,7 @@ bool32 Input::is_mouse_button_now_down(
 }
 
 
-bool32 Input::is_mouse_button_now_up(
+bool32 input::is_mouse_button_now_up(
   InputState *input_state, int button
 ) {
   return is_mouse_button_up(input_state, button) &&
@@ -39,7 +39,7 @@ bool32 Input::is_mouse_button_now_up(
 }
 
 
-void Input::update_mouse(
+void input::update_mouse(
   InputState *input_state, v2 new_mouse_pos
 ) {
   if (!input_state->have_ever_gotten_mouse_pos) {
@@ -54,24 +54,24 @@ void Input::update_mouse(
 }
 
 
-void Input::clear_text_input(InputState *input_state) {
-  Str::clear(input_state->text_input);
+void input::clear_text_input(InputState *input_state) {
+  str::clear(input_state->text_input);
 }
 
 
-void Input::enable_text_input(InputState *input_state) {
+void input::enable_text_input(InputState *input_state) {
   input_state->is_text_input_enabled = true;
   clear_text_input(input_state);
 }
 
 
-void Input::disable_text_input(InputState *input_state) {
+void input::disable_text_input(InputState *input_state) {
   input_state->is_text_input_enabled = false;
   clear_text_input(input_state);
 }
 
 
-void Input::do_text_input_backspace(InputState *input_state) {
+void input::do_text_input_backspace(InputState *input_state) {
   size_t text_input_length = strlen(input_state->text_input);
   if (text_input_length == 0) {
     return;
@@ -80,7 +80,7 @@ void Input::do_text_input_backspace(InputState *input_state) {
 }
 
 
-void Input::update_text_input(
+void input::update_text_input(
   InputState *input_state, uint32 codepoint
 ) {
   if (!input_state->is_text_input_enabled) {
@@ -90,7 +90,7 @@ void Input::update_text_input(
   size_t text_input_length = strlen(input_state->text_input);
 
   if (text_input_length + 1 >= MAX_TEXT_INPUT_LENGTH - 1) {
-    log_error("Can't add another character to text_input, it's full.");
+    logs::error("Can't add another character to text_input, it's full.");
     return;
   }
 
@@ -99,7 +99,7 @@ void Input::update_text_input(
 }
 
 
-void Input::update_keys(
+void input::update_keys(
   InputState *input_state, int key, int scancode, int action, int mods
 ) {
   bool32 new_state = (action == GLFW_PRESS || action == GLFW_REPEAT);
@@ -110,21 +110,21 @@ void Input::update_keys(
 }
 
 
-bool32 Input::is_key_down(
+bool32 input::is_key_down(
   InputState *input_state, int key
 ) {
   return input_state->key_states[key];
 }
 
 
-bool32 Input::is_key_up(
+bool32 input::is_key_up(
   InputState *input_state, int key
 ) {
   return !is_key_down(input_state, key);
 }
 
 
-bool32 Input::is_key_now_down(
+bool32 input::is_key_now_down(
   InputState *input_state, int key
 ) {
   return is_key_down(input_state, key) &&
@@ -132,7 +132,7 @@ bool32 Input::is_key_now_down(
 }
 
 
-bool32 Input::is_key_now_up(
+bool32 input::is_key_now_up(
   InputState *input_state, int key
 ) {
   return is_key_up(input_state, key) &&
@@ -140,7 +140,7 @@ bool32 Input::is_key_now_up(
 }
 
 
-bool32 Input::is_mouse_in_bb(
+bool32 input::is_mouse_in_bb(
   InputState *input_state, v2 topleft, v2 bottomright
 ) {
   return input_state->mouse_pos.x > topleft.x &&
@@ -150,7 +150,7 @@ bool32 Input::is_mouse_in_bb(
 }
 
 
-void Input::set_cursor(
+void input::set_cursor(
   InputState *input_state, GLFWcursor *new_cursor
 ) {
   if (input_state->current_cursor == new_cursor) {
@@ -161,7 +161,7 @@ void Input::set_cursor(
 }
 
 
-void Input::reset_n_mouse_button_state_changes_this_frame(
+void input::reset_n_mouse_button_state_changes_this_frame(
   InputState *input_state
 ) {
   memset(
@@ -172,7 +172,7 @@ void Input::reset_n_mouse_button_state_changes_this_frame(
 }
 
 
-void Input::reset_n_key_state_changes_this_frame(
+void input::reset_n_key_state_changes_this_frame(
   InputState *input_state
 ) {
   memset(
@@ -183,7 +183,7 @@ void Input::reset_n_key_state_changes_this_frame(
 }
 
 
-InputState* Input::init_input_state(
+InputState* input::init_input_state(
   InputState *input_state,
   GLFWwindow *window
 ) {

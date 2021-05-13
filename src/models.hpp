@@ -76,7 +76,7 @@ struct DrawableComponent {
   RenderPassFlag target_render_pass = RenderPass::none;
 };
 
-namespace Models {
+namespace models {
   void setup_mesh_vertex_buffers(
     Mesh *mesh,
     Vertex *vertex_data, uint32 n_vertices,

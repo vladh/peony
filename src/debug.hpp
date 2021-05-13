@@ -20,7 +20,7 @@ real64 debug_end_timer(chrono::steady_clock::time_point t0) {
   { \
     real64 duration = debug_end_timer(debug_timerstart_##name); \
     if (duration >= min_duration_ms) { \
-      log_info("Timer %s took %0.fms", #name, duration); \
+      logs::info("Timer %s took %0.fms", #name, duration); \
     } \
   }
 
