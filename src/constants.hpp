@@ -1,6 +1,19 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
+// Options
+
+#define USE_TIMERS true
+#define USE_MEMORY_DEBUG_LOGS false
+#define USE_MEMORYPOOL_ITEM_DEBUG false
+#define USE_FULLSCREEN true
+#define USE_WINDOWED_FULLSCREEN true
+#define USE_ANIMATION_DEBUG false
+#define USE_SHADER_DEBUG false
+#define USE_BLOOM false
+#define TARGET_MONITOR 0
+#define USE_OPENGL_DEBUG false
+
 constexpr real32 PI32 = 3.14159265359f;
 constexpr real64 PI = 3.14159265358979323846;
 
@@ -48,5 +61,6 @@ constexpr uint32 MAX_NODE_NAME_LENGTH = 32;
 constexpr uint32 MAX_N_ANIMATIONS = 2;
 constexpr uint32 MAX_N_ANIM_KEYS = 256;
 constexpr uint32 MAX_N_PEONY_ARRAY_VALUES = 16;
+constexpr uint16 MAX_N_LIGHTS = 8;
 
 #endif

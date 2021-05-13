@@ -29,8 +29,8 @@
 template<typename T>
 struct ExitScope {
   T lambda;
-  ExitScope(T lambda):lambda(lambda){}
-  ~ExitScope(){lambda();}
+  ExitScope(T lambda) : lambda(lambda) {}
+  ~ExitScope() { lambda(); }
   ExitScope(const ExitScope&);
 private:
   ExitScope& operator =(const ExitScope&);
@@ -42,6 +42,7 @@ public:
     ExitScope<T> operator+(T t){ return t;}
 };
 
-#define defer const auto& CONCAT(defer__, __LINE__) = ExitScopeHelp() + [&]()
+#define defer [[maybe_unused]] const auto& CONCAT(defer__, __LINE__) = \
+  ExitScopeHelp() + [&]()
 
 #endif

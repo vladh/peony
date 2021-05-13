@@ -1,5 +1,5 @@
-#ifndef STATE_HPP
-#define STATE_HPP
+#ifndef ENGINE_HPP
+#define ENGINE_HPP
 
 constexpr uint32 DT_HIST_LENGTH = 512;
 
@@ -90,16 +90,20 @@ struct State {
   BuiltinTextures builtin_textures;
 };
 
-
 struct MemoryAndState {
   MemoryPool *asset_memory_pool;
   State *state;
 };
 
-State* init_state(
-  State *state,
-  MemoryPool *asset_memory_pool,
-  WindowInfo window_info
-);
+namespace engine {
+  void handle_console_command(State *state);
+  void process_input(GLFWwindow *window, State *state);
+  void run_main_loop(State *state);
+  State* init_state(
+    State *state,
+    MemoryPool *asset_memory_pool,
+    WindowInfo window_info
+  );
+}
 
 #endif
