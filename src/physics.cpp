@@ -122,28 +122,28 @@ RayCollisionResult physics::find_ray_collision(
 }
 
 
-void physics::update_manifold_for_face_axis(
-  CollisionManifold *manifold,
+void physics::update_best_for_face_axis(
+  real32 *best_sep, uint32 *best_axis, v3 *best_normal,
   real32 sep, uint32 axis, v3 normal
 ) {
-  if (sep > manifold->sep_max) {
-    manifold->sep_max = sep;
-    manifold->axis = axis;
-    manifold->normal = normal;
+  if (sep > *best_sep) {
+    *best_sep = sep;
+    *best_axis = axis;
+    *best_normal = normal;
   }
 }
 
 
-void physics::update_manifold_for_edge_axis(
-  CollisionManifold *manifold,
+void physics::update_best_for_edge_axis(
+  real32 *best_sep, uint32 *best_axis, v3 *best_normal,
   real32 sep, uint32 axis, v3 normal
 ) {
   real32 normal_len = length(normal);
   sep /= normal_len;
-  if (sep > manifold->sep_max) {
-    manifold->sep_max = sep;
-    manifold->axis = axis;
-    manifold->normal = normal / normal_len;
+  if (sep > *best_sep) {
+    *best_sep = sep;
+    *best_axis = axis;
+    *best_normal = normal / normal_len;
   }
 }
 
@@ -218,10 +218,11 @@ v3 physics::get_edge_contact_point(
 Face physics::get_incident_face(
   m3 *cob, // incident change of base
   v3 e, // incident extents
-  v3 c, // incident_center
+  v3 c, // incident center
   v3 n // incident normal
 ) {
   Face face;
+  n = transpose(*cob) * n;
   v3 abs_n = abs(n);
 
   if (abs_n.x > abs_n.y && abs_n.x > abs_n.z) {
@@ -244,7 +245,7 @@ Face physics::get_incident_face(
         },
       };
     }
-  } else if ( abs_n.y > abs_n.x && abs_n.y > abs_n.z ) {
+  } else if (abs_n.y > abs_n.x && abs_n.y > abs_n.z) {
     if (n.y > 0.0f) {
       face = {
         .vertices = {
@@ -329,7 +330,6 @@ CollisionManifold physics::intersect_obb_obb(
   SpatialComponent *spatial_a,
   SpatialComponent *spatial_b
 ) {
-  CollisionManifold manifold = {.sep_max = -FLT_MAX};
   // The radius from a/b's center to its outer vertex
   real32 a_radius, b_radius;
   // The distance between a and b
@@ -359,6 +359,16 @@ CollisionManifold physics::intersect_obb_obb(
 
   // Compute translation vector
   v3 t_translation = b->center - a->center;
+  logs::console(
+    "a: center (%f, %f, %f) extents (%f, %f, %f)",
+    a->center.x, a->center.y, a->center.z,
+    a->extents[0], a->extents[1], a->extents[2]
+  );
+  logs::console(
+    "b: center (%f, %f, %f) extents (%f, %f, %f)",
+    b->center.x, b->center.y, b->center.z,
+    b->extents[0], b->extents[1], b->extents[2]
+  );
 
   // Bring translation into a's coordinate frame
   v3 t = v3(
@@ -386,8 +396,15 @@ CollisionManifold physics::intersect_obb_obb(
     }
   }
 
-  real32 face_max_sep = -FLT_MAX;
+  real32 a_face_max_sep = -FLT_MAX;
+  uint32 a_face_best_axis = 0;
+  v3 a_face_best_normal = v3(0.0f);
+  real32 b_face_max_sep = -FLT_MAX;
+  uint32 b_face_best_axis = 0;
+  v3 b_face_best_normal = v3(0.0f);
   real32 edge_max_sep = -FLT_MAX;
+  uint32 edge_best_axis = 0;
+  v3 edge_best_normal = v3(0.0f);
 
   // Test a's face axes (a.x, a.y, a.z)
   for_range_named (i, 0, 3) {
@@ -397,9 +414,11 @@ CollisionManifold physics::intersect_obb_obb(
       b->extents[2] * abs_r[i][2];
     a_to_b = abs(t[i]);
     sep = a_to_b - (a_radius + b_radius);
-    if (sep > face_max_sep) { face_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    update_manifold_for_face_axis(&manifold, sep, i, a_axes[i]);
+    if (sep > 0) { return CollisionManifold(); }
+    update_best_for_face_axis(
+      &a_face_max_sep, &a_face_best_axis, &a_face_best_normal,
+      sep, i, a_axes[i]
+    );
   }
 
   // Test b's face axes (b.x, b.y, b.z)
@@ -410,13 +429,12 @@ CollisionManifold physics::intersect_obb_obb(
     b_radius = b->extents[i];
     a_to_b = abs(t[0] * r[0][i] + t[1] * r[1][i] + t[2] * r[2][i]);
     sep = a_to_b - (a_radius + b_radius);
-    if (sep > face_max_sep) { face_max_sep = sep; }
-    if (sep > 0) { return manifold; }
-    update_manifold_for_face_axis(&manifold, sep, 3 + i, b_axes[i]);
+    if (sep > 0) { return CollisionManifold(); }
+    update_best_for_face_axis(
+      &b_face_max_sep, &b_face_best_axis, &b_face_best_normal,
+      sep, 3 + i, b_axes[i]
+    );
   }
-
-  // Out of the first 6 axes, keep track of the best one
-  uint32 face_axis_with_max_separation = manifold.axis;
 
   if (!do_obbs_share_one_axis) {
     // Test cross axes (a[i] x b[j])
@@ -436,16 +454,72 @@ CollisionManifold physics::intersect_obb_obb(
           t[(1 + i) % 3] * r[(2 + i) % 3][j]
         );
         sep = a_to_b - (a_radius + b_radius);
-        if (sep > edge_max_sep) { edge_max_sep = sep; }
-        if (sep > 0) { return manifold; }
+        if (sep > 0) { return CollisionManifold(); }
         normal = normalize(cross(a_axes[i], b_axes[j]));
-        update_manifold_for_edge_axis(&manifold, sep, 6 + i + j, normal);
+        update_best_for_edge_axis(
+          &edge_max_sep, &edge_best_axis, &edge_best_normal,
+          sep, 6 + i + j, normal
+        );
       }
     }
   }
 
-  logs::console("face_max_sep %f", face_max_sep);
-  logs::console("edge_max_sep %f", edge_max_sep);
+  // Find the best option for the face cases
+  real32 face_max_sep;
+  uint32 face_best_axis;
+  if (a_face_max_sep > b_face_max_sep) {
+    face_max_sep = a_face_max_sep;
+    face_best_axis = a_face_best_axis;
+  } else {
+    face_max_sep = b_face_max_sep;
+    face_best_axis = b_face_best_axis;
+  }
+
+  // TODO: Remove this debugging code
+  {
+    v3 face_best_normal;
+    if (a_face_max_sep > b_face_max_sep) {
+      face_best_normal = a_face_best_normal;
+    } else {
+      face_best_normal = b_face_best_normal;
+    }
+    logs::console("a_face_max_sep %f", a_face_max_sep);
+    logs::console("b_face_max_sep %f", b_face_max_sep);
+    logs::console(
+      "(face_max_sep (real %f) (adjusted %f) (face_best_axis %d) (face_best_normal %f %f %f))",
+      face_max_sep,
+      face_max_sep + ABSOLUTE_TOLERANCE,
+      face_best_axis,
+      face_best_normal.x, face_best_normal.y, face_best_normal.z
+    );
+    logs::console(
+      "(edge_max_sep (real %f) (adjusted %f) (edge_best_axis %d) (edge_best_normal %f %f %f))",
+      edge_max_sep,
+      edge_max_sep * RELATIVE_TOLERANCE,
+      edge_best_axis,
+      edge_best_normal.x, edge_best_normal.y, edge_best_normal.z
+    );
+  }
+
+  // Set manifold to our best option while taking tolerances into account
+  // We use an artificial axis bias to improve frame coherence
+  // (i.e. stop things from jumping between edge and face in nonsensical ways)
+  CollisionManifold manifold;
+  if (edge_max_sep * RELATIVE_TOLERANCE > face_max_sep + ABSOLUTE_TOLERANCE) {
+    manifold.sep_max = edge_max_sep;
+    manifold.axis = edge_best_axis;
+    manifold.normal = edge_best_normal;
+  } else {
+    if (b_face_max_sep * RELATIVE_TOLERANCE > a_face_max_sep + ABSOLUTE_TOLERANCE) {
+      manifold.sep_max = b_face_max_sep;
+      manifold.axis = b_face_best_axis;
+      manifold.normal = b_face_best_normal;
+    } else {
+      manifold.sep_max = a_face_max_sep;
+      manifold.axis = a_face_best_axis;
+      manifold.normal = a_face_best_normal;
+    }
+  }
 
   // Correct normal direction
   if (dot(manifold.normal, t_translation) < 0.0f) {
@@ -477,6 +551,8 @@ CollisionManifold physics::intersect_obb_obb(
     Face incident_face = get_incident_face(
       &incident_cob, incident_extents, incident_center, manifold.normal
     );
+
+    // TODO: Clipping goes here.
 
     debugdraw::draw_quad(
       g_dds,
@@ -542,7 +618,7 @@ CollisionManifold physics::intersect_obb_obb(
       b_edge_point,
       b_axes[b_axis],
       b->extents[b_axis],
-      face_axis_with_max_separation >= 3
+      face_best_axis >= 3
     );
     debugdraw::draw_point(
       g_dds,
