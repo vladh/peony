@@ -44,14 +44,16 @@ struct RayCollisionResult {
 
 namespace physics {
   constexpr real32 PARALLEL_FACE_TOLERANCE = 1.0e-2;
+  constexpr real32 RELATIVE_TOLERANCE = 1.00f;
+  constexpr real32 ABSOLUTE_TOLERANCE = 0.10f;
   Obb transform_obb(Obb obb, SpatialComponent *spatial_component);
   RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
-  void update_manifold_for_face_axis(
-    CollisionManifold *manifold,
+  void update_best_for_face_axis(
+    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
   );
-  void update_manifold_for_edge_axis(
-    CollisionManifold *manifold,
+  void update_best_for_edge_axis(
+    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
   );
   v3 get_edge_contact_point(
