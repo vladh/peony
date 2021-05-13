@@ -706,8 +706,9 @@ void renderer::char_callback(
 }
 
 
-void renderer::init_window(WindowInfo *window_info) {
-  strcpy(window_info->title, "hi lol");
+WindowInfo renderer::init_window() {
+  WindowInfo window_info = {};
+  strcpy(window_info.title, "hi lol");
 
   glfwInit();
 
@@ -744,12 +745,12 @@ void renderer::init_window(WindowInfo *window_info) {
   glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
   glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-  window_info->screencoord_width = video_mode->width;
-  window_info->screencoord_height = video_mode->height;
+  window_info.screencoord_width = video_mode->width;
+  window_info.screencoord_height = video_mode->height;
 
   GLFWwindow *window = glfwCreateWindow(
-    window_info->screencoord_width, window_info->screencoord_height,
-    window_info->title,
+    window_info.screencoord_width, window_info.screencoord_height,
+    window_info.title,
 #if USE_WINDOWED_FULLSCREEN
     nullptr, nullptr
 #else
@@ -757,12 +758,12 @@ void renderer::init_window(WindowInfo *window_info) {
 #endif
   );
 #else
-  window_info->screencoord_width = 1920;
-  window_info->screencoord_height = 1080;
+  window_info.screencoord_width = 1920;
+  window_info.screencoord_height = 1080;
 
   GLFWwindow *window = glfwCreateWindow(
-    window_info->screencoord_width, window_info->screencoord_height,
-    window_info->title,
+    window_info.screencoord_width, window_info.screencoord_height,
+    window_info.title,
     nullptr, nullptr
   );
 
@@ -771,16 +772,16 @@ void renderer::init_window(WindowInfo *window_info) {
 
   if (!window) {
     logs::fatal("Failed to create GLFW window");
-    return;
+    return window_info;
   }
-  window_info->window = window;
+  window_info.window = window;
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     logs::fatal("Failed to initialize GLAD");
-    return;
+    return window_info;
   }
 
   if (!GLAD_GL_ARB_texture_cube_map_array) {
@@ -831,15 +832,17 @@ void renderer::init_window(WindowInfo *window_info) {
   int32 framebuffer_width;
   int32 framebuffer_height;
   glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
-  window_info->width = (uint32)framebuffer_width;
-  window_info->height = (uint32)framebuffer_height;
-  glViewport(0, 0, window_info->width, window_info->height);
+  window_info.width = (uint32)framebuffer_width;
+  window_info.height = (uint32)framebuffer_height;
+  glViewport(0, 0, window_info.width, window_info.height);
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetKeyCallback(window, key_callback);
   glfwSetCharCallback(window, char_callback);
+
+  return window_info;
 }
 
 

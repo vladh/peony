@@ -1,12 +1,12 @@
 #ifndef PEONY_HPP
 #define PEONY_HPP
 
+// Flags
 #define _HAS_EXCEPTIONS 0
+#define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
 
-#if USE_VLD
-#include <vld.h>
-#endif
-
+// C stuff
 #include <float.h>
 #include <math.h>
 #include <signal.h>
@@ -20,11 +20,13 @@
 #include <intrin.h>
 #endif
 
+// C++ stuff
 #include <chrono>
 namespace chrono = std::chrono;
 #include <thread>
 #include <mutex>
 
+// Libraries
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -39,6 +41,9 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+/* #include <vld.h> */
+
 #define STB_IMAGE_IMPLEMENTATION
 #pragma warning(push, 0)
 #pragma warning(disable: 6011)
@@ -47,27 +52,18 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #pragma warning(disable: 28182)
 #include <stb/stb_image.h>
 #pragma warning(pop)
-#if 0
-#define TSL_NO_EXCEPTIONS
-#include <tsl/robin_map.h>
-#include <tsl/robin_set.h>
-#endif
 
-#define NOMINMAX
 #include "../include/glad.cpp"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if USE_CACHELINE_SIZE_DISPLAY
-#include "../include/cacheline.hpp"
-#endif
-
+// Our headers
 #include "types.hpp"
 #include "constants.hpp"
 #include "intrinsics.hpp"
 #include "debug.hpp"
-#include "log.hpp"
+#include "logs.hpp"
 #include "memory.hpp"
 #include "util.hpp"
 #include "str.hpp"
@@ -83,14 +79,14 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include "physics.hpp"
 #include "entities.hpp"
 #include "debugdraw.hpp"
-#include "entity_sets.hpp"
+#include "entitysets.hpp"
 #include "models.hpp"
-#include "peony_file_parser.hpp"
+#include "peonyparser.hpp"
 #include "input.hpp"
 #include "gui.hpp"
 #include "data.hpp"
 #include "camera.hpp"
-#include "state.hpp"
+#include "engine.hpp"
 #include "world.hpp"
 
 #endif

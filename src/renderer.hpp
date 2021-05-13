@@ -1,9 +1,6 @@
 #ifndef OPENGL_HPP
 #define OPENGL_HPP
 
-constexpr bool32 USE_OPENGL_DEBUG = false;
-constexpr uint16 MAX_N_LIGHTS = 8;
-
 struct WindowInfo;
 
 enum class RenderMode {regular, depth};
@@ -112,7 +109,7 @@ namespace renderer {
     bool32 is_blur_horizontal
   );
   void copy_scene_data_to_ubo(State *state);
-  void init_window(WindowInfo *window_info);
+  WindowInfo init_window();
   void destroy_window();
   void framebuffer_size_callback(GLFWwindow* window, int width, int height);
   void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
