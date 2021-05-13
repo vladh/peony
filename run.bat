@@ -1,1 +1,1 @@
-build\peony.exe
+bin\peony.exe

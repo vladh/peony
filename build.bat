@@ -25,9 +25,10 @@
 
 :: Linker flags
 :: ---------------------
-:: -STACK:reserve[,commit] - Stack size
-:: -INCREMENTAL - Link incrementally
 :: -DEBUG - Put debug information in the .pdb file
+:: -INCREMENTAL - Link incrementally
+:: -MAP - Generate map file
+:: -STACK:reserve[,commit] - Stack size
 :: -opt:ref - Remove functions and data that are never referenced
 
 echo ################################################################################
@@ -65,15 +66,16 @@ set compiler_flags=/I "C:/opt/include/" ^
 :: /D_ITERATOR_DEBUG_LEVEL=0
 
 set linker_flags=/LIBPATH:"C:/opt/lib/" ^
--INCREMENTAL:NO ^
 -CGTHREADS:8 ^
 -DEBUG:FULL ^
+-INCREMENTAL:NO ^
 -opt:ref ^
-/NODEFAULTLIB:msvcrt.lib ^
+-NODEFAULTLIB:msvcrt.lib ^
 freetype.lib opengl32.lib glfw3.lib assimp-vc142-mtd.lib user32.lib gdi32.lib shell32.lib
 :: -STACK:0x100000,0x100000
+:: -MAP
 
-pushd build
+pushd bin
 
 cl %compiler_flags% ..\src\peony.cc ^
 /link /SUBSYSTEM:console %linker_flags% /out:peony.exe
