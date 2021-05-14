@@ -1,37 +1,47 @@
-// All our headers
 #include "peony.hpp"
 
-// Global variables
-global real64 g_t;
-global GameConsole *g_console;
-global DebugDrawState *g_dds;
-
-// We're doing a unity build, so all our code goes here
+#include "types.cpp"
+#include "constants.cpp"
+#include "intrinsics.cpp"
+#include "debug.cpp"
 #include "logs.cpp"
-#include "pack.cpp"
 #include "util.cpp"
-#include "str.cpp"
-#include "tasks.cpp"
-#include "peonyparser.cpp"
-#include "materials.cpp"
-#include "fonts.cpp"
-#include "shaders.cpp"
-#include "camera.cpp"
 #include "memory.cpp"
-#include "input.cpp"
-#include "physics.cpp"
+#include "files.cpp"
+#include "str.cpp"
+#include "pack.cpp"
+#include "queue.cpp"
+#include "array.cpp"
+#include "stackarray.cpp"
+#include "shaders.cpp"
+#include "tasks.cpp"
+#include "materials.cpp"
+#include "badthing.cpp"
+#include "fonts.cpp"
 #include "entities.cpp"
-#include "behavior_functions.cpp"
-#include "entitysets.cpp"
-#include "gui.cpp"
+#include "spatial.cpp"
+#include "lights.cpp"
+#include "behavior.cpp"
+#include "anim.cpp"
 #include "debugdraw.cpp"
+#include "input.cpp"
+#include "gui.cpp"
+#include "physics.cpp"
 #include "models.cpp"
-#include "world.cpp"
+#include "peonyparser.cpp"
+#include "camera.cpp"
+#include "state.cpp"
 #include "renderer.cpp"
 #include "engine.cpp"
+#include "behavior_functions.cpp"
 
 
 int main() {
+  // TODO: Change
+  behavior::function_map[0] = (BehaviorFunction)nullptr;
+  behavior::function_map[1] = (BehaviorFunction)behavior_functions::test;
+  behavior::function_map[2] = (BehaviorFunction)behavior_functions::char_movement_test;
+
   srand((uint32)time(NULL));
   defer { logs::info("Bye!"); };
 
@@ -49,11 +59,11 @@ int main() {
 
   std::mutex loading_thread_mutex;
   std::thread loading_threads[5] = {
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, state, 1),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, state, 2),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, state, 3),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, state, 4),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, state, 5),
+    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 1),
+    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 2),
+    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 3),
+    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 4),
+    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 5),
   };
   defer {
     for_range (0, 5) {
@@ -80,7 +90,7 @@ int main() {
   );
   renderer::init_shadowmaps(&asset_memory_pool, &state->builtin_textures);
   renderer::init_ubo(state);
-  world::init(state);
+  engine::init(state);
 
   materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
 
@@ -90,7 +100,7 @@ int main() {
     &state->input_state,
     state->window_info.width, state->window_info.height
   );
-  logs::console("Hello world!");
+  gui::log("Hello world!");
 
   debugdraw::init_debug_draw_state(
     &state->debug_draw_state,

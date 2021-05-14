@@ -1,16 +1,27 @@
-#ifndef STACKARRAY_HPP
-#define STACKARRAY_HPP
-
-template <typename T, uint32 capacity>
-class StackArray {
+template <typename T>
+class Array {
 public:
-  T items[capacity] = {{}};
+  MemoryPool *memory_pool = nullptr;
+  const char *debug_name = nullptr;
   uint32 length = 0;
+  uint32 capacity = 0;
   bool32 is_sparse = false;
   uint32 starting_idx = 0;
+  T *items = nullptr;
+
+  void alloc() {
+    this->items = (T*)memory::push(
+      this->memory_pool,
+      sizeof(T) * this->capacity,
+      this->debug_name
+    );
+  }
 
   T* push() {
-    assert(this->length < capacity);
+    if (!this->items) {
+      alloc();
+    }
+    assert(this->length < this->capacity);
     uint32 new_idx = this->length;
     this->length++;
     T* new_slot = &this->items[new_idx];
@@ -24,7 +35,10 @@ public:
   }
 
   T* get(uint32 idx) {
-    assert(idx >= this->starting_idx && idx < capacity);
+    if (!this->items) {
+      alloc();
+    }
+    assert(idx >= this->starting_idx && idx < this->capacity);
     if (idx >= this->length) {
       assert(this->is_sparse);
       this->length = idx + 1;
@@ -55,7 +69,7 @@ public:
   }
 
   void clear() {
-    memset(this->items, 0, sizeof(this->items));
+    memset(this->items, 0, sizeof(T) * this->capacity);
     this->length = 0;
   }
 
@@ -63,6 +77,19 @@ public:
     memset(&this->items[idx], 0, sizeof(T) * (this->length - idx));
     this->length = idx;
   }
-};
 
-#endif
+  Array(
+    MemoryPool *memory_pool,
+    uint32 capacity,
+    const char *debug_name,
+    bool32 is_sparse = false,
+    uint32 starting_idx = 0
+  ) :
+    memory_pool(memory_pool),
+    debug_name(debug_name),
+    capacity(capacity),
+    is_sparse(is_sparse),
+    starting_idx(starting_idx)
+  {
+  }
+};

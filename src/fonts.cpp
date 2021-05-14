@@ -1,129 +1,171 @@
-real32 fonts::frac_px_to_px(uint32 n) {
-  return (real32)(n >> 6);
-}
+namespace fonts {
+  // -----------------------------------------------------------
+  // Constants
+  // -----------------------------------------------------------
+  // NOTE: Unicode is only the same as ASCII until 0x7F.
+  // We can change this to 0xFF when we add Unicode support.
+  constexpr uint32 CHAR_MAX_CODEPOINT_TO_LOAD = 0x7F;
 
 
-real32 fonts::font_unit_to_px(uint32 n) {
-  // NOTE: We should be dividing by units_per_em here...probably?
-  // This is because we expect height etc. to be in "font units".
-  // But treating these metrics as "fractional pixels" seems to work,
-  // whereas division by units_per_em doesn't.
-  // Check this in more detail.
-  return (real32)(n >> 6);
-}
+  // -----------------------------------------------------------
+  // Types
+  // -----------------------------------------------------------
+  struct Character {
+    iv2 size;
+    iv2 bearing;
+    iv2 advance;
+    iv2 tex_coords;
+  };
+
+  struct FontAsset {
+    const char *name;
+    Array<Character> characters;
+    uint32 texture;
+    uint32 font_size;
+    uint32 units_per_em;
+    uint32 ascender;
+    uint32 descender;
+    uint32 height;
+  };
 
 
-FontAsset* fonts::get_by_name(
-  Array<FontAsset> *assets, const char *name
-) {
-  for_each (asset, *assets) {
-    if (str::eq(asset->name, name)) {
-      return asset;
-    }
-  }
-  logs::warning("Could not find FontAsset with name %s", name);
-  return nullptr;
-}
-
-
-void fonts::load_glyphs(
-  FontAsset *font_asset,
-  FT_Face face,
-  TextureAtlas *texture_atlas
-) {
-  FT_GlyphSlot glyph = face->glyph;
-
-  // TODO: Can we avoid loading all characters twice here?
-  for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
-    Character *character = font_asset->characters.push();
-
-    if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-      logs::error("Failed to load glyph %s", c);
-      continue;
-    }
-
-    character->size = iv2(glyph->bitmap.width, glyph->bitmap.rows);
-    character->bearing = iv2(glyph->bitmap_left, glyph->bitmap_top);
-    character->advance = iv2(glyph->advance.x, glyph->advance.y);
+  // -----------------------------------------------------------
+  // Private functions
+  // -----------------------------------------------------------
+  real32 frac_px_to_px(uint32 n) {
+    return (real32)(n >> 6);
   }
 
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
 
-  for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
-    if (
-      // Unicode C0 controls
-      (c >= 0x00 && c <= 0x1F) ||
-      // DEL
-      (c == 0x7F) ||
-      // Unicode C1 controls
-      (c >= 0x80 && c <= 0x9F)
-    ) {
-      continue;
+  real32 font_unit_to_px(uint32 n) {
+    // NOTE: We should be dividing by units_per_em here...probably?
+    // This is because we expect height etc. to be in "font units".
+    // But treating these metrics as "fractional pixels" seems to work,
+    // whereas division by units_per_em doesn't.
+    // Check this in more detail.
+    return (real32)(n >> 6);
+  }
+
+
+  FontAsset* get_by_name(
+    Array<FontAsset> *assets, const char *name
+  ) {
+    for_each (asset, *assets) {
+      if (str::eq(asset->name, name)) {
+        return asset;
+      }
+    }
+    logs::warning("Could not find FontAsset with name %s", name);
+    return nullptr;
+  }
+
+
+  void load_glyphs(
+    FontAsset *font_asset,
+    FT_Face face,
+    TextureAtlas *texture_atlas
+  ) {
+    FT_GlyphSlot glyph = face->glyph;
+
+    // TODO: Can we avoid loading all characters twice here?
+    for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
+      Character *character = font_asset->characters.push();
+
+      if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+        logs::error("Failed to load glyph %s", c);
+        continue;
+      }
+
+      character->size = iv2(glyph->bitmap.width, glyph->bitmap.rows);
+      character->bearing = iv2(glyph->bitmap_left, glyph->bitmap_top);
+      character->advance = iv2(glyph->advance.x, glyph->advance.y);
     }
 
-    Character *character = font_asset->characters[c];
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
 
-    iv2 tex_coords = materials::push_space_to_texture_atlas(
-      texture_atlas, character->size
+    for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
+      if (
+        // Unicode C0 controls
+        (c >= 0x00 && c <= 0x1F) ||
+        // DEL
+        (c == 0x7F) ||
+        // Unicode C1 controls
+        (c >= 0x80 && c <= 0x9F)
+      ) {
+        continue;
+      }
+
+      Character *character = font_asset->characters[c];
+
+      iv2 tex_coords = materials::push_space_to_texture_atlas(
+        texture_atlas, character->size
+      );
+
+      if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
+        logs::error("Failed to load glyph %s", c);
+        continue;
+      }
+
+      glTexSubImage2D(
+        GL_TEXTURE_2D, 0, tex_coords.x, tex_coords.y,
+        character->size.x, character->size.y,
+        GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer
+      );
+
+      character->tex_coords = tex_coords;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+  }
+
+
+  FontAsset* init_font_asset(
+    FontAsset *font_asset,
+    MemoryPool *memory_pool,
+    TextureAtlas *texture_atlas,
+    FT_Library *ft_library,
+    const char *name,
+    const char *filename,
+    uint16 font_size
+  ) {
+    font_asset->name = name;
+    font_asset->font_size = font_size;
+
+    char path[MAX_PATH];
+    strcpy(path, FONTS_DIR);
+    strcat(path, filename);
+
+    font_asset->characters = Array<Character>(
+      memory_pool,
+      CHAR_MAX_CODEPOINT_TO_LOAD + 1,
+      "characters"
     );
 
-    if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
-      logs::error("Failed to load glyph %s", c);
-      continue;
+    FT_Face face;
+    if (FT_New_Face(*ft_library, path, 0, &face)) {
+      logs::error("Could not load font at %s", path);
     }
+    FT_Set_Pixel_Sizes(face, 0, font_asset->font_size);
+    if (!FT_IS_SCALABLE(face)) {
+      logs::fatal("Font face not scalable, don't know what to do.");
+    }
+    font_asset->units_per_em = face->units_per_EM;
+    font_asset->ascender = face->ascender;
+    font_asset->descender = face->descender;
+    font_asset->height = face->height;
 
-    glTexSubImage2D(
-      GL_TEXTURE_2D, 0, tex_coords.x, tex_coords.y,
-      character->size.x, character->size.y,
-      GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer
-    );
+    load_glyphs(font_asset, face, texture_atlas);
 
-    character->tex_coords = tex_coords;
+    FT_Done_Face(face);
+
+    return font_asset;
   }
 
-  glBindTexture(GL_TEXTURE_2D, 0);
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
 }
 
-
-FontAsset* fonts::init_font_asset(
-  FontAsset *font_asset,
-  MemoryPool *memory_pool,
-  TextureAtlas *texture_atlas,
-  FT_Library *ft_library,
-  const char *name,
-  const char *filename,
-  uint16 font_size
-) {
-  font_asset->name = name;
-  font_asset->font_size = font_size;
-
-  char path[MAX_PATH];
-  strcpy(path, FONTS_DIR);
-  strcat(path, filename);
-
-  font_asset->characters = Array<Character>(
-    memory_pool,
-    CHAR_MAX_CODEPOINT_TO_LOAD + 1,
-    "characters"
-  );
-
-  FT_Face face;
-  if (FT_New_Face(*ft_library, path, 0, &face)) {
-    logs::error("Could not load font at %s", path);
-  }
-  FT_Set_Pixel_Sizes(face, 0, font_asset->font_size);
-  if (!FT_IS_SCALABLE(face)) {
-    logs::fatal("Font face not scalable, don't know what to do.");
-  }
-  font_asset->units_per_em = face->units_per_EM;
-  font_asset->ascender = face->ascender;
-  font_asset->descender = face->descender;
-  font_asset->height = face->height;
-
-  load_glyphs(font_asset, face, texture_atlas);
-
-  FT_Done_Face(face);
-
-  return font_asset;
-}
+using fonts::Character, fonts::FontAsset;
