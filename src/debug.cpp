@@ -1,6 +1,3 @@
-#ifndef DEBUG_HPP
-#define DEBUG_HPP
-
 chrono::steady_clock::time_point debug_start_timer() {
   return chrono::steady_clock::now();
 }
@@ -31,7 +28,5 @@ real64 debug_end_timer(chrono::steady_clock::time_point t0) {
 #define START_TIMER(name)
 #define END_TIMER_MIN(name, min_duration_ms)
 #define END_TIMER(name)
-
-#endif
 
 #endif

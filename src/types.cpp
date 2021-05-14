@@ -1,6 +1,3 @@
-#ifndef TYPES_HPP
-#define TYPES_HPP
-
 #define global static
 #define local_persist static
 #define internal static
@@ -47,5 +44,3 @@ typedef glm::mat2 m2;
 typedef glm::mat3 m3;
 typedef glm::mat4 m4;
 typedef glm::quat quat;
-
-#endif

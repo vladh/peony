@@ -58,35 +58,4 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-// Our headers
-#include "types.hpp"
-#include "constants.hpp"
-#include "intrinsics.hpp"
-#include "debug.hpp"
-#include "logs.hpp"
-#include "memory.hpp"
-#include "util.hpp"
-#include "str.hpp"
-#include "pack.hpp"
-#include "queue.hpp"
-#include "array.hpp"
-#include "stackarray.hpp"
-#include "shaders.hpp"
-#include "materials.hpp"
-#include "tasks.hpp"
-#include "fonts.hpp"
-#include "renderer.hpp"
-#include "physics.hpp"
-#include "entities.hpp"
-#include "debugdraw.hpp"
-#include "entitysets.hpp"
-#include "models.hpp"
-#include "peonyparser.hpp"
-#include "input.hpp"
-#include "gui.hpp"
-#include "data.hpp"
-#include "camera.hpp"
-#include "engine.hpp"
-#include "world.hpp"
-
 #endif

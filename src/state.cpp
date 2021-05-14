@@ -1,6 +1,3 @@
-#ifndef ENGINE_HPP
-#define ENGINE_HPP
-
 constexpr uint32 DT_HIST_LENGTH = 512;
 
 struct WindowInfo {
@@ -19,11 +16,6 @@ struct PerfCounters {
   uint32 last_fps;
 };
 
-struct BoneMatrixPool {
-  Array<m4> bone_matrices;
-  Array<real64> times;
-  uint32 n_bone_matrix_sets;
-};
 
 struct State {
   bool32 is_manual_frame_advance_enabled;
@@ -94,16 +86,3 @@ struct MemoryAndState {
   MemoryPool *asset_memory_pool;
   State *state;
 };
-
-namespace engine {
-  void handle_console_command(State *state);
-  void process_input(GLFWwindow *window, State *state);
-  void run_main_loop(State *state);
-  State* init_state(
-    State *state,
-    MemoryPool *asset_memory_pool,
-    WindowInfo window_info
-  );
-}
-
-#endif

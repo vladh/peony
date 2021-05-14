@@ -1,6 +1,3 @@
-#ifndef QUEUE_HPP
-#define QUEUE_HPP
-
 template <typename T>
 class Queue {
 public:
@@ -53,5 +50,3 @@ public:
     this->items = new_items;
   }
 };
-
-#endif

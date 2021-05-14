@@ -82,16 +82,16 @@ namespace behavior_functions {
           obb->center + manifold.normal * 100.0f,
           color
         );
-        logs::console("manifold.axis = %d", manifold.axis);
-        logs::console("manifold.sep_max = %f", manifold.sep_max);
-        logs::console(
+        gui::log("manifold.axis = %d", manifold.axis);
+        gui::log("manifold.sep_max = %f", manifold.sep_max);
+        gui::log(
           "manifold.normal = (%f, %f, %f)",
           manifold.normal.x,
           manifold.normal.y,
           manifold.normal.z
         );
-        logs::console("length(manifold.normal) = %f", length(manifold.normal));
-        logs::console("---");
+        gui::log("length(manifold.normal) = %f", length(manifold.normal));
+        gui::log("---");
       } else {
         debugdraw::draw_obb(
           &state->debug_draw_state,
@@ -139,12 +139,3 @@ namespace behavior_functions {
 #endif
   }
 }
-
-// NOTE: Must match Behavior enum
-void (*BEHAVIOR_FUNCTION_MAP[(uint32)Behavior::length]) (
-  State *state, EntityHandle entity_handle
-) {
-  nullptr,
-  behavior_functions::test,
-  behavior_functions::char_movement_test
-};
