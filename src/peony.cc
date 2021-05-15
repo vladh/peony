@@ -16,7 +16,6 @@
 #include "shaders.cpp"
 #include "tasks.cpp"
 #include "materials.cpp"
-#include "badthing.cpp"
 #include "fonts.cpp"
 #include "entities.cpp"
 #include "spatial.cpp"

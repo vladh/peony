@@ -16,6 +16,45 @@ struct PerfCounters {
   uint32 last_fps;
 };
 
+struct ShaderCommon {
+  m4 view;
+  m4 projection;
+  m4 ui_projection;
+  m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+  m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
+
+  v3 camera_position;
+  float camera_pitch;
+
+  float camera_horizontal_fov;
+  float camera_vertical_fov;
+  float camera_near_clip_dist;
+  float camera_far_clip_dist;
+
+  int n_point_lights;
+  int n_directional_lights;
+  int current_shadow_light_idx;
+  int current_shadow_light_type;
+
+  float shadow_far_clip_dist;
+  bool is_blur_horizontal;
+  TextureType renderdebug_displayed_texture_type;
+  int unused_pad;
+
+  float exposure;
+  float t;
+  int window_width;
+  int window_height;
+
+  v4 point_light_position[MAX_N_LIGHTS];
+  v4 point_light_color[MAX_N_LIGHTS];
+  v4 point_light_attenuation[MAX_N_LIGHTS];
+
+  v4 directional_light_position[MAX_N_LIGHTS];
+  v4 directional_light_direction[MAX_N_LIGHTS];
+  v4 directional_light_color[MAX_N_LIGHTS];
+  v4 directional_light_attenuation[MAX_N_LIGHTS];
+};
 
 struct State {
   bool32 is_manual_frame_advance_enabled;

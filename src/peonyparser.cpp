@@ -572,7 +572,7 @@ namespace peonyparser {
           RenderPassFlag render_pass = RenderPass::none;
           for_range_named (idx_value, 0, n_values) {
             render_pass = render_pass |
-              badthing::render_pass_from_string(prop_values[idx_value].string_value);
+              models::render_pass_from_string(prop_values[idx_value].string_value);
           }
           entity_template->render_pass = render_pass;
         } else if (str::eq(prop_name, "physics_component.obb.center")) {
