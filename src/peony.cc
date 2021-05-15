@@ -57,13 +57,16 @@ int main() {
   engine::init_state(state, &asset_memory_pool, window_info);
 
   std::mutex loading_thread_mutex;
-  std::thread loading_threads[5] = {
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 1),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 2),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 3),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 4),
-    std::thread(tasks::run_loading_loop, &loading_thread_mutex, &state->should_stop, &state->task_queue, 5),
-  };
+  std::thread loading_threads[5];
+  for_range (0, 5) {
+    loading_threads[idx] = std::thread(
+      tasks::run_loading_loop,
+      &loading_thread_mutex,
+      &state->should_stop,
+      &state->task_queue,
+      idx
+    );
+  }
   defer {
     for_range (0, 5) {
       loading_threads[idx].join();

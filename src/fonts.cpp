@@ -32,34 +32,6 @@ namespace fonts {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
-  real32 frac_px_to_px(uint32 n) {
-    return (real32)(n >> 6);
-  }
-
-
-  real32 font_unit_to_px(uint32 n) {
-    // NOTE: We should be dividing by units_per_em here...probably?
-    // This is because we expect height etc. to be in "font units".
-    // But treating these metrics as "fractional pixels" seems to work,
-    // whereas division by units_per_em doesn't.
-    // Check this in more detail.
-    return (real32)(n >> 6);
-  }
-
-
-  FontAsset* get_by_name(
-    Array<FontAsset> *assets, const char *name
-  ) {
-    for_each (asset, *assets) {
-      if (str::eq(asset->name, name)) {
-        return asset;
-      }
-    }
-    logs::warning("Could not find FontAsset with name %s", name);
-    return nullptr;
-  }
-
-
   void load_glyphs(
     FontAsset *font_asset,
     FT_Face face,
@@ -120,6 +92,37 @@ namespace fonts {
   }
 
 
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
+  real32 frac_px_to_px(uint32 n) {
+    return (real32)(n >> 6);
+  }
+
+
+  real32 font_unit_to_px(uint32 n) {
+    // NOTE: We should be dividing by units_per_em here...probably?
+    // This is because we expect height etc. to be in "font units".
+    // But treating these metrics as "fractional pixels" seems to work,
+    // whereas division by units_per_em doesn't.
+    // Check this in more detail.
+    return (real32)(n >> 6);
+  }
+
+
+  FontAsset* get_by_name(
+    Array<FontAsset> *assets, const char *name
+  ) {
+    for_each (asset, *assets) {
+      if (str::eq(asset->name, name)) {
+        return asset;
+      }
+    }
+    logs::warning("Could not find FontAsset with name %s", name);
+    return nullptr;
+  }
+
+
   FontAsset* init_font_asset(
     FontAsset *font_asset,
     MemoryPool *memory_pool,
@@ -161,11 +164,6 @@ namespace fonts {
 
     return font_asset;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using fonts::Character, fonts::FontAsset;

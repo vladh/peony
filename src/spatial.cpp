@@ -41,6 +41,11 @@ namespace spatial {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   void print_spatial_component(
     SpatialComponent *spatial_component
   ) {
@@ -109,11 +114,6 @@ namespace spatial {
 
     return model_matrix;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using spatial::Obb, spatial::Face, spatial::Ray, spatial::SpatialComponent,

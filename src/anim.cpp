@@ -40,32 +40,6 @@ namespace anim {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
-  bool32 is_animation_component_valid(
-    AnimationComponent *animation_component
-  ) {
-    return animation_component->n_bones > 0 &&
-      animation_component->n_animations > 0;
-  }
-
-
-  uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool) {
-    return pool->n_bone_matrix_sets++;
-  }
-
-
-  m4* get_bone_matrix(
-    BoneMatrixPool *pool,
-    uint32 idx,
-    uint32 idx_bone,
-    uint32 idx_anim_key
-  ) {
-    return pool->bone_matrices[
-      idx * MAX_N_ANIM_KEYS * MAX_N_BONES +
-      idx_anim_key * MAX_N_BONES +
-      idx_bone
-    ];
-  }
-
   real64* get_bone_matrix_time(
     BoneMatrixPool *pool,
     uint32 idx,
@@ -109,6 +83,36 @@ namespace anim {
     } while (idx_anim_key != bone->last_anim_key);
     logs::fatal("Could not find anim key.");
     return 0;
+  }
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
+  bool32 is_animation_component_valid(
+    AnimationComponent *animation_component
+  ) {
+    return animation_component->n_bones > 0 &&
+      animation_component->n_animations > 0;
+  }
+
+
+  uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool) {
+    return pool->n_bone_matrix_sets++;
+  }
+
+
+  m4* get_bone_matrix(
+    BoneMatrixPool *pool,
+    uint32 idx,
+    uint32 idx_bone,
+    uint32 idx_anim_key
+  ) {
+    return pool->bone_matrices[
+      idx * MAX_N_ANIM_KEYS * MAX_N_BONES +
+      idx_anim_key * MAX_N_BONES +
+      idx_bone
+    ];
   }
 
 
@@ -272,11 +276,6 @@ namespace anim {
 
     return nullptr;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using anim::BoneMatrixPool, anim::Bone, anim::Animation,

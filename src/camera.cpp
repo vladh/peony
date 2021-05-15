@@ -75,6 +75,9 @@ namespace cameras {
   }
 
 
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   void update_matrices(
     Camera *camera, uint32 window_width, uint32 window_height
   ) {
@@ -161,11 +164,6 @@ namespace cameras {
 
     return camera;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using cameras::CameraType, cameras::Camera;

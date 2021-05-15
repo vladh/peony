@@ -148,6 +148,136 @@ namespace materials {
   }
 
 
+  uint16 get_new_persistent_pbo_idx(PersistentPbo *ppbo) {
+    uint16 current_idx = ppbo->next_idx;
+    ppbo->next_idx++;
+    if (ppbo->next_idx >= ppbo->texture_count) {
+      ppbo->next_idx = 0;
+    }
+    return current_idx;
+  }
+
+
+  void* get_memory_for_persistent_pbo_idx(
+    PersistentPbo *ppbo, uint16 idx
+  ) {
+    return (char*)ppbo->memory + ((uint64)idx * ppbo->texture_size);
+  }
+
+
+  void copy_textures_to_pbo(
+    Material *material,
+    PersistentPbo *persistent_pbo
+  ) {
+    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+      Texture *texture = &material->textures[idx];
+      if (texture->texture_name) {
+        continue;
+      }
+      unsigned char *image_data = files::load_image(
+        texture->path, &texture->width, &texture->height,
+        &texture->n_components, true
+      );
+      texture->pbo_idx_for_copy = get_new_persistent_pbo_idx(persistent_pbo);
+      memcpy(
+        get_memory_for_persistent_pbo_idx(persistent_pbo, texture->pbo_idx_for_copy),
+        image_data,
+        texture->width * texture->height * texture->n_components
+      );
+      files::free_image(image_data);
+    }
+    material->state = MaterialState::textures_copied_to_pbo;
+  }
+
+
+  uint32 get_new_texture_name(
+    TextureNamePool *pool,
+    uint32 target_size
+  ) {
+    for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
+      if (pool->sizes[idx_size] == target_size) {
+        assert(pool->idx_next[idx_size] < pool->n_textures);
+        uint32 idx_name = (idx_size * pool->n_textures) + pool->idx_next[idx_size];
+        uint32 texture_name = pool->texture_names[idx_name];
+        pool->idx_next[idx_size]++;
+        return texture_name;
+      }
+    }
+    logs::fatal(
+      "Could not make texture of size %d as there is no pool for that size.",
+      target_size
+    );
+    return 0;
+  }
+
+
+  void* get_offset_for_persistent_pbo_idx(
+    PersistentPbo *ppbo, uint16 idx
+  ) {
+    return (void*)((uint64)idx * ppbo->texture_size);
+  }
+
+
+  void generate_textures_from_pbo(
+    Material *material,
+    PersistentPbo *persistent_pbo,
+    TextureNamePool *texture_name_pool
+  ) {
+    if (material->have_textures_been_generated) {
+      logs::warning("Tried to generate textures but they've already been generated.");
+    }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
+
+    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+      Texture *texture = &material->textures[idx];
+      if (texture->texture_name != 0) {
+        continue;
+      }
+      texture->texture_name = get_new_texture_name(
+        texture_name_pool, texture->width
+      );
+      glBindTexture(GL_TEXTURE_2D, texture->texture_name);
+      glTexSubImage2D(
+        GL_TEXTURE_2D, 0, 0, 0,
+        texture->width, texture->height,
+        util::get_texture_format_from_n_components(texture->n_components),
+        GL_UNSIGNED_BYTE,
+        get_offset_for_persistent_pbo_idx(persistent_pbo, texture->pbo_idx_for_copy)
+      );
+      glGenerateMipmap(GL_TEXTURE_2D);
+
+      if (texture->type == TextureType::normal) {
+        material->should_use_normal_map = true;
+      }
+    }
+
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+    material->have_textures_been_generated = true;
+  }
+
+
+  const char* material_state_to_string(
+    MaterialState material_state
+  ) {
+    if (material_state == MaterialState::empty) {
+      return "empty";
+    } else if (material_state == MaterialState::initialized) {
+      return "initialized";
+    } else if (material_state == MaterialState::textures_being_copied_to_pbo) {
+      return "textures being copied to pbo";
+    } else if (material_state == MaterialState::textures_copied_to_pbo) {
+      return "textures copied to pbo";
+    } else if (material_state == MaterialState::complete) {
+      return "complete";
+    } else {
+      return "<unknown>";
+    }
+  }
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   const char* texture_type_to_string(TextureType texture_type) {
     if (texture_type == TextureType::none) {
       return "none";
@@ -192,46 +322,6 @@ namespace materials {
   }
 
 
-  Texture* init_texture(
-    Texture *texture,
-    TextureType type,
-    const char* path
-  ) {
-    texture->type = type;
-    strcpy(texture->path, TEXTURE_DIR);
-    strcat(texture->path, path);
-    texture->target = GL_TEXTURE_2D;
-    texture->is_screensize_dependent = is_texture_type_screensize_dependent(type);
-    return texture;
-  }
-
-
-  Texture* init_texture(
-    Texture *texture,
-    GLenum target,
-    TextureType type,
-    uint32 texture_name,
-    int32 width,
-    int32 height,
-    int32 n_components
-  ) {
-    texture->target = target;
-    texture->type = type;
-    texture->texture_name = texture_name;
-    texture->width = width;
-    texture->height = height;
-    texture->n_components = n_components;
-    texture->is_screensize_dependent = is_texture_type_screensize_dependent(type);
-    return texture;
-  }
-
-
-  void destroy_texture(Texture *texture) {
-    logs::info("Destroying texture of type %s", texture_type_to_string(texture->type));
-    glDeleteTextures(1, &texture->texture_name);
-  }
-
-
   TextureType texture_type_from_string(const char* str) {
     if (strcmp(str, "none") == 0) {
       return TextureType::none;
@@ -273,6 +363,46 @@ namespace materials {
       logs::warning("Could not parse TextureType from string: %s", str);
       return TextureType::none;
     }
+  }
+
+
+  Texture* init_texture(
+    Texture *texture,
+    TextureType type,
+    const char* path
+  ) {
+    texture->type = type;
+    strcpy(texture->path, TEXTURE_DIR);
+    strcat(texture->path, path);
+    texture->target = GL_TEXTURE_2D;
+    texture->is_screensize_dependent = is_texture_type_screensize_dependent(type);
+    return texture;
+  }
+
+
+  Texture* init_texture(
+    Texture *texture,
+    GLenum target,
+    TextureType type,
+    uint32 texture_name,
+    int32 width,
+    int32 height,
+    int32 n_components
+  ) {
+    texture->target = target;
+    texture->type = type;
+    texture->texture_name = texture_name;
+    texture->width = width;
+    texture->height = height;
+    texture->n_components = n_components;
+    texture->is_screensize_dependent = is_texture_type_screensize_dependent(type);
+    return texture;
+  }
+
+
+  void destroy_texture(Texture *texture) {
+    logs::info("Destroying texture of type %s", texture_type_to_string(texture->type));
+    glDeleteTextures(1, &texture->texture_name);
   }
 
 
@@ -387,114 +517,6 @@ namespace materials {
       material->texture_uniform_names[material->idx_texture_uniform_names++],
       uniform_name
     );
-  }
-
-
-  uint16 get_new_persistent_pbo_idx(PersistentPbo *ppbo) {
-    uint16 current_idx = ppbo->next_idx;
-    ppbo->next_idx++;
-    if (ppbo->next_idx >= ppbo->texture_count) {
-      ppbo->next_idx = 0;
-    }
-    return current_idx;
-  }
-
-
-  void* get_memory_for_persistent_pbo_idx(
-    PersistentPbo *ppbo, uint16 idx
-  ) {
-    return (char*)ppbo->memory + ((uint64)idx * ppbo->texture_size);
-  }
-
-
-  void copy_textures_to_pbo(
-    Material *material,
-    PersistentPbo *persistent_pbo
-  ) {
-    for (uint32 idx = 0; idx < material->n_textures; idx++) {
-      Texture *texture = &material->textures[idx];
-      if (texture->texture_name) {
-        continue;
-      }
-      unsigned char *image_data = files::load_image(
-        texture->path, &texture->width, &texture->height,
-        &texture->n_components, true
-      );
-      texture->pbo_idx_for_copy = get_new_persistent_pbo_idx(persistent_pbo);
-      memcpy(
-        get_memory_for_persistent_pbo_idx(persistent_pbo, texture->pbo_idx_for_copy),
-        image_data,
-        texture->width * texture->height * texture->n_components
-      );
-      files::free_image(image_data);
-    }
-    material->state = MaterialState::textures_copied_to_pbo;
-  }
-
-
-  uint32 get_new_texture_name(
-    TextureNamePool *pool,
-    uint32 target_size
-  ) {
-    for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
-      if (pool->sizes[idx_size] == target_size) {
-        assert(pool->idx_next[idx_size] < pool->n_textures);
-        uint32 idx_name = (idx_size * pool->n_textures) + pool->idx_next[idx_size];
-        uint32 texture_name = pool->texture_names[idx_name];
-        pool->idx_next[idx_size]++;
-        return texture_name;
-      }
-    }
-    logs::fatal(
-      "Could not make texture of size %d as there is no pool for that size.",
-      target_size
-    );
-    return 0;
-  }
-
-
-  void* get_offset_for_persistent_pbo_idx(
-    PersistentPbo *ppbo, uint16 idx
-  ) {
-    return (void*)((uint64)idx * ppbo->texture_size);
-  }
-
-
-  void generate_textures_from_pbo(
-    Material *material,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool
-  ) {
-    if (material->have_textures_been_generated) {
-      logs::warning("Tried to generate textures but they've already been generated.");
-    }
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
-
-    for (uint32 idx = 0; idx < material->n_textures; idx++) {
-      Texture *texture = &material->textures[idx];
-      if (texture->texture_name != 0) {
-        continue;
-      }
-      texture->texture_name = get_new_texture_name(
-        texture_name_pool, texture->width
-      );
-      glBindTexture(GL_TEXTURE_2D, texture->texture_name);
-      glTexSubImage2D(
-        GL_TEXTURE_2D, 0, 0, 0,
-        texture->width, texture->height,
-        util::get_texture_format_from_n_components(texture->n_components),
-        GL_UNSIGNED_BYTE,
-        get_offset_for_persistent_pbo_idx(persistent_pbo, texture->pbo_idx_for_copy)
-      );
-      glGenerateMipmap(GL_TEXTURE_2D);
-
-      if (texture->type == TextureType::normal) {
-        material->should_use_normal_map = true;
-      }
-    }
-
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-    material->have_textures_been_generated = true;
   }
 
 
@@ -645,25 +667,6 @@ namespace materials {
   }
 
 
-  const char* material_state_to_string(
-    MaterialState material_state
-  ) {
-    if (material_state == MaterialState::empty) {
-      return "empty";
-    } else if (material_state == MaterialState::initialized) {
-      return "initialized";
-    } else if (material_state == MaterialState::textures_being_copied_to_pbo) {
-      return "textures being copied to pbo";
-    } else if (material_state == MaterialState::textures_copied_to_pbo) {
-      return "textures copied to pbo";
-    } else if (material_state == MaterialState::complete) {
-      return "complete";
-    } else {
-      return "<unknown>";
-    }
-  }
-
-
   bool32 prepare_material_and_check_if_done(
     Material *material,
     PersistentPbo *persistent_pbo,
@@ -723,11 +726,6 @@ namespace materials {
 
     return false;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using materials::TextureNamePool, materials::PersistentPbo,
