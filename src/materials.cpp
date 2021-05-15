@@ -275,6 +275,89 @@ namespace materials {
   }
 
 
+  PersistentPbo* init_persistent_pbo(
+    PersistentPbo *ppbo,
+    uint16 texture_count, int32 width, int32 height, int32 n_components
+  ) {
+    ppbo->texture_count = texture_count;
+    ppbo->width = width;
+    ppbo->height = height;
+    ppbo->n_components = n_components;
+    ppbo->texture_size = width * height * n_components;
+    ppbo->total_size = ppbo->texture_size * ppbo->texture_count;
+
+    glGenBuffers(1, &ppbo->pbo);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, ppbo->pbo);
+
+    GLbitfield flags;
+    if (GLAD_GL_ARB_buffer_storage) {
+      flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+      glBufferStorage(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, flags);
+    } else {
+      flags = GL_MAP_WRITE_BIT;
+      glBufferData(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, GL_DYNAMIC_DRAW);
+    }
+
+    ppbo->memory = glMapBufferRange(
+      GL_PIXEL_UNPACK_BUFFER, 0, ppbo->total_size, flags
+    );
+
+    if (ppbo->memory == nullptr) {
+      logs::fatal("Could not get memory for PBO.");
+    }
+
+    // We need to unbind this or it will mess up some textures transfers
+    // after this function.
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
+    return ppbo;
+  }
+
+
+  TextureNamePool* init_texture_name_pool(
+    TextureNamePool *pool,
+    MemoryPool *memory_pool,
+    uint32 n_textures,
+    uint32 mipmap_max_level
+  ) {
+    pool->n_textures = n_textures;
+    pool->mipmap_max_level = mipmap_max_level;
+    pool->n_sizes = 0;
+    pool->sizes[pool->n_sizes++] = 256;
+    pool->sizes[pool->n_sizes++] = 512;
+    pool->sizes[pool->n_sizes++] = 2048;
+
+    pool->texture_names = (uint32*)memory::push(
+      memory_pool,
+      sizeof(uint32) * pool->n_textures * pool->n_sizes,
+      "texture_names"
+    );
+
+    glGenTextures(
+      pool->n_textures * pool->n_sizes,
+      pool->texture_names
+    );
+
+    for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
+      for (uint32 idx_for_size = 0; idx_for_size < pool->n_textures; idx_for_size++) {
+        uint32 idx_name = (idx_size * pool->n_textures) + idx_for_size;
+        glBindTexture(GL_TEXTURE_2D, pool->texture_names[idx_name]);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, pool->mipmap_max_level);
+        glTexStorage2D(
+          GL_TEXTURE_2D, pool->mipmap_max_level + 1, GL_RGBA8,
+          pool->sizes[idx_size], pool->sizes[idx_size]
+        );
+      }
+    }
+
+    return pool;
+  }
+
+
   // -----------------------------------------------------------
   // Public functions
   // -----------------------------------------------------------
@@ -579,91 +662,19 @@ namespace materials {
   }
 
 
-  PersistentPbo* init_persistent_pbo(
-    PersistentPbo *ppbo,
-    uint16 texture_count, int32 width, int32 height, int32 n_components
-  ) {
-    ppbo->texture_count = texture_count;
-    ppbo->width = width;
-    ppbo->height = height;
-    ppbo->n_components = n_components;
-    ppbo->texture_size = width * height * n_components;
-    ppbo->total_size = ppbo->texture_size * ppbo->texture_count;
-
-    glGenBuffers(1, &ppbo->pbo);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, ppbo->pbo);
-
-    GLbitfield flags;
-    if (GLAD_GL_ARB_buffer_storage) {
-      flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
-      glBufferStorage(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, flags);
-    } else {
-      flags = GL_MAP_WRITE_BIT;
-      glBufferData(GL_PIXEL_UNPACK_BUFFER, ppbo->total_size, 0, GL_DYNAMIC_DRAW);
-    }
-
-    ppbo->memory = glMapBufferRange(
-      GL_PIXEL_UNPACK_BUFFER, 0, ppbo->total_size, flags
-    );
-
-    if (ppbo->memory == nullptr) {
-      logs::fatal("Could not get memory for PBO.");
-    }
-
-    // We need to unbind this or it will mess up some textures transfers
-    // after this function.
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
-
-    return ppbo;
-  }
-
   void delete_persistent_pbo(PersistentPbo *ppbo) {
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
     glDeleteBuffers(1, &ppbo->pbo);
   }
 
 
-  TextureNamePool* init_texture_name_pool(
-    TextureNamePool *pool,
-    MemoryPool *memory_pool,
-    uint32 n_textures,
-    uint32 mipmap_max_level
+  void init(
+    PersistentPbo *ppbo,
+    TextureNamePool *texture_name_pool,
+    MemoryPool *memory_pool
   ) {
-    pool->n_textures = n_textures;
-    pool->mipmap_max_level = mipmap_max_level;
-    pool->n_sizes = 0;
-    pool->sizes[pool->n_sizes++] = 256;
-    pool->sizes[pool->n_sizes++] = 512;
-    pool->sizes[pool->n_sizes++] = 2048;
-
-    pool->texture_names = (uint32*)memory::push(
-      memory_pool,
-      sizeof(uint32) * pool->n_textures * pool->n_sizes,
-      "texture_names"
-    );
-
-    glGenTextures(
-      pool->n_textures * pool->n_sizes,
-      pool->texture_names
-    );
-
-    for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
-      for (uint32 idx_for_size = 0; idx_for_size < pool->n_textures; idx_for_size++) {
-        uint32 idx_name = (idx_size * pool->n_textures) + idx_for_size;
-        glBindTexture(GL_TEXTURE_2D, pool->texture_names[idx_name]);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, pool->mipmap_max_level);
-        glTexStorage2D(
-          GL_TEXTURE_2D, pool->mipmap_max_level + 1, GL_RGBA8,
-          pool->sizes[idx_size], pool->sizes[idx_size]
-        );
-      }
-    }
-
-    return pool;
+    init_texture_name_pool(texture_name_pool, memory_pool, 64, 4);
+    init_persistent_pbo(ppbo, 25, 2048, 2048, 4);
   }
 
 
@@ -725,6 +736,29 @@ namespace materials {
     }
 
     return false;
+  }
+
+
+  void reload_shaders(Array<Material> *materials) {
+    MemoryPool temp_memory_pool = {};
+
+    for_each (material, *materials) {
+      shaders::load_shader_asset(
+        &material->shader_asset,
+        &temp_memory_pool
+      );
+      if (shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
+        shaders::load_shader_asset(
+          &material->depth_shader_asset,
+          &temp_memory_pool
+        );
+      }
+    }
+
+    // NOTE: We don't reload the standard depth shader asset.
+    // It makes the code simpler and we don't really need to.
+
+    memory::destroy_memory_pool(&temp_memory_pool);
   }
 }
 

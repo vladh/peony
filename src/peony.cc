@@ -27,9 +27,10 @@
 #include "gui.cpp"
 #include "physics.cpp"
 #include "models.cpp"
-#include "peonyparser.cpp"
-#include "camera.cpp"
+#include "peony_parser.cpp"
+#include "cameras.cpp"
 #include "state.cpp"
+#include "debug_ui.cpp"
 #include "renderer.cpp"
 #include "engine.cpp"
 #include "behavior_functions.cpp"
@@ -53,8 +54,10 @@ int main() {
   defer { renderer::destroy_window(); };
   if (!window_info.window) { return EXIT_FAILURE; }
 
-  State *state = (State*)memory::push(&state_memory_pool, sizeof(State), "state");
+  State *state = MEMORY_PUSH(&state_memory_pool, State, "state");
   engine::init_state(state, &asset_memory_pool, window_info);
+  MemoryAndState memory_and_state = {&asset_memory_pool, state};
+  glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
   std::mutex loading_thread_mutex;
   std::thread loading_threads[5];
@@ -67,51 +70,32 @@ int main() {
       idx
     );
   }
-  defer {
-    for_range (0, 5) {
-      loading_threads[idx].join();
-    }
-  };
+  defer { for_range (0, 5) { loading_threads[idx].join(); } };
 
-  renderer::update_drawing_options(state, window_info.window);
-
-  MemoryAndState memory_and_state = {&asset_memory_pool, state};
-  glfwSetWindowUserPointer(window_info.window, &memory_and_state);
-
-  materials::init_texture_name_pool(
-    &state->texture_name_pool, &asset_memory_pool, 64, 4
+  renderer::init(
+    &asset_memory_pool, &state->builtin_textures,
+    window_info.width, window_info.height,
+    state
   );
-  renderer::init_buffers(
-    &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
-  );
-  renderer::init_shadowmaps(&asset_memory_pool, &state->builtin_textures);
-  renderer::init_ubo(state);
   engine::init(state);
-
-  materials::init_persistent_pbo(&state->persistent_pbo, 25, 2048, 2048, 4);
-
-  gui::init_gui_state(
+  materials::init(
+    &state->persistent_pbo, &state->texture_name_pool, &asset_memory_pool
+  );
+  gui::init(
     &state->gui_state,
     &asset_memory_pool,
     &state->input_state,
     state->window_info.width, state->window_info.height
   );
-  gui::log("Hello world!");
-
-  debugdraw::init_debug_draw_state(
-    &state->debug_draw_state,
-    &asset_memory_pool
-  );
-
-  cameras::init_camera(
+  debugdraw::init(&state->debug_draw_state, &asset_memory_pool);
+  cameras::init(
     &state->camera_main,
     CameraType::perspective,
     state->window_info.width,
     state->window_info.height
   );
   state->camera_active = &state->camera_main;
-
-  input::init_input_state(
+  input::init(
     &state->input_state,
     state->window_info.window
   );

@@ -1,4 +1,4 @@
-namespace peonyparser {
+namespace peony_parser {
   // -----------------------------------------------------------
   // Constants
   // -----------------------------------------------------------
@@ -753,5 +753,5 @@ namespace peonyparser {
   }
 }
 
-using peonyparser::MaterialTemplate, peonyparser::EntityTemplate,
-  peonyparser::PropValueType, peonyparser::PropValue;
+using peony_parser::MaterialTemplate, peony_parser::EntityTemplate,
+  peony_parser::PropValueType, peony_parser::PropValue;

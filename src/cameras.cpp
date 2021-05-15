@@ -140,7 +140,7 @@ namespace cameras {
   }
 
 
-  Camera* init_camera(
+  Camera* init(
     Camera *camera,
     CameraType new_type,
     uint32 window_width,
