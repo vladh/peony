@@ -179,7 +179,7 @@ namespace debugdraw {
   }
 
 
-  DebugDrawState* init_debug_draw_state(
+  DebugDrawState* init(
     DebugDrawState* debug_draw_state,
     MemoryPool *memory_pool
   ) {

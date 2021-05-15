@@ -101,7 +101,7 @@ namespace engine {
     // Get EntityTemplates
     StackArray<EntityTemplate, 128> entity_templates;
     uint32 n_entities = 0;
-    bool32 could_load_file = peonyparser::parse_scene_file(
+    bool32 could_load_file = peony_parser::parse_scene_file(
       scene_path, &entity_templates, &n_entities
     );
 
@@ -137,9 +137,9 @@ namespace engine {
     for_each (used_material, used_materials) {
       material_template = {};
       char path[MAX_PATH];
-      peonyparser::get_material_path(path, *used_material);
-      peonyparser::parse_material_file(path, &material_template);
-      peonyparser::create_material_from_template(
+      peony_parser::get_material_path(path, *used_material);
+      peony_parser::parse_material_file(path, &material_template);
+      peony_parser::create_material_from_template(
         state->materials.push(),
         &material_template,
         &state->builtin_textures,
@@ -174,13 +174,13 @@ namespace engine {
         );
       }
       if (!found_model_loader) {
-        peonyparser::create_model_loader_from_entity_template(
+        peony_parser::create_model_loader_from_entity_template(
           entity_template,
           entity->handle,
           &state->model_loaders
         );
       }
-      peonyparser::create_entity_loader_from_entity_template(
+      peony_parser::create_entity_loader_from_entity_template(
         entity_template,
         entity->handle,
         &state->entity_loader_set
@@ -442,6 +442,7 @@ namespace engine {
       state->window_info.width,
       state->window_info.height
     );
+
     state->is_world_loaded = check_all_entities_loaded(state);
 
     lights::update_light_components(

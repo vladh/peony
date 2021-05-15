@@ -22,38 +22,26 @@ namespace renderer {
     glGenTextures(1, &g_pbr_texture_name);
 
     builtin_textures->g_position_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "g_position_texture"
-      ),
-      GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name,
-      width, height, 4
+      MEMORY_PUSH(memory_pool, Texture, "g_position_texture"),
+      GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name, width, height, 4
     );
     builtin_textures->g_position_texture->is_builtin = true;
 
     builtin_textures->g_normal_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "g_normal_texture"
-      ),
-      GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name,
-      width, height, 4
+      MEMORY_PUSH(memory_pool, Texture, "g_normal_texture"),
+      GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name, width, height, 4
     );
     builtin_textures->g_normal_texture->is_builtin = true;
 
     builtin_textures->g_albedo_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "g_albedo_texture"
-      ),
-      GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name,
-      width, height, 4
+      MEMORY_PUSH(memory_pool, Texture, "g_albedo_texture"),
+      GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name, width, height, 4
     );
     builtin_textures->g_albedo_texture->is_builtin = true;
 
     builtin_textures->g_pbr_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "g_pbr_texture"
-      ),
-      GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name,
-      width, height, 4
+      MEMORY_PUSH(memory_pool, Texture, "g_pbr_texture"),
+      GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name, width, height, 4
     );
     builtin_textures->g_pbr_texture->is_builtin = true;
 
@@ -145,9 +133,7 @@ namespace renderer {
     glGenTextures(1, &l_color_texture_name);
 
     builtin_textures->l_color_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "l_color_texture"
-      ),
+      MEMORY_PUSH(memory_pool, Texture, "l_color_texture"),
       GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
       width, height, 4
     );
@@ -172,9 +158,7 @@ namespace renderer {
     glGenTextures(1, &l_bright_color_texture_name);
 
     builtin_textures->l_bright_color_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "l_bright_color_texture"
-      ),
+      MEMORY_PUSH(memory_pool, Texture, "l_bright_color_texture"),
       GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
       width, height, 4
     );
@@ -215,9 +199,7 @@ namespace renderer {
     glGenTextures(1, &l_depth_texture_name);
 
     builtin_textures->l_depth_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "l_depth_texture"
-      ),
+      MEMORY_PUSH(memory_pool, Texture, "l_depth_texture"),
       GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
       width, height, 1
     );
@@ -260,9 +242,7 @@ namespace renderer {
     glGenTextures(1, &blur1_texture_name);
 
     builtin_textures->blur1_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "blur1_texture"
-      ),
+      MEMORY_PUSH(memory_pool, Texture, "blur1_texture"),
       GL_TEXTURE_2D, TextureType::blur1, blur1_texture_name,
       width, height, 4
     );
@@ -289,9 +269,7 @@ namespace renderer {
     glGenTextures(1, &blur2_texture_name);
 
     builtin_textures->blur2_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "blur2_texture"
-      ),
+      MEMORY_PUSH(memory_pool, Texture, "blur2_texture"),
       GL_TEXTURE_2D, TextureType::blur2, blur2_texture_name,
       width, height, 4
     );
@@ -315,6 +293,92 @@ namespace renderer {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
       logs::fatal("Framebuffer not complete!");
     }
+  }
+
+
+  void init_ubo(State *state) {
+    glGenBuffers(1, &state->ubo_shader_common);
+    glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
+    glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
+  }
+
+
+  void init_shadowmaps(
+    MemoryPool *memory_pool,
+    BuiltinTextures *builtin_textures
+  ) {
+    // Cube
+    glGenFramebuffers(1, &builtin_textures->shadowmaps_3d_framebuffer);
+    glGenTextures(1, &builtin_textures->shadowmaps_3d);
+    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, builtin_textures->shadowmaps_3d);
+
+    glTexStorage3D(
+      GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
+      builtin_textures->shadowmap_3d_width, builtin_textures->shadowmap_3d_height,
+      6 * MAX_N_LIGHTS
+    );
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->shadowmaps_3d_framebuffer);
+    glFramebufferTexture(
+      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->shadowmaps_3d, 0
+    );
+
+    // #slow
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+      logs::fatal("Framebuffer not complete!");
+    }
+
+    builtin_textures->shadowmaps_3d_texture = materials::init_texture(
+      MEMORY_PUSH(memory_pool, Texture, "shadowmaps_3d_texture"),
+      GL_TEXTURE_CUBE_MAP_ARRAY,
+      TextureType::shadowmaps_3d, builtin_textures->shadowmaps_3d,
+      builtin_textures->shadowmap_3d_width, builtin_textures->shadowmap_3d_height, 1
+    );
+    builtin_textures->shadowmaps_3d_texture->is_builtin = true;
+
+    // Texture
+    glGenFramebuffers(1, &builtin_textures->shadowmaps_2d_framebuffer);
+    glGenTextures(1, &builtin_textures->shadowmaps_2d);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, builtin_textures->shadowmaps_2d);
+
+    glTexStorage3D(
+      GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F,
+      builtin_textures->shadowmap_2d_width,
+      builtin_textures->shadowmap_2d_height,
+      MAX_N_LIGHTS
+    );
+
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, border_color);
+    glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->shadowmaps_2d_framebuffer);
+    glFramebufferTexture(
+      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->shadowmaps_2d, 0
+    );
+
+    // #slow
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+      logs::fatal("Framebuffer not complete!");
+    }
+
+    builtin_textures->shadowmaps_2d_texture = materials::init_texture(
+      MEMORY_PUSH(memory_pool, Texture, "shadowmaps_2d_texture"),
+      GL_TEXTURE_2D_ARRAY,
+      TextureType::shadowmaps_2d, builtin_textures->shadowmaps_2d,
+      builtin_textures->shadowmap_2d_width,
+      builtin_textures->shadowmap_2d_height, 1
+    );
+    builtin_textures->shadowmaps_2d_texture->is_builtin = true;
   }
 
 
@@ -541,31 +605,6 @@ namespace renderer {
   }
 
 
-  void reload_shaders(State *state) {
-    MemoryPool temp_memory_pool = {};
-
-    for_each (material, state->materials) {
-      shaders::load_shader_asset(
-        &material->shader_asset,
-        &temp_memory_pool
-      );
-      if (shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
-        shaders::load_shader_asset(
-          &material->depth_shader_asset,
-          &temp_memory_pool
-        );
-      }
-    }
-
-    shaders::load_shader_asset(
-      &state->standard_depth_shader_asset,
-      &temp_memory_pool
-    );
-
-    memory::destroy_memory_pool(&temp_memory_pool);
-  }
-
-
   void draw(
     RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
@@ -751,426 +790,9 @@ namespace renderer {
   }
 
 
-  void get_entity_text_representation(
-    char *text,
-    State *state,
-    Entity *entity,
-    uint8 depth
-  ) {
-    char number[128];
-
-    EntityHandle handle = entity->handle;
-    SpatialComponent *spatial_component =
-      state->spatial_component_set.components[handle];
-
-    // Children will be drawn under their parents.
-    if (
-      depth == 0 &&
-      spatial::is_spatial_component_valid(spatial_component) &&
-      spatial_component->parent_entity_handle != Entity::no_entity_handle
-    ) {
-      return;
-    }
-
-    bool32 has_spatial_component = spatial::is_spatial_component_valid(
-      spatial_component
-    );
-    bool32 has_drawable_component = models::is_drawable_component_valid(
-      state->drawable_component_set.components[handle]
-    );
-    bool32 has_light_component = lights::is_light_component_valid(
-      state->light_component_set.components[handle]
-    );
-    bool32 has_behavior_component = behavior::is_behavior_component_valid(
-      state->behavior_component_set.components[handle]
-    );
-    bool32 has_animation_component = anim::is_animation_component_valid(
-      state->animation_component_set.components[handle]
-    );
-
-    for (uint8 level = 0; level < depth; level++) {
-      strcat(text, "  ");
-    }
-
-    strcat(text, "- ");
-    strcat(text, entity->debug_name);
-
-    strcat(text, "@");
-    _itoa(entity->handle, number, 10);
-    strcat(text, number);
-
-    if (
-      !has_spatial_component &&
-      !has_drawable_component &&
-      !has_light_component &&
-      !has_behavior_component &&
-      !has_animation_component
-    ) {
-      strcat(text, " (orphan)");
-    }
-
-    if (has_spatial_component) {
-      strcat(text, " +S");
-    }
-    if (has_drawable_component) {
-      strcat(text, " +D");
-    }
-    if (has_light_component) {
-      strcat(text, " +L");
-    }
-    if (has_behavior_component) {
-      strcat(text, " +B");
-    }
-    if (has_animation_component) {
-      strcat(text, " +A");
-    }
-
-    if (spatial::is_spatial_component_valid(spatial_component)) {
-      // NOTE: This is super slow lol.
-      uint32 n_children_found = 0;
-      for_each (child_spatial_component, state->spatial_component_set.components) {
-        if (
-          child_spatial_component->parent_entity_handle ==
-            spatial_component->entity_handle
-        ) {
-          n_children_found++;
-          if (n_children_found > 5) {
-            continue;
-          }
-          EntityHandle child_handle = child_spatial_component->entity_handle;
-          Entity *child_entity = state->entity_set.entities[child_handle];
-
-          if (text[strlen(text) - 1] != '\n') {
-            strcat(text, "\n");
-          }
-          get_entity_text_representation(text, state, child_entity, depth + 1);
-        }
-      }
-      if (n_children_found > 5) {
-        for (uint8 level = 0; level < (depth + 1); level++) {
-          strcat(text, "  ");
-        }
-        strcat(text, "(and ");
-        _itoa(n_children_found - 5, number, 10);
-        strcat(text, number);
-        strcat(text, " more)");
-      }
-    }
-
-    if (text[strlen(text) - 1] != '\n') {
-      strcat(text, "\n");
-    }
-  }
-
-
-  void get_scene_text_representation(char *text, State *state) {
-    text[0] = '\0';
-
-    for_each (entity, state->entity_set.entities) {
-      get_entity_text_representation(text, state, entity, 0);
-    }
-
-    if (text[strlen(text) - 1] == '\n') {
-      text[strlen(text) - 1] = '\0';
-    }
-  }
-
-
-  void get_materials_text_representation(char *text, State *state) {
-    text[0] = '\0';
-
-    strcat(text, "Internal:\n");
-
-    uint32 idx = 0;
-    for_each (material, state->materials) {
-      strcat(text, "- ");
-      strcat(text, material->name);
-      strcat(text, "\n");
-      if (idx == state->first_non_internal_material_idx - 1) {
-        strcat(text, "Non-internal: \n");
-      }
-      idx++;
-    }
-
-    if (text[strlen(text) - 1] == '\n') {
-      text[strlen(text) - 1] = '\0';
-    }
-  }
-
-
-  void render_scene_ui(State *state) {
-    char debug_text[1 << 14];
-    size_t dt_size = sizeof(debug_text);
-
-    gui::start_drawing(&state->gui_state);
-
-    if (state->gui_state.heading_opacity > 0.0f) {
-      gui::draw_heading(
-        &state->gui_state,
-        state->gui_state.heading_text,
-        v4(0.0f, 0.33f, 0.93f, state->gui_state.heading_opacity)
-      );
-      if (state->gui_state.heading_fadeout_delay > 0.0f) {
-        state->gui_state.heading_fadeout_delay -= (real32)state->dt;
-      } else {
-        state->gui_state.heading_opacity -=
-          state->gui_state.heading_fadeout_duration * (real32)state->dt;
-      }
-    }
-
-    {
-      strcpy(debug_text, "Peony debug info: ");
-      strcat(debug_text, state->current_scene_name);
-      GuiContainer *container = gui::make_container(
-        &state->gui_state, debug_text, v2(25.0f, 25.0f)
-      );
-
-      snprintf(
-        debug_text, dt_size, "%ux%u", state->window_info.width, state->window_info.height
-      );
-      gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
-
-      snprintf(
-        debug_text, dt_size, "%ux%u",
-        state->window_info.screencoord_width, state->window_info.screencoord_height
-      );
-      gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
-
-      snprintf(debug_text, dt_size, "%u fps", state->perf_counters.last_fps);
-      gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
-
-      snprintf(debug_text, dt_size, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
-      gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
-
-      snprintf(debug_text, dt_size, "%.2f", 1.0f + state->timescale_diff);
-      gui::draw_named_value(&state->gui_state, container, "ts", debug_text);
-
-      snprintf(debug_text, dt_size, state->is_world_loaded ? "yes" : "no");
-      gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
-
-      snprintf(debug_text, dt_size, "%u", state->materials.length);
-      gui::draw_named_value(
-        &state->gui_state, container, "materials.length", debug_text
-      );
-
-      snprintf(debug_text, dt_size, "%u", state->entity_set.entities.length);
-      gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
-
-      snprintf(debug_text, dt_size, "%u", state->model_loaders.length);
-      gui::draw_named_value(
-        &state->gui_state, container, "model_loaders.length", debug_text
-      );
-
-      snprintf(debug_text, dt_size, "%u", state->n_valid_model_loaders);
-      gui::draw_named_value(
-        &state->gui_state, container, "n_valid_model_loaders", debug_text
-      );
-
-      snprintf(debug_text, dt_size, "%u", state->entity_loader_set.loaders.length);
-      gui::draw_named_value(
-        &state->gui_state, container, "entity_loader_set.length", debug_text
-      );
-
-      snprintf(debug_text, dt_size, "%u", state->n_valid_entity_loaders);
-      gui::draw_named_value(
-        &state->gui_state, container, "n_valid_entity_loaders", debug_text
-      );
-
-      if (gui::draw_toggle(
-        &state->gui_state, container, "Wireframe mode", &state->should_use_wireframe
-      )) {
-        state->should_use_wireframe = !state->should_use_wireframe;
-        if (state->should_use_wireframe) {
-          gui::set_heading(&state->gui_state, "Wireframe mode on.", 1.0f, 1.0f, 1.0f);
-        } else {
-          gui::set_heading(&state->gui_state, "Wireframe mode off.", 1.0f, 1.0f, 1.0f);
-        }
-      }
-
-      if (gui::draw_toggle(
-        &state->gui_state, container, "FPS limit", &state->should_limit_fps
-      )) {
-        state->should_limit_fps = !state->should_limit_fps;
-        if (state->should_limit_fps) {
-          gui::set_heading(&state->gui_state, "FPS limit enabled.", 1.0f, 1.0f, 1.0f);
-        } else {
-          gui::set_heading(&state->gui_state, "FPS limit disabled.", 1.0f, 1.0f, 1.0f);
-        }
-      }
-
-      if (gui::draw_toggle(
-        &state->gui_state, container, "Manual frame advance", &state->is_manual_frame_advance_enabled
-      )) {
-        state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
-        if (state->is_manual_frame_advance_enabled) {
-          gui::set_heading(
-            &state->gui_state, "Manual frame advance enabled.", 1.0f, 1.0f, 1.0f
-          );
-        } else {
-          gui::set_heading(
-            &state->gui_state, "Manual frame advance disabled.", 1.0f, 1.0f, 1.0f
-          );
-        }
-      }
-
-      if (gui::draw_toggle(
-        &state->gui_state, container, "Pause", &state->should_pause
-      )) {
-        state->should_pause = !state->should_pause;
-        if (state->should_pause) {
-          gui::set_heading(&state->gui_state, "Pause enabled.", 1.0f, 1.0f, 1.0f);
-        } else {
-          gui::set_heading(&state->gui_state, "Pause disabled.", 1.0f, 1.0f, 1.0f);
-        }
-      }
-
-      if (gui::draw_button(
-        &state->gui_state, container, "Reload shaders"
-      )) {
-        reload_shaders(state);
-        gui::set_heading(&state->gui_state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
-      }
-
-      if (gui::draw_button(
-        &state->gui_state, container, "Delete PBO"
-      )) {
-        materials::delete_persistent_pbo(&state->persistent_pbo);
-        gui::set_heading(&state->gui_state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
-      }
-    }
-
-    {
-#if 1
-      GuiContainer *container = gui::make_container(
-        &state->gui_state, "Entities", v2(state->window_info.width - 400.0f, 25.0f)
-      );
-      get_scene_text_representation(debug_text, state);
-      gui::draw_body_text(&state->gui_state, container, debug_text);
-#endif
-    }
-
-    {
-#if 1
-      GuiContainer *container = gui::make_container(
-        &state->gui_state, "Materials", v2(state->window_info.width - 600.0f, 25.0f)
-      );
-      get_materials_text_representation(debug_text, state);
-      gui::draw_body_text(&state->gui_state, container, debug_text);
-#endif
-    }
-
-    gui::draw_console(
-      &state->gui_state, state->input_state.text_input
-    );
-    gui::render(&state->gui_state);
-  }
-
-
   // -----------------------------------------------------------
   // Public functions
   // -----------------------------------------------------------
-  void init_ubo(State *state) {
-    glGenBuffers(1, &state->ubo_shader_common);
-    glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
-  }
-
-
-  void init_shadowmaps(
-    MemoryPool *memory_pool,
-    BuiltinTextures *builtin_textures
-  ) {
-    // Cube
-    glGenFramebuffers(1, &builtin_textures->shadowmaps_3d_framebuffer);
-    glGenTextures(1, &builtin_textures->shadowmaps_3d);
-    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, builtin_textures->shadowmaps_3d);
-
-    glTexStorage3D(
-      GL_TEXTURE_CUBE_MAP_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-      builtin_textures->shadowmap_3d_width, builtin_textures->shadowmap_3d_height,
-      6 * MAX_N_LIGHTS
-    );
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->shadowmaps_3d_framebuffer);
-    glFramebufferTexture(
-      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->shadowmaps_3d, 0
-    );
-
-    // #slow
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-      logs::fatal("Framebuffer not complete!");
-    }
-
-    builtin_textures->shadowmaps_3d_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "shadowmaps_3d_texture"
-      ),
-      GL_TEXTURE_CUBE_MAP_ARRAY,
-      TextureType::shadowmaps_3d, builtin_textures->shadowmaps_3d,
-      builtin_textures->shadowmap_3d_width, builtin_textures->shadowmap_3d_height, 1
-    );
-    builtin_textures->shadowmaps_3d_texture->is_builtin = true;
-
-    // Texture
-    glGenFramebuffers(1, &builtin_textures->shadowmaps_2d_framebuffer);
-    glGenTextures(1, &builtin_textures->shadowmaps_2d);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, builtin_textures->shadowmaps_2d);
-
-    glTexStorage3D(
-      GL_TEXTURE_2D_ARRAY, 1, GL_DEPTH_COMPONENT32F,
-      builtin_textures->shadowmap_2d_width,
-      builtin_textures->shadowmap_2d_height,
-      MAX_N_LIGHTS
-    );
-
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
-    glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, border_color);
-    glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->shadowmaps_2d_framebuffer);
-    glFramebufferTexture(
-      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, builtin_textures->shadowmaps_2d, 0
-    );
-
-    // #slow
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-      logs::fatal("Framebuffer not complete!");
-    }
-
-    builtin_textures->shadowmaps_2d_texture = materials::init_texture(
-      (Texture*)memory::push(
-        memory_pool, sizeof(Texture), "shadowmaps_2d_texture"
-      ),
-      GL_TEXTURE_2D_ARRAY,
-      TextureType::shadowmaps_2d, builtin_textures->shadowmaps_2d,
-      builtin_textures->shadowmap_2d_width,
-      builtin_textures->shadowmap_2d_height, 1
-    );
-    builtin_textures->shadowmaps_2d_texture->is_builtin = true;
-  }
-
-
-  void init_buffers(
-    MemoryPool *memory_pool,
-    BuiltinTextures *builtin_textures,
-    uint32 width,
-    uint32 height
-  ) {
-    init_g_buffer(memory_pool, builtin_textures, width, height);
-    init_l_buffer(memory_pool, builtin_textures, width, height);
-    init_blur_buffers(memory_pool, builtin_textures, width, height);
-  }
-
-
   void update_drawing_options(State *state, GLFWwindow *window) {
     if (state->is_cursor_enabled) {
       glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -1183,6 +805,22 @@ namespace renderer {
     } else {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+  }
+
+
+  void init(
+    MemoryPool *memory_pool,
+    BuiltinTextures *builtin_textures,
+    uint32 width,
+    uint32 height,
+    State *state
+  ) {
+    init_g_buffer(memory_pool, builtin_textures, width, height);
+    init_l_buffer(memory_pool, builtin_textures, width, height);
+    init_blur_buffers(memory_pool, builtin_textures, width, height);
+    init_shadowmaps(memory_pool, builtin_textures);
+    init_ubo(state);
+    update_drawing_options(state, state->window_info.window);
   }
 
 
@@ -1401,19 +1039,14 @@ namespace renderer {
             state->builtin_textures.shadowmap_3d_height
           );
           glBindFramebuffer(
-            GL_FRAMEBUFFER,
-            state->builtin_textures.shadowmaps_3d_framebuffer
+            GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_3d_framebuffer
           );
           glClear(GL_DEPTH_BUFFER_BIT);
 
           copy_scene_data_to_ubo(
             state, idx_light, lights::light_type_to_int(light_component->type), false
           );
-          render_scene(
-            state,
-            RenderPass::shadowcaster,
-            RenderMode::depth
-          );
+          render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
 
           idx_light++;
         }
@@ -1464,43 +1097,28 @@ namespace renderer {
             state->builtin_textures.shadowmap_2d_height
           );
           glBindFramebuffer(
-            GL_FRAMEBUFFER,
-            state->builtin_textures.shadowmaps_2d_framebuffer
+            GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_2d_framebuffer
           );
           glClear(GL_DEPTH_BUFFER_BIT);
 
           copy_scene_data_to_ubo(
             state, idx_light, lights::light_type_to_int(light_component->type), false
           );
-          render_scene(
-            state,
-            RenderPass::shadowcaster,
-            RenderMode::depth
-          );
+          render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
 
           idx_light++;
         }
       }
     }
 
-    glViewport(
-      0, 0, state->window_info.width, state->window_info.height
-    );
+    glViewport(0, 0, state->window_info.width, state->window_info.height);
 
     // Geometry pass
     {
-      if (state->should_use_wireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      }
+      if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
       glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
-      render_scene(
-        state,
-        RenderPass::deferred,
-        RenderMode::regular
-      );
-      if (state->should_use_wireframe) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-      }
+      render_scene(state, RenderPass::deferred, RenderMode::regular);
+      if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
     }
 
     // Copy depth from geometry pass to lighting pass
@@ -1519,11 +1137,7 @@ namespace renderer {
     // Lighting pass
     {
       glDisable(GL_DEPTH_TEST);
-      render_scene(
-        state,
-        RenderPass::lighting,
-        RenderMode::regular
-      );
+      render_scene(state, RenderPass::lighting, RenderMode::regular);
       glEnable(GL_DEPTH_TEST);
     }
 
@@ -1539,11 +1153,7 @@ namespace renderer {
         // Draw at the very back of our depth range, so as to be behind everything.
         glDepthRange(0.9999f, 1.0f);
 
-        render_scene(
-          state,
-          RenderPass::forward_skybox,
-          RenderMode::regular
-        );
+        render_scene(state, RenderPass::forward_skybox, RenderMode::regular);
 
         glDepthRange(0.0f, 1.0f);
         glDepthMask(GL_TRUE);
@@ -1552,27 +1162,12 @@ namespace renderer {
 
       // Forward
       {
-        if (state->should_use_wireframe) {
-          glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-
-        render_scene(
-          state,
-          RenderPass::forward_depth,
-          RenderMode::regular
-        );
-
+        if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
+        render_scene(state, RenderPass::forward_depth, RenderMode::regular);
         glDisable(GL_DEPTH_TEST);
-        render_scene(
-          state,
-          RenderPass::forward_nodepth,
-          RenderMode::regular
-        );
+        render_scene(state, RenderPass::forward_nodepth, RenderMode::regular);
         glEnable(GL_DEPTH_TEST);
-
-        if (state->should_use_wireframe) {
-          glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
+        if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
       }
 
       // Debug draw pass
@@ -1588,28 +1183,20 @@ namespace renderer {
     {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
       copy_scene_data_to_ubo(state, 0, 0, true);
-      render_scene(
-        state, RenderPass::preblur, RenderMode::regular
-      );
+      render_scene(state, RenderPass::preblur, RenderMode::regular);
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
       copy_scene_data_to_ubo(state, 0, 0, false);
-      render_scene(
-        state, RenderPass::blur2, RenderMode::regular
-      );
+      render_scene(state, RenderPass::blur2, RenderMode::regular);
 
       for (uint32 idx = 0; idx < 3; idx++) {
         glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
         copy_scene_data_to_ubo(state, 0, 0, true);
-        render_scene(
-          state, RenderPass::blur1, RenderMode::regular
-        );
+        render_scene(state, RenderPass::blur1, RenderMode::regular);
 
         glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
         copy_scene_data_to_ubo(state, 0, 0, false);
-        render_scene(
-          state, RenderPass::blur1, RenderMode::regular
-        );
+        render_scene(state, RenderPass::blur1, RenderMode::regular);
       }
     }
 #endif
@@ -1618,27 +1205,19 @@ namespace renderer {
 
     // Postprocessing pass
     {
-      render_scene(
-        state,
-        RenderPass::postprocessing,
-        RenderMode::regular
-      );
+      render_scene(state, RenderPass::postprocessing, RenderMode::regular);
     }
 
     // Debug pass
     {
-      render_scene(
-        state,
-        RenderPass::renderdebug,
-        RenderMode::regular
-      );
+      render_scene(state, RenderPass::renderdebug, RenderMode::regular);
     }
 
     // UI pass
     {
       glEnable(GL_BLEND);
       if (!state->should_hide_ui) {
-        render_scene_ui(state);
+        debug_ui::render_debug_ui(state);
       }
       glDisable(GL_BLEND);
     }

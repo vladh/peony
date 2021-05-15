@@ -878,7 +878,43 @@ namespace gui {
   }
 
 
-  GuiState* init_gui_state(
+  void log(const char *format, ...) {
+    char text[MAX_CONSOLE_LINE_LENGTH];
+    va_list vargs;
+    va_start(vargs, format);
+    vsnprintf(text, sizeof(text), format, vargs);
+    va_end(vargs);
+
+    // Fill array in back-to-front.
+    if (g_console->idx_log_start == 0) {
+      g_console->idx_log_start = MAX_N_CONSOLE_LINES - 1;
+    } else {
+      g_console->idx_log_start--;
+    }
+    if (g_console->idx_log_start == g_console->idx_log_end) {
+      if (g_console->idx_log_end == 0) {
+        g_console->idx_log_end = MAX_N_CONSOLE_LINES - 1;
+      } else {
+        g_console->idx_log_end--;
+      }
+    }
+    strcpy(g_console->log[g_console->idx_log_start], text);
+  }
+
+
+  void set_heading(
+    GuiState *gui_state,
+    const char *text, real32 opacity,
+    real32 fadeout_duration, real32 fadeout_delay
+  ) {
+    gui_state->heading_text = text;
+    gui_state->heading_opacity = opacity;
+    gui_state->heading_fadeout_duration = fadeout_duration;
+    gui_state->heading_fadeout_delay = fadeout_delay;
+  }
+
+
+  GuiState* init(
     GuiState* gui_state,
     MemoryPool *memory_pool,
     InputState *input_state,
@@ -979,43 +1015,9 @@ namespace gui {
 
     memory::destroy_memory_pool(&temp_memory_pool);
 
+    log("Hello world!");
+
     return gui_state;
-  }
-
-
-  void log(const char *format, ...) {
-    char text[MAX_CONSOLE_LINE_LENGTH];
-    va_list vargs;
-    va_start(vargs, format);
-    vsnprintf(text, sizeof(text), format, vargs);
-    va_end(vargs);
-
-    // Fill array in back-to-front.
-    if (g_console->idx_log_start == 0) {
-      g_console->idx_log_start = MAX_N_CONSOLE_LINES - 1;
-    } else {
-      g_console->idx_log_start--;
-    }
-    if (g_console->idx_log_start == g_console->idx_log_end) {
-      if (g_console->idx_log_end == 0) {
-        g_console->idx_log_end = MAX_N_CONSOLE_LINES - 1;
-      } else {
-        g_console->idx_log_end--;
-      }
-    }
-    strcpy(g_console->log[g_console->idx_log_start], text);
-  }
-
-
-  void set_heading(
-    GuiState *gui_state,
-    const char *text, real32 opacity,
-    real32 fadeout_duration, real32 fadeout_delay
-  ) {
-    gui_state->heading_text = text;
-    gui_state->heading_opacity = opacity;
-    gui_state->heading_fadeout_duration = fadeout_duration;
-    gui_state->heading_fadeout_delay = fadeout_delay;
   }
 }
 

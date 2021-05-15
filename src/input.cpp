@@ -227,39 +227,18 @@ namespace input {
   }
 
 
-  InputState* init_input_state(
+  InputState* init(
     InputState *input_state,
     GLFWwindow *window
   ) {
     input_state->window = window;
-    input_state->mouse_pos = v2(0.0f, 0.0f);
     input_state->mouse_3d_sensitivity = 0.1f;
-    input_state->current_cursor = nullptr;
     input_state->arrow_cursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
     input_state->ibeam_cursor = glfwCreateStandardCursor(GLFW_IBEAM_CURSOR);
     input_state->crosshair_cursor = glfwCreateStandardCursor(GLFW_CROSSHAIR_CURSOR);
     input_state->hand_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
     input_state->hresize_cursor = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
     input_state->vresize_cursor = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-    input_state->have_ever_gotten_mouse_pos = false;
-
-    memset(
-      input_state->mouse_button_states, 0, sizeof(input_state->mouse_button_states)
-    );
-    memset(
-      input_state->n_mouse_button_state_changes_this_frame,
-      0,
-      sizeof(input_state->n_mouse_button_state_changes_this_frame)
-    );
-    memset(
-      input_state->key_states, 0, sizeof(input_state->key_states)
-    );
-    memset(
-      input_state->n_key_state_changes_this_frame,
-      0,
-      sizeof(input_state->n_key_state_changes_this_frame)
-    );
-
     return input_state;
   }
 }
