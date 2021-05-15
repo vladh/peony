@@ -81,13 +81,7 @@ int main() {
   materials::init_texture_name_pool(
     &state->texture_name_pool, &asset_memory_pool, 64, 4
   );
-  renderer::init_g_buffer(
-    &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
-  );
-  renderer::init_l_buffer(
-    &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
-  );
-  renderer::init_blur_buffers(
+  renderer::init_buffers(
     &asset_memory_pool, &state->builtin_textures, window_info.width, window_info.height
   );
   renderer::init_shadowmaps(&asset_memory_pool, &state->builtin_textures);
