@@ -30,6 +30,11 @@ namespace lights {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   const char* light_type_to_string(LightType light_type) {
     if (light_type == LightType::none) {
       return "none";
@@ -111,11 +116,6 @@ namespace lights {
       }
     }
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using lights::LightType, lights::LightComponent,

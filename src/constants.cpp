@@ -2,7 +2,6 @@
 #define CONSTANTS_HPP
 
 // Options
-
 #define USE_TIMERS true
 #define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false

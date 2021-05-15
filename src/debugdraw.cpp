@@ -46,6 +46,9 @@ namespace debugdraw {
   }
 
 
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   void draw_line(
     DebugDrawState *debug_draw_state,
     v3 start_pos,
@@ -225,11 +228,6 @@ namespace debugdraw {
 
     return debug_draw_state;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using debugdraw::DebugDrawVertex, debugdraw::DebugDrawState;

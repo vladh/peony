@@ -34,34 +34,6 @@ namespace shaders {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
-  const char* shader_type_to_string(ShaderType shader_type) {
-    if (shader_type == ShaderType::none) {
-      return "none";
-    } else if (shader_type == ShaderType::standard) {
-      return "standard";
-    } else if (shader_type == ShaderType::depth) {
-      return "depth";
-    } else {
-      logs::error("Could not get string for ShaderType: %d", shader_type);
-      return "<unknown>";
-    }
-  }
-
-
-  ShaderType shader_type_from_string(const char* str) {
-    if (strcmp(str, "none") == 0) {
-      return ShaderType::none;
-    } else if (strcmp(str, "standard") == 0) {
-      return ShaderType::standard;
-    } else if (strcmp(str, "depth") == 0) {
-      return ShaderType::depth;
-    } else {
-      logs::fatal("Could not parse ShaderType: %s", str);
-      return ShaderType::none;
-    }
-  }
-
-
   void assert_shader_status_ok(uint32 new_shader, const char *path) {
     int32 status;
     glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);
@@ -180,6 +152,81 @@ namespace shaders {
     }
 
     return location;
+  }
+
+
+  void load_uniforms(ShaderAsset *shader_asset) {
+    for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
+      shader_asset->intrinsic_uniform_locations[idx] = -1;
+    }
+
+    // Bind uniform block
+    uint32 uniform_block_index = glGetUniformBlockIndex(
+      shader_asset->program, "shader_common"
+    );
+    glUniformBlockBinding(shader_asset->program, uniform_block_index, 0);
+
+    // Load uniforms
+    // NOTE: We may want to skip all shader_asset stuff, because fallback on loading the locations
+    // in `shader::set_*` anyway. But, it's kind of cool to know we're loading everything we can
+    // up front in shader_asset function.
+    uint32 new_n_intrinsic_uniforms = 0;
+    GLint n_active_uniforms;
+    char uniform_name[MAX_UNIFORM_NAME_LENGTH];
+    GLint uniform_name_length;
+    GLint uniform_size;
+    GLenum uniform_type;
+
+    glGetProgramiv(shader_asset->program, GL_ACTIVE_UNIFORMS, &n_active_uniforms);
+
+    for (GLint idx = 0; idx < n_active_uniforms; idx++) {
+      glGetActiveUniform(
+        shader_asset->program, (GLuint)idx, MAX_UNIFORM_NAME_LENGTH,
+        &uniform_name_length, &uniform_size, &uniform_type, uniform_name
+      );
+      GLint location = glGetUniformLocation(shader_asset->program, uniform_name);
+      if (location != -1) {
+        shader_asset->intrinsic_uniform_locations[new_n_intrinsic_uniforms] = location;
+        strcpy(
+          shader_asset->intrinsic_uniform_names[new_n_intrinsic_uniforms],
+          uniform_name
+        );
+        new_n_intrinsic_uniforms++;
+      }
+    }
+
+    shader_asset->n_intrinsic_uniforms = new_n_intrinsic_uniforms;
+  }
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
+  const char* shader_type_to_string(ShaderType shader_type) {
+    if (shader_type == ShaderType::none) {
+      return "none";
+    } else if (shader_type == ShaderType::standard) {
+      return "standard";
+    } else if (shader_type == ShaderType::depth) {
+      return "depth";
+    } else {
+      logs::error("Could not get string for ShaderType: %d", shader_type);
+      return "<unknown>";
+    }
+  }
+
+
+  ShaderType shader_type_from_string(const char* str) {
+    if (strcmp(str, "none") == 0) {
+      return ShaderType::none;
+    } else if (strcmp(str, "standard") == 0) {
+      return ShaderType::standard;
+    } else if (strcmp(str, "depth") == 0) {
+      return ShaderType::depth;
+    } else {
+      logs::fatal("Could not parse ShaderType: %s", str);
+      return ShaderType::none;
+    }
   }
 
 
@@ -302,50 +349,6 @@ namespace shaders {
   }
 
 
-  void load_uniforms(ShaderAsset *shader_asset) {
-    for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
-      shader_asset->intrinsic_uniform_locations[idx] = -1;
-    }
-
-    // Bind uniform block
-    uint32 uniform_block_index = glGetUniformBlockIndex(
-      shader_asset->program, "shader_common"
-    );
-    glUniformBlockBinding(shader_asset->program, uniform_block_index, 0);
-
-    // Load uniforms
-    // NOTE: We may want to skip all shader_asset stuff, because fallback on loading the locations
-    // in `shader::set_*` anyway. But, it's kind of cool to know we're loading everything we can
-    // up front in shader_asset function.
-    uint32 new_n_intrinsic_uniforms = 0;
-    GLint n_active_uniforms;
-    char uniform_name[MAX_UNIFORM_NAME_LENGTH];
-    GLint uniform_name_length;
-    GLint uniform_size;
-    GLenum uniform_type;
-
-    glGetProgramiv(shader_asset->program, GL_ACTIVE_UNIFORMS, &n_active_uniforms);
-
-    for (GLint idx = 0; idx < n_active_uniforms; idx++) {
-      glGetActiveUniform(
-        shader_asset->program, (GLuint)idx, MAX_UNIFORM_NAME_LENGTH,
-        &uniform_name_length, &uniform_size, &uniform_type, uniform_name
-      );
-      GLint location = glGetUniformLocation(shader_asset->program, uniform_name);
-      if (location != -1) {
-        shader_asset->intrinsic_uniform_locations[new_n_intrinsic_uniforms] = location;
-        strcpy(
-          shader_asset->intrinsic_uniform_names[new_n_intrinsic_uniforms],
-          uniform_name
-        );
-        new_n_intrinsic_uniforms++;
-      }
-    }
-
-    shader_asset->n_intrinsic_uniforms = new_n_intrinsic_uniforms;
-  }
-
-
   void load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
     shader_asset->did_set_texture_uniforms = false;
 
@@ -405,11 +408,6 @@ namespace shaders {
   void destroy_shader_asset(ShaderAsset *shader_asset) {
     glDeleteProgram(shader_asset->program);
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using shaders::ShaderType, shaders::ShaderAsset;

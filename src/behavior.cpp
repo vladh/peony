@@ -30,6 +30,11 @@ namespace behavior {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   const char* behavior_to_string(Behavior behavior) {
     if (behavior == Behavior::none) {
       return "none";
@@ -84,11 +89,6 @@ namespace behavior {
       }
     }
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using behavior::Behavior, behavior::BehaviorComponent,

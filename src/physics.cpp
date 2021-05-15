@@ -144,37 +144,6 @@ namespace physics {
   }
 
 
-  RayCollisionResult find_ray_collision(
-    Ray *ray,
-    // TODO: Replace this with some kind of collision layers.
-    PhysicsComponent *physics_component_to_ignore_or_nullptr,
-    PhysicsComponentSet *physics_component_set
-  ) {
-    for_each (candidate, physics_component_set->components) {
-      if (!is_physics_component_valid(candidate)) {
-        continue;
-      }
-
-      if (physics_component_to_ignore_or_nullptr == candidate) {
-        continue;
-      }
-
-      RaycastResult raycast_result = intersect_obb_ray(
-        &candidate->transformed_obb, ray
-      );
-      if (raycast_result.did_intersect) {
-        return {
-          .did_intersect = raycast_result.did_intersect,
-          .distance = raycast_result.distance,
-          .collidee = candidate,
-        };
-      }
-    }
-
-    return {};
-  }
-
-
   void update_best_for_face_axis(
     real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
@@ -688,6 +657,40 @@ namespace physics {
   }
 
 
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
+  RayCollisionResult find_ray_collision(
+    Ray *ray,
+    // TODO: Replace this with some kind of collision layers.
+    PhysicsComponent *physics_component_to_ignore_or_nullptr,
+    PhysicsComponentSet *physics_component_set
+  ) {
+    for_each (candidate, physics_component_set->components) {
+      if (!is_physics_component_valid(candidate)) {
+        continue;
+      }
+
+      if (physics_component_to_ignore_or_nullptr == candidate) {
+        continue;
+      }
+
+      RaycastResult raycast_result = intersect_obb_ray(
+        &candidate->transformed_obb, ray
+      );
+      if (raycast_result.did_intersect) {
+        return {
+          .did_intersect = raycast_result.did_intersect,
+          .distance = raycast_result.distance,
+          .collidee = candidate,
+        };
+      }
+    }
+
+    return {};
+  }
+
+
   CollisionManifold find_physics_component_collision(
     PhysicsComponent *self_physics,
     SpatialComponent *self_spatial,
@@ -747,11 +750,6 @@ namespace physics {
       );
     }
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using physics::RaycastResult, physics::RayCollisionResult, physics::CollisionManifold,

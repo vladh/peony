@@ -101,28 +101,6 @@ namespace gui {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
-  void update_screen_dimensions(
-    GuiState *gui_state,
-    uint32 new_window_width, uint32 new_window_height
-  ) {
-    gui_state->window_dimensions = v2(new_window_width, new_window_height);
-  }
-
-
-  void update_mouse_button(GuiState *gui_state) {
-    if (input::is_mouse_button_now_up(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
-      gui_state->container_being_moved = nullptr;
-    }
-  }
-
-
-  void update_mouse(GuiState *gui_state) {
-    if (gui_state->container_being_moved) {
-      gui_state->container_being_moved->position += gui_state->input_state->mouse_offset;
-    }
-  }
-
-
   void request_cursor(GuiState *gui_state, GLFWcursor *cursor) {
     gui_state->requested_cursor = cursor;
   }
@@ -131,12 +109,6 @@ namespace gui {
   void set_cursor(GuiState *gui_state) {
     input::set_cursor(gui_state->input_state, gui_state->requested_cursor);
     gui_state->requested_cursor = nullptr;
-  }
-
-
-  void start_drawing(GuiState *gui_state) {
-    glBindVertexArray(gui_state->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, gui_state->vbo);
   }
 
 
@@ -150,24 +122,6 @@ namespace gui {
     );
 
     gui_state->n_vertices_pushed += n_vertices;
-  }
-
-
-  void render(GuiState *gui_state) {
-    glUseProgram(gui_state->shader_asset.program);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gui_state->texture_atlas.texture_name);
-
-    if (!gui_state->shader_asset.did_set_texture_uniforms) {
-      shaders::set_int(&gui_state->shader_asset, "atlas_texture", 0);
-      gui_state->shader_asset.did_set_texture_uniforms = true;
-    }
-
-    glDrawArrays(GL_TRIANGLES, 0, gui_state->n_vertices_pushed);
-    gui_state->n_vertices_pushed = 0;
-
-    set_cursor(gui_state);
   }
 
 
@@ -454,6 +408,125 @@ namespace gui {
   }
 
 
+  void draw_line(
+    GuiState *gui_state,
+    v2 start, v2 end,
+    real32 thickness, v4 color
+  ) {
+    // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
+    // Flip the y axis before drawing.
+    v2 delta = normalize(end - start) * thickness;
+
+    //    ----------->
+    // 0------------------3
+    // |                  |
+    // 1------------------2
+    real32 x0 = start.x + delta.y;
+    real32 y0 = gui_state->window_dimensions.y - start.y;
+    real32 x1 = start.x;
+    real32 y1 = gui_state->window_dimensions.y - start.y - delta.x;
+    real32 x2 = end.x;
+    real32 y2 = gui_state->window_dimensions.y - end.y - delta.x;
+    real32 x3 = end.x + delta.y;
+    real32 y3 = gui_state->window_dimensions.y - end.y;
+
+    real32 vertices[VERTEX_LENGTH * 6] = {
+      x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+      x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+      x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+      x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+      x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
+      x3, y3, -1.0f, -1.0f, color.r, color.g, color.b, color.a
+    };
+    push_vertices(gui_state, vertices, 6);
+  }
+
+
+  void draw_frame(
+    GuiState *gui_state,
+    v2 position, v2 bottomright,
+    v2 thickness, v4 color
+  ) {
+    draw_line(
+      gui_state,
+      v2(position.x, position.y),
+      v2(bottomright.x, position.y),
+      thickness.y,
+      color
+    );
+    draw_line(
+      gui_state,
+      v2(position.x, bottomright.y - thickness.y),
+      v2(bottomright.x, bottomright.y - thickness.y),
+      thickness.y,
+      color
+    );
+    draw_line(
+      gui_state,
+      v2(position.x, position.y),
+      v2(position.x, bottomright.y),
+      thickness.x,
+      color
+    );
+    draw_line(
+      gui_state,
+      v2(bottomright.x - thickness.x, position.y),
+      v2(bottomright.x - thickness.x, bottomright.y),
+      thickness.x,
+      color
+    );
+  }
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
+  void update_screen_dimensions(
+    GuiState *gui_state,
+    uint32 new_window_width, uint32 new_window_height
+  ) {
+    gui_state->window_dimensions = v2(new_window_width, new_window_height);
+  }
+
+
+  void update_mouse_button(GuiState *gui_state) {
+    if (input::is_mouse_button_now_up(gui_state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+      gui_state->container_being_moved = nullptr;
+    }
+  }
+
+
+  void update_mouse(GuiState *gui_state) {
+    if (gui_state->container_being_moved) {
+      gui_state->container_being_moved->position += gui_state->input_state->mouse_offset;
+    }
+  }
+
+
+  void start_drawing(GuiState *gui_state) {
+    glBindVertexArray(gui_state->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, gui_state->vbo);
+  }
+
+
+  void render(GuiState *gui_state) {
+    glUseProgram(gui_state->shader_asset.program);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, gui_state->texture_atlas.texture_name);
+
+    if (!gui_state->shader_asset.did_set_texture_uniforms) {
+      shaders::set_int(&gui_state->shader_asset, "atlas_texture", 0);
+      gui_state->shader_asset.did_set_texture_uniforms = true;
+    }
+
+    glDrawArrays(GL_TRIANGLES, 0, gui_state->n_vertices_pushed);
+    gui_state->n_vertices_pushed = 0;
+
+    set_cursor(gui_state);
+  }
+
+
   GuiContainer* make_container(
     GuiState *gui_state, const char *title, v2 position
   ) {
@@ -527,76 +600,6 @@ namespace gui {
     );
     draw_text_shadow(gui_state, "heading", str, position, color);
     draw_text(gui_state, "heading", str, position, color);
-  }
-
-
-  void draw_line(
-    GuiState *gui_state,
-    v2 start, v2 end,
-    real32 thickness, v4 color
-  ) {
-    // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
-    // Flip the y axis before drawing.
-    v2 delta = normalize(end - start) * thickness;
-
-    //    ----------->
-    // 0------------------3
-    // |                  |
-    // 1------------------2
-    real32 x0 = start.x + delta.y;
-    real32 y0 = gui_state->window_dimensions.y - start.y;
-    real32 x1 = start.x;
-    real32 y1 = gui_state->window_dimensions.y - start.y - delta.x;
-    real32 x2 = end.x;
-    real32 y2 = gui_state->window_dimensions.y - end.y - delta.x;
-    real32 x3 = end.x + delta.y;
-    real32 y3 = gui_state->window_dimensions.y - end.y;
-
-    real32 vertices[VERTEX_LENGTH * 6] = {
-      x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
-      x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
-      x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
-      x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
-      x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
-      x3, y3, -1.0f, -1.0f, color.r, color.g, color.b, color.a
-    };
-    push_vertices(gui_state, vertices, 6);
-  }
-
-
-  void draw_frame(
-    GuiState *gui_state,
-    v2 position, v2 bottomright,
-    v2 thickness, v4 color
-  ) {
-    draw_line(
-      gui_state,
-      v2(position.x, position.y),
-      v2(bottomright.x, position.y),
-      thickness.y,
-      color
-    );
-    draw_line(
-      gui_state,
-      v2(position.x, bottomright.y - thickness.y),
-      v2(bottomright.x, bottomright.y - thickness.y),
-      thickness.y,
-      color
-    );
-    draw_line(
-      gui_state,
-      v2(position.x, position.y),
-      v2(position.x, bottomright.y),
-      thickness.x,
-      color
-    );
-    draw_line(
-      gui_state,
-      v2(bottomright.x - thickness.x, position.y),
-      v2(bottomright.x - thickness.x, bottomright.y),
-      thickness.x,
-      color
-    );
   }
 
 
@@ -1014,11 +1017,6 @@ namespace gui {
     gui_state->heading_fadeout_duration = fadeout_duration;
     gui_state->heading_fadeout_delay = fadeout_delay;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using gui::GuiContainer, gui::GameConsole, gui::GuiState;

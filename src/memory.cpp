@@ -41,6 +41,9 @@ namespace memory {
   }
 
 
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   void* push(
     MemoryPool *pool,
     size_t item_size,
@@ -125,11 +128,6 @@ namespace memory {
     reset_memory_pool(memory_pool);
     free(memory_pool->memory);
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using memory::MemoryPool;

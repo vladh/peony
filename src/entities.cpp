@@ -30,6 +30,11 @@ namespace entities {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   EntityHandle make_handle(
     EntitySet *entity_set
   ) {
@@ -51,11 +56,6 @@ namespace entities {
     strcpy(new_entity->debug_name, debug_name);
     return new_entity;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using entities::EntityHandle, entities::Entity, entities::EntitySet;

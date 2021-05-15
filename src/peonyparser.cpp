@@ -78,82 +78,6 @@ namespace peonyparser {
   // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
-  void get_material_path(char *path, const char *name) {
-    strcpy(path, MATERIAL_FILE_DIRECTORY);
-    strcat(path, name);
-    strcat(path, MATERIAL_FILE_EXTENSION);
-  }
-
-  void print_material_template(MaterialTemplate *material_template) {
-    logs::info("MaterialTemplate");
-    logs::info("  name: %s", material_template->name);
-    logs::info("  shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
-    logs::info("  shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
-    logs::info("  shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
-    logs::info(
-      "  depth_shader_asset_vert_path: %s",
-      material_template->depth_shader_asset_vert_path
-    );
-    logs::info(
-      "  depth_shader_asset_frag_path: %s",
-      material_template->depth_shader_asset_frag_path
-    );
-    logs::info(
-      "  depth_shader_asset_geom_path: %s",
-      material_template->depth_shader_asset_geom_path
-    );
-    logs::info("  albedo_static:");
-    logs::print_v4(&material_template->albedo_static);
-    logs::info("  metallic_static: %f", material_template->metallic_static);
-    logs::info("  roughness_static: %f", material_template->roughness_static);
-    logs::info("  ao_static: %f", material_template->ao_static);
-    logs::info("  n_textures: %d", material_template->n_textures);
-    for (
-      uint32 idx_texture = 0;
-      idx_texture < material_template->n_textures;
-      idx_texture++
-    ) {
-      logs::info(
-        "  texture %s (%s, %s)",
-        material_template->texture_uniform_names[idx_texture],
-        materials::texture_type_to_string(
-          material_template->texture_types[idx_texture]
-        ),
-        material_template->texture_paths[idx_texture]
-      );
-    }
-    logs::info("  n_builtin_textures: %d", material_template->n_builtin_textures);
-    for (
-      uint32 idx_texture = 0;
-      idx_texture < material_template->n_builtin_textures;
-      idx_texture++
-    ) {
-      logs::info(
-        "  built-in texture %s",
-        material_template->builtin_texture_names[idx_texture]
-      );
-    }
-  }
-
-
-  void print_entity_template(EntityTemplate *entity_template) {
-    logs::info("EntityTemplate");
-    logs::info("  name: %s", entity_template->entity_debug_name);
-    logs::info(
-      "  model_path_or_builtin_model_name: %s",
-      entity_template->model_path_or_builtin_model_name
-    );
-    logs::info("  model_source: %d", entity_template->model_source);
-    logs::info("  material_names.length: %d", entity_template->material_names.length);
-    logs::info("  material_names:");
-    for_each (material_name, entity_template->material_names) {
-      logs::info(*material_name);
-    }
-    logs::info("  render_pass: %d", entity_template->render_pass);
-    spatial::print_spatial_component(&entity_template->spatial_component);
-  }
-
-
   void print_value(PropValue value, PropValueType type) {
     if (type == PropValueType::unknown) {
       logs::info("<unknown>");
@@ -397,6 +321,85 @@ namespace peonyparser {
     }
 
     return n_values;
+  }
+
+
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
+  void get_material_path(char *path, const char *name) {
+    strcpy(path, MATERIAL_FILE_DIRECTORY);
+    strcat(path, name);
+    strcat(path, MATERIAL_FILE_EXTENSION);
+  }
+
+  void print_material_template(MaterialTemplate *material_template) {
+    logs::info("MaterialTemplate");
+    logs::info("  name: %s", material_template->name);
+    logs::info("  shader_asset_vert_path: %s", material_template->shader_asset_vert_path);
+    logs::info("  shader_asset_frag_path: %s", material_template->shader_asset_frag_path);
+    logs::info("  shader_asset_geom_path: %s", material_template->shader_asset_geom_path);
+    logs::info(
+      "  depth_shader_asset_vert_path: %s",
+      material_template->depth_shader_asset_vert_path
+    );
+    logs::info(
+      "  depth_shader_asset_frag_path: %s",
+      material_template->depth_shader_asset_frag_path
+    );
+    logs::info(
+      "  depth_shader_asset_geom_path: %s",
+      material_template->depth_shader_asset_geom_path
+    );
+    logs::info("  albedo_static:");
+    logs::print_v4(&material_template->albedo_static);
+    logs::info("  metallic_static: %f", material_template->metallic_static);
+    logs::info("  roughness_static: %f", material_template->roughness_static);
+    logs::info("  ao_static: %f", material_template->ao_static);
+    logs::info("  n_textures: %d", material_template->n_textures);
+    for (
+      uint32 idx_texture = 0;
+      idx_texture < material_template->n_textures;
+      idx_texture++
+    ) {
+      logs::info(
+        "  texture %s (%s, %s)",
+        material_template->texture_uniform_names[idx_texture],
+        materials::texture_type_to_string(
+          material_template->texture_types[idx_texture]
+        ),
+        material_template->texture_paths[idx_texture]
+      );
+    }
+    logs::info("  n_builtin_textures: %d", material_template->n_builtin_textures);
+    for (
+      uint32 idx_texture = 0;
+      idx_texture < material_template->n_builtin_textures;
+      idx_texture++
+    ) {
+      logs::info(
+        "  built-in texture %s",
+        material_template->builtin_texture_names[idx_texture]
+      );
+    }
+  }
+
+
+  void print_entity_template(EntityTemplate *entity_template) {
+    logs::info("EntityTemplate");
+    logs::info("  name: %s", entity_template->entity_debug_name);
+    logs::info(
+      "  model_path_or_builtin_model_name: %s",
+      entity_template->model_path_or_builtin_model_name
+    );
+    logs::info("  model_source: %d", entity_template->model_source);
+    logs::info("  material_names.length: %d", entity_template->material_names.length);
+    logs::info("  material_names:");
+    for_each (material_name, entity_template->material_names) {
+      logs::info(*material_name);
+    }
+    logs::info("  render_pass: %d", entity_template->render_pass);
+    spatial::print_spatial_component(&entity_template->spatial_component);
   }
 
 
@@ -748,11 +751,6 @@ namespace peonyparser {
     entity_loader->behavior_component = entity_template->behavior_component;
     entity_loader->physics_component = entity_template->physics_component;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using peonyparser::MaterialTemplate, peonyparser::EntityTemplate,

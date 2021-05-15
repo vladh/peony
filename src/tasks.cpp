@@ -21,6 +21,9 @@ namespace tasks {
   }
 
 
+  // -----------------------------------------------------------
+  // Public functions
+  // -----------------------------------------------------------
   void run_loading_loop(
     std::mutex *mutex,
     bool32 *should_stop,
@@ -43,11 +46,6 @@ namespace tasks {
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
 }
 
 using tasks::Task, tasks::TaskFn;
