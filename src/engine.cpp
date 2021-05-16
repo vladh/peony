@@ -1,5 +1,20 @@
 namespace engine {
   // -----------------------------------------------------------
+  // Types
+  // -----------------------------------------------------------
+  struct TimingInfo {
+    chrono::steady_clock::time_point frame_start;
+    chrono::steady_clock::time_point last_frame_start;
+    chrono::nanoseconds frame_duration;
+    chrono::steady_clock::time_point time_frame_should_end;
+
+    chrono::steady_clock::time_point second_start;
+    uint32 n_frames_this_second;
+    uint32 n_frames_since_start;
+  };
+
+
+  // -----------------------------------------------------------
   // Private functions
   // -----------------------------------------------------------
   void destroy_model_loaders(State *state) {
@@ -853,18 +868,63 @@ namespace engine {
   }
 
 
+  TimingInfo init_timing_info(uint32 target_fps) {
+    TimingInfo timing_info = {};
+    timing_info.second_start = chrono::steady_clock::now();
+    timing_info.frame_start = chrono::steady_clock::now();
+    timing_info.last_frame_start = chrono::steady_clock::now();
+    timing_info.frame_duration = chrono::nanoseconds(
+      (uint32)((real64)1.0f / (real64)target_fps)
+    );
+    return timing_info;
+  }
+
+
+  void update_timing_info(TimingInfo *timing, uint32 *last_fps) {
+    timing->n_frames_since_start++;
+    timing->last_frame_start = timing->frame_start;
+    timing->frame_start = chrono::steady_clock::now();
+    timing->time_frame_should_end = timing->frame_start + timing->frame_duration;
+
+    timing->n_frames_this_second++;
+    chrono::duration<real64> time_since_second_start =
+      timing->frame_start - timing->second_start;
+    if (time_since_second_start >= chrono::seconds(1)) {
+      timing->second_start = timing->frame_start;
+      *last_fps = timing->n_frames_this_second;
+      timing->n_frames_this_second = 0;
+    }
+  }
+
+
+  void update_dt_and_perf_counters(State *state, TimingInfo *timing) {
+    state->dt = util::get_us_from_duration(
+      timing->frame_start - timing->last_frame_start
+    );
+    if (state->timescale_diff != 0.0f) {
+      state->dt *= max(1.0f + state->timescale_diff, (real64)0.01f);
+    }
+
+    state->perf_counters.dt_hist[state->perf_counters.dt_hist_idx] = state->dt;
+    state->perf_counters.dt_hist_idx++;
+    if (state->perf_counters.dt_hist_idx >= DT_HIST_LENGTH) {
+      state->perf_counters.dt_hist_idx = 0;
+    }
+    real64 dt_hist_sum = 0.0f;
+    for (uint32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
+      dt_hist_sum += state->perf_counters.dt_hist[idx];
+    }
+    state->perf_counters.dt_average = dt_hist_sum / DT_HIST_LENGTH;
+
+    state->t += state->dt;
+  }
+
+
   // -----------------------------------------------------------
   // Public functions
   // -----------------------------------------------------------
   void run_main_loop(State *state) {
-    chrono::steady_clock::time_point second_start = chrono::steady_clock::now();
-    chrono::steady_clock::time_point frame_start = chrono::steady_clock::now();
-    chrono::steady_clock::time_point last_frame_start = chrono::steady_clock::now();
-    // 1/165 seconds (for 165 fps)
-    chrono::nanoseconds frame_duration = chrono::nanoseconds(6060606);
-    chrono::steady_clock::time_point time_frame_should_end;
-    uint32 n_frames_this_second = 0;
-    uint32 n_frames_since_start = 0;
+    TimingInfo timing = init_timing_info(165);
 
     while (!state->should_stop) {
       glfwPollEvents();
@@ -874,58 +934,27 @@ namespace engine {
         !state->is_manual_frame_advance_enabled ||
         state->should_manually_advance_to_next_frame
       ) {
-        n_frames_since_start++;
-        last_frame_start = frame_start;
-        frame_start = chrono::steady_clock::now();
-        time_frame_should_end = frame_start + frame_duration;
+        update_timing_info(&timing, &state->perf_counters.last_fps);
 
         // If we should pause, stop time-based events.
-        if (!state->should_pause) {
-          state->dt = util::get_us_from_duration(frame_start - last_frame_start);
-          if (state->timescale_diff != 0.0f) {
-            state->dt *= 1.0f + state->timescale_diff;
-          }
-
-          state->perf_counters.dt_hist[state->perf_counters.dt_hist_idx] = state->dt;
-          state->perf_counters.dt_hist_idx++;
-          if (state->perf_counters.dt_hist_idx >= DT_HIST_LENGTH) {
-            state->perf_counters.dt_hist_idx = 0;
-          }
-          real64 dt_hist_sum = 0.0f;
-          for (uint32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
-            dt_hist_sum += state->perf_counters.dt_hist[idx];
-          }
-          state->perf_counters.dt_average = dt_hist_sum / DT_HIST_LENGTH;
-
-          state->t += state->dt;
-        }
-
-        // Count FPS.
-        n_frames_this_second++;
-        chrono::duration<real64> time_since_second_start = frame_start - second_start;
-        if (time_since_second_start >= chrono::seconds(1)) {
-          second_start = frame_start;
-          state->perf_counters.last_fps = n_frames_this_second;
-          n_frames_this_second = 0;
-          if (state->should_hide_ui) {
-            logs::info("%.2f ms", state->perf_counters.dt_average * 1000.0f);
-          }
-        }
+        if (!state->should_pause) { update_dt_and_perf_counters(state, &timing); }
 
         // NOTE: Don't render on the very first frame. This avoids flashing that happens in
         // fullscreen. There is a better way to handle this, but whatever, figure it out later.
-        if (n_frames_since_start > 1) {
+        if (timing.n_frames_since_start > 1) {
           update(state);
           renderer::render(state);
         }
+
         if (state->is_manual_frame_advance_enabled) {
           state->should_manually_advance_to_next_frame = false;
         }
+
         input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
         input::reset_n_key_state_changes_this_frame(&state->input_state);
 
         if (state->should_limit_fps) {
-          std::this_thread::sleep_until(time_frame_should_end);
+          std::this_thread::sleep_until(timing.time_frame_should_end);
         }
       }
 
