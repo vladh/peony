@@ -939,8 +939,9 @@ namespace engine {
         // If we should pause, stop time-based events.
         if (!state->should_pause) { update_dt_and_perf_counters(state, &timing); }
 
-        // NOTE: Don't render on the very first frame. This avoids flashing that happens in
-        // fullscreen. There is a better way to handle this, but whatever, figure it out later.
+        // NOTE: Don't render on the very first frame. This avoids flashing that happens
+        // in fullscreen. There is a better way to handle this, but whatever, figure it
+        // out later.
         if (timing.n_frames_since_start > 1) {
           update(state);
           renderer::render(state);
