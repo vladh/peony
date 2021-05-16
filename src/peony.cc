@@ -32,6 +32,7 @@
 #include "state.cpp"
 #include "debug_ui.cpp"
 #include "renderer.cpp"
+#include "internals.cpp"
 #include "engine.cpp"
 #include "behavior_functions.cpp"
 
@@ -55,7 +56,7 @@ int main() {
   if (!window_info.window) { return EXIT_FAILURE; }
 
   State *state = MEMORY_PUSH(&state_memory_pool, State, "state");
-  engine::init_state(state, &asset_memory_pool, window_info);
+  state::init_state(state, &asset_memory_pool, window_info);
   MemoryAndState memory_and_state = {&asset_memory_pool, state};
   glfwSetWindowUserPointer(window_info.window, &memory_and_state);
 
