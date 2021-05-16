@@ -156,7 +156,7 @@ namespace cameras {
     camera->horizontal_fov = 60.0f;
     camera->vertical_fov = 0.0f; // Filled in later
     camera->near_clip_dist = 0.1f;
-    camera->far_clip_dist = 100.0f;
+    camera->far_clip_dist = 600.0f;
     camera->exposure = 1.0f;
 
     update_matrices(camera, window_width, window_height);
