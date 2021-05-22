@@ -1,9 +1,9 @@
+#include "intrinsics.hpp"
 #include "renderer.hpp"
 #include "util.hpp"
 #include "logs.hpp"
 #include "str.hpp"
 #include "debug_ui.hpp"
-#include "intrinsics.hpp"
 
 
 namespace renderer {

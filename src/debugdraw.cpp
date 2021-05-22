@@ -1,8 +1,8 @@
+#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include "shaders.hpp"
 #include "util.hpp"
 #include "debugdraw.hpp"
-#include "intrinsics.hpp"
 
 
 DebugDrawState *debugdraw::g_dds = nullptr;

@@ -1,6 +1,6 @@
+#include "intrinsics.hpp"
 #include "debug_ui.hpp"
 #include "entities.hpp"
-#include "intrinsics.hpp"
 
 
 namespace debug_ui {

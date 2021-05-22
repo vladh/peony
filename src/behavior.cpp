@@ -1,7 +1,7 @@
+#include "intrinsics.hpp"
 #include "logs.hpp"
 #include "behavior_functions.hpp"
 #include "behavior.hpp"
-#include "intrinsics.hpp"
 
 
 BehaviorFunction behavior::function_map[(uint32)Behavior::length] = {

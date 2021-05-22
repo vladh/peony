@@ -1,7 +1,7 @@
+#include "intrinsics.hpp"
 #include "peony_parser.hpp"
 #include "logs.hpp"
 #include "str.hpp"
-#include "intrinsics.hpp"
 
 
 namespace peony_parser {

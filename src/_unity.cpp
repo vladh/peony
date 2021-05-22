@@ -1,3 +1,4 @@
+#include "intrinsics.hpp"
 #include "../src_external/glad.cpp"
 #include "logs.cpp"
 #include "util.cpp"

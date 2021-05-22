@@ -1,10 +1,10 @@
+#include "intrinsics.hpp"
 #include "types.hpp"
 #include "logs.hpp"
 #include "util.hpp"
 #include "renderer.hpp"
 #include "engine.hpp"
 #include "state.hpp"
-#include "intrinsics.hpp"
 
 
 int main() {

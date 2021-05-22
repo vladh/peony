@@ -1,3 +1,4 @@
+#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
@@ -7,7 +8,6 @@
 #include "models.hpp"
 #include "debug.hpp"
 #include "util.hpp"
-#include "intrinsics.hpp"
 
 
 namespace models {
