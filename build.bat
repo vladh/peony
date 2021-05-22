@@ -39,7 +39,7 @@ if not defined DevEnvDir (
   call vcvarsall x64
 )
 
-set compiler_flags=/I "C:/opt/include/" ^
+set compiler_flags=/I "C:/local/include/" ^
 -FC ^
 -GS ^
 -MTd ^
@@ -65,7 +65,7 @@ set compiler_flags=/I "C:/opt/include/" ^
 :: /analyze:stacksize 999999
 :: /D_ITERATOR_DEBUG_LEVEL=0
 
-set linker_flags=/LIBPATH:"C:/opt/lib/" ^
+set linker_flags=/LIBPATH:"C:/local/lib/" ^
 -CGTHREADS:8 ^
 -DEBUG:FULL ^
 -INCREMENTAL:NO ^

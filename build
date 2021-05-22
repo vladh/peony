@@ -4,7 +4,7 @@
 # LDFLAGS = -L${HOME}/opt/lib -lm ...
 # DYLD_LIBRARY_PATH=${HOME}/opt/lib $(BINPATH)$(TARGET)
 
-CFLAGS="-I~/opt/include -std=c++2a -g3 -D_FORTIFY_SOURCE=2 -O2 -Wall -Werror -Wno-deprecated-volatile -pedantic"
+CFLAGS="-I~/local/include -std=c++2a -g3 -D_FORTIFY_SOURCE=2 -O2 -Wall -Werror -Wno-deprecated-volatile -pedantic"
 LDFLAGS="-lm -lglfw -lassimp -lfreetype"
 
 g++ src/peony.cc ${CFLAGS} ${LDFLAGS} -o bin/peony
