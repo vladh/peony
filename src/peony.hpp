@@ -4,6 +4,7 @@
 #define _HAS_EXCEPTIONS 0
 #define _CRT_SECURE_NO_WARNINGS
 #define NOMINMAX
+#pragma warning(disable: 4505) // unreferenced local function has been removed
 
 // C stuff
 #include <float.h>
@@ -62,3 +63,34 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include "types.hpp"
 #include "constants.hpp"
 #include "debug.hpp"
+#include "logs.hpp"
+#include "util.hpp"
+#include "memory.hpp"
+#include "files.hpp"
+#include "str.hpp"
+#include "pack.hpp"
+#include "queue.hpp"
+#include "array.hpp"
+#include "stackarray.hpp"
+#include "shaders.hpp"
+#include "tasks.hpp"
+#include "materials.hpp"
+#include "fonts.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+#include "lights.hpp"
+#include "behavior.hpp"
+#include "anim.hpp"
+#include "debugdraw.hpp"
+#include "input.hpp"
+#include "gui.hpp"
+#include "physics.hpp"
+#include "models.hpp"
+#include "peony_parser.hpp"
+#include "cameras.hpp"
+#include "state.hpp"
+#include "debug_ui.hpp"
+#include "renderer.hpp"
+#include "internals.hpp"
+#include "engine.hpp"
+#include "behavior_functions.hpp"

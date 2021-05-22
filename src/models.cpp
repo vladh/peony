@@ -1,155 +1,5 @@
 namespace models {
-  // -----------------------------------------------------------
-  // Types
-  // -----------------------------------------------------------
-  enum class RenderMode {regular, depth};
-
-  typedef uint32 RenderPassFlag;
-
-  namespace RenderPass {
-    RenderPassFlag none = 0;
-    RenderPassFlag shadowcaster = (1 << 0);
-    RenderPassFlag deferred = (1 << 1);
-    RenderPassFlag forward_depth = (1 << 2);
-    RenderPassFlag forward_nodepth = (1 << 3);
-    RenderPassFlag forward_skybox = (1 << 4);
-    RenderPassFlag lighting = (1 << 5);
-    RenderPassFlag postprocessing = (1 << 6);
-    RenderPassFlag preblur = (1 << 7);
-    RenderPassFlag blur1 = (1 << 8);
-    RenderPassFlag blur2 = (1 << 9);
-    RenderPassFlag renderdebug = (1 << 10);
-  };
-
-  enum class ModelSource {
-    // Invalid.
-    none,
-    // Loaded on initialisation, from given vertex data.
-    file,
-    // Loaded on demand, from file.
-    data
-  };
-
-  struct Vertex {
-    v3 position;
-    v3 normal;
-    v2 tex_coords;
-    uint32 bone_idxs[MAX_N_BONES_PER_VERTEX];
-    real32 bone_weights[MAX_N_BONES_PER_VERTEX];
-  };
-
-  struct Mesh {
-    MemoryPool temp_memory_pool;
-    m4 transform;
-    char material_name[MAX_TOKEN_LENGTH];
-    Pack indices_pack;
-    uint32 vao;
-    uint32 vbo;
-    uint32 ebo;
-    GLenum mode;
-    Vertex *vertices;
-    uint32 *indices;
-    uint32 n_vertices;
-    uint32 n_indices;
-  };
-
-  enum class ModelLoaderState {
-    empty,
-    initialized,
-    mesh_data_being_loaded,
-    mesh_data_loaded,
-    vertex_buffers_set_up,
-    complete
-  };
-
-  struct ModelLoader {
-    ModelSource model_source;
-    char model_path_or_builtin_model_name[MAX_PATH];
-    Mesh meshes[MAX_N_MESHES];
-    uint32 n_meshes;
-    AnimationComponent animation_component;
-    StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
-    ModelLoaderState state;
-  };
-
-  enum class EntityLoaderState {
-    empty,
-    initialized,
-    complete
-  };
-
-  struct EntityLoader {
-    char name[MAX_DEBUG_NAME_LENGTH];
-    char model_path_or_builtin_model_name[MAX_PATH];
-    EntityHandle entity_handle;
-    SpatialComponent spatial_component;
-    LightComponent light_component;
-    BehaviorComponent behavior_component;
-    PhysicsComponent physics_component;
-    RenderPassFlag render_pass;
-    EntityLoaderState state;
-  };
-
-  struct EntityLoaderSet {
-    Array<EntityLoader> loaders;
-  };
-
-  struct DrawableComponent {
-    EntityHandle entity_handle;
-    Mesh mesh;
-    RenderPassFlag target_render_pass = RenderPass::none;
-  };
-
-  struct DrawableComponentSet {
-    Array<DrawableComponent> components;
-    uint32 last_drawn_shader_program;
-  };
-
-
-  // -----------------------------------------------------------
-  // Data
-  // -----------------------------------------------------------
-  constexpr v3 CUBEMAP_OFFSETS[6] = {
-    v3(1.0f, 0.0f, 0.0f),
-    v3(-1.0f, 0.0f, 0.0f),
-    v3(0.0f, 1.0f, 0.0f),
-    v3(0.0f, -1.0f, 0.0f),
-    v3(0.0f, 0.0f, 1.0f),
-    v3(0.0f, 0.0f, -1.0f)
-  };
-
-  constexpr v3 CUBEMAP_UPS[6] = {
-    v3(0.0f, -1.0f, 0.0f),
-    v3(0.0f, -1.0f, 0.0f),
-    v3(0.0f, 0.0f, 1.0f),
-    v3(0.0f, 0.0f, -1.0f),
-    v3(0.0f, -1.0f, 0.0f),
-    v3(0.0f, -1.0f, 0.0f)
-  };
-
-  constexpr Vertex AXES_VERTICES[] = {
-    {.position = {0.0f,  0.0f,  0.0f }, .normal = {1.0f, 0.0f, 0.0f}, .tex_coords = {0.0f, 0.0f}},
-    {.position = {20.0f, 0.0f,  0.0f }, .normal = {1.0f, 0.0f, 0.0f}, .tex_coords = {0.0f, 0.0f}},
-    {.position = {0.0f,  0.0f,  0.0f }, .normal = {0.0f, 1.0f, 0.0f}, .tex_coords = {0.0f, 0.0f}},
-    {.position = {0.0f,  20.0f, 0.0f }, .normal = {0.0f, 1.0f, 0.0f}, .tex_coords = {0.0f, 0.0f}},
-    {.position = {0.0f,  0.0f,  0.0f }, .normal = {0.0f, 0.0f, 1.0f}, .tex_coords = {0.0f, 0.0f}},
-    {.position = {0.0f,  0.0f,  20.0f}, .normal = {0.0f, 0.0f, 1.0f}, .tex_coords = {0.0f, 0.0f}},
-  };
-
-  constexpr Vertex SCREENQUAD_VERTICES[] = {
-    {.position = {-1.0f,  1.0f, 0.0f}, .normal = {0.0f, 0.0f, 0.0f}, .tex_coords = {0.0f, 1.0f}},
-    {.position = {-1.0f, -1.0f, 0.0f}, .normal = {0.0f, 0.0f, 0.0f}, .tex_coords = {0.0f, 0.0f}},
-    {.position = { 1.0f, -1.0f, 0.0f}, .normal = {0.0f, 0.0f, 0.0f}, .tex_coords = {1.0f, 0.0f}},
-    {.position = {-1.0f,  1.0f, 0.0f}, .normal = {0.0f, 0.0f, 0.0f}, .tex_coords = {0.0f, 1.0f}},
-    {.position = { 1.0f, -1.0f, 0.0f}, .normal = {0.0f, 0.0f, 0.0f}, .tex_coords = {1.0f, 0.0f}},
-    {.position = { 1.0f,  1.0f, 0.0f}, .normal = {0.0f, 0.0f, 0.0f}, .tex_coords = {1.0f, 1.0f}},
-  };
-
-
-  // -----------------------------------------------------------
-  // Private functions
-  // -----------------------------------------------------------
-  void make_plane(
+  internal void make_plane(
     MemoryPool *memory_pool,
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
@@ -207,7 +57,7 @@ namespace models {
   }
 
 
-  void make_sphere(
+  internal void make_sphere(
     MemoryPool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
@@ -260,7 +110,7 @@ namespace models {
   }
 
 
-  void setup_mesh_vertex_buffers(
+  internal void setup_mesh_vertex_buffers(
     Mesh *mesh,
     Vertex *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
@@ -327,7 +177,7 @@ namespace models {
   }
 
 
-  bool32 is_bone_only_node(aiNode *node) {
+  internal bool32 is_bone_only_node(aiNode *node) {
     if (node->mNumMeshes > 0) {
       return false;
     }
@@ -341,7 +191,7 @@ namespace models {
   }
 
 
-  aiNode* find_root_bone(const aiScene *scene) {
+  internal aiNode* find_root_bone(const aiScene *scene) {
     // NOTE: To find the root bone, we find the first-level node (direct child
     // of root node) whose entire descendent tree has no meshes, including the
     // leaf nodes. Is this a perfect way of finding the root bone? Probably
@@ -359,7 +209,7 @@ namespace models {
   }
 
 
-  void add_bone_tree_to_animation_component(
+  internal void add_bone_tree_to_animation_component(
     AnimationComponent *animation_component,
     aiNode *node,
     uint32 idx_parent
@@ -382,7 +232,7 @@ namespace models {
   }
 
 
-  void load_bones(
+  internal void load_bones(
     AnimationComponent *animation_component,
     const aiScene *scene
   ) {
@@ -400,7 +250,7 @@ namespace models {
   }
 
 
-  void load_animations(
+  internal void load_animations(
     AnimationComponent *animation_component,
     const aiScene *scene,
     BoneMatrixPool *bone_matrix_pool
@@ -478,7 +328,7 @@ namespace models {
   }
 
 
-  void load_mesh(
+  internal void load_mesh(
     Mesh *mesh,
     aiMesh *ai_mesh,
     const aiScene *scene,
@@ -605,14 +455,14 @@ namespace models {
   }
 
 
-  void destroy_mesh(Mesh *mesh) {
+  internal void destroy_mesh(Mesh *mesh) {
     glDeleteVertexArrays(1, &mesh->vao);
     glDeleteBuffers(1, &mesh->vbo);
     glDeleteBuffers(1, &mesh->ebo);
   }
 
 
-  void load_node(
+  internal void load_node(
     ModelLoader *model_loader,
     aiNode *node, const aiScene *scene,
     m4 accumulated_transform, Pack indices_pack
@@ -647,7 +497,7 @@ namespace models {
   }
 
 
-  void load_model_from_file(
+  internal void load_model_from_file(
     ModelLoader *model_loader,
     BoneMatrixPool *bone_matrix_pool
   ) {
@@ -698,7 +548,7 @@ namespace models {
   }
 
 
-  void load_model_from_data(
+  internal void load_model_from_data(
     ModelLoader *model_loader
   ) {
     // NOTE: This function sets up mesh vertex buffers directly, and so is
@@ -767,315 +617,303 @@ namespace models {
   bool32 is_mesh_valid(Mesh *mesh) {
     return mesh->vao > 0;
   }
+}
 
 
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
-  const char* render_pass_to_string(RenderPassFlag render_pass) {
-    if (render_pass == RenderPass::none) {
-      return "none";
-    } else if (render_pass == RenderPass::shadowcaster) {
-      return "shadowcaster";
-    } else if (render_pass == RenderPass::deferred) {
-      return "deferred";
-    } else if (render_pass == RenderPass::forward_depth) {
-      return "forward_depth";
-    } else if (render_pass == RenderPass::forward_nodepth) {
-      return "forward_nodepth";
-    } else if (render_pass == RenderPass::forward_skybox) {
-      return "forward_skybox";
-    } else if (render_pass == RenderPass::lighting) {
-      return "lighting";
-    } else if (render_pass == RenderPass::postprocessing) {
-      return "postprocessing";
-    } else if (render_pass == RenderPass::preblur) {
-      return "preblur";
-    } else if (render_pass == RenderPass::blur1) {
-      return "blur1";
-    } else if (render_pass == RenderPass::blur2) {
-      return "blur2";
-    } else if (render_pass == RenderPass::renderdebug) {
-      return "renderdebug";
-    } else {
-      logs::error("Don't know how to convert RenderPass to string: %d", render_pass);
-      return "<unknown>";
-    }
-  }
-
-
-  RenderPassFlag render_pass_from_string(const char* str) {
-    if (str::eq(str, "none")) {
-      return RenderPass::none;
-    } else if (str::eq(str, "shadowcaster")) {
-      return RenderPass::shadowcaster;
-    } else if (str::eq(str, "deferred")) {
-      return RenderPass::deferred;
-    } else if (str::eq(str, "forward_depth")) {
-      return RenderPass::forward_depth;
-    } else if (str::eq(str, "forward_nodepth")) {
-      return RenderPass::forward_nodepth;
-    } else if (str::eq(str, "forward_skybox")) {
-      return RenderPass::forward_skybox;
-    } else if (str::eq(str, "lighting")) {
-      return RenderPass::lighting;
-    } else if (str::eq(str, "postprocessing")) {
-      return RenderPass::postprocessing;
-    } else if (str::eq(str, "preblur")) {
-      return RenderPass::preblur;
-    } else if (str::eq(str, "blur1")) {
-      return RenderPass::blur1;
-    } else if (str::eq(str, "blur2")) {
-      return RenderPass::blur2;
-    } else if (str::eq(str, "renderdebug")) {
-      return RenderPass::renderdebug;
-    } else {
-      logs::fatal("Could not parse RenderPass: %s", str);
-      return RenderPass::none;
-    }
-  }
-
-
-  bool32 prepare_model_loader_and_check_if_done(
-    ModelLoader *model_loader,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
-    Queue<Task> *task_queue,
-    BoneMatrixPool *bone_matrix_pool
-  ) {
-    if (model_loader->state == ModelLoaderState::initialized) {
-      if (model_loader->model_source != ModelSource::file) {
-        logs::error(
-          "Found model with model_source=file for which no vertex data was loaded."
-        );
-        return false;
-      }
-      task_queue->push({
-        .fn = (TaskFn)load_model_from_file,
-        .argument_1 = (void*)model_loader,
-        .argument_2 = (void*)bone_matrix_pool,
-      });
-      model_loader->state = ModelLoaderState::mesh_data_being_loaded;
-    }
-
-    if (model_loader->state == ModelLoaderState::mesh_data_being_loaded) {
-      // Wait. The task will progress this for us.
-    }
-
-    if (model_loader->state == ModelLoaderState::mesh_data_loaded) {
-      // Setup vertex buffers
-      if (model_loader->model_source == ModelSource::file) {
-        for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
-          Mesh *mesh = &model_loader->meshes[idx];
-          setup_mesh_vertex_buffers(
-            mesh,
-            mesh->vertices, mesh->n_vertices,
-            mesh->indices, mesh->n_indices
-          );
-          memory::destroy_memory_pool(&mesh->temp_memory_pool);
-        }
-      }
-      model_loader->state = ModelLoaderState::vertex_buffers_set_up;
-    }
-
-    if (model_loader->state == ModelLoaderState::vertex_buffers_set_up) {
-      // Set material names for each mesh
-      for_range_named (idx_material, 0, model_loader->material_names.length) {
-        for_range_named (idx_mesh, 0, model_loader->n_meshes) {
-          Mesh *mesh = &model_loader->meshes[idx_mesh];
-          uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
-          // For our model's mesh number `mesh_number`, we want to choose
-          // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
-          // we choose the 4th material for mesh number 4.
-          // However, if we have more meshes than materials, the extra
-          // meshes all get material number 0.
-          if (
-            mesh_number == idx_material ||
-            (mesh_number >= model_loader->material_names.length && idx_material == 0)
-          ) {
-            strcpy(mesh->material_name, *(model_loader->material_names[idx_material]));
-          }
-        }
-      }
-
-      model_loader->state = ModelLoaderState::complete;
-    }
-
-    if (model_loader->state == ModelLoaderState::complete) {
-      return true;
-    }
-
-    return false;
-  }
-
-
-  bool32 prepare_entity_loader_and_check_if_done(
-    EntityLoader *entity_loader,
-    EntitySet *entity_set,
-    ModelLoader *model_loader,
-    DrawableComponentSet *drawable_component_set,
-    SpatialComponentSet *spatial_component_set,
-    LightComponentSet *light_component_set,
-    BehaviorComponentSet *behavior_component_set,
-    AnimationComponentSet *animation_component_set,
-    PhysicsComponentSet *physics_component_set
-  ) {
-    if (entity_loader->state == EntityLoaderState::initialized) {
-      // Before we can create entities, we need this entity's models to have
-      // been loaded.
-      if (model_loader->state != ModelLoaderState::complete) {
-        return false;
-      }
-
-      SpatialComponent *spatial_component =
-        spatial_component_set->components[entity_loader->entity_handle];
-      *spatial_component = entity_loader->spatial_component;
-      spatial_component->entity_handle = entity_loader->entity_handle;
-
-      LightComponent *light_component =
-        light_component_set->components[entity_loader->entity_handle];
-      *light_component = entity_loader->light_component;
-      light_component->entity_handle = entity_loader->entity_handle;
-
-      BehaviorComponent *behavior_component =
-        behavior_component_set->components[entity_loader->entity_handle];
-      *behavior_component = entity_loader->behavior_component;
-      behavior_component->entity_handle = entity_loader->entity_handle;
-
-      AnimationComponent *animation_component =
-        animation_component_set->components[entity_loader->entity_handle];
-      *animation_component = model_loader->animation_component;
-      animation_component->entity_handle = entity_loader->entity_handle;
-
-      PhysicsComponent *physics_component =
-        physics_component_set->components[entity_loader->entity_handle];
-      *physics_component = entity_loader->physics_component;
-      physics_component->entity_handle = entity_loader->entity_handle;
-
-      // DrawableComponent
-      if (model_loader->n_meshes == 1) {
-        DrawableComponent *drawable_component =
-          drawable_component_set->components[entity_loader->entity_handle];
-        assert(drawable_component);
-        *drawable_component = {
-          .entity_handle = entity_loader->entity_handle,
-          .mesh = model_loader->meshes[0],
-          .target_render_pass = entity_loader->render_pass,
-        };
-      } else if (model_loader->n_meshes > 1) {
-        for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
-          Mesh *mesh = &model_loader->meshes[idx];
-
-          Entity *child_entity = entities::add_entity_to_set(
-            entity_set,
-            entity_loader->name
-          );
-
-          if (spatial::is_spatial_component_valid(&entity_loader->spatial_component)) {
-            SpatialComponent *child_spatial_component =
-              spatial_component_set->components[child_entity->handle];
-            assert(child_spatial_component);
-            *child_spatial_component = {
-              .entity_handle = child_entity->handle,
-              .position = v3(0.0f),
-              .rotation = glm::angleAxis(radians(0.0f), v3(0.0f)),
-              .scale = v3(0.0f),
-              .parent_entity_handle = entity_loader->entity_handle,
-            };
-          }
-
-          DrawableComponent *drawable_component =
-            drawable_component_set->components[child_entity->handle];
-          assert(drawable_component);
-          *drawable_component = {
-            .entity_handle = child_entity->handle,
-            .mesh = *mesh,
-            .target_render_pass = entity_loader->render_pass,
-          };
-        }
-      }
-
-      entity_loader->state = EntityLoaderState::complete;
-    }
-
-    if (entity_loader->state == EntityLoaderState::complete) {
-      return true;
-    }
-
-    return false;
-  }
-
-
-  bool32 is_model_loader_valid(ModelLoader *model_loader) {
-    return model_loader->state != ModelLoaderState::empty;
-  }
-
-
-  bool32 is_entity_loader_valid(EntityLoader *entity_loader) {
-    return entity_loader->state != EntityLoaderState::empty;
-  }
-
-
-  ModelLoader* init_model_loader(
-    ModelLoader *model_loader,
-    ModelSource model_source,
-    const char *model_path_or_builtin_model_name
-  ) {
-    assert(model_loader);
-    model_loader->model_source = model_source;
-    strcpy(
-      model_loader->model_path_or_builtin_model_name,
-      model_path_or_builtin_model_name
-    );
-
-    model_loader->state = ModelLoaderState::initialized;
-
-    if (model_source == ModelSource::data) {
-      load_model_from_data(model_loader);
-    }
-
-    return model_loader;
-  }
-
-
-  EntityLoader* init_entity_loader(
-    EntityLoader *entity_loader,
-    const char *name,
-    const char *model_path_or_builtin_model_name,
-    RenderPassFlag render_pass,
-    EntityHandle entity_handle
-  ) {
-    assert(entity_loader);
-    strcpy(entity_loader->name, name);
-    strcpy(
-      entity_loader->model_path_or_builtin_model_name,
-      model_path_or_builtin_model_name
-    );
-    entity_loader->render_pass = render_pass;
-    entity_loader->entity_handle = entity_handle;
-    entity_loader->state = EntityLoaderState::initialized;
-    return entity_loader;
-  }
-
-
-  bool32 is_drawable_component_valid(
-    DrawableComponent *drawable_component
-  ) {
-    return is_mesh_valid(&drawable_component->mesh);
-  }
-
-
-  void destroy_drawable_component(DrawableComponent *drawable_component) {
-    if (!is_drawable_component_valid(drawable_component)) {
-      return;
-    }
-    destroy_mesh(&drawable_component->mesh);
+const char* models::render_pass_to_string(RenderPassFlag render_pass) {
+  if (render_pass == RenderPass::none) {
+    return "none";
+  } else if (render_pass == RenderPass::shadowcaster) {
+    return "shadowcaster";
+  } else if (render_pass == RenderPass::deferred) {
+    return "deferred";
+  } else if (render_pass == RenderPass::forward_depth) {
+    return "forward_depth";
+  } else if (render_pass == RenderPass::forward_nodepth) {
+    return "forward_nodepth";
+  } else if (render_pass == RenderPass::forward_skybox) {
+    return "forward_skybox";
+  } else if (render_pass == RenderPass::lighting) {
+    return "lighting";
+  } else if (render_pass == RenderPass::postprocessing) {
+    return "postprocessing";
+  } else if (render_pass == RenderPass::preblur) {
+    return "preblur";
+  } else if (render_pass == RenderPass::blur1) {
+    return "blur1";
+  } else if (render_pass == RenderPass::blur2) {
+    return "blur2";
+  } else if (render_pass == RenderPass::renderdebug) {
+    return "renderdebug";
+  } else {
+    logs::error("Don't know how to convert RenderPass to string: %d", render_pass);
+    return "<unknown>";
   }
 }
 
-using models::ModelSource, models::Vertex, models::Mesh, models::ModelLoaderState,
-  models::ModelLoader, models::EntityLoaderState, models::EntityLoader,
-  models::EntityLoaderSet,
-  models::DrawableComponent, models::DrawableComponentSet,
-  models::RenderMode, models::RenderPassFlag;
-namespace RenderPass = models::RenderPass;
+
+RenderPassFlag models::render_pass_from_string(const char* str) {
+  if (str::eq(str, "none")) {
+    return RenderPass::none;
+  } else if (str::eq(str, "shadowcaster")) {
+    return RenderPass::shadowcaster;
+  } else if (str::eq(str, "deferred")) {
+    return RenderPass::deferred;
+  } else if (str::eq(str, "forward_depth")) {
+    return RenderPass::forward_depth;
+  } else if (str::eq(str, "forward_nodepth")) {
+    return RenderPass::forward_nodepth;
+  } else if (str::eq(str, "forward_skybox")) {
+    return RenderPass::forward_skybox;
+  } else if (str::eq(str, "lighting")) {
+    return RenderPass::lighting;
+  } else if (str::eq(str, "postprocessing")) {
+    return RenderPass::postprocessing;
+  } else if (str::eq(str, "preblur")) {
+    return RenderPass::preblur;
+  } else if (str::eq(str, "blur1")) {
+    return RenderPass::blur1;
+  } else if (str::eq(str, "blur2")) {
+    return RenderPass::blur2;
+  } else if (str::eq(str, "renderdebug")) {
+    return RenderPass::renderdebug;
+  } else {
+    logs::fatal("Could not parse RenderPass: %s", str);
+    return RenderPass::none;
+  }
+}
+
+
+bool32 models::prepare_model_loader_and_check_if_done(
+  ModelLoader *model_loader,
+  PersistentPbo *persistent_pbo,
+  TextureNamePool *texture_name_pool,
+  Queue<Task> *task_queue,
+  BoneMatrixPool *bone_matrix_pool
+) {
+  if (model_loader->state == ModelLoaderState::initialized) {
+    if (model_loader->model_source != ModelSource::file) {
+      logs::error(
+        "Found model with model_source=file for which no vertex data was loaded."
+      );
+      return false;
+    }
+    task_queue->push({
+      .fn = (TaskFn)load_model_from_file,
+      .argument_1 = (void*)model_loader,
+      .argument_2 = (void*)bone_matrix_pool,
+    });
+    model_loader->state = ModelLoaderState::mesh_data_being_loaded;
+  }
+
+  if (model_loader->state == ModelLoaderState::mesh_data_being_loaded) {
+    // Wait. The task will progress this for us.
+  }
+
+  if (model_loader->state == ModelLoaderState::mesh_data_loaded) {
+    // Setup vertex buffers
+    if (model_loader->model_source == ModelSource::file) {
+      for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+        Mesh *mesh = &model_loader->meshes[idx];
+        setup_mesh_vertex_buffers(
+          mesh,
+          mesh->vertices, mesh->n_vertices,
+          mesh->indices, mesh->n_indices
+        );
+        memory::destroy_memory_pool(&mesh->temp_memory_pool);
+      }
+    }
+    model_loader->state = ModelLoaderState::vertex_buffers_set_up;
+  }
+
+  if (model_loader->state == ModelLoaderState::vertex_buffers_set_up) {
+    // Set material names for each mesh
+    for_range_named (idx_material, 0, model_loader->material_names.length) {
+      for_range_named (idx_mesh, 0, model_loader->n_meshes) {
+        Mesh *mesh = &model_loader->meshes[idx_mesh];
+        uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
+        // For our model's mesh number `mesh_number`, we want to choose
+        // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
+        // we choose the 4th material for mesh number 4.
+        // However, if we have more meshes than materials, the extra
+        // meshes all get material number 0.
+        if (
+          mesh_number == idx_material ||
+          (mesh_number >= model_loader->material_names.length && idx_material == 0)
+        ) {
+          strcpy(mesh->material_name, *(model_loader->material_names[idx_material]));
+        }
+      }
+    }
+
+    model_loader->state = ModelLoaderState::complete;
+  }
+
+  if (model_loader->state == ModelLoaderState::complete) {
+    return true;
+  }
+
+  return false;
+}
+
+
+bool32 models::prepare_entity_loader_and_check_if_done(
+  EntityLoader *entity_loader,
+  EntitySet *entity_set,
+  ModelLoader *model_loader,
+  DrawableComponentSet *drawable_component_set,
+  SpatialComponentSet *spatial_component_set,
+  LightComponentSet *light_component_set,
+  BehaviorComponentSet *behavior_component_set,
+  AnimationComponentSet *animation_component_set,
+  PhysicsComponentSet *physics_component_set
+) {
+  if (entity_loader->state == EntityLoaderState::initialized) {
+    // Before we can create entities, we need this entity's models to have
+    // been loaded.
+    if (model_loader->state != ModelLoaderState::complete) {
+      return false;
+    }
+
+    SpatialComponent *spatial_component =
+      spatial_component_set->components[entity_loader->entity_handle];
+    *spatial_component = entity_loader->spatial_component;
+    spatial_component->entity_handle = entity_loader->entity_handle;
+
+    LightComponent *light_component =
+      light_component_set->components[entity_loader->entity_handle];
+    *light_component = entity_loader->light_component;
+    light_component->entity_handle = entity_loader->entity_handle;
+
+    BehaviorComponent *behavior_component =
+      behavior_component_set->components[entity_loader->entity_handle];
+    *behavior_component = entity_loader->behavior_component;
+    behavior_component->entity_handle = entity_loader->entity_handle;
+
+    AnimationComponent *animation_component =
+      animation_component_set->components[entity_loader->entity_handle];
+    *animation_component = model_loader->animation_component;
+    animation_component->entity_handle = entity_loader->entity_handle;
+
+    PhysicsComponent *physics_component =
+      physics_component_set->components[entity_loader->entity_handle];
+    *physics_component = entity_loader->physics_component;
+    physics_component->entity_handle = entity_loader->entity_handle;
+
+    // DrawableComponent
+    if (model_loader->n_meshes == 1) {
+      DrawableComponent *drawable_component =
+        drawable_component_set->components[entity_loader->entity_handle];
+      assert(drawable_component);
+      *drawable_component = {
+        .entity_handle = entity_loader->entity_handle,
+        .mesh = model_loader->meshes[0],
+        .target_render_pass = entity_loader->render_pass,
+      };
+    } else if (model_loader->n_meshes > 1) {
+      for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+        Mesh *mesh = &model_loader->meshes[idx];
+
+        Entity *child_entity = entities::add_entity_to_set(
+          entity_set,
+          entity_loader->name
+        );
+
+        if (spatial::is_spatial_component_valid(&entity_loader->spatial_component)) {
+          SpatialComponent *child_spatial_component =
+            spatial_component_set->components[child_entity->handle];
+          assert(child_spatial_component);
+          *child_spatial_component = {
+            .entity_handle = child_entity->handle,
+            .position = v3(0.0f),
+            .rotation = glm::angleAxis(radians(0.0f), v3(0.0f)),
+            .scale = v3(0.0f),
+            .parent_entity_handle = entity_loader->entity_handle,
+          };
+        }
+
+        DrawableComponent *drawable_component =
+          drawable_component_set->components[child_entity->handle];
+        assert(drawable_component);
+        *drawable_component = {
+          .entity_handle = child_entity->handle,
+          .mesh = *mesh,
+          .target_render_pass = entity_loader->render_pass,
+        };
+      }
+    }
+
+    entity_loader->state = EntityLoaderState::complete;
+  }
+
+  if (entity_loader->state == EntityLoaderState::complete) {
+    return true;
+  }
+
+  return false;
+}
+
+
+bool32 models::is_model_loader_valid(ModelLoader *model_loader) {
+  return model_loader->state != ModelLoaderState::empty;
+}
+
+
+bool32 models::is_entity_loader_valid(EntityLoader *entity_loader) {
+  return entity_loader->state != EntityLoaderState::empty;
+}
+
+
+ModelLoader* models::init_model_loader(
+  ModelLoader *model_loader,
+  ModelSource model_source,
+  const char *model_path_or_builtin_model_name
+) {
+  assert(model_loader);
+  model_loader->model_source = model_source;
+  strcpy(
+    model_loader->model_path_or_builtin_model_name,
+    model_path_or_builtin_model_name
+  );
+
+  model_loader->state = ModelLoaderState::initialized;
+
+  if (model_source == ModelSource::data) {
+    load_model_from_data(model_loader);
+  }
+
+  return model_loader;
+}
+
+
+EntityLoader* models::init_entity_loader(
+  EntityLoader *entity_loader,
+  const char *name,
+  const char *model_path_or_builtin_model_name,
+  RenderPassFlag render_pass,
+  EntityHandle entity_handle
+) {
+  assert(entity_loader);
+  strcpy(entity_loader->name, name);
+  strcpy(
+    entity_loader->model_path_or_builtin_model_name,
+    model_path_or_builtin_model_name
+  );
+  entity_loader->render_pass = render_pass;
+  entity_loader->entity_handle = entity_handle;
+  entity_loader->state = EntityLoaderState::initialized;
+  return entity_loader;
+}
+
+
+bool32 models::is_drawable_component_valid(DrawableComponent *drawable_component) {
+  return is_mesh_valid(&drawable_component->mesh);
+}
+
+
+void models::destroy_drawable_component(DrawableComponent *drawable_component) {
+  if (!is_drawable_component_valid(drawable_component)) {
+    return;
+  }
+  destroy_mesh(&drawable_component->mesh);
+}

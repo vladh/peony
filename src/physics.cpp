@@ -1,50 +1,5 @@
 namespace physics {
-  // -----------------------------------------------------------
-  // Constants
-  // -----------------------------------------------------------
-  constexpr real32 PARALLEL_FACE_TOLERANCE = 1.0e-2;
-  constexpr real32 RELATIVE_TOLERANCE = 1.00f;
-  constexpr real32 ABSOLUTE_TOLERANCE = 0.10f;
-
-
-  // -----------------------------------------------------------
-  // Types
-  // -----------------------------------------------------------
-  struct PhysicsComponent {
-    EntityHandle entity_handle;
-    Obb obb;
-    Obb transformed_obb;
-  };
-
-  struct PhysicsComponentSet {
-    Array<PhysicsComponent> components;
-  };
-
-  struct CollisionManifold {
-    bool32 did_collide;
-    PhysicsComponent *collidee;
-    // Axis of least penetration, so greatest separation
-    real32 sep_max;
-    uint32 axis;
-    v3 normal;
-  };
-
-  struct RaycastResult {
-    bool32 did_intersect;
-    real32 distance;
-  };
-
-  struct RayCollisionResult {
-    bool32 did_intersect;
-    real32 distance;
-    PhysicsComponent *collidee;
-  };
-
-
-  // -----------------------------------------------------------
-  // Private functions
-  // -----------------------------------------------------------
-  Obb transform_obb(Obb obb, SpatialComponent *spatial) {
+  internal Obb transform_obb(Obb obb, SpatialComponent *spatial) {
     m3 rotation = glm::toMat3(normalize(spatial->rotation));
     obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
     obb.x_axis = normalize(rotation * obb.x_axis);
@@ -54,7 +9,7 @@ namespace physics {
   }
 
 
-  RaycastResult intersect_obb_ray(Obb *obb, Ray *ray) {
+  internal RaycastResult intersect_obb_ray(Obb *obb, Ray *ray) {
     // Gabor Szauer, Game Physics Cookbook, “Raycast Oriented Bounding Box”
     v3 obb_z_axis = cross(obb->x_axis, obb->y_axis);
 
@@ -137,14 +92,14 @@ namespace physics {
   }
 
 
-  bool32 is_physics_component_valid(
+  internal bool32 is_physics_component_valid(
     PhysicsComponent *physics_component
   ) {
     return physics_component->obb.extents.x > 0;
   }
 
 
-  void update_best_for_face_axis(
+  internal void update_best_for_face_axis(
     real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
   ) {
@@ -156,7 +111,7 @@ namespace physics {
   }
 
 
-  void update_best_for_edge_axis(
+  internal void update_best_for_edge_axis(
     real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
   ) {
@@ -187,7 +142,7 @@ namespace physics {
 
   idmillington/cyclone-physics/blob/master/src/collide_fine.cpp#contactPoint()
   */
-  v3 get_edge_contact_point(
+  internal v3 get_edge_contact_point(
     v3 a_edge_point,
     v3 a_axis,
     real32 a_axis_length,
@@ -237,7 +192,7 @@ namespace physics {
   }
 
 
-  Face get_incident_face(
+  internal Face get_incident_face(
     m3 *cob, // incident change of base
     v3 e, // incident extents
     v3 c, // incident center
@@ -346,7 +301,7 @@ namespace physics {
     "Deriving OBB to OBB Intersection and Manifold Generation"
   * Ian Millington's Cyclone Physics engine (but not for face-something!)
   */
-  CollisionManifold intersect_obb_obb(
+  internal CollisionManifold intersect_obb_obb(
     Obb *a,
     Obb *b,
     SpatialComponent *spatial_a,
@@ -655,102 +610,96 @@ namespace physics {
     manifold.did_collide = true;
     return manifold;
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
-  RayCollisionResult find_ray_collision(
-    Ray *ray,
-    // TODO: Replace this with some kind of collision layers.
-    PhysicsComponent *physics_component_to_ignore_or_nullptr,
-    PhysicsComponentSet *physics_component_set
-  ) {
-    for_each (candidate, physics_component_set->components) {
-      if (!is_physics_component_valid(candidate)) {
-        continue;
-      }
-
-      if (physics_component_to_ignore_or_nullptr == candidate) {
-        continue;
-      }
-
-      RaycastResult raycast_result = intersect_obb_ray(
-        &candidate->transformed_obb, ray
-      );
-      if (raycast_result.did_intersect) {
-        return {
-          .did_intersect = raycast_result.did_intersect,
-          .distance = raycast_result.distance,
-          .collidee = candidate,
-        };
-      }
-    }
-
-    return {};
-  }
-
-
-  CollisionManifold find_physics_component_collision(
-    PhysicsComponent *self_physics,
-    SpatialComponent *self_spatial,
-    PhysicsComponentSet *physics_component_set,
-    SpatialComponentSet *spatial_component_set
-  ) {
-    for_each (candidate_physics, physics_component_set->components) {
-      if (!is_physics_component_valid(candidate_physics)) {
-        continue;
-      }
-      SpatialComponent *candidate_spatial =
-        spatial_component_set->components[candidate_physics->entity_handle];
-      if (!candidate_spatial) {
-        logs::error("Could not get SpatialComponent for candidate");
-        return CollisionManifold{};
-      }
-
-      if (self_physics == candidate_physics) {
-        continue;
-      }
-
-      CollisionManifold manifold = intersect_obb_obb(
-        &self_physics->transformed_obb,
-        &candidate_physics->transformed_obb,
-        self_spatial,
-        candidate_spatial
-      );
-      if (manifold.did_collide) {
-        manifold.collidee = candidate_physics;
-        return manifold;
-      }
-    }
-
-    return CollisionManifold{};
-  }
-
-
-  void update_physics_components(
-    PhysicsComponentSet *physics_component_set,
-    SpatialComponentSet *spatial_component_set
-  ) {
-    for_each (physics_component, physics_component_set->components) {
-      if (!is_physics_component_valid(physics_component)) {
-        continue;
-      }
-
-      SpatialComponent *spatial_component =
-        spatial_component_set->components[physics_component->entity_handle];
-
-      if (!spatial::is_spatial_component_valid(spatial_component)) {
-        logs::warning("Tried to update physics component but it had no spatial component.");
-        continue;
-      }
-
-      physics_component->transformed_obb = physics::transform_obb(
-        physics_component->obb, spatial_component
-      );
-    }
-  }
 }
 
-using physics::RaycastResult, physics::RayCollisionResult, physics::CollisionManifold,
-  physics::PhysicsComponent, physics::PhysicsComponentSet;
+
+RayCollisionResult physics::find_ray_collision(
+  Ray *ray,
+  // TODO: Replace this with some kind of collision layers.
+  PhysicsComponent *physics_component_to_ignore_or_nullptr,
+  PhysicsComponentSet *physics_component_set
+) {
+  for_each (candidate, physics_component_set->components) {
+    if (!is_physics_component_valid(candidate)) {
+      continue;
+    }
+
+    if (physics_component_to_ignore_or_nullptr == candidate) {
+      continue;
+    }
+
+    RaycastResult raycast_result = intersect_obb_ray(
+      &candidate->transformed_obb, ray
+    );
+    if (raycast_result.did_intersect) {
+      return {
+        .did_intersect = raycast_result.did_intersect,
+        .distance = raycast_result.distance,
+        .collidee = candidate,
+      };
+    }
+  }
+
+  return {};
+}
+
+
+CollisionManifold physics::find_physics_component_collision(
+  PhysicsComponent *self_physics,
+  SpatialComponent *self_spatial,
+  PhysicsComponentSet *physics_component_set,
+  SpatialComponentSet *spatial_component_set
+) {
+  for_each (candidate_physics, physics_component_set->components) {
+    if (!is_physics_component_valid(candidate_physics)) {
+      continue;
+    }
+    SpatialComponent *candidate_spatial =
+      spatial_component_set->components[candidate_physics->entity_handle];
+    if (!candidate_spatial) {
+      logs::error("Could not get SpatialComponent for candidate");
+      return CollisionManifold{};
+    }
+
+    if (self_physics == candidate_physics) {
+      continue;
+    }
+
+    CollisionManifold manifold = intersect_obb_obb(
+      &self_physics->transformed_obb,
+      &candidate_physics->transformed_obb,
+      self_spatial,
+      candidate_spatial
+    );
+    if (manifold.did_collide) {
+      manifold.collidee = candidate_physics;
+      return manifold;
+    }
+  }
+
+  return CollisionManifold{};
+}
+
+
+void physics::update_physics_components(
+  PhysicsComponentSet *physics_component_set,
+  SpatialComponentSet *spatial_component_set
+) {
+  for_each (physics_component, physics_component_set->components) {
+    if (!is_physics_component_valid(physics_component)) {
+      continue;
+    }
+
+    SpatialComponent *spatial_component =
+      spatial_component_set->components[physics_component->entity_handle];
+
+    if (!spatial::is_spatial_component_valid(spatial_component)) {
+      logs::warning("Tried to update physics component but it had no spatial component.");
+      continue;
+    }
+
+    physics_component->transformed_obb = physics::transform_obb(
+      physics_component->obb, spatial_component
+    );
+  }
+}

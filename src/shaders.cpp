@@ -1,40 +1,5 @@
 namespace shaders {
-  // -----------------------------------------------------------
-  // Types
-  // -----------------------------------------------------------
-  enum class ShaderType {none, standard, depth};
-
-  struct ShaderAsset {
-    char name[MAX_DEBUG_NAME_LENGTH];
-    char vert_path[MAX_PATH];
-    char frag_path[MAX_PATH];
-    char geom_path[MAX_PATH];
-    uint32 program;
-    ShaderType type;
-    uint32 n_texture_units;
-    uint32 texture_units[MAX_N_TEXTURE_UNITS];
-    GLenum texture_unit_types[MAX_N_TEXTURE_UNITS];
-    bool did_set_texture_uniforms;
-
-    /*
-    Intrinsic uniform: A uniform declared by a shader. We only care
-      about intrinsic uniforms in the Shader struct.
-
-    Active uniforms: A uniform used in a shader, which can be either
-      an intrinsic uniform, or a uniform from another source such as a
-      uniform buffer object.
-    */
-
-    uint32 n_intrinsic_uniforms;
-    int32 intrinsic_uniform_locations[MAX_N_UNIFORMS];
-    char intrinsic_uniform_names[MAX_UNIFORM_NAME_LENGTH][MAX_N_UNIFORMS];
-  };
-
-
-  // -----------------------------------------------------------
-  // Private functions
-  // -----------------------------------------------------------
-  void assert_shader_status_ok(uint32 new_shader, const char *path) {
+  internal void assert_shader_status_ok(uint32 new_shader, const char *path) {
     int32 status;
     glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);
 
@@ -48,7 +13,7 @@ namespace shaders {
   }
 
 
-  void assert_program_status_ok(uint32 new_program) {
+  internal void assert_program_status_ok(uint32 new_program) {
     int32 status;
     glGetProgramiv(new_program, GL_LINK_STATUS, &status);
 
@@ -62,7 +27,7 @@ namespace shaders {
   }
 
 
-  uint32 make_shader(const char *path, const char *source, GLenum shader_type) {
+  internal uint32 make_shader(const char *path, const char *source, GLenum shader_type) {
     uint32 shader = glCreateShader(shader_type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
@@ -71,7 +36,7 @@ namespace shaders {
   }
 
 
-  uint32 make_program(uint32 vertex_shader, uint32 fragment_shader) {
+  internal uint32 make_program(uint32 vertex_shader, uint32 fragment_shader) {
     uint32 new_program = glCreateProgram();
     glAttachShader(new_program, vertex_shader);
     glAttachShader(new_program, fragment_shader);
@@ -83,7 +48,7 @@ namespace shaders {
   }
 
 
-  uint32 make_program(
+  internal uint32 make_program(
     uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
   ) {
     uint32 new_program = glCreateProgram();
@@ -99,7 +64,7 @@ namespace shaders {
   }
 
 
-  const char* load_file(MemoryPool *memory_pool, const char *path) {
+  internal const char* load_file(MemoryPool *memory_pool, const char *path) {
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
     strcat(full_path, path);
@@ -114,7 +79,7 @@ namespace shaders {
   }
 
 
-  const char* load_frag_file(MemoryPool *memory_pool, const char *path) {
+  internal const char* load_frag_file(MemoryPool *memory_pool, const char *path) {
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
     strcat(full_path, path);
@@ -131,7 +96,7 @@ namespace shaders {
   }
 
 
-  int32 get_uniform_location(
+  internal int32 get_uniform_location(
     ShaderAsset *shader_asset,
     const char *uniform_name
   ) {
@@ -155,7 +120,7 @@ namespace shaders {
   }
 
 
-  void load_uniforms(ShaderAsset *shader_asset) {
+  internal void load_uniforms(ShaderAsset *shader_asset) {
     for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
       shader_asset->intrinsic_uniform_locations[idx] = -1;
     }
@@ -197,217 +162,200 @@ namespace shaders {
 
     shader_asset->n_intrinsic_uniforms = new_n_intrinsic_uniforms;
   }
+}
 
 
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
-  const char* shader_type_to_string(ShaderType shader_type) {
-    if (shader_type == ShaderType::none) {
-      return "none";
-    } else if (shader_type == ShaderType::standard) {
-      return "standard";
-    } else if (shader_type == ShaderType::depth) {
-      return "depth";
-    } else {
-      logs::error("Could not get string for ShaderType: %d", shader_type);
-      return "<unknown>";
-    }
-  }
-
-
-  ShaderType shader_type_from_string(const char* str) {
-    if (strcmp(str, "none") == 0) {
-      return ShaderType::none;
-    } else if (strcmp(str, "standard") == 0) {
-      return ShaderType::standard;
-    } else if (strcmp(str, "depth") == 0) {
-      return ShaderType::depth;
-    } else {
-      logs::fatal("Could not parse ShaderType: %s", str);
-      return ShaderType::none;
-    }
-  }
-
-
-  bool32 is_shader_asset_valid(ShaderAsset *shader_asset) {
-    return shader_asset->program > 0;
-  }
-
-
-  void set_int(
-    ShaderAsset *shader_asset, const char *uniform_name, uint32 value
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniform1i(location, value);
-    }
-  }
-
-
-  void set_bool(
-    ShaderAsset *shader_asset, const char *uniform_name, bool value
-  ) {
-    set_int(shader_asset, uniform_name, (uint32)value);
-  }
-
-
-  void set_float(
-    ShaderAsset *shader_asset, const char *uniform_name, float value
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniform1f(location, value);
-    }
-  }
-
-
-  void set_vec2(
-    ShaderAsset *shader_asset, const char *uniform_name, v2 *value
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniform2fv(location, 1, glm::value_ptr(*value));
-    }
-  }
-
-
-  void set_vec3(
-    ShaderAsset *shader_asset, const char *uniform_name, v3 *value
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniform3fv(location, 1, glm::value_ptr(*value));
-    }
-  }
-
-
-  void set_vec4(
-    ShaderAsset *shader_asset, const char *uniform_name, v4 *value
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniform4fv(location, 1, glm::value_ptr(*value));
-    }
-  }
-
-
-  void set_mat2(
-    ShaderAsset *shader_asset, const char *uniform_name, m2 *mat
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
-    }
-  }
-
-
-  void set_mat3(
-    ShaderAsset *shader_asset, const char *uniform_name, m3 *mat
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
-    }
-  }
-
-
-  void set_mat4_multiple(
-    ShaderAsset *shader_asset, uint32 n, const char *uniform_name, m4 *mat
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniformMatrix4fv(location, n, GL_FALSE, glm::value_ptr(*mat));
-    }
-  }
-
-
-  void set_mat4(
-    ShaderAsset *shader_asset, const char *uniform_name, m4 *mat
-  ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
-    if (location >= 0) {
-      glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
-    }
-  }
-
-
-  void reset_texture_units(ShaderAsset *shader_asset) {
-    shader_asset->n_texture_units = 0;
-  }
-
-
-  uint32 add_texture_unit(
-    ShaderAsset *shader_asset,
-    uint32 new_texture_unit,
-    GLenum new_texture_unit_type
-  ) {
-    uint32 idx = ++shader_asset->n_texture_units;
-    shader_asset->texture_units[idx] = new_texture_unit;
-    shader_asset->texture_unit_types[idx] = new_texture_unit_type;
-    return idx;
-  }
-
-
-  void load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
-    shader_asset->did_set_texture_uniforms = false;
-
-    if (!str::is_empty(shader_asset->geom_path)) {
-      shader_asset->program = make_program(
-        make_shader(
-          shader_asset->vert_path,
-          load_file(memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
-        ),
-        make_shader(
-          shader_asset->frag_path,
-          load_frag_file(memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
-        ),
-        make_shader(
-          shader_asset->geom_path,
-          load_file(memory_pool, shader_asset->geom_path), GL_GEOMETRY_SHADER
-        )
-      );
-    } else {
-      shader_asset->program = make_program(
-        make_shader(
-          shader_asset->vert_path,
-          load_file(memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
-        ),
-        make_shader(
-          shader_asset->frag_path,
-          load_frag_file(memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
-        )
-      );
-    }
-
-    load_uniforms(shader_asset);
-  }
-
-
-  ShaderAsset* init_shader_asset(
-    ShaderAsset *shader_asset,
-    MemoryPool *memory_pool,
-    const char *new_name, ShaderType new_type,
-    const char *vert_path, const char *frag_path, const char *geom_path
-  ) {
-    *shader_asset = {};
-    strcpy(shader_asset->name, new_name);
-    shader_asset->type = new_type;
-    shader_asset->n_texture_units = 0;
-    shader_asset->did_set_texture_uniforms = false;
-    memset(shader_asset->texture_units, 0, sizeof(shader_asset->texture_units));
-    memset(shader_asset->texture_unit_types, 0, sizeof(shader_asset->texture_unit_types));
-    strcpy(shader_asset->vert_path, vert_path);
-    strcpy(shader_asset->frag_path, frag_path);
-    strcpy(shader_asset->geom_path, geom_path);
-    load_shader_asset(shader_asset, memory_pool);
-    return shader_asset;
-  }
-
-
-  void destroy_shader_asset(ShaderAsset *shader_asset) {
-    glDeleteProgram(shader_asset->program);
+const char* shaders::shader_type_to_string(ShaderType shader_type) {
+  if (shader_type == ShaderType::none) {
+    return "none";
+  } else if (shader_type == ShaderType::standard) {
+    return "standard";
+  } else if (shader_type == ShaderType::depth) {
+    return "depth";
+  } else {
+    logs::error("Could not get string for ShaderType: %d", shader_type);
+    return "<unknown>";
   }
 }
 
-using shaders::ShaderType, shaders::ShaderAsset;
+
+ShaderType shaders::shader_type_from_string(const char* str) {
+  if (strcmp(str, "none") == 0) {
+    return ShaderType::none;
+  } else if (strcmp(str, "standard") == 0) {
+    return ShaderType::standard;
+  } else if (strcmp(str, "depth") == 0) {
+    return ShaderType::depth;
+  } else {
+    logs::fatal("Could not parse ShaderType: %s", str);
+    return ShaderType::none;
+  }
+}
+
+
+bool32 shaders::is_shader_asset_valid(ShaderAsset *shader_asset) {
+  return shader_asset->program > 0;
+}
+
+
+void shaders::set_int(
+  ShaderAsset *shader_asset, const char *uniform_name, uint32 value
+) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniform1i(location, value);
+  }
+}
+
+
+void shaders::set_bool(
+  ShaderAsset *shader_asset, const char *uniform_name, bool value
+) {
+  set_int(shader_asset, uniform_name, (uint32)value);
+}
+
+
+void shaders::set_float(
+  ShaderAsset *shader_asset, const char *uniform_name, float value
+) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniform1f(location, value);
+  }
+}
+
+
+void shaders::set_vec2(ShaderAsset *shader_asset, const char *uniform_name, v2 *value) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniform2fv(location, 1, glm::value_ptr(*value));
+  }
+}
+
+
+void shaders::set_vec3(ShaderAsset *shader_asset, const char *uniform_name, v3 *value) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniform3fv(location, 1, glm::value_ptr(*value));
+  }
+}
+
+
+void shaders::set_vec4(ShaderAsset *shader_asset, const char *uniform_name, v4 *value) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniform4fv(location, 1, glm::value_ptr(*value));
+  }
+}
+
+
+void shaders::set_mat2(ShaderAsset *shader_asset, const char *uniform_name, m2 *mat) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
+  }
+}
+
+
+void shaders::set_mat3(ShaderAsset *shader_asset, const char *uniform_name, m3 *mat) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
+  }
+}
+
+
+void shaders::set_mat4_multiple(
+  ShaderAsset *shader_asset, uint32 n, const char *uniform_name, m4 *mat
+) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniformMatrix4fv(location, n, GL_FALSE, glm::value_ptr(*mat));
+  }
+}
+
+
+void shaders::set_mat4(ShaderAsset *shader_asset, const char *uniform_name, m4 *mat) {
+  int32 location = get_uniform_location(shader_asset, uniform_name);
+  if (location >= 0) {
+    glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
+  }
+}
+
+
+void shaders::reset_texture_units(ShaderAsset *shader_asset) {
+  shader_asset->n_texture_units = 0;
+}
+
+
+uint32 shaders::add_texture_unit(
+  ShaderAsset *shader_asset,
+  uint32 new_texture_unit,
+  GLenum new_texture_unit_type
+) {
+  uint32 idx = ++shader_asset->n_texture_units;
+  shader_asset->texture_units[idx] = new_texture_unit;
+  shader_asset->texture_unit_types[idx] = new_texture_unit_type;
+  return idx;
+}
+
+
+void shaders::load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
+  shader_asset->did_set_texture_uniforms = false;
+
+  if (!str::is_empty(shader_asset->geom_path)) {
+    shader_asset->program = make_program(
+      make_shader(
+        shader_asset->vert_path,
+        load_file(memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
+      ),
+      make_shader(
+        shader_asset->frag_path,
+        load_frag_file(memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
+      ),
+      make_shader(
+        shader_asset->geom_path,
+        load_file(memory_pool, shader_asset->geom_path), GL_GEOMETRY_SHADER
+      )
+    );
+  } else {
+    shader_asset->program = make_program(
+      make_shader(
+        shader_asset->vert_path,
+        load_file(memory_pool, shader_asset->vert_path), GL_VERTEX_SHADER
+      ),
+      make_shader(
+        shader_asset->frag_path,
+        load_frag_file(memory_pool, shader_asset->frag_path), GL_FRAGMENT_SHADER
+      )
+    );
+  }
+
+  load_uniforms(shader_asset);
+}
+
+
+ShaderAsset* shaders::init_shader_asset(
+  ShaderAsset *shader_asset,
+  MemoryPool *memory_pool,
+  const char *new_name, ShaderType new_type,
+  const char *vert_path, const char *frag_path, const char *geom_path
+) {
+  *shader_asset = {};
+  strcpy(shader_asset->name, new_name);
+  shader_asset->type = new_type;
+  shader_asset->n_texture_units = 0;
+  shader_asset->did_set_texture_uniforms = false;
+  memset(shader_asset->texture_units, 0, sizeof(shader_asset->texture_units));
+  memset(shader_asset->texture_unit_types, 0, sizeof(shader_asset->texture_unit_types));
+  strcpy(shader_asset->vert_path, vert_path);
+  strcpy(shader_asset->frag_path, frag_path);
+  strcpy(shader_asset->geom_path, geom_path);
+  load_shader_asset(shader_asset, memory_pool);
+  return shader_asset;
+}
+
+
+void shaders::destroy_shader_asset(ShaderAsset *shader_asset) {
+  glDeleteProgram(shader_asset->program);
+}

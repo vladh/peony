@@ -1,38 +1,5 @@
 namespace fonts {
-  // -----------------------------------------------------------
-  // Constants
-  // -----------------------------------------------------------
-  // NOTE: Unicode is only the same as ASCII until 0x7F.
-  // We can change this to 0xFF when we add Unicode support.
-  constexpr uint32 CHAR_MAX_CODEPOINT_TO_LOAD = 0x7F;
-
-
-  // -----------------------------------------------------------
-  // Types
-  // -----------------------------------------------------------
-  struct Character {
-    iv2 size;
-    iv2 bearing;
-    iv2 advance;
-    iv2 tex_coords;
-  };
-
-  struct FontAsset {
-    const char *name;
-    Array<Character> characters;
-    uint32 texture;
-    uint32 font_size;
-    uint32 units_per_em;
-    uint32 ascender;
-    uint32 descender;
-    uint32 height;
-  };
-
-
-  // -----------------------------------------------------------
-  // Private functions
-  // -----------------------------------------------------------
-  void load_glyphs(
+  internal void load_glyphs(
     FontAsset *font_asset,
     FT_Face face,
     TextureAtlas *texture_atlas
@@ -90,80 +57,73 @@ namespace fonts {
 
     glBindTexture(GL_TEXTURE_2D, 0);
   }
-
-
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
-  real32 frac_px_to_px(uint32 n) {
-    return (real32)(n >> 6);
-  }
-
-
-  real32 font_unit_to_px(uint32 n) {
-    // NOTE: We should be dividing by units_per_em here...probably?
-    // This is because we expect height etc. to be in "font units".
-    // But treating these metrics as "fractional pixels" seems to work,
-    // whereas division by units_per_em doesn't.
-    // Check this in more detail.
-    return (real32)(n >> 6);
-  }
-
-
-  FontAsset* get_by_name(
-    Array<FontAsset> *assets, const char *name
-  ) {
-    for_each (asset, *assets) {
-      if (str::eq(asset->name, name)) {
-        return asset;
-      }
-    }
-    logs::warning("Could not find FontAsset with name %s", name);
-    return nullptr;
-  }
-
-
-  FontAsset* init_font_asset(
-    FontAsset *font_asset,
-    MemoryPool *memory_pool,
-    TextureAtlas *texture_atlas,
-    FT_Library *ft_library,
-    const char *name,
-    const char *filename,
-    uint16 font_size
-  ) {
-    font_asset->name = name;
-    font_asset->font_size = font_size;
-
-    char path[MAX_PATH];
-    strcpy(path, FONTS_DIR);
-    strcat(path, filename);
-
-    font_asset->characters = Array<Character>(
-      memory_pool,
-      CHAR_MAX_CODEPOINT_TO_LOAD + 1,
-      "characters"
-    );
-
-    FT_Face face;
-    if (FT_New_Face(*ft_library, path, 0, &face)) {
-      logs::error("Could not load font at %s", path);
-    }
-    FT_Set_Pixel_Sizes(face, 0, font_asset->font_size);
-    if (!FT_IS_SCALABLE(face)) {
-      logs::fatal("Font face not scalable, don't know what to do.");
-    }
-    font_asset->units_per_em = face->units_per_EM;
-    font_asset->ascender = face->ascender;
-    font_asset->descender = face->descender;
-    font_asset->height = face->height;
-
-    load_glyphs(font_asset, face, texture_atlas);
-
-    FT_Done_Face(face);
-
-    return font_asset;
-  }
 }
 
-using fonts::Character, fonts::FontAsset;
+
+real32 fonts::frac_px_to_px(uint32 n) {
+  return (real32)(n >> 6);
+}
+
+
+real32 fonts::font_unit_to_px(uint32 n) {
+  // NOTE: We should be dividing by units_per_em here...probably?
+  // This is because we expect height etc. to be in "font units".
+  // But treating these metrics as "fractional pixels" seems to work,
+  // whereas division by units_per_em doesn't.
+  // Check this in more detail.
+  return (real32)(n >> 6);
+}
+
+
+FontAsset* fonts::get_by_name(Array<FontAsset> *assets, const char *name) {
+  for_each (asset, *assets) {
+    if (str::eq(asset->name, name)) {
+      return asset;
+    }
+  }
+  logs::warning("Could not find FontAsset with name %s", name);
+  return nullptr;
+}
+
+
+FontAsset* fonts::init_font_asset(
+  FontAsset *font_asset,
+  MemoryPool *memory_pool,
+  TextureAtlas *texture_atlas,
+  FT_Library *ft_library,
+  const char *name,
+  const char *filename,
+  uint16 font_size
+) {
+  font_asset->name = name;
+  font_asset->font_size = font_size;
+
+  char path[MAX_PATH];
+  strcpy(path, FONTS_DIR);
+  strcat(path, filename);
+
+  font_asset->characters = Array<Character>(
+    memory_pool,
+    CHAR_MAX_CODEPOINT_TO_LOAD + 1,
+    "characters"
+  );
+
+  FT_Face face;
+  if (FT_New_Face(*ft_library, path, 0, &face)) {
+    logs::error("Could not load font at %s", path);
+  }
+  FT_Set_Pixel_Sizes(face, 0, font_asset->font_size);
+  if (!FT_IS_SCALABLE(face)) {
+    logs::fatal("Font face not scalable, don't know what to do.");
+  }
+  font_asset->units_per_em = face->units_per_EM;
+  font_asset->ascender = face->ascender;
+  font_asset->descender = face->descender;
+  font_asset->height = face->height;
+
+  load_glyphs(font_asset, face, texture_atlas);
+
+  FT_Done_Face(face);
+
+  return font_asset;
+}
