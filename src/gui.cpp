@@ -1,9 +1,9 @@
+#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "gui.hpp"
 #include "util.hpp"
 #include "logs.hpp"
-#include "intrinsics.hpp"
 
 
 GameConsole *gui::g_console = nullptr;

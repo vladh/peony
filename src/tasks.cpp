@@ -1,8 +1,8 @@
+#include "intrinsics.hpp"
 #include "debug.hpp"
 #include "logs.hpp"
 #include "queue.hpp"
 #include "tasks.hpp"
-#include "intrinsics.hpp"
 
 
 namespace tasks {

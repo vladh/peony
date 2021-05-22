@@ -1,3 +1,4 @@
+#include "intrinsics.hpp"
 #include "shaders.hpp"
 #include "array.hpp"
 #include "util.hpp"
@@ -6,7 +7,6 @@
 #include "intrinsics.hpp"
 #include "str.hpp"
 #include "materials.hpp"
-#include "intrinsics.hpp"
 
 
 namespace materials {

@@ -1,7 +1,7 @@
+#include "intrinsics.hpp"
 #include "util.hpp"
 #include "logs.hpp"
 #include "anim.hpp"
-#include "intrinsics.hpp"
 
 
 namespace anim {

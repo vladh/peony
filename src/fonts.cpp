@@ -1,10 +1,10 @@
+#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include "str.hpp"
 #include "logs.hpp"
 #include "array.hpp"
 #include "materials.hpp"
 #include "fonts.hpp"
-#include "intrinsics.hpp"
 
 
 namespace fonts {

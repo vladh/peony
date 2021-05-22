@@ -1,3 +1,4 @@
+#include "intrinsics.hpp"
 #include <chrono>
 namespace chrono = std::chrono;
 #include "util.hpp"
@@ -9,7 +10,6 @@ namespace chrono = std::chrono;
 #include "models.hpp"
 #include "internals.hpp"
 #include "renderer.hpp"
-#include "intrinsics.hpp"
 
 
 namespace engine {
