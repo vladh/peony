@@ -1,8 +1,5 @@
 namespace renderer {
-  // -----------------------------------------------------------
-  // Private functions
-  // -----------------------------------------------------------
-  void init_g_buffer(
+  internal void init_g_buffer(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
@@ -120,7 +117,7 @@ namespace renderer {
   }
 
 
-  void init_l_buffer(
+  internal void init_l_buffer(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
@@ -227,7 +224,7 @@ namespace renderer {
   }
 
 
-  void init_blur_buffers(
+  internal void init_blur_buffers(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
@@ -296,7 +293,7 @@ namespace renderer {
   }
 
 
-  void init_ubo(State *state) {
+  internal void init_ubo(State *state) {
     glGenBuffers(1, &state->ubo_shader_common);
     glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
@@ -305,7 +302,7 @@ namespace renderer {
   }
 
 
-  void init_shadowmaps(
+  internal void init_shadowmaps(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures
   ) {
@@ -382,7 +379,7 @@ namespace renderer {
   }
 
 
-  void resize_renderer_buffers(
+  internal void resize_renderer_buffers(
     MemoryPool *memory_pool,
     Array<Material> *materials,
     BuiltinTextures *builtin_textures,
@@ -431,7 +428,7 @@ namespace renderer {
   }
 
 
-  void copy_scene_data_to_ubo(
+  internal void copy_scene_data_to_ubo(
     State *state,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
@@ -522,12 +519,12 @@ namespace renderer {
   }
 
 
-  void copy_scene_data_to_ubo(State *state) {
+  internal void copy_scene_data_to_ubo(State *state) {
     copy_scene_data_to_ubo(state, 0, 0, false);
   }
 
 
-  void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+  internal void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
     State *state = memory_and_state->state;
     MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
@@ -559,7 +556,9 @@ namespace renderer {
   }
 
 
-  void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+  internal void mouse_button_callback(
+    GLFWwindow *window, int button, int action, int mods
+  ) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
     State *state = memory_and_state->state;
 
@@ -568,7 +567,7 @@ namespace renderer {
   }
 
 
-  void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
+  internal void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
     State *state = memory_and_state->state;
 
@@ -586,7 +585,7 @@ namespace renderer {
   }
 
 
-  void key_callback(
+  internal void key_callback(
     GLFWwindow* window,
     int key, int scancode, int action, int mods
   ) {
@@ -596,7 +595,7 @@ namespace renderer {
   }
 
 
-  void char_callback(
+  internal void char_callback(
     GLFWwindow* window, uint32 codepoint
   ) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
@@ -605,7 +604,7 @@ namespace renderer {
   }
 
 
-  void draw(
+  internal void draw(
     RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
     DrawableComponent *drawable_component,
@@ -677,7 +676,7 @@ namespace renderer {
   }
 
 
-  void draw_all(
+  internal void draw_all(
     EntitySet *entity_set,
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
@@ -768,7 +767,7 @@ namespace renderer {
   }
 
 
-  void render_scene(
+  internal void render_scene(
     State *state,
     RenderPassFlag render_pass,
     RenderMode render_mode
@@ -788,440 +787,437 @@ namespace renderer {
       state->t
     );
   }
+}
 
 
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
-  void update_drawing_options(State *state, GLFWwindow *window) {
-    if (state->is_cursor_enabled) {
-      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    } else {
-      glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    }
-
-    if (state->should_use_wireframe) {
-      // This will be handled in the rendering loop.
-    } else {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
+void renderer::update_drawing_options(State *state, GLFWwindow *window) {
+  if (state->is_cursor_enabled) {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+  } else {
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }
 
-
-  void init(
-    MemoryPool *memory_pool,
-    BuiltinTextures *builtin_textures,
-    uint32 width,
-    uint32 height,
-    State *state
-  ) {
-    init_g_buffer(memory_pool, builtin_textures, width, height);
-    init_l_buffer(memory_pool, builtin_textures, width, height);
-    init_blur_buffers(memory_pool, builtin_textures, width, height);
-    init_shadowmaps(memory_pool, builtin_textures);
-    init_ubo(state);
-    update_drawing_options(state, state->window_info.window);
+  if (state->should_use_wireframe) {
+    // This will be handled in the rendering loop.
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
+}
 
 
-  WindowInfo init_window() {
-    WindowInfo window_info = {};
-    strcpy(window_info.title, "hi lol");
+void renderer::init(
+  MemoryPool *memory_pool,
+  BuiltinTextures *builtin_textures,
+  uint32 width,
+  uint32 height,
+  State *state
+) {
+  init_g_buffer(memory_pool, builtin_textures, width, height);
+  init_l_buffer(memory_pool, builtin_textures, width, height);
+  init_blur_buffers(memory_pool, builtin_textures, width, height);
+  init_shadowmaps(memory_pool, builtin_textures);
+  init_ubo(state);
+  update_drawing_options(state, state->window_info.window);
+}
 
-    glfwInit();
 
-    logs::info("Using OpenGL 4.1");
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
+WindowInfo renderer::init_window() {
+  WindowInfo window_info = {};
+  strcpy(window_info.title, "hi lol");
+
+  glfwInit();
+
+  logs::info("Using OpenGL 4.1");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_SAMPLES, 4);
 
 #if defined(__APPLE__)
-    logs::info("Using GLFW_OPENGL_FORWARD_COMPAT");
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  logs::info("Using GLFW_OPENGL_FORWARD_COMPAT");
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    if (USE_OPENGL_DEBUG) {
-      logs::info("Using OpenGL debug context");
-      glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-    }
+  if (USE_OPENGL_DEBUG) {
+    logs::info("Using OpenGL debug context");
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+  }
 
-    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
 
-    // Create the window. Right now we're working with screencoord sizes,
-    // not pixels!
+  // Create the window. Right now we're working with screencoord sizes,
+  // not pixels!
 
 #if USE_FULLSCREEN
-    int32 n_monitors;
-    GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-    GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
+  int32 n_monitors;
+  GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+  GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
 
-    const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
-    glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+  const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+  glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+  glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+  glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+  glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-    window_info.screencoord_width = video_mode->width;
-    window_info.screencoord_height = video_mode->height;
+  window_info.screencoord_width = video_mode->width;
+  window_info.screencoord_height = video_mode->height;
 
-    GLFWwindow *window = glfwCreateWindow(
-      window_info.screencoord_width, window_info.screencoord_height,
-      window_info.title,
+  GLFWwindow *window = glfwCreateWindow(
+    window_info.screencoord_width, window_info.screencoord_height,
+    window_info.title,
 #if USE_WINDOWED_FULLSCREEN
-      nullptr, nullptr
+    nullptr, nullptr
 #else
-      target_monitor, nullptr
+    target_monitor, nullptr
 #endif
-    );
+  );
 #else
-    window_info.screencoord_width = 1920;
-    window_info.screencoord_height = 1080;
+  window_info.screencoord_width = 1920;
+  window_info.screencoord_height = 1080;
 
-    GLFWwindow *window = glfwCreateWindow(
-      window_info.screencoord_width, window_info.screencoord_height,
-      window_info.title,
-      nullptr, nullptr
-    );
+  GLFWwindow *window = glfwCreateWindow(
+    window_info.screencoord_width, window_info.screencoord_height,
+    window_info.title,
+    nullptr, nullptr
+  );
 
-    glfwSetWindowPos(window, 200, 200);
+  glfwSetWindowPos(window, 200, 200);
 #endif
 
-    if (!window) {
-      logs::fatal("Failed to create GLFW window");
-      return window_info;
-    }
-    window_info.window = window;
+  if (!window) {
+    logs::fatal("Failed to create GLFW window");
+    return window_info;
+  }
+  window_info.window = window;
 
-    glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(0);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-      logs::fatal("Failed to initialize GLAD");
-      return window_info;
-    }
-
-    if (!GLAD_GL_ARB_texture_cube_map_array) {
-      logs::fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
-    }
-    if (!GLAD_GL_ARB_texture_storage) {
-      logs::fatal("No support for GLAD_GL_ARB_texture_storage");
-    }
-    if (!GLAD_GL_ARB_buffer_storage) {
-      logs::warning("No support for GLAD_GL_ARB_buffer_storage");
-    }
-
-    // TODO: Remove GL_EXT_debug_marker from GLAD
-    // TODO: Remove GL_EXT_debug_label from GLAD
-    // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
-
-    if (USE_OPENGL_DEBUG) {
-      if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
-        GLint flags;
-        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-
-        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-          glEnable(GL_DEBUG_OUTPUT);
-          glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-          glDebugMessageCallback(util::debug_message_callback, nullptr);
-          glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
-        } else {
-          logs::fatal("Tried to initialise OpenGL debug output but couldn't");
-        }
-      } else {
-        logs::warning(
-          "Tried to initialise OpenGL debug output but none of "
-          "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
-          "are supported on this system. Skipping."
-        );
-      }
-    }
-
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glLineWidth(2.0f);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Get the framebuffer size. This is the actual window size in pixels.
-    int32 framebuffer_width;
-    int32 framebuffer_height;
-    glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
-    window_info.width = (uint32)framebuffer_width;
-    window_info.height = (uint32)framebuffer_height;
-    glViewport(0, 0, window_info.width, window_info.height);
-
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, mouse_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetCharCallback(window, char_callback);
-
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    logs::fatal("Failed to initialize GLAD");
     return window_info;
   }
 
+  if (!GLAD_GL_ARB_texture_cube_map_array) {
+    logs::fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
+  }
+  if (!GLAD_GL_ARB_texture_storage) {
+    logs::fatal("No support for GLAD_GL_ARB_texture_storage");
+  }
+  if (!GLAD_GL_ARB_buffer_storage) {
+    logs::warning("No support for GLAD_GL_ARB_buffer_storage");
+  }
 
-  void destroy_window() {
-    glfwTerminate();
+  // TODO: Remove GL_EXT_debug_marker from GLAD
+  // TODO: Remove GL_EXT_debug_label from GLAD
+  // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
+
+  if (USE_OPENGL_DEBUG) {
+    if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
+      GLint flags;
+      glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+      if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(util::debug_message_callback, nullptr);
+        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+      } else {
+        logs::fatal("Tried to initialise OpenGL debug output but couldn't");
+      }
+    } else {
+      logs::warning(
+        "Tried to initialise OpenGL debug output but none of "
+        "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
+        "are supported on this system. Skipping."
+      );
+    }
+  }
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_MULTISAMPLE);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glLineWidth(2.0f);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Get the framebuffer size. This is the actual window size in pixels.
+  int32 framebuffer_width;
+  int32 framebuffer_height;
+  glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+  window_info.width = (uint32)framebuffer_width;
+  window_info.height = (uint32)framebuffer_height;
+  glViewport(0, 0, window_info.width, window_info.height);
+
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetCharCallback(window, char_callback);
+
+  return window_info;
+}
+
+
+void renderer::destroy_window() {
+  glfwTerminate();
+}
+
+
+void renderer::render(State *state) {
+  copy_scene_data_to_ubo(state);
+
+  // Clear framebuffers
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.l_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.blur1_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.blur2_buffer);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  }
+
+  // Render shadow map
+  {
+    // Point lights
+    {
+      m4 perspective_projection = glm::perspective(
+        radians(90.0f),
+        (
+          (real32)state->builtin_textures.shadowmap_3d_width /
+          (real32)state->builtin_textures.shadowmap_3d_height
+        ),
+        state->builtin_textures.shadowmap_near_clip_dist,
+        state->builtin_textures.shadowmap_far_clip_dist
+      );
+
+      uint32 idx_light = 0;
+
+      for_each (light_component, state->light_component_set.components) {
+        if (light_component->entity_handle == Entity::no_entity_handle) {
+          continue;
+        }
+
+        SpatialComponent *spatial_component =
+          state->spatial_component_set.components[light_component->entity_handle];
+
+        if (!(
+          lights::is_light_component_valid(light_component) &&
+          light_component->type == LightType::point &&
+          spatial::is_spatial_component_valid(spatial_component)
+        )) {
+          continue;
+        }
+
+        v3 position = spatial_component->position;
+
+        for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
+          state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
+            perspective_projection * glm::lookAt(
+              position,
+              position + models::CUBEMAP_OFFSETS[idx_face],
+              models::CUBEMAP_UPS[idx_face]
+            );
+        }
+
+        glViewport(
+          0, 0,
+          state->builtin_textures.shadowmap_3d_width,
+          state->builtin_textures.shadowmap_3d_height
+        );
+        glBindFramebuffer(
+          GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_3d_framebuffer
+        );
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        copy_scene_data_to_ubo(
+          state, idx_light, lights::light_type_to_int(light_component->type), false
+        );
+        render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
+
+        idx_light++;
+      }
+    }
+
+    // Directional lights
+    {
+      real32 ortho_ratio = (
+        (real32)state->builtin_textures.shadowmap_2d_width /
+        (real32)state->builtin_textures.shadowmap_2d_height
+      );
+      real32 ortho_width = 100.0f;
+      real32 ortho_height = ortho_width / ortho_ratio;
+      m4 ortho_projection = glm::ortho(
+        -ortho_width, ortho_width,
+        -ortho_height, ortho_height,
+        state->builtin_textures.shadowmap_near_clip_dist,
+        state->builtin_textures.shadowmap_far_clip_dist
+      );
+
+      uint32 idx_light = 0;
+
+      for_each (light_component, state->light_component_set.components) {
+        if (light_component->entity_handle == Entity::no_entity_handle) {
+          continue;
+        }
+
+        SpatialComponent *spatial_component =
+          state->spatial_component_set.components[light_component->entity_handle];
+
+        if (!(
+          lights::is_light_component_valid(light_component) &&
+          light_component->type == LightType::directional &&
+          spatial::is_spatial_component_valid(spatial_component)
+        )) {
+          continue;
+        }
+
+        state->shadowmap_2d_transforms[idx_light] = ortho_projection * glm::lookAt(
+          spatial_component->position,
+          spatial_component->position + light_component->direction,
+          v3(0.0f, -1.0f, 0.0f)
+        );
+
+        glViewport(
+          0, 0,
+          state->builtin_textures.shadowmap_2d_width,
+          state->builtin_textures.shadowmap_2d_height
+        );
+        glBindFramebuffer(
+          GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_2d_framebuffer
+        );
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        copy_scene_data_to_ubo(
+          state, idx_light, lights::light_type_to_int(light_component->type), false
+        );
+        render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
+
+        idx_light++;
+      }
+    }
+  }
+
+  glViewport(0, 0, state->window_info.width, state->window_info.height);
+
+  // Geometry pass
+  {
+    if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
+    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
+    render_scene(state, RenderPass::deferred, RenderMode::regular);
+    if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
+  }
+
+  // Copy depth from geometry pass to lighting pass
+  {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, state->builtin_textures.g_buffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->builtin_textures.l_buffer);
+    glBlitFramebuffer(
+      0, 0, state->window_info.width, state->window_info.height,
+      0, 0, state->window_info.width, state->window_info.height,
+      GL_DEPTH_BUFFER_BIT, GL_NEAREST
+    );
+  }
+
+  glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.l_buffer);
+
+  // Lighting pass
+  {
+    glDisable(GL_DEPTH_TEST);
+    render_scene(state, RenderPass::lighting, RenderMode::regular);
+    glEnable(GL_DEPTH_TEST);
   }
 
 
-  void render(State *state) {
-    copy_scene_data_to_ubo(state);
-
-    // Clear framebuffers
+  // Forward pass
+  {
+    // Skysphere
     {
-      glBindFramebuffer(GL_FRAMEBUFFER, 0);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      // Cull outside, not inside, of sphere.
+      glCullFace(GL_FRONT);
+      // Do not write to depth buffer.
+      glDepthMask(GL_FALSE);
+      // Draw at the very back of our depth range, so as to be behind everything.
+      glDepthRange(0.9999f, 1.0f);
 
-      glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      render_scene(state, RenderPass::forward_skybox, RenderMode::regular);
 
-      glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.l_buffer);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.blur1_buffer);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.blur2_buffer);
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      glDepthRange(0.0f, 1.0f);
+      glDepthMask(GL_TRUE);
+      glCullFace(GL_BACK);
     }
 
-    // Render shadow map
-    {
-      // Point lights
-      {
-        m4 perspective_projection = glm::perspective(
-          radians(90.0f),
-          (
-            (real32)state->builtin_textures.shadowmap_3d_width /
-            (real32)state->builtin_textures.shadowmap_3d_height
-          ),
-          state->builtin_textures.shadowmap_near_clip_dist,
-          state->builtin_textures.shadowmap_far_clip_dist
-        );
-
-        uint32 idx_light = 0;
-
-        for_each (light_component, state->light_component_set.components) {
-          if (light_component->entity_handle == Entity::no_entity_handle) {
-            continue;
-          }
-
-          SpatialComponent *spatial_component =
-            state->spatial_component_set.components[light_component->entity_handle];
-
-          if (!(
-            lights::is_light_component_valid(light_component) &&
-            light_component->type == LightType::point &&
-            spatial::is_spatial_component_valid(spatial_component)
-          )) {
-            continue;
-          }
-
-          v3 position = spatial_component->position;
-
-          for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
-            state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
-              perspective_projection * glm::lookAt(
-                position,
-                position + models::CUBEMAP_OFFSETS[idx_face],
-                models::CUBEMAP_UPS[idx_face]
-              );
-          }
-
-          glViewport(
-            0, 0,
-            state->builtin_textures.shadowmap_3d_width,
-            state->builtin_textures.shadowmap_3d_height
-          );
-          glBindFramebuffer(
-            GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_3d_framebuffer
-          );
-          glClear(GL_DEPTH_BUFFER_BIT);
-
-          copy_scene_data_to_ubo(
-            state, idx_light, lights::light_type_to_int(light_component->type), false
-          );
-          render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
-
-          idx_light++;
-        }
-      }
-
-      // Directional lights
-      {
-        real32 ortho_ratio = (
-          (real32)state->builtin_textures.shadowmap_2d_width /
-          (real32)state->builtin_textures.shadowmap_2d_height
-        );
-        real32 ortho_width = 100.0f;
-        real32 ortho_height = ortho_width / ortho_ratio;
-        m4 ortho_projection = glm::ortho(
-          -ortho_width, ortho_width,
-          -ortho_height, ortho_height,
-          state->builtin_textures.shadowmap_near_clip_dist,
-          state->builtin_textures.shadowmap_far_clip_dist
-        );
-
-        uint32 idx_light = 0;
-
-        for_each (light_component, state->light_component_set.components) {
-          if (light_component->entity_handle == Entity::no_entity_handle) {
-            continue;
-          }
-
-          SpatialComponent *spatial_component =
-            state->spatial_component_set.components[light_component->entity_handle];
-
-          if (!(
-            lights::is_light_component_valid(light_component) &&
-            light_component->type == LightType::directional &&
-            spatial::is_spatial_component_valid(spatial_component)
-          )) {
-            continue;
-          }
-
-          state->shadowmap_2d_transforms[idx_light] = ortho_projection * glm::lookAt(
-            spatial_component->position,
-            spatial_component->position + light_component->direction,
-            v3(0.0f, -1.0f, 0.0f)
-          );
-
-          glViewport(
-            0, 0,
-            state->builtin_textures.shadowmap_2d_width,
-            state->builtin_textures.shadowmap_2d_height
-          );
-          glBindFramebuffer(
-            GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_2d_framebuffer
-          );
-          glClear(GL_DEPTH_BUFFER_BIT);
-
-          copy_scene_data_to_ubo(
-            state, idx_light, lights::light_type_to_int(light_component->type), false
-          );
-          render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
-
-          idx_light++;
-        }
-      }
-    }
-
-    glViewport(0, 0, state->window_info.width, state->window_info.height);
-
-    // Geometry pass
+    // Forward
     {
       if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
-      glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
-      render_scene(state, RenderPass::deferred, RenderMode::regular);
+      render_scene(state, RenderPass::forward_depth, RenderMode::regular);
+      glDisable(GL_DEPTH_TEST);
+      render_scene(state, RenderPass::forward_nodepth, RenderMode::regular);
+      glEnable(GL_DEPTH_TEST);
       if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
     }
 
-    // Copy depth from geometry pass to lighting pass
+    // Debug draw pass
     {
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, state->builtin_textures.g_buffer);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->builtin_textures.l_buffer);
-      glBlitFramebuffer(
-        0, 0, state->window_info.width, state->window_info.height,
-        0, 0, state->window_info.width, state->window_info.height,
-        GL_DEPTH_BUFFER_BIT, GL_NEAREST
-      );
+      debugdraw::render(&state->debug_draw_state);
     }
+  }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.l_buffer);
-
-    // Lighting pass
-    {
-      glDisable(GL_DEPTH_TEST);
-      render_scene(state, RenderPass::lighting, RenderMode::regular);
-      glEnable(GL_DEPTH_TEST);
-    }
-
-
-    // Forward pass
-    {
-      // Skysphere
-      {
-        // Cull outside, not inside, of sphere.
-        glCullFace(GL_FRONT);
-        // Do not write to depth buffer.
-        glDepthMask(GL_FALSE);
-        // Draw at the very back of our depth range, so as to be behind everything.
-        glDepthRange(0.9999f, 1.0f);
-
-        render_scene(state, RenderPass::forward_skybox, RenderMode::regular);
-
-        glDepthRange(0.0f, 1.0f);
-        glDepthMask(GL_TRUE);
-        glCullFace(GL_BACK);
-      }
-
-      // Forward
-      {
-        if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
-        render_scene(state, RenderPass::forward_depth, RenderMode::regular);
-        glDisable(GL_DEPTH_TEST);
-        render_scene(state, RenderPass::forward_nodepth, RenderMode::regular);
-        glEnable(GL_DEPTH_TEST);
-        if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
-      }
-
-      // Debug draw pass
-      {
-        debugdraw::render(&state->debug_draw_state);
-      }
-    }
-
-    glDisable(GL_DEPTH_TEST);
+  glDisable(GL_DEPTH_TEST);
 
 #if USE_BLOOM
-    // Blur pass
-    {
+  // Blur pass
+  {
+    glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
+    copy_scene_data_to_ubo(state, 0, 0, true);
+    render_scene(state, RenderPass::preblur, RenderMode::regular);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
+    copy_scene_data_to_ubo(state, 0, 0, false);
+    render_scene(state, RenderPass::blur2, RenderMode::regular);
+
+    for (uint32 idx = 0; idx < 3; idx++) {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
       copy_scene_data_to_ubo(state, 0, 0, true);
-      render_scene(state, RenderPass::preblur, RenderMode::regular);
+      render_scene(state, RenderPass::blur1, RenderMode::regular);
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
       copy_scene_data_to_ubo(state, 0, 0, false);
-      render_scene(state, RenderPass::blur2, RenderMode::regular);
-
-      for (uint32 idx = 0; idx < 3; idx++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-        copy_scene_data_to_ubo(state, 0, 0, true);
-        render_scene(state, RenderPass::blur1, RenderMode::regular);
-
-        glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-        copy_scene_data_to_ubo(state, 0, 0, false);
-        render_scene(state, RenderPass::blur1, RenderMode::regular);
-      }
+      render_scene(state, RenderPass::blur1, RenderMode::regular);
     }
+  }
 #endif
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // Postprocessing pass
-    {
-      render_scene(state, RenderPass::postprocessing, RenderMode::regular);
-    }
-
-    // Debug pass
-    {
-      render_scene(state, RenderPass::renderdebug, RenderMode::regular);
-    }
-
-    // UI pass
-    {
-      glEnable(GL_BLEND);
-      if (!state->should_hide_ui) {
-        debug_ui::render_debug_ui(state);
-      }
-      glDisable(GL_BLEND);
-    }
-
-    glEnable(GL_DEPTH_TEST);
+  // Postprocessing pass
+  {
+    render_scene(state, RenderPass::postprocessing, RenderMode::regular);
   }
+
+  // Debug pass
+  {
+    render_scene(state, RenderPass::renderdebug, RenderMode::regular);
+  }
+
+  // UI pass
+  {
+    glEnable(GL_BLEND);
+    if (!state->should_hide_ui) {
+      debug_ui::render_debug_ui(state);
+    }
+    glDisable(GL_BLEND);
+  }
+
+  glEnable(GL_DEPTH_TEST);
 }

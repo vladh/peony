@@ -1,28 +1,10 @@
 namespace engine {
-  // -----------------------------------------------------------
-  // Types
-  // -----------------------------------------------------------
-  struct TimingInfo {
-    chrono::steady_clock::time_point frame_start;
-    chrono::steady_clock::time_point last_frame_start;
-    chrono::nanoseconds frame_duration;
-    chrono::steady_clock::time_point time_frame_should_end;
-
-    chrono::steady_clock::time_point second_start;
-    uint32 n_frames_this_second;
-    uint32 n_frames_since_start;
-  };
-
-
-  // -----------------------------------------------------------
-  // Private functions
-  // -----------------------------------------------------------
-  void destroy_model_loaders(State *state) {
+  internal void destroy_model_loaders(State *state) {
     state->model_loaders.clear();
   }
 
 
-  void destroy_non_internal_materials(State *state) {
+  internal void destroy_non_internal_materials(State *state) {
     for (
       uint32 idx = state->first_non_internal_material_idx;
       idx < state->materials.length;
@@ -37,7 +19,7 @@ namespace engine {
   }
 
 
-  void destroy_non_internal_entities(State *state) {
+  internal void destroy_non_internal_entities(State *state) {
     for (
       uint32 idx = state->entity_set.first_non_internal_handle;
       idx < state->entity_set.entities.length;
@@ -73,7 +55,7 @@ namespace engine {
   }
 
 
-  void destroy_scene(State *state) {
+  internal void destroy_scene(State *state) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
     if (!state->is_world_loaded) {
@@ -91,7 +73,7 @@ namespace engine {
   }
 
 
-  bool32 load_scene(
+  internal bool32 load_scene(
     const char *scene_name,
     State *state
   ) {
@@ -209,7 +191,7 @@ namespace engine {
   }
 
 
-  void handle_console_command(State *state) {
+  internal void handle_console_command(State *state) {
     gui::log("%s%s", gui::CONSOLE_SYMBOL, state->input_state.text_input);
 
     char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
@@ -245,7 +227,7 @@ namespace engine {
   }
 
 
-  void update_light_position(State *state, real32 amount) {
+  internal void update_light_position(State *state, real32 amount) {
     for_each (light_component, state->light_component_set.components) {
       if (light_component->type == LightType::directional) {
         state->dir_light_angle += amount;
@@ -255,7 +237,7 @@ namespace engine {
   }
 
 
-  void process_input(GLFWwindow *window, State *state) {
+  internal void process_input(GLFWwindow *window, State *state) {
     if (input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
       if (state->game_console.is_enabled) {
         state->game_console.is_enabled = false;
@@ -359,7 +341,7 @@ namespace engine {
   }
 
 
-  bool32 check_all_entities_loaded(State *state) {
+  internal bool32 check_all_entities_loaded(State *state) {
     bool are_all_done_loading = true;
 
     for_each (material, state->materials) {
@@ -446,7 +428,7 @@ namespace engine {
   }
 
 
-  void update(State *state) {
+  internal void update(State *state) {
     if (state->is_world_loaded && !state->was_world_ever_loaded) {
       load_scene(DEFAULT_SCENE, state);
       state->was_world_ever_loaded = true;
@@ -489,7 +471,7 @@ namespace engine {
   }
 
 
-  TimingInfo init_timing_info(uint32 target_fps) {
+  internal TimingInfo init_timing_info(uint32 target_fps) {
     TimingInfo timing_info = {};
     timing_info.second_start = chrono::steady_clock::now();
     timing_info.frame_start = chrono::steady_clock::now();
@@ -501,7 +483,7 @@ namespace engine {
   }
 
 
-  void update_timing_info(TimingInfo *timing, uint32 *last_fps) {
+  internal void update_timing_info(TimingInfo *timing, uint32 *last_fps) {
     timing->n_frames_since_start++;
     timing->last_frame_start = timing->frame_start;
     timing->frame_start = chrono::steady_clock::now();
@@ -518,7 +500,7 @@ namespace engine {
   }
 
 
-  void update_dt_and_perf_counters(State *state, TimingInfo *timing) {
+  internal void update_dt_and_perf_counters(State *state, TimingInfo *timing) {
     state->dt = util::get_us_from_duration(
       timing->frame_start - timing->last_frame_start
     );
@@ -539,60 +521,57 @@ namespace engine {
 
     state->t += state->dt;
   }
+}
 
 
-  // -----------------------------------------------------------
-  // Public functions
-  // -----------------------------------------------------------
-  void run_main_loop(State *state) {
-    TimingInfo timing = init_timing_info(165);
+void engine::run_main_loop(State *state) {
+  TimingInfo timing = init_timing_info(165);
 
-    while (!state->should_stop) {
-      glfwPollEvents();
-      process_input(state->window_info.window, state);
+  while (!state->should_stop) {
+    glfwPollEvents();
+    process_input(state->window_info.window, state);
 
-      if (
-        !state->is_manual_frame_advance_enabled ||
-        state->should_manually_advance_to_next_frame
-      ) {
-        update_timing_info(&timing, &state->perf_counters.last_fps);
+    if (
+      !state->is_manual_frame_advance_enabled ||
+      state->should_manually_advance_to_next_frame
+    ) {
+      update_timing_info(&timing, &state->perf_counters.last_fps);
 
-        // If we should pause, stop time-based events.
-        if (!state->should_pause) { update_dt_and_perf_counters(state, &timing); }
+      // If we should pause, stop time-based events.
+      if (!state->should_pause) { update_dt_and_perf_counters(state, &timing); }
 
-        // NOTE: Don't render on the very first frame. This avoids flashing that happens
-        // in fullscreen. There is a better way to handle this, but whatever, figure it
-        // out later.
-        if (timing.n_frames_since_start > 1) {
-          update(state);
-          renderer::render(state);
-        }
-
-        if (state->is_manual_frame_advance_enabled) {
-          state->should_manually_advance_to_next_frame = false;
-        }
-
-        input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
-        input::reset_n_key_state_changes_this_frame(&state->input_state);
-
-        if (state->should_limit_fps) {
-          std::this_thread::sleep_until(timing.time_frame_should_end);
-        }
+      // NOTE: Don't render on the very first frame. This avoids flashing that happens
+      // in fullscreen. There is a better way to handle this, but whatever, figure it
+      // out later.
+      if (timing.n_frames_since_start > 1) {
+        update(state);
+        renderer::render(state);
       }
 
-      START_TIMER(swap_buffers);
-      glfwSwapBuffers(state->window_info.window);
-      END_TIMER_MIN(swap_buffers, 16);
+      if (state->is_manual_frame_advance_enabled) {
+        state->should_manually_advance_to_next_frame = false;
+      }
 
-      if (glfwWindowShouldClose(state->window_info.window)) {
-        state->should_stop = true;
+      input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
+      input::reset_n_key_state_changes_this_frame(&state->input_state);
+
+      if (state->should_limit_fps) {
+        std::this_thread::sleep_until(timing.time_frame_should_end);
       }
     }
+
+    START_TIMER(swap_buffers);
+    glfwSwapBuffers(state->window_info.window);
+    END_TIMER_MIN(swap_buffers, 16);
+
+    if (glfwWindowShouldClose(state->window_info.window)) {
+      state->should_stop = true;
+    }
   }
+}
 
 
-  void init(State *state) {
-    internals::create_internal_materials(state);
-    internals::create_internal_entities(state);
-  }
+void engine::init(State *state) {
+  internals::create_internal_materials(state);
+  internals::create_internal_entities(state);
 }
