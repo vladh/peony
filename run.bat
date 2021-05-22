@@ -1,1 +1,2 @@
-bin\peony.exe
+@echo off
+bin\Debug\peony.exe
