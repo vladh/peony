@@ -1,10 +1,24 @@
+#include <chrono>
+namespace chrono = std::chrono;
+#include "util.hpp"
+#include "engine.hpp"
+#include "logs.hpp"
+#include "str.hpp"
+#include "debug.hpp"
+#include "peony_parser.hpp"
+#include "models.hpp"
+#include "internals.hpp"
+#include "renderer.hpp"
+#include "intrinsics.hpp"
+
+
 namespace engine {
-  internal void destroy_model_loaders(State *state) {
+  pny_internal void destroy_model_loaders(State *state) {
     state->model_loaders.clear();
   }
 
 
-  internal void destroy_non_internal_materials(State *state) {
+  pny_internal void destroy_non_internal_materials(State *state) {
     for (
       uint32 idx = state->first_non_internal_material_idx;
       idx < state->materials.length;
@@ -19,7 +33,7 @@ namespace engine {
   }
 
 
-  internal void destroy_non_internal_entities(State *state) {
+  pny_internal void destroy_non_internal_entities(State *state) {
     for (
       uint32 idx = state->entity_set.first_non_internal_handle;
       idx < state->entity_set.entities.length;
@@ -55,7 +69,7 @@ namespace engine {
   }
 
 
-  internal void destroy_scene(State *state) {
+  pny_internal void destroy_scene(State *state) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
     if (!state->is_world_loaded) {
@@ -73,7 +87,7 @@ namespace engine {
   }
 
 
-  internal bool32 load_scene(
+  pny_internal bool32 load_scene(
     const char *scene_name,
     State *state
   ) {
@@ -114,10 +128,10 @@ namespace engine {
 
     // Get only the unique used materials
     StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
-    for_each (entity_template, entity_templates) {
-      for_each (material_name, entity_template->material_names) {
+    pny_for_each (entity_template, entity_templates) {
+      pny_for_each (material_name, entity_template->material_names) {
         bool32 does_material_already_exist = false;
-        for_each (used_material, used_materials) {
+        pny_for_each (used_material, used_materials) {
           if (str::eq(*material_name, *used_material)) {
             does_material_already_exist = true;
             break;
@@ -131,7 +145,7 @@ namespace engine {
 
     // Create materials
     MaterialTemplate material_template;
-    for_each (used_material, used_materials) {
+    pny_for_each (used_material, used_materials) {
       material_template = {};
       char path[MAX_PATH];
       peony_parser::get_material_path(path, *used_material);
@@ -145,7 +159,7 @@ namespace engine {
     }
 
     // Create entity, ModelLoader, EntityLoader
-    for_range (0, n_entities) {
+    pny_for_range (0, n_entities) {
       EntityTemplate *entity_template = entity_templates[idx];
       Entity *entity = entities::add_entity_to_set(
         &state->entity_set, entity_template->entity_debug_name
@@ -191,7 +205,7 @@ namespace engine {
   }
 
 
-  internal void handle_console_command(State *state) {
+  pny_internal void handle_console_command(State *state) {
     gui::log("%s%s", gui::CONSOLE_SYMBOL, state->input_state.text_input);
 
     char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
@@ -227,8 +241,8 @@ namespace engine {
   }
 
 
-  internal void update_light_position(State *state, real32 amount) {
-    for_each (light_component, state->light_component_set.components) {
+  pny_internal void update_light_position(State *state, real32 amount) {
+    pny_for_each (light_component, state->light_component_set.components) {
       if (light_component->type == LightType::directional) {
         state->dir_light_angle += amount;
         break;
@@ -237,7 +251,7 @@ namespace engine {
   }
 
 
-  internal void process_input(GLFWwindow *window, State *state) {
+  pny_internal void process_input(GLFWwindow *window, State *state) {
     if (input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
       if (state->game_console.is_enabled) {
         state->game_console.is_enabled = false;
@@ -341,10 +355,10 @@ namespace engine {
   }
 
 
-  internal bool32 check_all_entities_loaded(State *state) {
+  pny_internal bool32 check_all_entities_loaded(State *state) {
     bool are_all_done_loading = true;
 
-    for_each (material, state->materials) {
+    pny_for_each (material, state->materials) {
       bool is_done_loading = materials::prepare_material_and_check_if_done(
         material,
         &state->persistent_pbo,
@@ -357,7 +371,7 @@ namespace engine {
     }
 
     uint32 new_n_valid_model_loaders = 0;
-    for_each (model_loader, state->model_loaders) {
+    pny_for_each (model_loader, state->model_loaders) {
       if (!is_model_loader_valid(model_loader)) {
         continue;
       }
@@ -376,7 +390,7 @@ namespace engine {
     state->n_valid_model_loaders = new_n_valid_model_loaders;
 
     uint32 new_n_valid_entity_loaders = 0;
-    for_each (entity_loader, state->entity_loader_set.loaders) {
+    pny_for_each (entity_loader, state->entity_loader_set.loaders) {
       if (!is_entity_loader_valid(entity_loader)) {
         continue;
       }
@@ -428,7 +442,7 @@ namespace engine {
   }
 
 
-  internal void update(State *state) {
+  pny_internal void update(State *state) {
     if (state->is_world_loaded && !state->was_world_ever_loaded) {
       load_scene(DEFAULT_SCENE, state);
       state->was_world_ever_loaded = true;
@@ -471,7 +485,7 @@ namespace engine {
   }
 
 
-  internal TimingInfo init_timing_info(uint32 target_fps) {
+  pny_internal TimingInfo init_timing_info(uint32 target_fps) {
     TimingInfo timing_info = {};
     timing_info.second_start = chrono::steady_clock::now();
     timing_info.frame_start = chrono::steady_clock::now();
@@ -483,7 +497,7 @@ namespace engine {
   }
 
 
-  internal void update_timing_info(TimingInfo *timing, uint32 *last_fps) {
+  pny_internal void update_timing_info(TimingInfo *timing, uint32 *last_fps) {
     timing->n_frames_since_start++;
     timing->last_frame_start = timing->frame_start;
     timing->frame_start = chrono::steady_clock::now();
@@ -500,7 +514,7 @@ namespace engine {
   }
 
 
-  internal void update_dt_and_perf_counters(State *state, TimingInfo *timing) {
+  pny_internal void update_dt_and_perf_counters(State *state, TimingInfo *timing) {
     state->dt = util::get_us_from_duration(
       timing->frame_start - timing->last_frame_start
     );

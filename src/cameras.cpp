@@ -1,5 +1,9 @@
+#include "cameras.hpp"
+#include "intrinsics.hpp"
+
+
 namespace cameras {
-  internal void update_matrices_ortho(
+  pny_internal void update_matrices_ortho(
     Camera *camera, uint32 window_width, uint32 window_height
   ) {
     if (window_width == 0 || window_height == 0) {
@@ -19,7 +23,7 @@ namespace cameras {
   }
 
 
-  internal void update_matrices_perspective(
+  pny_internal void update_matrices_perspective(
     Camera *camera, uint32 window_width, uint32 window_height
   ) {
     if (window_width == 0 || window_height == 0) {

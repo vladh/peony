@@ -8,4 +8,4 @@ if not defined DevEnvDir (
   call vcvarsall x64
 )
 
-msbuild bin/peony.sln -m -p:Configuration=Debug
+msbuild bin/peony.sln -m:16 -p:Configuration=Debug

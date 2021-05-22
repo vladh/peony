@@ -1,3 +1,6 @@
+#include "state.hpp"
+
+
 State* state::init_state(
   State *state,
   MemoryPool *asset_memory_pool,

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "spatial.hpp"
+#include "types.hpp"
+
 namespace debugdraw {
   constexpr uint32 MAX_N_VERTICES = 2048;
   constexpr uint32 VERTEX_LENGTH = 7;
@@ -18,7 +21,7 @@ namespace debugdraw {
     uint32 n_vertices_pushed;
   };
 
-  DebugDrawState *g_dds;
+  extern DebugDrawState *g_dds;
 
   void draw_line(
     DebugDrawState *debug_draw_state,

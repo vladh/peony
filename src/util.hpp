@@ -1,5 +1,11 @@
 #pragma once
 
+#include <chrono>
+namespace chrono = std::chrono;
+#include <assimp/cimport.h>
+#include <glad/glad.h>
+#include "types.hpp"
+
 namespace util {
   const char* stringify_glenum(GLenum thing);
   GLenum get_texture_format_from_n_components(int32 n_components);

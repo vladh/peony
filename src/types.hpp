@@ -1,8 +1,7 @@
 #pragma once
 
-#define global static
-#define local_persist static
-#define internal static
+#include <stdint.h>
+#include "glm.hpp"
 
 typedef int8_t int8;
 typedef int16_t int16;

@@ -1,5 +1,11 @@
+#include "peony_parser.hpp"
+#include "logs.hpp"
+#include "str.hpp"
+#include "intrinsics.hpp"
+
+
 namespace peony_parser {
-  internal void print_value(PropValue value, PropValueType type) {
+  pny_internal void print_value(PropValue value, PropValueType type) {
     if (type == PropValueType::unknown) {
       logs::info("<unknown>");
     } else if (type == PropValueType::string) {
@@ -20,18 +26,18 @@ namespace peony_parser {
   }
 
 
-  internal bool32 is_char_whitespace(const char target) {
+  pny_internal bool32 is_char_whitespace(const char target) {
     return target == TOKEN_NEWLINE ||
       target == TOKEN_SPACE;
   }
 
 
-  internal bool32 is_token_whitespace(const char *token) {
+  pny_internal bool32 is_token_whitespace(const char *token) {
     return is_char_whitespace(token[0]);
   }
 
 
-  internal bool32 is_char_allowed_in_name(const char target) {
+  pny_internal bool32 is_char_allowed_in_name(const char target) {
     return isalpha(target) ||
       isdigit(target) ||
       target == '_' ||
@@ -41,8 +47,8 @@ namespace peony_parser {
   }
 
 
-  internal bool32 is_token_name(const char *token) {
-    for_range (0, strlen(token)) {
+  pny_internal bool32 is_token_name(const char *token) {
+    pny_for_range (0, strlen(token)) {
       if (!is_char_allowed_in_name(token[idx])) {
         return false;
       }
@@ -51,7 +57,7 @@ namespace peony_parser {
   }
 
 
-  internal bool32 is_char_token_boundary(char target) {
+  pny_internal bool32 is_char_token_boundary(char target) {
     return is_char_whitespace(target) ||
       target == TOKEN_HEADER_START ||
       target == TOKEN_ELEMENT_SEPARATOR ||
@@ -64,7 +70,7 @@ namespace peony_parser {
   }
 
 
-  internal bool32 get_token(char *token, FILE *f) {
+  pny_internal bool32 get_token(char *token, FILE *f) {
     uint32 idx_token = 0;
     bool32 could_get_token = true;
 
@@ -102,7 +108,7 @@ namespace peony_parser {
   }
 
 
-  internal bool32 get_non_trivial_token(char *token, FILE *f) {
+  pny_internal bool32 get_non_trivial_token(char *token, FILE *f) {
     bool32 could_get_token;
     do {
       could_get_token = get_token(token, f);
@@ -118,7 +124,7 @@ namespace peony_parser {
   }
 
 
-  internal void parse_vec2(char *token, FILE *f, v2 *parsed_vector) {
+  pny_internal void parse_vec2(char *token, FILE *f, v2 *parsed_vector) {
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_START);
     get_non_trivial_token(token, f);
@@ -130,7 +136,7 @@ namespace peony_parser {
   }
 
 
-  internal void parse_vec3(char *token, FILE *f, v3 *parsed_vector) {
+  pny_internal void parse_vec3(char *token, FILE *f, v3 *parsed_vector) {
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_START);
     get_non_trivial_token(token, f);
@@ -144,7 +150,7 @@ namespace peony_parser {
   }
 
 
-  internal void parse_vec4(char *token, FILE *f, v4 *parsed_vector) {
+  pny_internal void parse_vec4(char *token, FILE *f, v4 *parsed_vector) {
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_START);
     get_non_trivial_token(token, f);
@@ -160,7 +166,7 @@ namespace peony_parser {
   }
 
 
-  internal void get_value_from_token(
+  pny_internal void get_value_from_token(
     char *token,
     FILE *f,
     PropValueType *prop_value_type,
@@ -194,13 +200,13 @@ namespace peony_parser {
   }
 
 
-  internal void parse_header(char *token, FILE *f) {
+  pny_internal void parse_header(char *token, FILE *f) {
     get_non_trivial_token(token, f);
     assert(is_token_name(token));
   }
 
 
-  internal uint32 parse_property(
+  pny_internal uint32 parse_property(
     char *token,
     FILE *f,
     char prop_name[MAX_TOKEN_LENGTH],
@@ -314,7 +320,7 @@ void peony_parser::print_entity_template(EntityTemplate *entity_template) {
   logs::info("  model_source: %d", entity_template->model_source);
   logs::info("  material_names.length: %d", entity_template->material_names.length);
   logs::info("  material_names:");
-  for_each (material_name, entity_template->material_names) {
+  pny_for_each (material_name, entity_template->material_names) {
     logs::info(*material_name);
   }
   logs::info("  render_pass: %d", entity_template->render_pass);
@@ -416,7 +422,7 @@ void peony_parser::parse_material_file(
         material_template->n_builtin_textures++;
       } else {
         logs::info("Unhandled prop_name %s with values:", prop_name);
-        for_range_named (idx_value, 0, n_values) {
+        pny_for_range_named (idx_value, 0, n_values) {
           print_value(prop_values[idx_value], prop_value_types[idx_value]);
         }
       }
@@ -484,17 +490,21 @@ bool32 peony_parser::parse_scene_file(
         );
         entity_template->model_source = ModelSource::data;
       } else if (str::eq(prop_name, "materials")) {
-        for_range_named (idx_value, 0, n_values) {
+        pny_for_range_named (idx_value, 0, n_values) {
           strcpy(
             *(entity_template->material_names.push()),
             prop_values[idx_value].string_value
           );
         }
       } else if (str::eq(prop_name, "render_passes")) {
-        RenderPassFlag render_pass = RenderPass::none;
-        for_range_named (idx_value, 0, n_values) {
-          render_pass = render_pass |
-            models::render_pass_from_string(prop_values[idx_value].string_value);
+        RenderPass render_pass = RenderPass::none;
+        pny_for_range_named (idx_value, 0, n_values) {
+          render_pass = (RenderPass)(
+            (uint32)render_pass |
+            (uint32)models::render_pass_from_string(
+              prop_values[idx_value].string_value
+            )
+          );
         }
         entity_template->render_pass = render_pass;
       } else if (str::eq(prop_name, "physics_component.obb.center")) {
@@ -533,7 +543,7 @@ bool32 peony_parser::parse_scene_file(
           behavior::behavior_from_string(prop_values[0].string_value);
       } else {
         logs::info("Unhandled prop_name %s with values:", prop_name);
-        for_range_named (idx_value, 0, n_values) {
+        pny_for_range_named (idx_value, 0, n_values) {
           print_value(prop_values[idx_value], prop_value_types[idx_value]);
         }
       }

@@ -1,27 +1,42 @@
 #pragma once
 
+// Flags
+#undef _HAS_EXCEPTIONS
+#define _HAS_EXCEPTIONS 0
+#define _CRT_SECURE_NO_WARNINGS
+#define NOMINMAX
+#pragma warning(disable: 4505) // unreferenced local function has been removed
+
+
+// Functions
 #define LEN(x) (sizeof((x)) / sizeof((x)[0]))
 
-// Loops
 
-#define for_range_named(idx, start, end) \
+// Keywords
+#define pny_global static
+#define pny_local_persist static
+#define pny_internal static
+
+
+// Loops
+#define pny_for_range_named(idx, start, end) \
   for ( \
     uint32 idx = (start); \
     idx < (end); \
     idx++ \
   )
 
-#define for_range(start, end) for_range_named(idx, start, end)
+#define pny_for_range(start, end) pny_for_range_named(idx, start, end)
 
-#define for_each(el, set) \
+#define pny_for_each(el, set) \
   for ( \
     auto el = (set).begin(); \
     el < (set).end(); \
     el++ \
   ) \
 
-// Defer macro/thing.
 
+// Defer macro/thing
 #define CONCAT_INTERNAL(x,y) x##y
 #define CONCAT(x,y) CONCAT_INTERNAL(x,y)
 

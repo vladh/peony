@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 namespace cameras {
   enum class CameraType {perspective, ortho};
 

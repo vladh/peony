@@ -1,5 +1,11 @@
+#include "logs.hpp"
+#include "util.hpp"
+#include "memory.hpp"
+#include "intrinsics.hpp"
+
+
 namespace memory {
-  internal void reset_memory_pool(MemoryPool *pool) {
+  pny_internal void reset_memory_pool(MemoryPool *pool) {
 #if USE_MEMORY_DEBUG_LOGS
     logs::info("Resetting memory pool");
 #endif
@@ -8,7 +14,7 @@ namespace memory {
   }
 
 
-  internal void zero_out_memory_pool(MemoryPool *pool) {
+  pny_internal void zero_out_memory_pool(MemoryPool *pool) {
     memset(pool->memory, 0, pool->size);
     pool->used = 0;
     pool->n_items = 0;

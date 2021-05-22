@@ -1,5 +1,8 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
+#include "types.hpp"
+
 namespace input {
   constexpr uint32 MAX_TEXT_INPUT_LENGTH = 512;
   constexpr uint32 MAX_TEXT_INPUT_COMMAND_LENGTH = 50;

@@ -1,23 +1,34 @@
 #pragma once
 
+#include "types.hpp"
+#include "stackarray.hpp"
+#include "materials.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+#include "anim.hpp"
+#include "behavior.hpp"
+#include "physics.hpp"
+#include "queue.hpp"
+#include "tasks.hpp"
+#include "pack.hpp"
+#include "lights.hpp"
+
 namespace models {
   enum class RenderMode {regular, depth};
 
-  typedef uint32 RenderPassFlag;
-
-  namespace RenderPass {
-    RenderPassFlag none = 0;
-    RenderPassFlag shadowcaster = (1 << 0);
-    RenderPassFlag deferred = (1 << 1);
-    RenderPassFlag forward_depth = (1 << 2);
-    RenderPassFlag forward_nodepth = (1 << 3);
-    RenderPassFlag forward_skybox = (1 << 4);
-    RenderPassFlag lighting = (1 << 5);
-    RenderPassFlag postprocessing = (1 << 6);
-    RenderPassFlag preblur = (1 << 7);
-    RenderPassFlag blur1 = (1 << 8);
-    RenderPassFlag blur2 = (1 << 9);
-    RenderPassFlag renderdebug = (1 << 10);
+  enum class RenderPass : uint32 {
+    none = 0,
+    shadowcaster = (1 << 0),
+    deferred = (1 << 1),
+    forward_depth = (1 << 2),
+    forward_nodepth = (1 << 3),
+    forward_skybox = (1 << 4),
+    lighting = (1 << 5),
+    postprocessing = (1 << 6),
+    preblur = (1 << 7),
+    blur1 = (1 << 8),
+    blur2 = (1 << 9),
+    renderdebug = (1 << 10),
   };
 
   enum class ModelSource {
@@ -85,7 +96,7 @@ namespace models {
     LightComponent light_component;
     BehaviorComponent behavior_component;
     PhysicsComponent physics_component;
-    RenderPassFlag render_pass;
+    RenderPass render_pass;
     EntityLoaderState state;
   };
 
@@ -96,7 +107,7 @@ namespace models {
   struct DrawableComponent {
     EntityHandle entity_handle;
     Mesh mesh;
-    RenderPassFlag target_render_pass = RenderPass::none;
+    RenderPass target_render_pass = RenderPass::none;
   };
 
   struct DrawableComponentSet {
@@ -106,8 +117,8 @@ namespace models {
 
 #include "models_data.hpp"
 
-  const char* render_pass_to_string(RenderPassFlag render_pass);
-  RenderPassFlag render_pass_from_string(const char* str);
+  const char* render_pass_to_string(RenderPass render_pass);
+  RenderPass render_pass_from_string(const char* str);
   bool32 prepare_model_loader_and_check_if_done(
     ModelLoader *model_loader,
     PersistentPbo *persistent_pbo,
@@ -137,7 +148,7 @@ namespace models {
     EntityLoader *entity_loader,
     const char *name,
     const char *model_path_or_builtin_model_name,
-    RenderPassFlag render_pass,
+    RenderPass render_pass,
     EntityHandle entity_handle
   );
   bool32 is_drawable_component_valid(DrawableComponent *drawable_component);
@@ -148,5 +159,4 @@ using models::ModelSource, models::Vertex, models::Mesh, models::ModelLoaderStat
   models::ModelLoader, models::EntityLoaderState, models::EntityLoader,
   models::EntityLoaderSet,
   models::DrawableComponent, models::DrawableComponentSet,
-  models::RenderMode, models::RenderPassFlag;
-namespace RenderPass = models::RenderPass;
+  models::RenderMode, models::RenderPass;

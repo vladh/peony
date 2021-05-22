@@ -1,5 +1,21 @@
 #pragma once
 
+#include "types.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+#include "lights.hpp"
+#include "behavior.hpp"
+#include "anim.hpp"
+#include "models.hpp"
+#include "gui.hpp"
+#include "cameras.hpp"
+#include "debugdraw.hpp"
+#include "physics.hpp"
+#include "memory.hpp"
+#include "array.hpp"
+#include "stackarray.hpp"
+#include "queue.hpp"
+
 namespace state {
   constexpr uint32 DT_HIST_LENGTH = 512;
 

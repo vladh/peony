@@ -1,3 +1,8 @@
+#include "materials.hpp"
+#include "shaders.hpp"
+#include "internals.hpp"
+
+
 void internals::create_internal_materials(State *state) {
   MemoryPool temp_memory_pool = {};
 

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <stdarg.h>
+#include <assimp/cimport.h>
+#include "types.hpp"
+
 namespace logs {
   void fatal(const char *format, ...);
   void error(const char *format, ...);

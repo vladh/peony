@@ -1,5 +1,13 @@
+#include "renderer.hpp"
+#include "util.hpp"
+#include "logs.hpp"
+#include "str.hpp"
+#include "debug_ui.hpp"
+#include "intrinsics.hpp"
+
+
 namespace renderer {
-  internal void init_g_buffer(
+  pny_internal void init_g_buffer(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
@@ -117,7 +125,7 @@ namespace renderer {
   }
 
 
-  internal void init_l_buffer(
+  pny_internal void init_l_buffer(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
@@ -224,7 +232,7 @@ namespace renderer {
   }
 
 
-  internal void init_blur_buffers(
+  pny_internal void init_blur_buffers(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
@@ -293,7 +301,7 @@ namespace renderer {
   }
 
 
-  internal void init_ubo(State *state) {
+  pny_internal void init_ubo(State *state) {
     glGenBuffers(1, &state->ubo_shader_common);
     glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
@@ -302,7 +310,7 @@ namespace renderer {
   }
 
 
-  internal void init_shadowmaps(
+  pny_internal void init_shadowmaps(
     MemoryPool *memory_pool,
     BuiltinTextures *builtin_textures
   ) {
@@ -379,7 +387,7 @@ namespace renderer {
   }
 
 
-  internal void resize_renderer_buffers(
+  pny_internal void resize_renderer_buffers(
     MemoryPool *memory_pool,
     Array<Material> *materials,
     BuiltinTextures *builtin_textures,
@@ -398,7 +406,7 @@ namespace renderer {
       memory_pool, builtin_textures, width, height
     );
 
-    for_each (material, *materials) {
+    pny_for_each (material, *materials) {
       if (material->n_textures > 0 && material->is_screensize_dependent) {
         for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
           Texture *texture = &material->textures[idx_texture];
@@ -428,7 +436,7 @@ namespace renderer {
   }
 
 
-  internal void copy_scene_data_to_ubo(
+  pny_internal void copy_scene_data_to_ubo(
     State *state,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
@@ -475,8 +483,8 @@ namespace renderer {
     uint32 n_point_lights = 0;
     uint32 n_directional_lights = 0;
 
-    for_each (light_component, state->light_component_set.components) {
-      if (light_component->entity_handle == Entity::no_entity_handle) {
+    pny_for_each (light_component, state->light_component_set.components) {
+      if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
         continue;
       }
 
@@ -519,12 +527,12 @@ namespace renderer {
   }
 
 
-  internal void copy_scene_data_to_ubo(State *state) {
+  pny_internal void copy_scene_data_to_ubo(State *state) {
     copy_scene_data_to_ubo(state, 0, 0, false);
   }
 
 
-  internal void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+  pny_internal void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
     State *state = memory_and_state->state;
     MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
@@ -556,7 +564,7 @@ namespace renderer {
   }
 
 
-  internal void mouse_button_callback(
+  pny_internal void mouse_button_callback(
     GLFWwindow *window, int button, int action, int mods
   ) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
@@ -567,7 +575,7 @@ namespace renderer {
   }
 
 
-  internal void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
+  pny_internal void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
     State *state = memory_and_state->state;
 
@@ -585,7 +593,7 @@ namespace renderer {
   }
 
 
-  internal void key_callback(
+  pny_internal void key_callback(
     GLFWwindow* window,
     int key, int scancode, int action, int mods
   ) {
@@ -595,7 +603,7 @@ namespace renderer {
   }
 
 
-  internal void char_callback(
+  pny_internal void char_callback(
     GLFWwindow* window, uint32 codepoint
   ) {
     MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
@@ -604,7 +612,7 @@ namespace renderer {
   }
 
 
-  internal void draw(
+  pny_internal void draw(
     RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
     DrawableComponent *drawable_component,
@@ -676,25 +684,25 @@ namespace renderer {
   }
 
 
-  internal void draw_all(
+  pny_internal void draw_all(
     EntitySet *entity_set,
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     AnimationComponentSet *animation_component_set,
     Array<Material> *materials,
-    RenderPassFlag render_pass,
+    RenderPass render_pass,
     RenderMode render_mode,
     ShaderAsset *standard_depth_shader_asset,
     real64 t
   ) {
     ModelMatrixCache cache = {m4(1.0f), nullptr};
 
-    for_each (drawable_component, drawable_component_set->components) {
+    pny_for_each (drawable_component, drawable_component_set->components) {
       if (!models::is_drawable_component_valid(drawable_component)) {
         continue;
       }
 
-      if (!(render_pass & drawable_component->target_render_pass)) {
+      if (!((uint32)render_pass & (uint32)drawable_component->target_render_pass)) {
         continue;
       }
 
@@ -767,9 +775,9 @@ namespace renderer {
   }
 
 
-  internal void render_scene(
+  pny_internal void render_scene(
     State *state,
-    RenderPassFlag render_pass,
+    RenderPass render_pass,
     RenderMode render_mode
   ) {
 #if 0
@@ -1003,8 +1011,8 @@ void renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      for_each (light_component, state->light_component_set.components) {
-        if (light_component->entity_handle == Entity::no_entity_handle) {
+      pny_for_each (light_component, state->light_component_set.components) {
+        if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
           continue;
         }
 
@@ -1066,8 +1074,8 @@ void renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      for_each (light_component, state->light_component_set.components) {
-        if (light_component->entity_handle == Entity::no_entity_handle) {
+      pny_for_each (light_component, state->light_component_set.components) {
+        if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
           continue;
         }
 

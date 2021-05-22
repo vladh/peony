@@ -1,16 +1,27 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include "gui.hpp"
+#include "util.hpp"
+#include "logs.hpp"
+#include "intrinsics.hpp"
+
+
+GameConsole *gui::g_console = nullptr;
+
+
 namespace gui {
-  internal void request_cursor(GuiState *gui_state, GLFWcursor *cursor) {
+  pny_internal void request_cursor(GuiState *gui_state, GLFWcursor *cursor) {
     gui_state->requested_cursor = cursor;
   }
 
 
-  internal void set_cursor(GuiState *gui_state) {
+  pny_internal void set_cursor(GuiState *gui_state) {
     input::set_cursor(gui_state->input_state, gui_state->requested_cursor);
     gui_state->requested_cursor = nullptr;
   }
 
 
-  internal void push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices) {
+  pny_internal void push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices) {
     // VAO/VBO must have been bound by start_drawing()
     glBufferSubData(
       GL_ARRAY_BUFFER,
@@ -23,7 +34,7 @@ namespace gui {
   }
 
 
-  internal v2 get_text_dimensions(
+  pny_internal v2 get_text_dimensions(
     FontAsset *font_asset, const char *str
   ) {
     // NOTE: This returns the dimensions around the main body of the text.
@@ -69,7 +80,7 @@ namespace gui {
   }
 
 
-  internal v2 center_bb(
+  pny_internal v2 center_bb(
     v2 container_position,
     v2 container_dimensions,
     v2 element_dimensions
@@ -80,7 +91,7 @@ namespace gui {
   }
 
 
-  internal v2 add_element_to_container(
+  pny_internal v2 add_element_to_container(
     GuiContainer *container, v2 element_dimensions
   ) {
     // When adding a new element, we need to ensure we have enough space.
@@ -133,7 +144,7 @@ namespace gui {
   }
 
 
-  internal void draw_rect(
+  pny_internal void draw_rect(
     GuiState *gui_state,
     v2 position,
     v2 dimensions,
@@ -158,7 +169,7 @@ namespace gui {
   }
 
 
-  internal void draw_text(
+  pny_internal void draw_text(
     GuiState *gui_state,
     const char* font_name, const char *str,
     v2 position,
@@ -242,7 +253,7 @@ namespace gui {
   }
 
 
-  internal void draw_text_shadow(
+  pny_internal void draw_text_shadow(
     GuiState *gui_state,
     const char* font_name, const char *str,
     v2 position,
@@ -256,7 +267,7 @@ namespace gui {
   }
 
 
-  internal void draw_container(
+  pny_internal void draw_container(
     GuiState *gui_state,
     GuiContainer *container
   ) {
@@ -306,7 +317,7 @@ namespace gui {
   }
 
 
-  internal void draw_line(
+  pny_internal void draw_line(
     GuiState *gui_state,
     v2 start, v2 end,
     real32 thickness, v4 color
@@ -340,7 +351,7 @@ namespace gui {
   }
 
 
-  internal void draw_frame(
+  pny_internal void draw_frame(
     GuiState *gui_state,
     v2 position, v2 bottomright,
     v2 thickness, v4 color
@@ -427,7 +438,7 @@ GuiContainer* gui::make_container(
   GuiState *gui_state, const char *title, v2 position
 ) {
   GuiContainer *container = nullptr;
-  for_each (container_candidate, gui_state->containers) {
+  pny_for_each (container_candidate, gui_state->containers) {
     if (strcmp(container_candidate->title, title) == 0) {
       container = container_candidate;
       break;

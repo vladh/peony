@@ -1,3 +1,6 @@
+#include "entities.hpp"
+
+
 EntityHandle entities::make_handle(EntitySet *entity_set) {
   // NOTE: 0 is an invalid handle.
   if (entity_set->next_handle == 0) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 namespace pack {
   constexpr uint16 ELEMENT_SIZE = 4;
   constexpr uint16 MAX_LENGTH  = (64 / ELEMENT_SIZE);

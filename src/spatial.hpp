@@ -1,5 +1,8 @@
 #pragma once
 
+#include "types.hpp"
+#include "entities.hpp"
+
 namespace spatial {
   struct Obb {
     v3 center;

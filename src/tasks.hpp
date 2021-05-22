@@ -1,5 +1,8 @@
 #pragma once
 
+#include <mutex>
+#include "types.hpp"
+
 namespace tasks {
   typedef void (*TaskFn)(void*, void*);
   struct Task {

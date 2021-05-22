@@ -1,5 +1,9 @@
 #pragma once
 
+#include "types.hpp"
+#include "constants.hpp"
+#include "array.hpp"
+
 namespace entities {
   // NOTE: 0 is an invalid handle.
   typedef uint32 EntityHandle;
@@ -7,10 +11,7 @@ namespace entities {
   struct Entity {
     EntityHandle handle;
     char debug_name[MAX_DEBUG_NAME_LENGTH];
-    static EntityHandle no_entity_handle;
   };
-
-  EntityHandle Entity::no_entity_handle = 0;
 
   struct EntitySet {
     Array<Entity> entities;
@@ -24,6 +25,8 @@ namespace entities {
     // start of our set.
     EntityHandle first_non_internal_handle;
   };
+
+  constexpr EntityHandle NO_ENTITY_HANDLE = 0;
 
   EntityHandle make_handle(EntitySet *entity_set);
   Entity* add_entity_to_set(EntitySet *entity_set, const char *debug_name);

@@ -1,5 +1,12 @@
+#include "logs.hpp"
+#include "gui.hpp"
+#include "debugdraw.hpp"
+#include "physics.hpp"
+#include "intrinsics.hpp"
+
+
 namespace physics {
-  internal Obb transform_obb(Obb obb, SpatialComponent *spatial) {
+  pny_internal Obb transform_obb(Obb obb, SpatialComponent *spatial) {
     m3 rotation = glm::toMat3(normalize(spatial->rotation));
     obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
     obb.x_axis = normalize(rotation * obb.x_axis);
@@ -9,7 +16,7 @@ namespace physics {
   }
 
 
-  internal RaycastResult intersect_obb_ray(Obb *obb, Ray *ray) {
+  pny_internal RaycastResult intersect_obb_ray(Obb *obb, Ray *ray) {
     // Gabor Szauer, Game Physics Cookbook, “Raycast Oriented Bounding Box”
     v3 obb_z_axis = cross(obb->x_axis, obb->y_axis);
 
@@ -34,7 +41,7 @@ namespace physics {
     // `t is the distance along the ray (or “time” along the ray, as Szauer
     // calls it) that the intersection happens at.
     real32 t[6] = {};
-    for_range_named (i, 0, 3) {
+    pny_for_range_named (i, 0, 3) {
       if (f[i] == 0) {
         if (-e[i] - obb->extents[i] > 0 || -e[i] + obb->extents[i] < 0) {
           // If the ray is parallel to the slab being tested, and the origin
@@ -92,14 +99,14 @@ namespace physics {
   }
 
 
-  internal bool32 is_physics_component_valid(
+  pny_internal bool32 is_physics_component_valid(
     PhysicsComponent *physics_component
   ) {
     return physics_component->obb.extents.x > 0;
   }
 
 
-  internal void update_best_for_face_axis(
+  pny_internal void update_best_for_face_axis(
     real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
   ) {
@@ -111,7 +118,7 @@ namespace physics {
   }
 
 
-  internal void update_best_for_edge_axis(
+  pny_internal void update_best_for_edge_axis(
     real32 *best_sep, uint32 *best_axis, v3 *best_normal,
     real32 sep, uint32 axis, v3 normal
   ) {
@@ -142,7 +149,7 @@ namespace physics {
 
   idmillington/cyclone-physics/blob/master/src/collide_fine.cpp#contactPoint()
   */
-  internal v3 get_edge_contact_point(
+  pny_internal v3 get_edge_contact_point(
     v3 a_edge_point,
     v3 a_axis,
     real32 a_axis_length,
@@ -192,7 +199,7 @@ namespace physics {
   }
 
 
-  internal Face get_incident_face(
+  pny_internal Face get_incident_face(
     m3 *cob, // incident change of base
     v3 e, // incident extents
     v3 c, // incident center
@@ -264,7 +271,7 @@ namespace physics {
       }
     }
 
-    for_range (0, 4) {
+    pny_for_range (0, 4) {
       face.vertices[idx] = *cob * face.vertices[idx] + c;
     }
 
@@ -301,7 +308,7 @@ namespace physics {
     "Deriving OBB to OBB Intersection and Manifold Generation"
   * Ian Millington's Cyclone Physics engine (but not for face-something!)
   */
-  internal CollisionManifold intersect_obb_obb(
+  pny_internal CollisionManifold intersect_obb_obb(
     Obb *a,
     Obb *b,
     SpatialComponent *spatial_a,
@@ -328,8 +335,8 @@ namespace physics {
     m3 b_cob = m3(b_axes[0], b_axes[1], b_axes[2]);
 
     // Compute rotation matrix expressing b in a's coordinate frame
-    for_range_named (i, 0, 3) {
-      for_range_named (j, 0, 3) {
+    pny_for_range_named (i, 0, 3) {
+      pny_for_range_named (j, 0, 3) {
         r[i][j] = dot(a_axes[i], b_axes[j]);
       }
     }
@@ -364,8 +371,8 @@ namespace physics {
     // Compute common subexpressions. Add in an epsilon term to counteract
     // arithmetic errors when two edges are parallel and their cross product
     // is (near) null.
-    for_range_named (i, 0, 3) {
-      for_range_named (j, 0, 3) {
+    pny_for_range_named (i, 0, 3) {
+      pny_for_range_named (j, 0, 3) {
         abs_r[i][j] = abs(r[i][j]) + PARALLEL_FACE_TOLERANCE;
         if (abs_r[i][j] >= 1.0f) {
           do_obbs_share_one_axis = true;
@@ -384,7 +391,7 @@ namespace physics {
     v3 edge_best_normal = v3(0.0f);
 
     // Test a's face axes (a.x, a.y, a.z)
-    for_range_named (i, 0, 3) {
+    pny_for_range_named (i, 0, 3) {
       a_radius = a->extents[i];
       b_radius = b->extents[0] * abs_r[i][0] +
         b->extents[1] * abs_r[i][1] +
@@ -399,7 +406,7 @@ namespace physics {
     }
 
     // Test b's face axes (b.x, b.y, b.z)
-    for_range_named (i, 0, 3) {
+    pny_for_range_named (i, 0, 3) {
       a_radius = a->extents[0] * abs_r[0][i] +
         a->extents[1] * abs_r[1][i] +
         a->extents[2] * abs_r[2][i];
@@ -415,8 +422,8 @@ namespace physics {
 
     if (!do_obbs_share_one_axis) {
       // Test cross axes (a[i] x b[j])
-      for_range_named(i, 0, 3) {
-        for_range_named(j, 0, 3) {
+      pny_for_range_named(i, 0, 3) {
+        pny_for_range_named(j, 0, 3) {
           // These numbers look really crazy, but it's not so bad if you look at
           // the table they come from.
           // See Christer Ericson, Real-Time Collision Detection, Table 4.1
@@ -571,7 +578,7 @@ namespace physics {
 
       v3 a_edge_point = a->extents;
       v3 b_edge_point = b->extents;
-      for_range_named (i, 0, 3) {
+      pny_for_range_named (i, 0, 3) {
         if (i == a_axis) {
           a_edge_point[i] = 0;
         } else if (dot(a_axes[i], manifold.normal) < 0) {
@@ -619,7 +626,7 @@ RayCollisionResult physics::find_ray_collision(
   PhysicsComponent *physics_component_to_ignore_or_nullptr,
   PhysicsComponentSet *physics_component_set
 ) {
-  for_each (candidate, physics_component_set->components) {
+  pny_for_each (candidate, physics_component_set->components) {
     if (!is_physics_component_valid(candidate)) {
       continue;
     }
@@ -650,7 +657,7 @@ CollisionManifold physics::find_physics_component_collision(
   PhysicsComponentSet *physics_component_set,
   SpatialComponentSet *spatial_component_set
 ) {
-  for_each (candidate_physics, physics_component_set->components) {
+  pny_for_each (candidate_physics, physics_component_set->components) {
     if (!is_physics_component_valid(candidate_physics)) {
       continue;
     }
@@ -685,7 +692,7 @@ void physics::update_physics_components(
   PhysicsComponentSet *physics_component_set,
   SpatialComponentSet *spatial_component_set
 ) {
-  for_each (physics_component, physics_component_set->components) {
+  pny_for_each (physics_component, physics_component_set->components) {
     if (!is_physics_component_valid(physics_component)) {
       continue;
     }
@@ -698,7 +705,7 @@ void physics::update_physics_components(
       continue;
     }
 
-    physics_component->transformed_obb = physics::transform_obb(
+    physics_component->transformed_obb = transform_obb(
       physics_component->obb, spatial_component
     );
   }

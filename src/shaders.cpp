@@ -1,5 +1,13 @@
+#include "memory.hpp"
+#include "logs.hpp"
+#include "files.hpp"
+#include "str.hpp"
+#include "shaders.hpp"
+#include "intrinsics.hpp"
+
+
 namespace shaders {
-  internal void assert_shader_status_ok(uint32 new_shader, const char *path) {
+  pny_internal void assert_shader_status_ok(uint32 new_shader, const char *path) {
     int32 status;
     glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);
 
@@ -13,7 +21,7 @@ namespace shaders {
   }
 
 
-  internal void assert_program_status_ok(uint32 new_program) {
+  pny_internal void assert_program_status_ok(uint32 new_program) {
     int32 status;
     glGetProgramiv(new_program, GL_LINK_STATUS, &status);
 
@@ -27,7 +35,7 @@ namespace shaders {
   }
 
 
-  internal uint32 make_shader(const char *path, const char *source, GLenum shader_type) {
+  pny_internal uint32 make_shader(const char *path, const char *source, GLenum shader_type) {
     uint32 shader = glCreateShader(shader_type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
@@ -36,7 +44,7 @@ namespace shaders {
   }
 
 
-  internal uint32 make_program(uint32 vertex_shader, uint32 fragment_shader) {
+  pny_internal uint32 make_program(uint32 vertex_shader, uint32 fragment_shader) {
     uint32 new_program = glCreateProgram();
     glAttachShader(new_program, vertex_shader);
     glAttachShader(new_program, fragment_shader);
@@ -48,7 +56,7 @@ namespace shaders {
   }
 
 
-  internal uint32 make_program(
+  pny_internal uint32 make_program(
     uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
   ) {
     uint32 new_program = glCreateProgram();
@@ -64,7 +72,7 @@ namespace shaders {
   }
 
 
-  internal const char* load_file(MemoryPool *memory_pool, const char *path) {
+  pny_internal const char* load_file(MemoryPool *memory_pool, const char *path) {
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
     strcat(full_path, path);
@@ -79,7 +87,7 @@ namespace shaders {
   }
 
 
-  internal const char* load_frag_file(MemoryPool *memory_pool, const char *path) {
+  pny_internal const char* load_frag_file(MemoryPool *memory_pool, const char *path) {
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
     strcat(full_path, path);
@@ -96,7 +104,7 @@ namespace shaders {
   }
 
 
-  internal int32 get_uniform_location(
+  pny_internal int32 get_uniform_location(
     ShaderAsset *shader_asset,
     const char *uniform_name
   ) {
@@ -120,7 +128,7 @@ namespace shaders {
   }
 
 
-  internal void load_uniforms(ShaderAsset *shader_asset) {
+  pny_internal void load_uniforms(ShaderAsset *shader_asset) {
     for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
       shader_asset->intrinsic_uniform_locations[idx] = -1;
     }

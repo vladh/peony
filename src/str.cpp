@@ -1,3 +1,6 @@
+#include "str.hpp"
+
+
 void str::split_on_first_occurrence(
   const char *str,
   char *part1, size_t part1_length,

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 namespace str {
   void split_on_first_occurrence(
     const char *str,

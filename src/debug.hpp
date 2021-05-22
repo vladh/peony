@@ -1,14 +1,11 @@
 #pragma once
 
-chrono::steady_clock::time_point debug_start_timer() {
-  return chrono::steady_clock::now();
-}
+#include <chrono>
+namespace chrono = std::chrono;
+#include "types.hpp"
 
-real64 debug_end_timer(chrono::steady_clock::time_point t0) {
-  return (
-    (chrono::duration<real64, std::milli>)(chrono::steady_clock::now() - t0)
-  ).count();
-}
+chrono::steady_clock::time_point debug_start_timer();
+real64 debug_end_timer(chrono::steady_clock::time_point t0);
 
 #if USE_TIMERS
 

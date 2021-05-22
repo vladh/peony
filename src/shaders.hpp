@@ -1,5 +1,10 @@
 #pragma once
 
+#include <glad/glad.h>
+#include "types.hpp"
+#include "memory.hpp"
+#include "constants.hpp"
+
 namespace shaders {
   enum class ShaderType {none, standard, depth};
 

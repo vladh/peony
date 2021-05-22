@@ -1,5 +1,9 @@
 #pragma once
 
+#include "types.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+
 namespace lights {
   // The position is used in positioning the shadow map, but not
   // in the light calculations. We need to scale the position

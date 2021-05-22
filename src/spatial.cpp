@@ -1,3 +1,7 @@
+#include "spatial.hpp"
+#include "logs.hpp"
+
+
 void spatial::print_spatial_component(SpatialComponent *spatial_component) {
   logs::info("SpatialComponent:");
   logs::info("  entity_handle: %d", spatial_component->entity_handle);
@@ -25,7 +29,7 @@ bool32 spatial::does_spatial_component_have_dimensions(
 
 bool32 spatial::is_spatial_component_valid(SpatialComponent *spatial_component) {
   return does_spatial_component_have_dimensions(spatial_component) ||
-    spatial_component->parent_entity_handle != Entity::no_entity_handle;
+    spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE;
 }
 
 
@@ -36,7 +40,7 @@ m4 spatial::make_model_matrix(
 ) {
   m4 model_matrix = m4(1.0f);
 
-  if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
+  if (spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE) {
     SpatialComponent *parent = spatial_component_set->components[
       spatial_component->parent_entity_handle
     ];

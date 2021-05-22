@@ -1,5 +1,8 @@
 #pragma once
 
+#include "types.hpp"
+#include "state.hpp"
+
 namespace engine {
   struct TimingInfo {
     chrono::steady_clock::time_point frame_start;

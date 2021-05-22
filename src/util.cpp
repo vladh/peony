@@ -1,3 +1,7 @@
+#include "logs.hpp"
+#include "util.hpp"
+
+
 const char* util::stringify_glenum(GLenum thing) {
   switch (thing) {
     case 0:

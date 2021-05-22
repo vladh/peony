@@ -1,5 +1,16 @@
+#include "shaders.hpp"
+#include "array.hpp"
+#include "util.hpp"
+#include "logs.hpp"
+#include "files.hpp"
+#include "intrinsics.hpp"
+#include "str.hpp"
+#include "materials.hpp"
+#include "intrinsics.hpp"
+
+
 namespace materials {
-  internal bool32 is_texture_type_screensize_dependent(TextureType type) {
+  pny_internal bool32 is_texture_type_screensize_dependent(TextureType type) {
     return (
       type == TextureType::g_position ||
       type == TextureType::g_normal ||
@@ -14,7 +25,7 @@ namespace materials {
   }
 
 
-  internal uint16 get_new_persistent_pbo_idx(PersistentPbo *ppbo) {
+  pny_internal uint16 get_new_persistent_pbo_idx(PersistentPbo *ppbo) {
     uint16 current_idx = ppbo->next_idx;
     ppbo->next_idx++;
     if (ppbo->next_idx >= ppbo->texture_count) {
@@ -24,14 +35,14 @@ namespace materials {
   }
 
 
-  internal void* get_memory_for_persistent_pbo_idx(
+  pny_internal void* get_memory_for_persistent_pbo_idx(
     PersistentPbo *ppbo, uint16 idx
   ) {
     return (char*)ppbo->memory + ((uint64)idx * ppbo->texture_size);
   }
 
 
-  internal void copy_textures_to_pbo(
+  pny_internal void copy_textures_to_pbo(
     Material *material,
     PersistentPbo *persistent_pbo
   ) {
@@ -56,7 +67,7 @@ namespace materials {
   }
 
 
-  internal uint32 get_new_texture_name(
+  pny_internal uint32 get_new_texture_name(
     TextureNamePool *pool,
     uint32 target_size
   ) {
@@ -77,14 +88,14 @@ namespace materials {
   }
 
 
-  internal void* get_offset_for_persistent_pbo_idx(
+  pny_internal void* get_offset_for_persistent_pbo_idx(
     PersistentPbo *ppbo, uint16 idx
   ) {
     return (void*)((uint64)idx * ppbo->texture_size);
   }
 
 
-  internal void generate_textures_from_pbo(
+  pny_internal void generate_textures_from_pbo(
     Material *material,
     PersistentPbo *persistent_pbo,
     TextureNamePool *texture_name_pool
@@ -122,7 +133,7 @@ namespace materials {
   }
 
 
-  internal const char* material_state_to_string(
+  pny_internal const char* material_state_to_string(
     MaterialState material_state
   ) {
     if (material_state == MaterialState::empty) {
@@ -141,7 +152,7 @@ namespace materials {
   }
 
 
-  internal PersistentPbo* init_persistent_pbo(
+  pny_internal PersistentPbo* init_persistent_pbo(
     PersistentPbo *ppbo,
     uint16 texture_count, int32 width, int32 height, int32 n_components
   ) {
@@ -180,7 +191,7 @@ namespace materials {
   }
 
 
-  internal TextureNamePool* init_texture_name_pool(
+  pny_internal TextureNamePool* init_texture_name_pool(
     TextureNamePool *pool,
     MemoryPool *memory_pool,
     uint32 n_textures,
@@ -441,7 +452,7 @@ Material* materials::get_material_by_name(
   Array<Material> *materials,
   const char *name
 ) {
-  for_each (material, *materials) {
+  pny_for_each (material, *materials) {
     if (str::eq(material->name, name)) {
       return material;
     }
@@ -606,7 +617,7 @@ bool32 materials::prepare_material_and_check_if_done(
 void materials::reload_shaders(Array<Material> *materials) {
   MemoryPool temp_memory_pool = {};
 
-  for_each (material, *materials) {
+  pny_for_each (material, *materials) {
     shaders::load_shader_asset(
       &material->shader_asset,
       &temp_memory_pool

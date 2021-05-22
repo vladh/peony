@@ -1,3 +1,6 @@
+#include "pack.hpp"
+
+
 void pack::init(Pack *pack) {
   *pack = 0ULL;
 }

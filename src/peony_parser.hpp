@@ -1,5 +1,10 @@
 #pragma once
 
+#include "types.hpp"
+#include "constants.hpp"
+#include "models.hpp"
+#include "materials.hpp"
+
 namespace peony_parser {
   constexpr uint32 MAX_N_FILE_ENTRIES = 128;
 
@@ -49,7 +54,7 @@ namespace peony_parser {
     char model_path_or_builtin_model_name[MAX_TOKEN_LENGTH];
     ModelSource model_source;
     StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
-    RenderPassFlag render_pass;
+    RenderPass render_pass;
     // NOTE: The `entity_handle` and `parent_entity_handle` properties
     // must be filled in later!
     SpatialComponent spatial_component;

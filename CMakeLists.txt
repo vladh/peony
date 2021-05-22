@@ -3,12 +3,51 @@ project(peony VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+set(UNITY false)
 
-add_executable(
-  peony
-  # WIN32
-  src/peony.cc
-)
+if (UNITY)
+  add_executable(
+    peony
+    # WIN32
+    src/_unity.cpp
+  )
+else()
+  add_executable(
+    peony
+    # WIN32
+    src_external/glad.cpp
+    src/logs.cpp
+    src/util.cpp
+    src/debug.cpp
+    src/memory.cpp
+    src/files.cpp
+    src/str.cpp
+    src/pack.cpp
+    src/shaders.cpp
+    src/tasks.cpp
+    src/materials.cpp
+    src/fonts.cpp
+    src/entities.cpp
+    src/spatial.cpp
+    src/lights.cpp
+    src/behavior.cpp
+    src/anim.cpp
+    src/debugdraw.cpp
+    src/input.cpp
+    src/gui.cpp
+    src/physics.cpp
+    src/models.cpp
+    src/peony_parser.cpp
+    src/cameras.cpp
+    src/state.cpp
+    src/debug_ui.cpp
+    src/renderer.cpp
+    src/internals.cpp
+    src/engine.cpp
+    src/behavior_functions.cpp
+    src/peony.cpp
+  )
+endif()
 
 find_package(glfw REQUIRED)
 find_package(freetype REQUIRED)
