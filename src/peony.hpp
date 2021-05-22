@@ -58,4 +58,7 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+// Our headers
+#include "intrinsics.hpp"
+
 #endif

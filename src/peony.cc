@@ -2,7 +2,6 @@
 
 #include "types.cpp"
 #include "constants.cpp"
-#include "intrinsics.cpp"
 #include "debug.cpp"
 #include "logs.cpp"
 #include "util.cpp"
