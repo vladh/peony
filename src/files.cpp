@@ -1,3 +1,9 @@
+#include "logs.hpp"
+#include "memory.hpp"
+#include "stb.hpp"
+#include "files.hpp"
+
+
 unsigned char* files::load_image(
   const char *path, int32 *width, int32 *height, int32 *n_channels, bool should_flip
 ) {

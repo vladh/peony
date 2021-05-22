@@ -1,5 +1,9 @@
 #pragma once
 
+#include "types.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+
 namespace physics {
   constexpr real32 PARALLEL_FACE_TOLERANCE = 1.0e-2;
   constexpr real32 RELATIVE_TOLERANCE = 1.00f;

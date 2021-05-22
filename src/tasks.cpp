@@ -1,11 +1,19 @@
+#include "debug.hpp"
+#include "logs.hpp"
+#include "queue.hpp"
+#include "tasks.hpp"
+#include "intrinsics.hpp"
+
+
 namespace tasks {
-  internal void run_task(Task *task) {
+  pny_internal void run_task(Task *task) {
     auto t0 = debug_start_timer();
     task->fn(task->argument_1, task->argument_2);
     real64 duration = debug_end_timer(t0);
     logs::info("Task took %.0fms", duration);
   }
 }
+
 
 void tasks::run_loading_loop(
   std::mutex *mutex,

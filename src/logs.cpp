@@ -1,3 +1,6 @@
+#include "logs.hpp"
+
+
 void logs::fatal(const char *format, ...) {
   va_list vargs;
   fprintf(stderr, "fatal | ");

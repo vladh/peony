@@ -1,5 +1,12 @@
 #pragma once
 
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include "types.hpp"
+#include "array.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+
 namespace anim {
   struct BoneMatrixPool {
     Array<m4> bone_matrices;

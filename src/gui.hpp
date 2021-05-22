@@ -1,5 +1,11 @@
 #pragma once
 
+#include "types.hpp"
+#include "materials.hpp"
+#include "input.hpp"
+#include "fonts.hpp"
+#include "array.hpp"
+
 namespace gui {
   constexpr uint32 MAX_CONSOLE_LINE_LENGTH = 200;
   constexpr uint32 MAX_N_CONSOLE_LINES = 30;
@@ -86,7 +92,7 @@ namespace gui {
     real32 heading_fadeout_delay;
   };
 
-  GameConsole *g_console;
+  extern GameConsole *g_console;
 
   void update_screen_dimensions(
     GuiState *gui_state,

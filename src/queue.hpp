@@ -1,5 +1,7 @@
 #pragma once
 
+#include "memory.hpp"
+
 template <typename T>
 class Queue {
 public:

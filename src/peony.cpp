@@ -1,41 +1,13 @@
-#include "peony.hpp"
-
-#include "logs.cpp"
-#include "util.cpp"
-#include "memory.cpp"
-#include "files.cpp"
-#include "str.cpp"
-#include "pack.cpp"
-#include "shaders.cpp"
-#include "tasks.cpp"
-#include "materials.cpp"
-#include "fonts.cpp"
-#include "entities.cpp"
-#include "spatial.cpp"
-#include "lights.cpp"
-#include "behavior.cpp"
-#include "anim.cpp"
-#include "debugdraw.cpp"
-#include "input.cpp"
-#include "gui.cpp"
-#include "physics.cpp"
-#include "models.cpp"
-#include "peony_parser.cpp"
-#include "cameras.cpp"
-#include "state.cpp"
-#include "debug_ui.cpp"
-#include "renderer.cpp"
-#include "internals.cpp"
-#include "engine.cpp"
-#include "behavior_functions.cpp"
+#include "types.hpp"
+#include "logs.hpp"
+#include "util.hpp"
+#include "renderer.hpp"
+#include "engine.hpp"
+#include "state.hpp"
+#include "intrinsics.hpp"
 
 
 int main() {
-  // TODO: Change
-  behavior::function_map[0] = (BehaviorFunction)nullptr;
-  behavior::function_map[1] = (BehaviorFunction)behavior_functions::test;
-  behavior::function_map[2] = (BehaviorFunction)behavior_functions::char_movement_test;
-
   srand((uint32)time(NULL));
   defer { logs::info("Bye!"); };
 
@@ -55,7 +27,7 @@ int main() {
 
   std::mutex loading_thread_mutex;
   std::thread loading_threads[5];
-  for_range (0, 5) {
+  pny_for_range (0, 5) {
     loading_threads[idx] = std::thread(
       tasks::run_loading_loop,
       &loading_thread_mutex,
@@ -64,7 +36,7 @@ int main() {
       idx
     );
   }
-  defer { for_range (0, 5) { loading_threads[idx].join(); } };
+  defer { pny_for_range (0, 5) { loading_threads[idx].join(); } };
 
   renderer::init(
     &asset_memory_pool, &state->builtin_textures,

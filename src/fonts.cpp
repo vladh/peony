@@ -1,5 +1,14 @@
+#include <glad/glad.h>
+#include "str.hpp"
+#include "logs.hpp"
+#include "array.hpp"
+#include "materials.hpp"
+#include "fonts.hpp"
+#include "intrinsics.hpp"
+
+
 namespace fonts {
-  internal void load_glyphs(
+  pny_internal void load_glyphs(
     FontAsset *font_asset,
     FT_Face face,
     TextureAtlas *texture_atlas
@@ -76,7 +85,7 @@ real32 fonts::font_unit_to_px(uint32 n) {
 
 
 FontAsset* fonts::get_by_name(Array<FontAsset> *assets, const char *name) {
-  for_each (asset, *assets) {
+  pny_for_each (asset, *assets) {
     if (str::eq(asset->name, name)) {
       return asset;
     }

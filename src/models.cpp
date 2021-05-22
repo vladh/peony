@@ -1,5 +1,17 @@
+#include <glad/glad.h>
+#include <assimp/cimport.h>
+#include <assimp/postprocess.h>
+#include "str.hpp"
+#include "pack.hpp"
+#include "logs.hpp"
+#include "models.hpp"
+#include "debug.hpp"
+#include "util.hpp"
+#include "intrinsics.hpp"
+
+
 namespace models {
-  internal void make_plane(
+  pny_internal void make_plane(
     MemoryPool *memory_pool,
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
@@ -57,7 +69,7 @@ namespace models {
   }
 
 
-  internal void make_sphere(
+  pny_internal void make_sphere(
     MemoryPool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
@@ -110,7 +122,7 @@ namespace models {
   }
 
 
-  internal void setup_mesh_vertex_buffers(
+  pny_internal void setup_mesh_vertex_buffers(
     Mesh *mesh,
     Vertex *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
@@ -177,12 +189,12 @@ namespace models {
   }
 
 
-  internal bool32 is_bone_only_node(aiNode *node) {
+  pny_internal bool32 is_bone_only_node(aiNode *node) {
     if (node->mNumMeshes > 0) {
       return false;
     }
     bool32 have_we_found_it = true;
-    for_range (0, node->mNumChildren) {
+    pny_for_range (0, node->mNumChildren) {
       if (!is_bone_only_node(node->mChildren[idx])) {
         have_we_found_it = false;
       }
@@ -191,14 +203,14 @@ namespace models {
   }
 
 
-  internal aiNode* find_root_bone(const aiScene *scene) {
+  pny_internal aiNode* find_root_bone(const aiScene *scene) {
     // NOTE: To find the root bone, we find the first-level node (direct child
     // of root node) whose entire descendent tree has no meshes, including the
     // leaf nodes. Is this a perfect way of finding the root bone? Probably
     // not. Is it good enough? Sure looks like it! :)
     aiNode *root_node = scene->mRootNode;
 
-    for_range (0, root_node->mNumChildren) {
+    pny_for_range (0, root_node->mNumChildren) {
       aiNode *first_level_node = root_node->mChildren[idx];
       if (is_bone_only_node(first_level_node)) {
         return first_level_node;
@@ -209,7 +221,7 @@ namespace models {
   }
 
 
-  internal void add_bone_tree_to_animation_component(
+  pny_internal void add_bone_tree_to_animation_component(
     AnimationComponent *animation_component,
     aiNode *node,
     uint32 idx_parent
@@ -222,7 +234,7 @@ namespace models {
     strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
     animation_component->n_bones++;
 
-    for_range (0, node->mNumChildren) {
+    pny_for_range (0, node->mNumChildren) {
       add_bone_tree_to_animation_component(
         animation_component,
         node->mChildren[idx],
@@ -232,7 +244,7 @@ namespace models {
   }
 
 
-  internal void load_bones(
+  pny_internal void load_bones(
     AnimationComponent *animation_component,
     const aiScene *scene
   ) {
@@ -250,7 +262,7 @@ namespace models {
   }
 
 
-  internal void load_animations(
+  pny_internal void load_animations(
     AnimationComponent *animation_component,
     const aiScene *scene,
     BoneMatrixPool *bone_matrix_pool
@@ -260,7 +272,7 @@ namespace models {
     m4 inverse_scene_root_transform = inverse(scene_root_transform);
 
     animation_component->n_animations = scene->mNumAnimations;
-    for_range_named (idx_animation, 0, scene->mNumAnimations) {
+    pny_for_range_named (idx_animation, 0, scene->mNumAnimations) {
       Animation *animation = &animation_component->animations[idx_animation];
       aiAnimation *ai_animation = scene->mAnimations[idx_animation];
 
@@ -273,13 +285,13 @@ namespace models {
       // Calculate bone matrices.
       // NOTE: We do not finalise the bone matrices at this stage!
       // The matrices in local form are still needed for the children.
-      for_range_named(idx_bone, 0, animation_component->n_bones) {
+      pny_for_range_named(idx_bone, 0, animation_component->n_bones) {
         Bone *bone = &animation_component->bones[idx_bone];
 
         uint32 found_channel_idx = 0;
         bool32 did_find_channel = false;
 
-        for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
+        pny_for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
           aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
           if (str::eq(ai_channel->mNodeName.C_Str(), bone->name)) {
             found_channel_idx = idx_channel;
@@ -305,10 +317,10 @@ namespace models {
       // Finalise bone matrices.
       // NOTE: Now that we've calculated all the bone matrices for this
       // animation, we can finalise them.
-      for_range_named(idx_bone, 0, animation_component->n_bones) {
+      pny_for_range_named(idx_bone, 0, animation_component->n_bones) {
         Bone *bone = &animation_component->bones[idx_bone];
 
-        for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
+        pny_for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
           // #slow: We could avoid this multiplication here.
           m4 *bone_matrix = anim::get_bone_matrix(
             bone_matrix_pool,
@@ -328,7 +340,7 @@ namespace models {
   }
 
 
-  internal void load_mesh(
+  pny_internal void load_mesh(
     Mesh *mesh,
     aiMesh *ai_mesh,
     const aiScene *scene,
@@ -414,12 +426,12 @@ namespace models {
     // Bones
     assert(ai_mesh->mNumBones < MAX_N_BONES);
     AnimationComponent *animation_component = &model_loader->animation_component;
-    for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
+    pny_for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
       aiBone *ai_bone = ai_mesh->mBones[idx_bone];
       uint32 idx_found_bone = 0;
       bool32 did_find_bone = false;
 
-      for_range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
+      pny_for_range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
         if (str::eq(
           animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str()
         )) {
@@ -438,11 +450,11 @@ namespace models {
       animation_component->bones[idx_found_bone].offset =
         util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix);
 
-      for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
+      pny_for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
         uint32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
         real32 weight = ai_bone->mWeights[idx_weight].mWeight;
         assert(vertex_idx < mesh->n_vertices);
-        for_range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
+        pny_for_range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
           // Put it in the next free space, if there is any.
           if (mesh->vertices[vertex_idx].bone_weights[idx_vertex_weight] == 0) {
             mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] = idx_found_bone;
@@ -455,14 +467,14 @@ namespace models {
   }
 
 
-  internal void destroy_mesh(Mesh *mesh) {
+  pny_internal void destroy_mesh(Mesh *mesh) {
     glDeleteVertexArrays(1, &mesh->vao);
     glDeleteBuffers(1, &mesh->vbo);
     glDeleteBuffers(1, &mesh->ebo);
   }
 
 
-  internal void load_node(
+  pny_internal void load_node(
     ModelLoader *model_loader,
     aiNode *node, const aiScene *scene,
     m4 accumulated_transform, Pack indices_pack
@@ -470,7 +482,7 @@ namespace models {
     m4 node_transform = util::aimatrix4x4_to_glm(&node->mTransformation);
     m4 transform = accumulated_transform * node_transform;
 
-    for_range (0, node->mNumMeshes) {
+    pny_for_range (0, node->mNumMeshes) {
       aiMesh *ai_mesh = scene->mMeshes[node->mMeshes[idx]];
       Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
       *mesh = {};
@@ -484,7 +496,7 @@ namespace models {
       );
     }
 
-    for_range (0, node->mNumChildren) {
+    pny_for_range (0, node->mNumChildren) {
       Pack new_indices_pack = indices_pack;
       // NOTE: We can only store 4 bits per pack element. Our indices can be way
       // bigger than that, but that's fine. We don't need that much precision.
@@ -497,7 +509,7 @@ namespace models {
   }
 
 
-  internal void load_model_from_file(
+  pny_internal void load_model_from_file(
     ModelLoader *model_loader,
     BoneMatrixPool *bone_matrix_pool
   ) {
@@ -548,7 +560,7 @@ namespace models {
   }
 
 
-  internal void load_model_from_data(
+  pny_internal void load_model_from_data(
     ModelLoader *model_loader
   ) {
     // NOTE: This function sets up mesh vertex buffers directly, and so is
@@ -620,7 +632,7 @@ namespace models {
 }
 
 
-const char* models::render_pass_to_string(RenderPassFlag render_pass) {
+const char* models::render_pass_to_string(RenderPass render_pass) {
   if (render_pass == RenderPass::none) {
     return "none";
   } else if (render_pass == RenderPass::shadowcaster) {
@@ -652,7 +664,7 @@ const char* models::render_pass_to_string(RenderPassFlag render_pass) {
 }
 
 
-RenderPassFlag models::render_pass_from_string(const char* str) {
+RenderPass models::render_pass_from_string(const char* str) {
   if (str::eq(str, "none")) {
     return RenderPass::none;
   } else if (str::eq(str, "shadowcaster")) {
@@ -728,8 +740,8 @@ bool32 models::prepare_model_loader_and_check_if_done(
 
   if (model_loader->state == ModelLoaderState::vertex_buffers_set_up) {
     // Set material names for each mesh
-    for_range_named (idx_material, 0, model_loader->material_names.length) {
-      for_range_named (idx_mesh, 0, model_loader->n_meshes) {
+    pny_for_range_named (idx_material, 0, model_loader->material_names.length) {
+      pny_for_range_named (idx_mesh, 0, model_loader->n_meshes) {
         Mesh *mesh = &model_loader->meshes[idx_mesh];
         uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
         // For our model's mesh number `mesh_number`, we want to choose
@@ -890,7 +902,7 @@ EntityLoader* models::init_entity_loader(
   EntityLoader *entity_loader,
   const char *name,
   const char *model_path_or_builtin_model_name,
-  RenderPassFlag render_pass,
+  RenderPass render_pass,
   EntityHandle entity_handle
 ) {
   assert(entity_loader);

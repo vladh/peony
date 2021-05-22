@@ -1,5 +1,14 @@
 #pragma once
 
+#include <glad/glad.h>
+#include "memory.hpp"
+#include "queue.hpp"
+#include "tasks.hpp"
+#include "constants.hpp"
+#include "shaders.hpp"
+#include "array.hpp"
+#include "types.hpp"
+
 namespace materials {
   struct TextureNamePool {
     uint32 mipmap_max_level = 0;

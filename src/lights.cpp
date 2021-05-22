@@ -1,3 +1,8 @@
+#include "logs.hpp"
+#include "intrinsics.hpp"
+#include "lights.hpp"
+
+
 const char* lights::light_type_to_string(LightType light_type) {
   if (light_type == LightType::none) {
     return "none";
@@ -48,8 +53,8 @@ void lights::update_light_components(
   v3 camera_position,
   real32 dir_light_angle
 ) {
-  for_each (light_component, light_component_set->components) {
-    if (light_component->entity_handle == Entity::no_entity_handle) {
+  pny_for_each (light_component, light_component_set->components) {
+    if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
       continue;
     }
 

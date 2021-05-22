@@ -1,5 +1,10 @@
 #pragma once
 
+#include "types.hpp"
+#include "array.hpp"
+#include "entities.hpp"
+#include "spatial.hpp"
+
 namespace behavior {
   enum class Behavior {
     none,
@@ -19,7 +24,7 @@ namespace behavior {
 
   typedef void (*BehaviorFunction) (void *state, EntityHandle entity_handle);
 
-  BehaviorFunction function_map[(uint32)Behavior::length];
+  extern BehaviorFunction function_map[(uint32)Behavior::length];
 
   const char* behavior_to_string(Behavior behavior);
   Behavior behavior_from_string(const char *str);

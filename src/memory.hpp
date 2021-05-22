@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 #define MEMORY_PUSH(pool, type, debug_name) \
   (type*)memory::push(pool, sizeof(type), debug_name)
 

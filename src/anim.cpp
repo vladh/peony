@@ -1,5 +1,11 @@
+#include "util.hpp"
+#include "logs.hpp"
+#include "anim.hpp"
+#include "intrinsics.hpp"
+
+
 namespace anim {
-  internal real64* get_bone_matrix_time(
+  pny_internal real64* get_bone_matrix_time(
     BoneMatrixPool *pool,
     uint32 idx,
     uint32 idx_bone,
@@ -13,7 +19,7 @@ namespace anim {
   }
 
 
-  internal uint32 get_bone_matrix_anim_key_for_timepoint(
+  pny_internal uint32 get_bone_matrix_anim_key_for_timepoint(
     BoneMatrixPool *bone_matrix_pool,
     AnimationComponent *animation_component,
     real64 animation_timepoint,
@@ -77,14 +83,14 @@ void anim::update_animation_components(
   real64 t,
   BoneMatrixPool *bone_matrix_pool
 ) {
-  for_each (animation_component, animation_component_set->components) {
+  pny_for_each (animation_component, animation_component_set->components) {
     if (!is_animation_component_valid(animation_component)) {
       continue;
     }
 
     Animation *animation = &animation_component->animations[0];
 
-    for_range_named (idx_bone, 0, animation_component->n_bones) {
+    pny_for_range_named (idx_bone, 0, animation_component->n_bones) {
       Bone *bone = &animation_component->bones[idx_bone];
 
       // If we have no anim keys, just return the identity matrix.
@@ -152,7 +158,7 @@ void anim::make_bone_matrices_for_animation_bone(
   Bone *bone = &animation_component->bones[idx_bone];
   bone->n_anim_keys = ai_channel->mNumPositionKeys;
 
-  for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
+  pny_for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
     assert(
       ai_channel->mPositionKeys[idx_anim_key].mTime ==
         ai_channel->mRotationKeys[idx_anim_key].mTime
@@ -219,7 +225,7 @@ AnimationComponent* anim::find_animation_component(
     return animation_component;
   }
 
-  if (spatial_component->parent_entity_handle != Entity::no_entity_handle) {
+  if (spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE) {
     SpatialComponent *parent =
       spatial_component_set->components[spatial_component->parent_entity_handle];
     return find_animation_component(

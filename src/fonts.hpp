@@ -1,5 +1,9 @@
 #pragma once
 
+#include "types.hpp"
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 namespace fonts {
   // NOTE: Unicode is only the same as ASCII until 0x7F.
   // We can change this to 0xFF when we add Unicode support.

@@ -1,3 +1,8 @@
+#include "logs.hpp"
+#include "str.hpp"
+#include "input.hpp"
+
+
 void input::update_mouse_button(
   InputState *input_state, int button, int action, int mods
 ) {

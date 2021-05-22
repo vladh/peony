@@ -1,5 +1,9 @@
 #pragma once
 
+#include "types.hpp"
+#include "memory.hpp"
+#include "state.hpp"
+
 namespace renderer {
   void update_drawing_options(State *state, GLFWwindow *window);
   void init(

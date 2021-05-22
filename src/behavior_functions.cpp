@@ -1,3 +1,7 @@
+#include "logs.hpp"
+#include "behavior_functions.hpp"
+
+
 void behavior_functions::test(State *state, EntityHandle entity_handle) {
   SpatialComponent *spatial_component =
     state->spatial_component_set.components[entity_handle];
