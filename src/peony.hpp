@@ -53,7 +53,7 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 #include <stb/stb_image.h>
 #pragma warning(pop)
 
-#include "../include/glad.cpp"
+#include "../src_external/glad.cpp"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
