@@ -1,3 +1,5 @@
+#pragma once
+
 chrono::steady_clock::time_point debug_start_timer() {
   return chrono::steady_clock::now();
 }

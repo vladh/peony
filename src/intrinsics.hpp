@@ -1,5 +1,4 @@
-#ifndef INTRINSICS_HPP
-#define INTRINSICS_HPP
+#pragma once
 
 #define LEN(x) (sizeof((x)) / sizeof((x)[0]))
 
@@ -44,5 +43,3 @@ public:
 
 #define defer [[maybe_unused]] const auto& CONCAT(defer__, __LINE__) = \
   ExitScopeHelp() + [&]()
-
-#endif

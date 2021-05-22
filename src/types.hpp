@@ -1,3 +1,5 @@
+#pragma once
+
 #define global static
 #define local_persist static
 #define internal static
