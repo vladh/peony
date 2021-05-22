@@ -1,8 +1,5 @@
 #include "peony.hpp"
 
-#include "types.cpp"
-#include "constants.cpp"
-#include "debug.cpp"
 #include "logs.cpp"
 #include "util.cpp"
 #include "memory.cpp"

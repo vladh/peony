@@ -1,5 +1,4 @@
-#ifndef PEONY_HPP
-#define PEONY_HPP
+#pragma once
 
 // Flags
 #define _HAS_EXCEPTIONS 0
@@ -60,5 +59,6 @@ using glm::dot, glm::cross, glm::normalize, glm::abs, glm::max, glm::min,
 
 // Our headers
 #include "intrinsics.hpp"
-
-#endif
+#include "types.hpp"
+#include "constants.hpp"
+#include "debug.hpp"
