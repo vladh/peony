@@ -1,4 +1,3 @@
-#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
@@ -8,6 +7,7 @@
 #include "models.hpp"
 #include "debug.hpp"
 #include "util.hpp"
+#include "intrinsics.hpp"
 
 
 namespace models {
@@ -194,7 +194,7 @@ namespace models {
       return false;
     }
     bool32 have_we_found_it = true;
-    pny_for_range (0, node->mNumChildren) {
+    range (0, node->mNumChildren) {
       if (!is_bone_only_node(node->mChildren[idx])) {
         have_we_found_it = false;
       }
@@ -210,7 +210,7 @@ namespace models {
     // not. Is it good enough? Sure looks like it! :)
     aiNode *root_node = scene->mRootNode;
 
-    pny_for_range (0, root_node->mNumChildren) {
+    range (0, root_node->mNumChildren) {
       aiNode *first_level_node = root_node->mChildren[idx];
       if (is_bone_only_node(first_level_node)) {
         return first_level_node;
@@ -234,7 +234,7 @@ namespace models {
     strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
     animation_component->n_bones++;
 
-    pny_for_range (0, node->mNumChildren) {
+    range (0, node->mNumChildren) {
       add_bone_tree_to_animation_component(
         animation_component,
         node->mChildren[idx],
@@ -272,7 +272,7 @@ namespace models {
     m4 inverse_scene_root_transform = inverse(scene_root_transform);
 
     animation_component->n_animations = scene->mNumAnimations;
-    pny_for_range_named (idx_animation, 0, scene->mNumAnimations) {
+    range_named (idx_animation, 0, scene->mNumAnimations) {
       Animation *animation = &animation_component->animations[idx_animation];
       aiAnimation *ai_animation = scene->mAnimations[idx_animation];
 
@@ -285,13 +285,13 @@ namespace models {
       // Calculate bone matrices.
       // NOTE: We do not finalise the bone matrices at this stage!
       // The matrices in local form are still needed for the children.
-      pny_for_range_named(idx_bone, 0, animation_component->n_bones) {
+      range_named(idx_bone, 0, animation_component->n_bones) {
         Bone *bone = &animation_component->bones[idx_bone];
 
         uint32 found_channel_idx = 0;
         bool32 did_find_channel = false;
 
-        pny_for_range_named (idx_channel, 0, ai_animation->mNumChannels) {
+        range_named (idx_channel, 0, ai_animation->mNumChannels) {
           aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
           if (str::eq(ai_channel->mNodeName.C_Str(), bone->name)) {
             found_channel_idx = idx_channel;
@@ -317,10 +317,10 @@ namespace models {
       // Finalise bone matrices.
       // NOTE: Now that we've calculated all the bone matrices for this
       // animation, we can finalise them.
-      pny_for_range_named(idx_bone, 0, animation_component->n_bones) {
+      range_named(idx_bone, 0, animation_component->n_bones) {
         Bone *bone = &animation_component->bones[idx_bone];
 
-        pny_for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
+        range_named (idx_anim_key, 0, bone->n_anim_keys) {
           // #slow: We could avoid this multiplication here.
           m4 *bone_matrix = anim::get_bone_matrix(
             bone_matrix_pool,
@@ -426,12 +426,12 @@ namespace models {
     // Bones
     assert(ai_mesh->mNumBones < MAX_N_BONES);
     AnimationComponent *animation_component = &model_loader->animation_component;
-    pny_for_range_named (idx_bone, 0, ai_mesh->mNumBones) {
+    range_named (idx_bone, 0, ai_mesh->mNumBones) {
       aiBone *ai_bone = ai_mesh->mBones[idx_bone];
       uint32 idx_found_bone = 0;
       bool32 did_find_bone = false;
 
-      pny_for_range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
+      range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
         if (str::eq(
           animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str()
         )) {
@@ -450,11 +450,11 @@ namespace models {
       animation_component->bones[idx_found_bone].offset =
         util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix);
 
-      pny_for_range_named (idx_weight, 0, ai_bone->mNumWeights) {
+      range_named (idx_weight, 0, ai_bone->mNumWeights) {
         uint32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
         real32 weight = ai_bone->mWeights[idx_weight].mWeight;
         assert(vertex_idx < mesh->n_vertices);
-        pny_for_range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
+        range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
           // Put it in the next free space, if there is any.
           if (mesh->vertices[vertex_idx].bone_weights[idx_vertex_weight] == 0) {
             mesh->vertices[vertex_idx].bone_idxs[idx_vertex_weight] = idx_found_bone;
@@ -482,7 +482,7 @@ namespace models {
     m4 node_transform = util::aimatrix4x4_to_glm(&node->mTransformation);
     m4 transform = accumulated_transform * node_transform;
 
-    pny_for_range (0, node->mNumMeshes) {
+    range (0, node->mNumMeshes) {
       aiMesh *ai_mesh = scene->mMeshes[node->mMeshes[idx]];
       Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
       *mesh = {};
@@ -496,7 +496,7 @@ namespace models {
       );
     }
 
-    pny_for_range (0, node->mNumChildren) {
+    range (0, node->mNumChildren) {
       Pack new_indices_pack = indices_pack;
       // NOTE: We can only store 4 bits per pack element. Our indices can be way
       // bigger than that, but that's fine. We don't need that much precision.
@@ -740,8 +740,8 @@ bool32 models::prepare_model_loader_and_check_if_done(
 
   if (model_loader->state == ModelLoaderState::vertex_buffers_set_up) {
     // Set material names for each mesh
-    pny_for_range_named (idx_material, 0, model_loader->material_names.length) {
-      pny_for_range_named (idx_mesh, 0, model_loader->n_meshes) {
+    range_named (idx_material, 0, model_loader->material_names.length) {
+      range_named (idx_mesh, 0, model_loader->n_meshes) {
         Mesh *mesh = &model_loader->meshes[idx_mesh];
         uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
         // For our model's mesh number `mesh_number`, we want to choose

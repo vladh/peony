@@ -1,8 +1,8 @@
-#include "intrinsics.hpp"
 #include "logs.hpp"
 #include "gui.hpp"
 #include "debugdraw.hpp"
 #include "physics.hpp"
+#include "intrinsics.hpp"
 
 
 namespace physics {
@@ -41,7 +41,7 @@ namespace physics {
     // `t is the distance along the ray (or “time” along the ray, as Szauer
     // calls it) that the intersection happens at.
     real32 t[6] = {};
-    pny_for_range_named (i, 0, 3) {
+    range_named (i, 0, 3) {
       if (f[i] == 0) {
         if (-e[i] - obb->extents[i] > 0 || -e[i] + obb->extents[i] < 0) {
           // If the ray is parallel to the slab being tested, and the origin
@@ -271,7 +271,7 @@ namespace physics {
       }
     }
 
-    pny_for_range (0, 4) {
+    range (0, 4) {
       face.vertices[idx] = *cob * face.vertices[idx] + c;
     }
 
@@ -335,8 +335,8 @@ namespace physics {
     m3 b_cob = m3(b_axes[0], b_axes[1], b_axes[2]);
 
     // Compute rotation matrix expressing b in a's coordinate frame
-    pny_for_range_named (i, 0, 3) {
-      pny_for_range_named (j, 0, 3) {
+    range_named (i, 0, 3) {
+      range_named (j, 0, 3) {
         r[i][j] = dot(a_axes[i], b_axes[j]);
       }
     }
@@ -371,8 +371,8 @@ namespace physics {
     // Compute common subexpressions. Add in an epsilon term to counteract
     // arithmetic errors when two edges are parallel and their cross product
     // is (near) null.
-    pny_for_range_named (i, 0, 3) {
-      pny_for_range_named (j, 0, 3) {
+    range_named (i, 0, 3) {
+      range_named (j, 0, 3) {
         abs_r[i][j] = abs(r[i][j]) + PARALLEL_FACE_TOLERANCE;
         if (abs_r[i][j] >= 1.0f) {
           do_obbs_share_one_axis = true;
@@ -391,7 +391,7 @@ namespace physics {
     v3 edge_best_normal = v3(0.0f);
 
     // Test a's face axes (a.x, a.y, a.z)
-    pny_for_range_named (i, 0, 3) {
+    range_named (i, 0, 3) {
       a_radius = a->extents[i];
       b_radius = b->extents[0] * abs_r[i][0] +
         b->extents[1] * abs_r[i][1] +
@@ -406,7 +406,7 @@ namespace physics {
     }
 
     // Test b's face axes (b.x, b.y, b.z)
-    pny_for_range_named (i, 0, 3) {
+    range_named (i, 0, 3) {
       a_radius = a->extents[0] * abs_r[0][i] +
         a->extents[1] * abs_r[1][i] +
         a->extents[2] * abs_r[2][i];
@@ -422,8 +422,8 @@ namespace physics {
 
     if (!do_obbs_share_one_axis) {
       // Test cross axes (a[i] x b[j])
-      pny_for_range_named(i, 0, 3) {
-        pny_for_range_named(j, 0, 3) {
+      range_named(i, 0, 3) {
+        range_named(j, 0, 3) {
           // These numbers look really crazy, but it's not so bad if you look at
           // the table they come from.
           // See Christer Ericson, Real-Time Collision Detection, Table 4.1
@@ -578,7 +578,7 @@ namespace physics {
 
       v3 a_edge_point = a->extents;
       v3 b_edge_point = b->extents;
-      pny_for_range_named (i, 0, 3) {
+      range_named (i, 0, 3) {
         if (i == a_axis) {
           a_edge_point[i] = 0;
         } else if (dot(a_axes[i], manifold.normal) < 0) {
@@ -626,7 +626,7 @@ RayCollisionResult physics::find_ray_collision(
   PhysicsComponent *physics_component_to_ignore_or_nullptr,
   PhysicsComponentSet *physics_component_set
 ) {
-  pny_for_each (candidate, physics_component_set->components) {
+  each (candidate, physics_component_set->components) {
     if (!is_physics_component_valid(candidate)) {
       continue;
     }
@@ -657,7 +657,7 @@ CollisionManifold physics::find_physics_component_collision(
   PhysicsComponentSet *physics_component_set,
   SpatialComponentSet *spatial_component_set
 ) {
-  pny_for_each (candidate_physics, physics_component_set->components) {
+  each (candidate_physics, physics_component_set->components) {
     if (!is_physics_component_valid(candidate_physics)) {
       continue;
     }
@@ -692,7 +692,7 @@ void physics::update_physics_components(
   PhysicsComponentSet *physics_component_set,
   SpatialComponentSet *spatial_component_set
 ) {
-  pny_for_each (physics_component, physics_component_set->components) {
+  each (physics_component, physics_component_set->components) {
     if (!is_physics_component_valid(physics_component)) {
       continue;
     }

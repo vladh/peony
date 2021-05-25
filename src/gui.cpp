@@ -1,9 +1,9 @@
-#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include "gui.hpp"
 #include "util.hpp"
 #include "logs.hpp"
+#include "intrinsics.hpp"
 
 
 GameConsole *gui::g_console = nullptr;
@@ -438,7 +438,7 @@ GuiContainer* gui::make_container(
   GuiState *gui_state, const char *title, v2 position
 ) {
   GuiContainer *container = nullptr;
-  pny_for_each (container_candidate, gui_state->containers) {
+  each (container_candidate, gui_state->containers) {
     if (strcmp(container_candidate->title, title) == 0) {
       container = container_candidate;
       break;

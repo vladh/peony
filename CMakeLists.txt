@@ -53,6 +53,7 @@ find_package(glfw REQUIRED)
 find_package(freetype REQUIRED)
 find_package(assimp REQUIRED)
 target_link_libraries(peony PRIVATE glfw freetype assimp)
+target_precompile_headers(peony PRIVATE src/flags.hpp)
 
 if (MSVC)
   add_compile_options(

@@ -1,10 +1,11 @@
-#include "intrinsics.hpp"
+#include <thread>
 #include "types.hpp"
 #include "logs.hpp"
 #include "util.hpp"
 #include "renderer.hpp"
 #include "engine.hpp"
 #include "state.hpp"
+#include "intrinsics.hpp"
 
 
 int main() {
@@ -27,7 +28,7 @@ int main() {
 
   std::mutex loading_thread_mutex;
   std::thread loading_threads[5];
-  pny_for_range (0, 5) {
+  range (0, 5) {
     loading_threads[idx] = std::thread(
       tasks::run_loading_loop,
       &loading_thread_mutex,
@@ -36,7 +37,7 @@ int main() {
       idx
     );
   }
-  defer { pny_for_range (0, 5) { loading_threads[idx].join(); } };
+  defer { range (0, 5) { loading_threads[idx].join(); } };
 
   renderer::init(
     &asset_memory_pool, &state->builtin_textures,

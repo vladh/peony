@@ -2,6 +2,7 @@
 
 #include <mutex>
 #include "types.hpp"
+#include "queue.hpp"
 
 namespace tasks {
   typedef void (*TaskFn)(void*, void*);

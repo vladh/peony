@@ -1,12 +1,11 @@
-#include "intrinsics.hpp"
 #include "shaders.hpp"
 #include "array.hpp"
 #include "util.hpp"
 #include "logs.hpp"
 #include "files.hpp"
-#include "intrinsics.hpp"
 #include "str.hpp"
 #include "materials.hpp"
+#include "intrinsics.hpp"
 
 
 namespace materials {
@@ -452,7 +451,7 @@ Material* materials::get_material_by_name(
   Array<Material> *materials,
   const char *name
 ) {
-  pny_for_each (material, *materials) {
+  each (material, *materials) {
     if (str::eq(material->name, name)) {
       return material;
     }
@@ -617,7 +616,7 @@ bool32 materials::prepare_material_and_check_if_done(
 void materials::reload_shaders(Array<Material> *materials) {
   MemoryPool temp_memory_pool = {};
 
-  pny_for_each (material, *materials) {
+  each (material, *materials) {
     shaders::load_shader_asset(
       &material->shader_asset,
       &temp_memory_pool

@@ -1,7 +1,7 @@
-#include "intrinsics.hpp"
 #include "peony_parser.hpp"
 #include "logs.hpp"
 #include "str.hpp"
+#include "intrinsics.hpp"
 
 
 namespace peony_parser {
@@ -48,7 +48,7 @@ namespace peony_parser {
 
 
   pny_internal bool32 is_token_name(const char *token) {
-    pny_for_range (0, strlen(token)) {
+    range (0, strlen(token)) {
       if (!is_char_allowed_in_name(token[idx])) {
         return false;
       }
@@ -320,7 +320,7 @@ void peony_parser::print_entity_template(EntityTemplate *entity_template) {
   logs::info("  model_source: %d", entity_template->model_source);
   logs::info("  material_names.length: %d", entity_template->material_names.length);
   logs::info("  material_names:");
-  pny_for_each (material_name, entity_template->material_names) {
+  each (material_name, entity_template->material_names) {
     logs::info(*material_name);
   }
   logs::info("  render_pass: %d", entity_template->render_pass);
@@ -422,7 +422,7 @@ void peony_parser::parse_material_file(
         material_template->n_builtin_textures++;
       } else {
         logs::info("Unhandled prop_name %s with values:", prop_name);
-        pny_for_range_named (idx_value, 0, n_values) {
+        range_named (idx_value, 0, n_values) {
           print_value(prop_values[idx_value], prop_value_types[idx_value]);
         }
       }
@@ -490,7 +490,7 @@ bool32 peony_parser::parse_scene_file(
         );
         entity_template->model_source = ModelSource::data;
       } else if (str::eq(prop_name, "materials")) {
-        pny_for_range_named (idx_value, 0, n_values) {
+        range_named (idx_value, 0, n_values) {
           strcpy(
             *(entity_template->material_names.push()),
             prop_values[idx_value].string_value
@@ -498,7 +498,7 @@ bool32 peony_parser::parse_scene_file(
         }
       } else if (str::eq(prop_name, "render_passes")) {
         RenderPass render_pass = RenderPass::none;
-        pny_for_range_named (idx_value, 0, n_values) {
+        range_named (idx_value, 0, n_values) {
           render_pass = (RenderPass)(
             (uint32)render_pass |
             (uint32)models::render_pass_from_string(
@@ -543,7 +543,7 @@ bool32 peony_parser::parse_scene_file(
           behavior::behavior_from_string(prop_values[0].string_value);
       } else {
         logs::info("Unhandled prop_name %s with values:", prop_name);
-        pny_for_range_named (idx_value, 0, n_values) {
+        range_named (idx_value, 0, n_values) {
           print_value(prop_values[idx_value], prop_value_types[idx_value]);
         }
       }

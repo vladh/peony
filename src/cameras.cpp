@@ -1,5 +1,5 @@
-#include "intrinsics.hpp"
 #include "cameras.hpp"
+#include "intrinsics.hpp"
 
 
 namespace cameras {
