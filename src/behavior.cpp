@@ -1,7 +1,7 @@
-#include "intrinsics.hpp"
 #include "logs.hpp"
 #include "behavior_functions.hpp"
 #include "behavior.hpp"
+#include "intrinsics.hpp"
 
 
 BehaviorFunction behavior::function_map[(uint32)Behavior::length] = {
@@ -50,7 +50,7 @@ void behavior::update_behavior_components(
   SpatialComponentSet *spatial_component_set,
   real64 t
 ) {
-  pny_for_each (behavior_component, behavior_component_set->components) {
+  each (behavior_component, behavior_component_set->components) {
     if (!is_behavior_component_valid(behavior_component)) {
       continue;
     }

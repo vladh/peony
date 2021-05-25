@@ -1,8 +1,8 @@
-#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include "shaders.hpp"
 #include "util.hpp"
 #include "debugdraw.hpp"
+#include "intrinsics.hpp"
 
 
 DebugDrawState *debugdraw::g_dds = nullptr;
@@ -14,7 +14,7 @@ namespace debugdraw {
     DebugDrawVertex vertices[],
     uint32 n_vertices
   ) {
-    pny_for_range (0, n_vertices) {
+    range (0, n_vertices) {
       debug_draw_state->vertices[debug_draw_state->n_vertices_pushed + idx] =
         vertices[idx];
     }

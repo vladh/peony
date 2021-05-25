@@ -1,6 +1,6 @@
-#include "intrinsics.hpp"
 #include "debug_ui.hpp"
 #include "entities.hpp"
+#include "intrinsics.hpp"
 
 
 namespace debug_ui {
@@ -81,7 +81,7 @@ namespace debug_ui {
     if (spatial::is_spatial_component_valid(spatial_component)) {
       // NOTE: This is super slow lol.
       uint32 n_children_found = 0;
-      pny_for_each (child_spatial_component, state->spatial_component_set.components) {
+      each (child_spatial_component, state->spatial_component_set.components) {
         if (
           child_spatial_component->parent_entity_handle ==
             spatial_component->entity_handle
@@ -119,7 +119,7 @@ namespace debug_ui {
   pny_internal void get_scene_text_representation(char *text, State *state) {
     text[0] = '\0';
 
-    pny_for_each (entity, state->entity_set.entities) {
+    each (entity, state->entity_set.entities) {
       get_entity_text_representation(text, state, entity, 0);
     }
 
@@ -135,7 +135,7 @@ namespace debug_ui {
     strcat(text, "Internal:\n");
 
     uint32 idx = 0;
-    pny_for_each (material, state->materials) {
+    each (material, state->materials) {
       strcat(text, "- ");
       strcat(text, material->name);
       strcat(text, "\n");

@@ -1,7 +1,7 @@
-#include "intrinsics.hpp"
 #include "logs.hpp"
 #include "util.hpp"
 #include "memory.hpp"
+#include "intrinsics.hpp"
 
 
 namespace memory {

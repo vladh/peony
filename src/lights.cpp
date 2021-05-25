@@ -1,6 +1,6 @@
-#include "intrinsics.hpp"
 #include "logs.hpp"
 #include "lights.hpp"
+#include "intrinsics.hpp"
 
 
 const char* lights::light_type_to_string(LightType light_type) {
@@ -53,7 +53,7 @@ void lights::update_light_components(
   v3 camera_position,
   real32 dir_light_angle
 ) {
-  pny_for_each (light_component, light_component_set->components) {
+  each (light_component, light_component_set->components) {
     if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
       continue;
     }

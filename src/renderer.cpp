@@ -1,9 +1,9 @@
-#include "intrinsics.hpp"
 #include "renderer.hpp"
 #include "util.hpp"
 #include "logs.hpp"
 #include "str.hpp"
 #include "debug_ui.hpp"
+#include "intrinsics.hpp"
 
 
 namespace renderer {
@@ -406,7 +406,7 @@ namespace renderer {
       memory_pool, builtin_textures, width, height
     );
 
-    pny_for_each (material, *materials) {
+    each (material, *materials) {
       if (material->n_textures > 0 && material->is_screensize_dependent) {
         for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
           Texture *texture = &material->textures[idx_texture];
@@ -483,7 +483,7 @@ namespace renderer {
     uint32 n_point_lights = 0;
     uint32 n_directional_lights = 0;
 
-    pny_for_each (light_component, state->light_component_set.components) {
+    each (light_component, state->light_component_set.components) {
       if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
         continue;
       }
@@ -697,7 +697,7 @@ namespace renderer {
   ) {
     ModelMatrixCache cache = {m4(1.0f), nullptr};
 
-    pny_for_each (drawable_component, drawable_component_set->components) {
+    each (drawable_component, drawable_component_set->components) {
       if (!models::is_drawable_component_valid(drawable_component)) {
         continue;
       }
@@ -1011,7 +1011,7 @@ void renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      pny_for_each (light_component, state->light_component_set.components) {
+      each (light_component, state->light_component_set.components) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
           continue;
         }
@@ -1074,7 +1074,7 @@ void renderer::render(State *state) {
 
       uint32 idx_light = 0;
 
-      pny_for_each (light_component, state->light_component_set.components) {
+      each (light_component, state->light_component_set.components) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
           continue;
         }

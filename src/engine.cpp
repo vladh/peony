@@ -1,4 +1,3 @@
-#include "intrinsics.hpp"
 #include <chrono>
 namespace chrono = std::chrono;
 #include "util.hpp"
@@ -10,6 +9,7 @@ namespace chrono = std::chrono;
 #include "models.hpp"
 #include "internals.hpp"
 #include "renderer.hpp"
+#include "intrinsics.hpp"
 
 
 namespace engine {
@@ -128,10 +128,10 @@ namespace engine {
 
     // Get only the unique used materials
     StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
-    pny_for_each (entity_template, entity_templates) {
-      pny_for_each (material_name, entity_template->material_names) {
+    each (entity_template, entity_templates) {
+      each (material_name, entity_template->material_names) {
         bool32 does_material_already_exist = false;
-        pny_for_each (used_material, used_materials) {
+        each (used_material, used_materials) {
           if (str::eq(*material_name, *used_material)) {
             does_material_already_exist = true;
             break;
@@ -145,7 +145,7 @@ namespace engine {
 
     // Create materials
     MaterialTemplate material_template;
-    pny_for_each (used_material, used_materials) {
+    each (used_material, used_materials) {
       material_template = {};
       char path[MAX_PATH];
       peony_parser::get_material_path(path, *used_material);
@@ -159,7 +159,7 @@ namespace engine {
     }
 
     // Create entity, ModelLoader, EntityLoader
-    pny_for_range (0, n_entities) {
+    range (0, n_entities) {
       EntityTemplate *entity_template = entity_templates[idx];
       Entity *entity = entities::add_entity_to_set(
         &state->entity_set, entity_template->entity_debug_name
@@ -242,7 +242,7 @@ namespace engine {
 
 
   pny_internal void update_light_position(State *state, real32 amount) {
-    pny_for_each (light_component, state->light_component_set.components) {
+    each (light_component, state->light_component_set.components) {
       if (light_component->type == LightType::directional) {
         state->dir_light_angle += amount;
         break;
@@ -358,7 +358,7 @@ namespace engine {
   pny_internal bool32 check_all_entities_loaded(State *state) {
     bool are_all_done_loading = true;
 
-    pny_for_each (material, state->materials) {
+    each (material, state->materials) {
       bool is_done_loading = materials::prepare_material_and_check_if_done(
         material,
         &state->persistent_pbo,
@@ -371,7 +371,7 @@ namespace engine {
     }
 
     uint32 new_n_valid_model_loaders = 0;
-    pny_for_each (model_loader, state->model_loaders) {
+    each (model_loader, state->model_loaders) {
       if (!is_model_loader_valid(model_loader)) {
         continue;
       }
@@ -390,7 +390,7 @@ namespace engine {
     state->n_valid_model_loaders = new_n_valid_model_loaders;
 
     uint32 new_n_valid_entity_loaders = 0;
-    pny_for_each (entity_loader, state->entity_loader_set.loaders) {
+    each (entity_loader, state->entity_loader_set.loaders) {
       if (!is_entity_loader_valid(entity_loader)) {
         continue;
       }

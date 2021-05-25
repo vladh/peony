@@ -1,12 +1,5 @@
 #pragma once
 
-// Flags
-#undef _HAS_EXCEPTIONS
-#define _HAS_EXCEPTIONS 0
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
-#pragma warning(disable: 4505) // unreferenced local function has been removed
-
 
 // Functions
 #define LEN(x) (sizeof((x)) / sizeof((x)[0]))
@@ -19,21 +12,21 @@
 
 
 // Loops
-#define pny_for_range_named(idx, start, end) \
+#define range_named(idx, start, end) \
   for ( \
     uint32 idx = (start); \
     idx < (end); \
     idx++ \
   )
 
-#define pny_for_range(start, end) pny_for_range_named(idx, start, end)
+#define range(start, end) range_named(idx, start, end)
 
-#define pny_for_each(el, set) \
+#define each(el, set) \
   for ( \
     auto el = (set).begin(); \
     el < (set).end(); \
     el++ \
-  ) \
+  )
 
 
 // Defer macro/thing

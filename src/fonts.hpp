@@ -1,6 +1,8 @@
 #pragma once
 
 #include "types.hpp"
+#include "array.hpp"
+#include "materials.hpp"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 

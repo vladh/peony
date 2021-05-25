@@ -1,9 +1,9 @@
-#include "intrinsics.hpp"
 #include "memory.hpp"
 #include "logs.hpp"
 #include "files.hpp"
 #include "str.hpp"
 #include "shaders.hpp"
+#include "intrinsics.hpp"
 
 
 namespace shaders {

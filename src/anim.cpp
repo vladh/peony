@@ -1,7 +1,7 @@
-#include "intrinsics.hpp"
 #include "util.hpp"
 #include "logs.hpp"
 #include "anim.hpp"
+#include "intrinsics.hpp"
 
 
 namespace anim {
@@ -83,14 +83,14 @@ void anim::update_animation_components(
   real64 t,
   BoneMatrixPool *bone_matrix_pool
 ) {
-  pny_for_each (animation_component, animation_component_set->components) {
+  each (animation_component, animation_component_set->components) {
     if (!is_animation_component_valid(animation_component)) {
       continue;
     }
 
     Animation *animation = &animation_component->animations[0];
 
-    pny_for_range_named (idx_bone, 0, animation_component->n_bones) {
+    range_named (idx_bone, 0, animation_component->n_bones) {
       Bone *bone = &animation_component->bones[idx_bone];
 
       // If we have no anim keys, just return the identity matrix.
@@ -158,7 +158,7 @@ void anim::make_bone_matrices_for_animation_bone(
   Bone *bone = &animation_component->bones[idx_bone];
   bone->n_anim_keys = ai_channel->mNumPositionKeys;
 
-  pny_for_range_named (idx_anim_key, 0, bone->n_anim_keys) {
+  range_named (idx_anim_key, 0, bone->n_anim_keys) {
     assert(
       ai_channel->mPositionKeys[idx_anim_key].mTime ==
         ai_channel->mRotationKeys[idx_anim_key].mTime

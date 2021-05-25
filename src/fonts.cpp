@@ -1,10 +1,10 @@
-#include "intrinsics.hpp"
 #include <glad/glad.h>
 #include "str.hpp"
 #include "logs.hpp"
 #include "array.hpp"
 #include "materials.hpp"
 #include "fonts.hpp"
+#include "intrinsics.hpp"
 
 
 namespace fonts {
@@ -85,7 +85,7 @@ real32 fonts::font_unit_to_px(uint32 n) {
 
 
 FontAsset* fonts::get_by_name(Array<FontAsset> *assets, const char *name) {
-  pny_for_each (asset, *assets) {
+  each (asset, *assets) {
     if (str::eq(asset->name, name)) {
       return asset;
     }

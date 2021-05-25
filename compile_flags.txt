@@ -1,0 +1,2 @@
+-I/mnt/c/local/include
+-std=c++20
