@@ -6,5 +6,5 @@
 #pragma warning(disable: 6308)
 #pragma warning(disable: 6262)
 #pragma warning(disable: 28182)
-#include <stb/stb_image.h>
+#include "../src_external/stb_image.h"
 #pragma warning(pop)

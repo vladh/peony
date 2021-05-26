@@ -5,12 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(UNITY true)
 
-include_directories(
-  C:/local/include
-  ~/local/include
-  /usr/local/opt/glm/include
-)
-
 if (UNITY)
   add_executable(
     peony
@@ -58,7 +52,9 @@ endif()
 find_package(glfw REQUIRED)
 find_package(freetype REQUIRED)
 find_package(assimp REQUIRED)
-target_link_libraries(peony PRIVATE glfw freetype assimp)
+find_package(glm REQUIRED)
+find_package(glad REQUIRED)
+target_link_libraries(peony PRIVATE glfw freetype assimp glm glad)
 target_precompile_headers(peony PRIVATE src/flags.hpp)
 
 if (MSVC)
