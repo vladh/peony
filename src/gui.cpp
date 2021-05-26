@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include <GLFW/glfw3.h>
 #include "gui.hpp"
 #include "util.hpp"

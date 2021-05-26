@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include "memory.hpp"
 #include "queue.hpp"
 #include "tasks.hpp"
