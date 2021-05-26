@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
 #include "str.hpp"

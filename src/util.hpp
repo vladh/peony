@@ -3,7 +3,7 @@
 #include <chrono>
 namespace chrono = std::chrono;
 #include <assimp/cimport.h>
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include "types.hpp"
 
 namespace util {
