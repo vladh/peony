@@ -1,3 +1,4 @@
+#include <signal.h>
 #include "logs.hpp"
 
 

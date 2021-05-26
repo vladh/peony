@@ -5,6 +5,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(UNITY true)
 
+include_directories(
+  C:/local/include
+  ~/local/include
+  /usr/local/opt/glm/include
+)
+
 if (UNITY)
   add_executable(
     peony

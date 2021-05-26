@@ -1,3 +1,4 @@
+#include <thread>
 #include "debug.hpp"
 #include "logs.hpp"
 #include "queue.hpp"

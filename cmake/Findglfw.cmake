@@ -1,5 +1,19 @@
-find_library(GLFW_LIBRARY NAMES glfw3)
-find_path(GLFW_INCLUDE_DIR NAMES GLFW)
+find_library(
+  GLFW_LIBRARY
+  NAMES glfw3 libglfw.dylib
+  HINTS
+  C:/local/lib
+  ~/local/lib
+  /usr/local/opt/glfw/lib
+)
+find_path(
+  GLFW_INCLUDE_DIR
+  NAMES GLFW
+  HINTS
+  C:/local/lib
+  ~/local/include
+  /usr/local/opt/glfw/include
+)
 
 include(FindPackageHandleStandardArgs)
 
