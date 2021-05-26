@@ -49,8 +49,7 @@ namespace debug_ui {
     strcat(text, entity->debug_name);
 
     strcat(text, "@");
-    _itoa(entity->handle, number, 10);
-    strcat(text, number);
+    sprintf(text + strlen(text), "%d", entity->handle);
 
     if (
       !has_spatial_component &&
@@ -104,8 +103,9 @@ namespace debug_ui {
           strcat(text, "  ");
         }
         strcat(text, "(and ");
-        _itoa(n_children_found - 5, number, 10);
-        strcat(text, number);
+        sprintf(
+          text + strlen(text), "%d", n_children_found - 5
+        );
         strcat(text, " more)");
       }
     }
