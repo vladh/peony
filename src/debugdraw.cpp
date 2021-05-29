@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include "shaders.hpp"
 #include "util.hpp"
 #include "debugdraw.hpp"

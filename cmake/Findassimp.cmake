@@ -1,5 +1,19 @@
-find_library(ASSIMP_LIBRARY NAMES assimp-vc142-mtd)
-find_path(ASSIMP_INCLUDE_DIR NAMES assimp)
+find_library(
+  ASSIMP_LIBRARY
+  NAMES assimp-vc142-mtd assimp
+  HINTS
+  C:/local/lib
+  ~/local/lib
+  /usr/local/opt/assimp/lib
+)
+find_path(
+  ASSIMP_INCLUDE_DIR
+  NAMES assimp
+  HINTS
+  C:/local/include
+  ~/local/include
+  /usr/local/opt/assimp/include
+)
 
 include(FindPackageHandleStandardArgs)
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include "types.hpp"
 #include "memory.hpp"
 #include "constants.hpp"

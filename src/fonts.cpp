@@ -1,4 +1,4 @@
-#include <glad/glad.h>
+#include "../src_external/glad/glad.h"
 #include "str.hpp"
 #include "logs.hpp"
 #include "array.hpp"
