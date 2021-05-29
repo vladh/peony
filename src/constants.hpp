@@ -1,5 +1,7 @@
 #pragma once
 
+#include "types.hpp"
+
 // Options
 #define USE_TIMERS true
 #define USE_MEMORY_DEBUG_LOGS false
