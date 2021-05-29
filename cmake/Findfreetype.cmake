@@ -1,5 +1,20 @@
-find_library(FREETYPE_LIBRARY NAMES freetype)
-find_path(FREETYPE_INCLUDE_DIR NAMES freetype)
+find_library(
+  FREETYPE_LIBRARY
+  NAMES freetype
+  HINTS
+  C:/local/lib
+  ~/local/lib
+  /usr/local/opt/freetype/lib
+)
+find_path(
+  FREETYPE_INCLUDE_DIR
+  NAMES freetype
+  HINTS
+  C:/local/include
+  ~/local/include
+  /usr/local/opt/freetype/include
+  /usr/local/opt/freetype/include/freetype2
+)
 
 include(FindPackageHandleStandardArgs)
 
