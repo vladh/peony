@@ -1,5 +1,5 @@
+#include "../src_external/pstr.h"
 #include "logs.hpp"
-#include "str.hpp"
 #include "input.hpp"
 
 
@@ -50,7 +50,7 @@ void input::update_mouse(InputState *input_state, v2 new_mouse_pos) {
 
 
 void input::clear_text_input(InputState *input_state) {
-  str::clear(input_state->text_input);
+  pstr_clear(input_state->text_input);
 }
 
 

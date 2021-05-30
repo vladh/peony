@@ -5,7 +5,6 @@
 #include "debug.cpp"
 #include "memory.cpp"
 #include "files.cpp"
-#include "str.cpp"
 #include "pack.cpp"
 #include "shaders.cpp"
 #include "tasks.cpp"
