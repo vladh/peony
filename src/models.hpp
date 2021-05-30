@@ -14,6 +14,9 @@
 #include "lights.hpp"
 
 namespace models {
+  // NOTE: Should be at least peony_parser::MAX_N_ARRAY_VALUES
+  constexpr uint32 const MAX_N_COMMON_ARRAY_VALUES = 8;
+
   enum class RenderMode {regular, depth};
 
   enum class RenderPass : uint32 {
@@ -31,15 +34,6 @@ namespace models {
     renderdebug = (1 << 10),
   };
 
-  enum class ModelSource {
-    // Invalid.
-    none,
-    // Loaded on initialisation, from given vertex data.
-    file,
-    // Loaded on demand, from file.
-    data
-  };
-
   struct Vertex {
     v3 position;
     v3 normal;
@@ -51,7 +45,7 @@ namespace models {
   struct Mesh {
     MemoryPool temp_memory_pool;
     m4 transform;
-    char material_name[MAX_TOKEN_LENGTH];
+    char material_name[MAX_COMMON_NAME_LENGTH];
     Pack indices_pack;
     uint32 vao;
     uint32 vbo;
@@ -73,12 +67,15 @@ namespace models {
   };
 
   struct ModelLoader {
-    ModelSource model_source;
-    char model_path_or_builtin_model_name[MAX_PATH];
+    // These from from the file
+    char model_path[MAX_PATH];
+    char material_names[MAX_COMMON_NAME_LENGTH][MAX_N_COMMON_ARRAY_VALUES];
+    uint32 n_material_names;
+
+    // These are created later
     Mesh meshes[MAX_N_MESHES];
     uint32 n_meshes;
     AnimationComponent animation_component;
-    StackArray<char[MAX_TOKEN_LENGTH], MAX_N_PEONY_ARRAY_VALUES> material_names;
     ModelLoaderState state;
   };
 
@@ -90,14 +87,14 @@ namespace models {
 
   struct EntityLoader {
     char name[MAX_DEBUG_NAME_LENGTH];
-    char model_path_or_builtin_model_name[MAX_PATH];
+    char model_path[MAX_PATH];
     EntityHandle entity_handle;
+    RenderPass render_pass;
+    EntityLoaderState state;
     SpatialComponent spatial_component;
     LightComponent light_component;
     BehaviorComponent behavior_component;
     PhysicsComponent physics_component;
-    RenderPass render_pass;
-    EntityLoaderState state;
   };
 
   struct EntityLoaderSet {
@@ -139,15 +136,18 @@ namespace models {
   );
   bool32 is_model_loader_valid(ModelLoader *model_loader);
   bool32 is_entity_loader_valid(EntityLoader *entity_loader);
+  void add_material_to_model_loader(
+    ModelLoader *model_loader,
+    char const *material_name
+  );
   ModelLoader* init_model_loader(
     ModelLoader *model_loader,
-    ModelSource model_source,
-    const char *model_path_or_builtin_model_name
+    const char *model_path
   );
   EntityLoader* init_entity_loader(
     EntityLoader *entity_loader,
     const char *name,
-    const char *model_path_or_builtin_model_name,
+    const char *model_path,
     RenderPass render_pass,
     EntityHandle entity_handle
   );
@@ -155,7 +155,7 @@ namespace models {
   void destroy_drawable_component(DrawableComponent *drawable_component);
 }
 
-using models::ModelSource, models::Vertex, models::Mesh, models::ModelLoaderState,
+using models::Vertex, models::Mesh, models::ModelLoaderState,
   models::ModelLoader, models::EntityLoaderState, models::EntityLoader,
   models::EntityLoaderSet,
   models::DrawableComponent, models::DrawableComponentSet,

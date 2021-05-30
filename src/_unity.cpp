@@ -1,4 +1,5 @@
 #include "../src_external/glad.cpp"
+#include "../src_external/pstr.c"
 #include "logs.cpp"
 #include "util.cpp"
 #include "debug.cpp"
@@ -21,6 +22,7 @@
 #include "physics.cpp"
 #include "models.cpp"
 #include "peony_parser.cpp"
+#include "peony_parser_utils.cpp"
 #include "cameras.cpp"
 #include "state.cpp"
 #include "debug_ui.cpp"

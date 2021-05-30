@@ -1,11 +1,12 @@
 #include <chrono>
 namespace chrono = std::chrono;
+#include "../src_external/pstr.h"
 #include "util.hpp"
 #include "engine.hpp"
 #include "logs.hpp"
-#include "str.hpp"
 #include "debug.hpp"
 #include "peony_parser.hpp"
+#include "peony_parser_utils.hpp"
 #include "models.hpp"
 #include "internals.hpp"
 #include "renderer.hpp"
@@ -98,108 +99,93 @@ namespace engine {
       return false;
     }
 
-    char scene_path[MAX_PATH] = {0};
-    strcpy(scene_path, SCENE_DIR);
-    strcat(scene_path, scene_name);
-    strcat(scene_path, SCENE_EXTENSION);
-    strcat(scene_path, "\0");
-
-    gui::log("Loading scene: %s", scene_path);
-
     // Get some memory for everything we need
     MemoryPool temp_memory_pool = {};
+    defer { memory::destroy_memory_pool(&temp_memory_pool); };
 
-    // Get EntityTemplates
-    StackArray<EntityTemplate, 128> entity_templates;
-    uint32 n_entities = 0;
-    bool32 could_load_file = peony_parser::parse_scene_file(
-      scene_path, &entity_templates, &n_entities
-    );
+    // Load scene file
+    char scene_path[MAX_PATH] = {};
+    pstr_vcat(scene_path, MAX_PATH, SCENE_DIR, scene_name, SCENE_EXTENSION, nullptr);
+    gui::log("Loading scene: %s", scene_path);
 
-    if (!could_load_file) {
+    PeonyFile *scene_file = MEMORY_PUSH(&temp_memory_pool, PeonyFile, "scene_file");
+    if (!peony_parser::parse_file(scene_file, scene_path)) {
       gui::log("Could not load scene: %s", scene_path);
       return false;
     }
 
-    // Destroy everything after we've confirmed we could load the scene.
+    // Destroy our current scene after we've confirmed we could load the new scene.
     destroy_scene(state);
-
-    strcpy(state->current_scene_name, scene_name);
+    pstr_copy(state->current_scene_name, MAX_COMMON_NAME_LENGTH, scene_name);
 
     // Get only the unique used materials
-    StackArray<char[MAX_TOKEN_LENGTH], MAX_N_MATERIALS> used_materials;
-    each (entity_template, entity_templates) {
-      each (material_name, entity_template->material_names) {
-        bool32 does_material_already_exist = false;
-        each (used_material, used_materials) {
-          if (str::eq(*material_name, *used_material)) {
-            does_material_already_exist = true;
-            break;
-          }
-        }
-        if (!does_material_already_exist) {
-          strcpy(*(used_materials.push()), *material_name);
-        }
-      }
-    }
+    Array<char[MAX_COMMON_NAME_LENGTH]> used_materials(
+      &temp_memory_pool, MAX_N_MATERIALS, "used_materials"
+    );
+    peony_parser_utils::get_unique_string_values_for_prop_name(
+      scene_file, &used_materials, "materials"
+    );
 
-    // Create materials
-    MaterialTemplate material_template;
+    // Create Materials
+    PeonyFile *material_file = MEMORY_PUSH(&temp_memory_pool, PeonyFile, "material_file");
     each (used_material, used_materials) {
-      material_template = {};
-      char path[MAX_PATH];
-      peony_parser::get_material_path(path, *used_material);
-      peony_parser::parse_material_file(path, &material_template);
-      peony_parser::create_material_from_template(
+      memset(material_file, 0, sizeof(PeonyFile));
+      char material_file_path[MAX_PATH] = {};
+      pstr_vcat(
+        material_file_path, MAX_PATH,
+        MATERIAL_FILE_DIRECTORY, *used_material, MATERIAL_FILE_EXTENSION, nullptr
+      );
+      if (!peony_parser::parse_file(material_file, material_file_path)) {
+        gui::log("Could not load material: %s", material_file_path);
+        break;
+      }
+      assert(material_file->n_entries > 0);
+      peony_parser_utils::create_material_from_peony_file_entry(
         state->materials.push(),
-        &material_template,
+        &material_file->entries[0],
         &state->builtin_textures,
         &temp_memory_pool
       );
     }
 
-    // Create entity, ModelLoader, EntityLoader
-    range (0, n_entities) {
-      EntityTemplate *entity_template = entity_templates[idx];
-      Entity *entity = entities::add_entity_to_set(
-        &state->entity_set, entity_template->entity_debug_name
-      );
+    range (0, scene_file->n_entries) {
+      PeonyFileEntry *entry = &scene_file->entries[idx];
 
-      // NOTE: We only want to make a ModelLoader from this EntityTemplate
-      // if we haven't already encountered this model is a previous
-      // EntityTemplate. If two entities have the same
-      // `model_path_or_builtin_model_name`, we just make one model and use it
-      // in both.
+      // Create Entity
+      Entity *entity = entities::add_entity_to_set(&state->entity_set, entry->name);
+
+      // Create ModelLoader
+      char const *model_path = peony_parser_utils::get_string(
+        peony_parser_utils::find_prop(entry, "model_path")
+      );
+      // NOTE: We only want to make a ModelLoader from this PeonyFileEntry if we haven't
+      // already encountered this model in a previous entry. If two entities
+      // have the same `model_path`, we just make one model and use it in both.
       ModelLoader *found_model_loader = state->model_loaders.find(
-        [entity_template](ModelLoader *candidate_model_loader) -> bool32 {
-          return str::eq(
-            entity_template->model_path_or_builtin_model_name,
-            candidate_model_loader->model_path_or_builtin_model_name
+        [model_path](ModelLoader *candidate_model_loader) -> bool32 {
+          return pstr_eq(
+            model_path,
+            candidate_model_loader->model_path
           );
         }
       );
       if (found_model_loader) {
-        logs::info(
-          "Skipping already-loaded model %s",
-          entity_template->model_path_or_builtin_model_name
-        );
-      }
-      if (!found_model_loader) {
-        peony_parser::create_model_loader_from_entity_template(
-          entity_template,
+        logs::info("Skipping already-loaded model %s", model_path);
+      } else {
+        peony_parser_utils::create_model_loader_from_peony_file_entry(
+          entry,
           entity->handle,
-          &state->model_loaders
+          state->model_loaders.push()
         );
       }
-      peony_parser::create_entity_loader_from_entity_template(
-        entity_template,
+
+      // Create EntityLoader
+      peony_parser_utils::create_entity_loader_from_peony_file_entry(
+        entry,
         entity->handle,
-        &state->entity_loader_set
+        state->entity_loader_set.loaders[entity->handle]
       );
     }
-
-    // Clean up
-    memory::destroy_memory_pool(&temp_memory_pool);
 
     return true;
   }
@@ -211,14 +197,14 @@ namespace engine {
     char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
     char arguments[input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {0};
 
-    str::split_on_first_occurrence(
+    pstr_split_on_first_occurrence(
       state->input_state.text_input,
       command, input::MAX_TEXT_INPUT_COMMAND_LENGTH,
       arguments, input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH,
       ' '
     );
 
-    if (str::eq(command, "help")) {
+    if (pstr_eq(command, "help")) {
       gui::log(
         "Some useful commands\n"
         "--------------------\n"
@@ -227,9 +213,9 @@ namespace engine {
         "Use texture \"none\" to disable.\n"
         "help: show help"
       );
-    } else if (str::eq(command, "loadscene")) {
+    } else if (pstr_eq(command, "loadscene")) {
       load_scene(arguments, state);
-    } else if (str::eq(command, "renderdebug")) {
+    } else if (pstr_eq(command, "renderdebug")) {
       state->renderdebug_displayed_texture_type = materials::texture_type_from_string(
         arguments
       );
@@ -237,7 +223,7 @@ namespace engine {
       gui::log("Unknown command: %s", command);
     }
 
-    str::clear(state->input_state.text_input);
+    pstr_clear(state->input_state.text_input);
   }
 
 
@@ -398,15 +384,13 @@ namespace engine {
 
       ModelLoader *model_loader = state->model_loaders.find(
         [entity_loader](ModelLoader *candidate_model_loader) -> bool32 {
-          return str::eq(
-            entity_loader->model_path_or_builtin_model_name,
-            candidate_model_loader->model_path_or_builtin_model_name
-          );
+          return pstr_eq(entity_loader->model_path, candidate_model_loader->model_path);
         }
       );
       if (!model_loader) {
         logs::fatal(
-          "Encountered an EntityLoader for which we cannot find the ModelLoader."
+          "Encountered an EntityLoader %d for which we cannot find the ModelLoader.",
+          entity_loader->entity_handle
         );
       }
 

@@ -1,7 +1,7 @@
 #include "../src_external/glad/glad.h"
+#include "../src_external/pstr.h"
 #include <assimp/cimport.h>
 #include <assimp/postprocess.h>
-#include "str.hpp"
 #include "pack.hpp"
 #include "logs.hpp"
 #include "models.hpp"
@@ -231,7 +231,11 @@ namespace models {
       .idx_parent = idx_parent,
       // NOTE: offset is added later, since we don't have the aiBone at this stage.
     };
-    strcpy(animation_component->bones[idx_new_bone].name, node->mName.C_Str());
+    pstr_copy(
+      animation_component->bones[idx_new_bone].name,
+      MAX_NODE_NAME_LENGTH,
+      node->mName.C_Str()
+    );
     animation_component->n_bones++;
 
     range (0, node->mNumChildren) {
@@ -280,7 +284,11 @@ namespace models {
         .duration = ai_animation->mDuration * ai_animation->mTicksPerSecond,
         .idx_bone_matrix_set = anim::push_to_bone_matrix_pool(bone_matrix_pool),
       };
-      strcpy(animation->name, ai_animation->mName.C_Str());
+      pstr_copy(
+        animation->name,
+        MAX_NODE_NAME_LENGTH,
+        ai_animation->mName.C_Str()
+      );
 
       // Calculate bone matrices.
       // NOTE: We do not finalise the bone matrices at this stage!
@@ -293,7 +301,7 @@ namespace models {
 
         range_named (idx_channel, 0, ai_animation->mNumChannels) {
           aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
-          if (str::eq(ai_channel->mNodeName.C_Str(), bone->name)) {
+          if (pstr_eq(ai_channel->mNodeName.C_Str(), bone->name)) {
             found_channel_idx = idx_channel;
             did_find_channel = true;
             break;
@@ -432,7 +440,7 @@ namespace models {
       bool32 did_find_bone = false;
 
       range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
-        if (str::eq(
+        if (pstr_eq(
           animation_component->bones[idx_animcomp_bone].name, ai_bone->mName.C_Str()
         )) {
           did_find_bone = true;
@@ -515,9 +523,8 @@ namespace models {
   ) {
     // NOTE: This function stores its vertex data in the MemoryPool for each
     // mesh, and so is intended to be called from a separate thread.
-    char full_path[MAX_PATH];
-    strcpy(full_path, MODEL_DIR);
-    strcat(full_path, model_loader->model_path_or_builtin_model_name);
+    char full_path[MAX_PATH] = {};
+    pstr_vcat(full_path, MAX_PATH, MODEL_DIR, model_loader->model_path, nullptr);
 
     START_TIMER(assimp_import);
     const aiScene *scene = aiImportFile(
@@ -541,19 +548,9 @@ namespace models {
     }
 
     AnimationComponent *animation_component = &model_loader->animation_component;
-
-    load_bones(
-      animation_component, scene
-    );
-
-    load_node(
-      model_loader, scene->mRootNode, scene, m4(1.0f), 0ULL
-    );
-
-    load_animations(
-      animation_component, scene, bone_matrix_pool
-    );
-
+    load_bones(animation_component, scene);
+    load_node(model_loader, scene->mRootNode, scene, m4(1.0f), 0ULL);
+    load_animations(animation_component, scene, bone_matrix_pool);
     aiReleaseImport(scene);
 
     model_loader->state = ModelLoaderState::mesh_data_loaded;
@@ -573,13 +570,13 @@ namespace models {
     uint32 n_indices = 0;
     GLenum mode = 0;
 
-    if (str::eq(model_loader->model_path_or_builtin_model_name, "axes")) {
+    if (pstr_eq(model_loader->model_path, "builtin:axes")) {
       vertex_data = (Vertex*)AXES_VERTICES;
       n_vertices = 6;
       index_data = nullptr;
       n_indices = 0;
       mode = GL_LINES;
-    } else if (str::eq(model_loader->model_path_or_builtin_model_name, "ocean")) {
+    } else if (pstr_eq(model_loader->model_path, "builtin:ocean")) {
       make_plane(
         &temp_memory_pool,
         200, 200,
@@ -588,7 +585,7 @@ namespace models {
         &vertex_data, &index_data
       );
       mode = GL_TRIANGLES;
-    } else if (str::eq(model_loader->model_path_or_builtin_model_name, "skysphere")) {
+    } else if (pstr_eq(model_loader->model_path, "builtin:skysphere")) {
       make_sphere(
         &temp_memory_pool,
         64, 64,
@@ -597,7 +594,7 @@ namespace models {
       );
       mode = GL_TRIANGLE_STRIP;
     } else if (
-      str::starts_with(model_loader->model_path_or_builtin_model_name, "screenquad")
+      pstr_starts_with(model_loader->model_path, "builtin:screenquad")
     ) {
       vertex_data = (Vertex*)SCREENQUAD_VERTICES;
       n_vertices = 6;
@@ -605,10 +602,7 @@ namespace models {
       n_indices = 0;
       mode = GL_TRIANGLES;
     } else {
-      logs::fatal(
-        "Could not find builtin model: %s",
-        model_loader->model_path_or_builtin_model_name
-      );
+      logs::fatal("Could not find builtin model: %s", model_loader->model_path);
     }
 
     Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
@@ -665,29 +659,29 @@ const char* models::render_pass_to_string(RenderPass render_pass) {
 
 
 RenderPass models::render_pass_from_string(const char* str) {
-  if (str::eq(str, "none")) {
+  if (pstr_eq(str, "none")) {
     return RenderPass::none;
-  } else if (str::eq(str, "shadowcaster")) {
+  } else if (pstr_eq(str, "shadowcaster")) {
     return RenderPass::shadowcaster;
-  } else if (str::eq(str, "deferred")) {
+  } else if (pstr_eq(str, "deferred")) {
     return RenderPass::deferred;
-  } else if (str::eq(str, "forward_depth")) {
+  } else if (pstr_eq(str, "forward_depth")) {
     return RenderPass::forward_depth;
-  } else if (str::eq(str, "forward_nodepth")) {
+  } else if (pstr_eq(str, "forward_nodepth")) {
     return RenderPass::forward_nodepth;
-  } else if (str::eq(str, "forward_skybox")) {
+  } else if (pstr_eq(str, "forward_skybox")) {
     return RenderPass::forward_skybox;
-  } else if (str::eq(str, "lighting")) {
+  } else if (pstr_eq(str, "lighting")) {
     return RenderPass::lighting;
-  } else if (str::eq(str, "postprocessing")) {
+  } else if (pstr_eq(str, "postprocessing")) {
     return RenderPass::postprocessing;
-  } else if (str::eq(str, "preblur")) {
+  } else if (pstr_eq(str, "preblur")) {
     return RenderPass::preblur;
-  } else if (str::eq(str, "blur1")) {
+  } else if (pstr_eq(str, "blur1")) {
     return RenderPass::blur1;
-  } else if (str::eq(str, "blur2")) {
+  } else if (pstr_eq(str, "blur2")) {
     return RenderPass::blur2;
-  } else if (str::eq(str, "renderdebug")) {
+  } else if (pstr_eq(str, "renderdebug")) {
     return RenderPass::renderdebug;
   } else {
     logs::fatal("Could not parse RenderPass: %s", str);
@@ -704,9 +698,9 @@ bool32 models::prepare_model_loader_and_check_if_done(
   BoneMatrixPool *bone_matrix_pool
 ) {
   if (model_loader->state == ModelLoaderState::initialized) {
-    if (model_loader->model_source != ModelSource::file) {
+    if (pstr_starts_with(model_loader->model_path, "builtin:")) {
       logs::error(
-        "Found model with model_source=file for which no vertex data was loaded."
+        "Found model with builtin model_path for which no vertex data was loaded."
       );
       return false;
     }
@@ -723,24 +717,21 @@ bool32 models::prepare_model_loader_and_check_if_done(
   }
 
   if (model_loader->state == ModelLoaderState::mesh_data_loaded) {
-    // Setup vertex buffers
-    if (model_loader->model_source == ModelSource::file) {
-      for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
-        Mesh *mesh = &model_loader->meshes[idx];
-        setup_mesh_vertex_buffers(
-          mesh,
-          mesh->vertices, mesh->n_vertices,
-          mesh->indices, mesh->n_indices
-        );
-        memory::destroy_memory_pool(&mesh->temp_memory_pool);
-      }
+    for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+      Mesh *mesh = &model_loader->meshes[idx];
+      setup_mesh_vertex_buffers(
+        mesh,
+        mesh->vertices, mesh->n_vertices,
+        mesh->indices, mesh->n_indices
+      );
+      memory::destroy_memory_pool(&mesh->temp_memory_pool);
     }
     model_loader->state = ModelLoaderState::vertex_buffers_set_up;
   }
 
   if (model_loader->state == ModelLoaderState::vertex_buffers_set_up) {
     // Set material names for each mesh
-    range_named (idx_material, 0, model_loader->material_names.length) {
+    range_named (idx_material, 0, model_loader->n_material_names) {
       range_named (idx_mesh, 0, model_loader->n_meshes) {
         Mesh *mesh = &model_loader->meshes[idx_mesh];
         uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
@@ -751,9 +742,13 @@ bool32 models::prepare_model_loader_and_check_if_done(
         // meshes all get material number 0.
         if (
           mesh_number == idx_material ||
-          (mesh_number >= model_loader->material_names.length && idx_material == 0)
+          (mesh_number >= model_loader->n_material_names && idx_material == 0)
         ) {
-          strcpy(mesh->material_name, *(model_loader->material_names[idx_material]));
+          pstr_copy(
+            mesh->material_name,
+            MAX_COMMON_NAME_LENGTH,
+            model_loader->material_names[idx_material]
+          );
         }
       }
     }
@@ -876,21 +871,28 @@ bool32 models::is_entity_loader_valid(EntityLoader *entity_loader) {
 }
 
 
+void models::add_material_to_model_loader(
+  ModelLoader *model_loader,
+  char const *material_name
+) {
+  pstr_copy(
+    model_loader->material_names[model_loader->n_material_names++],
+    MAX_COMMON_NAME_LENGTH,
+    material_name
+  );
+}
+
+
 ModelLoader* models::init_model_loader(
   ModelLoader *model_loader,
-  ModelSource model_source,
-  const char *model_path_or_builtin_model_name
+  const char *model_path
 ) {
   assert(model_loader);
-  model_loader->model_source = model_source;
-  strcpy(
-    model_loader->model_path_or_builtin_model_name,
-    model_path_or_builtin_model_name
-  );
+  pstr_copy(model_loader->model_path, MAX_PATH, model_path);
 
   model_loader->state = ModelLoaderState::initialized;
 
-  if (model_source == ModelSource::data) {
+  if (pstr_starts_with(model_path, "builtin:")) {
     load_model_from_data(model_loader);
   }
 
@@ -901,18 +903,17 @@ ModelLoader* models::init_model_loader(
 EntityLoader* models::init_entity_loader(
   EntityLoader *entity_loader,
   const char *name,
-  const char *model_path_or_builtin_model_name,
+  const char *model_path,
   RenderPass render_pass,
   EntityHandle entity_handle
 ) {
   assert(entity_loader);
-  strcpy(entity_loader->name, name);
-  strcpy(
-    entity_loader->model_path_or_builtin_model_name,
-    model_path_or_builtin_model_name
-  );
+  pstr_copy(entity_loader->name, MAX_COMMON_NAME_LENGTH, name);
+  pstr_copy(entity_loader->model_path, MAX_PATH, model_path);
   entity_loader->render_pass = render_pass;
   entity_loader->entity_handle = entity_handle;
+  // TODO: Can we move this to constructor?
+  // If so, can we do so for other init_*() methods?
   entity_loader->state = EntityLoaderState::initialized;
   return entity_loader;
 }

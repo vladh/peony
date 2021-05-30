@@ -1,10 +1,12 @@
 #include <thread>
+#include "../src_external/pstr.h"
 #include "types.hpp"
 #include "logs.hpp"
 #include "util.hpp"
 #include "renderer.hpp"
 #include "engine.hpp"
 #include "state.hpp"
+#include "peony_parser.hpp"
 #include "intrinsics.hpp"
 
 

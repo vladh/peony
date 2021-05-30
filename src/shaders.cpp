@@ -1,3 +1,4 @@
+#include "../src_external/pstr.h"
 #include "memory.hpp"
 #include "logs.hpp"
 #include "files.hpp"
@@ -350,15 +351,27 @@ ShaderAsset* shaders::init_shader_asset(
   const char *vert_path, const char *frag_path, const char *geom_path
 ) {
   *shader_asset = {};
-  strcpy(shader_asset->name, new_name);
+  pstr_copy(shader_asset->name, MAX_DEBUG_NAME_LENGTH, new_name);
   shader_asset->type = new_type;
   shader_asset->n_texture_units = 0;
   shader_asset->did_set_texture_uniforms = false;
   memset(shader_asset->texture_units, 0, sizeof(shader_asset->texture_units));
   memset(shader_asset->texture_unit_types, 0, sizeof(shader_asset->texture_unit_types));
-  strcpy(shader_asset->vert_path, vert_path);
-  strcpy(shader_asset->frag_path, frag_path);
-  strcpy(shader_asset->geom_path, geom_path);
+  if (!vert_path) {
+    logs::warning("Loading shader asset with no vertex shader");
+  }
+  if (!frag_path) {
+    logs::warning("Loading shader asset with no fragment shader");
+  }
+  if (vert_path) {
+    pstr_copy(shader_asset->vert_path, MAX_PATH, vert_path);
+  }
+  if (frag_path) {
+    pstr_copy(shader_asset->frag_path, MAX_PATH, frag_path);
+  }
+  if (geom_path) {
+    pstr_copy(shader_asset->geom_path, MAX_PATH, geom_path);
+  }
   load_shader_asset(shader_asset, memory_pool);
   return shader_asset;
 }
