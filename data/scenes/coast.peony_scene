@@ -63,7 +63,7 @@ spatial_component.scale = vec3(1.0, 1.0, 1.0)
 ; light_component.attenuation = vec4(2.0, 0.18, 0.064, 0.0)
 
 ; > axes
-; builtin_model_name = axes
+; model_path = builtin:axes
 ; materials = [axes]
 ; render_passes = [forward_nodepth]
 ; spatial_component.position = vec3(0.0, 0.1, 0.0)
@@ -71,7 +71,7 @@ spatial_component.scale = vec3(1.0, 1.0, 1.0)
 ; spatial_component.scale = vec3(1.0, 1.0, 1.0)
 
 > ocean
-builtin_model_name = ocean
+model_path = builtin:ocean
 materials = [ocean]
 render_passes = [forward_depth]
 spatial_component.position = vec3(0.0, 0.0, 0.0)

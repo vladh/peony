@@ -188,7 +188,6 @@ void internals::create_internal_materials(State *state) {
     );
   }
 
-
   // We've created all internal materials, so we will mark the next position
   // in the array of materials, so we know where non-internal materials start.
   state->first_non_internal_material_idx = state->materials.length;
@@ -215,19 +214,15 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader,
-      ModelSource::data,
-      "screenquad_lighting"
-    );
+    models::init_model_loader(model_loader, "builtin:screenquad_lighting");
     models::init_entity_loader(
       entity_loader,
       "screenquad_lighting",
-      "screenquad_lighting",
+      "builtin:screenquad_lighting",
       RenderPass::lighting,
       entity->handle
     );
-    strcpy(*(model_loader->material_names.push()), "lighting");
+    models::add_material_to_model_loader(model_loader, "lighting");
   }
 
 #if USE_BLOOM
@@ -238,20 +233,15 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader
-      entity_loader,
-      ModelSource::data,
-      "screenquad_preblur"
-    );
+    models::init_model_loader(model_loader "builtin:screenquad_preblur");
     models::init_entity_loader(
       entity_loader,
       "screenquad_preblur",
-      "screenquad_preblur",
+      "builtin:screenquad_preblur",
       RenderPass::preblur,
       entity->handle
     );
-    strcpy(*(model_loader->material_names.push()), "preblur");
+    models::add_material_to_model_loader(model_loader, "preblur");
   }
 
   // Blur 1 screenquad
@@ -261,19 +251,15 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader,
-      ModelSource::data,
-      "screenquad_blur1"
-    );
+    models::init_model_loader(model_loader, "builtin:screenquad_blur1");
     models::init_entity_loader(
       entity_loader,
       "screenquad_blur1",
-      "screenquad_blur1",
+      "builtin:screenquad_blur1",
       RenderPass::blur1,
       entity->handle
     );
-    strcpy(*(model_loader->material_names.push()), "blur1");
+    models::add_material_to_model_loader(model_loader, "blur1");
   }
 
   // Blur 2 screenquad
@@ -283,19 +269,15 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader,
-      ModelSource::data,
-      "screenquad_blur2",
-    );
+    models::init_model_loader(model_loader, "builtin:screenquad_blur2");
     models::init_entity_loader(
       entity_loader,
       "screenquad_blur2",
-      "screenquad_blur2",
+      "builtin:screenquad_blur2",
       RenderPass::blur2,
       entity->handle
     );
-    strcpy(*(model_loader->material_names.push()), "blur2");
+    models::add_material_to_model_loader(model_loader, "blur2");
   }
 #endif
 
@@ -306,19 +288,15 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader,
-      ModelSource::data,
-      "screenquad_postprocessing"
-    );
+    models::init_model_loader(model_loader, "builtin:screenquad_postprocessing");
     models::init_entity_loader(
       entity_loader,
       "screenquad_postprocessing",
-      "screenquad_postprocessing",
+      "builtin:screenquad_postprocessing",
       RenderPass::postprocessing,
       entity->handle
     );
-    strcpy(*(model_loader->material_names.push()), "postprocessing");
+    models::add_material_to_model_loader(model_loader, "postprocessing");
   }
 
   // Debug screenquad
@@ -328,19 +306,15 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader,
-      ModelSource::data,
-      "screenquad_renderdebug"
-    );
+    models::init_model_loader(model_loader, "builtin:screenquad_renderdebug");
     models::init_entity_loader(
       entity_loader,
       "screenquad_renderdebug",
-      "screenquad_renderdebug",
+      "builtin:screenquad_renderdebug",
       RenderPass::renderdebug,
       entity->handle
     );
-    strcpy(*(model_loader->material_names.push()), "renderdebug");
+    models::add_material_to_model_loader(model_loader, "renderdebug");
   }
 
   // Skysphere
@@ -351,15 +325,11 @@ void internals::create_internal_entities(State *state) {
     );
     ModelLoader *model_loader = state->model_loaders.push();
     EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(
-      model_loader,
-      ModelSource::data,
-      "skysphere"
-    );
+    models::init_model_loader(model_loader, "builtin:skysphere");
     models::init_entity_loader(
       entity_loader,
       "skysphere",
-      "skysphere",
+      "builtin:skysphere",
       RenderPass::forward_skybox,
       entity->handle
     );
@@ -369,7 +339,7 @@ void internals::create_internal_entities(State *state) {
       .rotation = glm::angleAxis(radians(0.0f), v3(1.0f, 0.0f, 0.0f)),
       .scale = v3(75.0f),
     };
-    strcpy(*(model_loader->material_names.push()), "skysphere");
+    models::add_material_to_model_loader(model_loader, "skysphere");
 #endif
   }
 

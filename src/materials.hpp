@@ -118,7 +118,7 @@ namespace materials {
   };
 
   struct Material {
-    char name[MAX_TOKEN_LENGTH];
+    char name[MAX_COMMON_NAME_LENGTH];
     MaterialState state;
     bool32 have_textures_been_generated = false;
     bool32 is_screensize_dependent = false;

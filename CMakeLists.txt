@@ -5,6 +5,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(UNITY true)
 
+# Treat all .c files as .cpp files
+file(GLOB_RECURSE CFILES "${CMAKE_SOURCE_DIR}/src_external/*.c")
+set_source_files_properties(${CFILES} PROPERTIES LANGUAGE CXX)
+
 if (UNITY)
   add_executable(
     peony
@@ -16,6 +20,7 @@ else()
     peony
     # WIN32
     src_external/glad.cpp
+    src_external/pstr.c
     src/logs.cpp
     src/util.cpp
     src/debug.cpp
@@ -38,6 +43,7 @@ else()
     src/physics.cpp
     src/models.cpp
     src/peony_parser.cpp
+    src/peony_parser_utils.cpp
     src/cameras.cpp
     src/state.cpp
     src/debug_ui.cpp
@@ -57,6 +63,9 @@ target_link_libraries(peony PRIVATE glfw freetype assimp glm)
 target_precompile_headers(peony PRIVATE src/flags.hpp)
 
 if (MSVC)
+  set_property(
+    TARGET peony PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+  )
   add_compile_options(
     -FC -GS -MTd -MP18 -W4 -WL -WX -Z7 -Zo -diagnostics:column -fp:fast -nologo
     -sdl -guard:cf -permissive- -std:c++latest -wd4100 -wd4127 -wd4201 -O2 -GL -Oi

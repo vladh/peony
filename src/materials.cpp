@@ -1,3 +1,4 @@
+#include "../src_external/pstr.h"
 #include "shaders.hpp"
 #include "array.hpp"
 #include "util.hpp"
@@ -423,7 +424,7 @@ Material* materials::init_material(
   Material *material,
   const char *name
 ) {
-  strcpy(material->name, name);
+  pstr_copy(material->name, MAX_COMMON_NAME_LENGTH, name);
   material->state = MaterialState::initialized;
   return material;
 };
@@ -470,8 +471,9 @@ void materials::add_texture_to_material(
     material->is_screensize_dependent = true;
   }
   material->textures[material->n_textures++] = texture;
-  strcpy(
+  pstr_copy(
     material->texture_uniform_names[material->idx_texture_uniform_names++],
+    MAX_COMMON_NAME_LENGTH,
     uniform_name
   );
 }
