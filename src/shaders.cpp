@@ -2,7 +2,6 @@
 #include "memory.hpp"
 #include "logs.hpp"
 #include "files.hpp"
-#include "str.hpp"
 #include "shaders.hpp"
 #include "intrinsics.hpp"
 
@@ -312,7 +311,7 @@ uint32 shaders::add_texture_unit(
 void shaders::load_shader_asset(ShaderAsset *shader_asset, MemoryPool *memory_pool) {
   shader_asset->did_set_texture_uniforms = false;
 
-  if (!str::is_empty(shader_asset->geom_path)) {
+  if (!pstr_is_empty(shader_asset->geom_path)) {
     shader_asset->program = make_program(
       make_shader(
         shader_asset->vert_path,

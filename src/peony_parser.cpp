@@ -1,7 +1,6 @@
 #include "../src_external/pstr.h"
 #include "peony_parser.hpp"
 #include "logs.hpp"
-#include "str.hpp"
 #include "intrinsics.hpp"
 
 

@@ -4,7 +4,6 @@
 #include "util.hpp"
 #include "logs.hpp"
 #include "files.hpp"
-#include "str.hpp"
 #include "materials.hpp"
 #include "intrinsics.hpp"
 
@@ -453,7 +452,7 @@ Material* materials::get_material_by_name(
   const char *name
 ) {
   each (material, *materials) {
-    if (str::eq(material->name, name)) {
+    if (pstr_eq(material->name, name)) {
       return material;
     }
   }

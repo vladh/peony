@@ -1,5 +1,5 @@
 #include "../src_external/glad/glad.h"
-#include "str.hpp"
+#include "../src_external/pstr.h"
 #include "logs.hpp"
 #include "array.hpp"
 #include "materials.hpp"
@@ -86,7 +86,7 @@ real32 fonts::font_unit_to_px(uint32 n) {
 
 FontAsset* fonts::get_by_name(Array<FontAsset> *assets, const char *name) {
   each (asset, *assets) {
-    if (str::eq(asset->name, name)) {
+    if (pstr_eq(asset->name, name)) {
       return asset;
     }
   }

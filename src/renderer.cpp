@@ -1,7 +1,7 @@
+#include "../src_external/pstr.h"
 #include "renderer.hpp"
 #include "util.hpp"
 #include "logs.hpp"
-#include "str.hpp"
 #include "debug_ui.hpp"
 #include "intrinsics.hpp"
 
@@ -663,11 +663,11 @@ namespace renderer {
       uniform_idx++
     ) {
       const char *uniform_name = shader_asset->intrinsic_uniform_names[uniform_idx];
-      if (str::eq(uniform_name, "model_matrix")) {
+      if (pstr_eq(uniform_name, "model_matrix")) {
         shaders::set_mat4(shader_asset, "model_matrix", model_matrix);
-      } else if (str::eq(uniform_name, "model_normal_matrix")) {
+      } else if (pstr_eq(uniform_name, "model_normal_matrix")) {
         shaders::set_mat3(shader_asset, "model_normal_matrix", model_normal_matrix);
-      } else if (bone_matrices && str::eq(uniform_name, "bone_matrices[0]")) {
+      } else if (bone_matrices && pstr_eq(uniform_name, "bone_matrices[0]")) {
         shaders::set_mat4_multiple(
           shader_asset, MAX_N_BONES, "bone_matrices[0]", bone_matrices
         );

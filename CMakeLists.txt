@@ -26,7 +26,6 @@ else()
     src/debug.cpp
     src/memory.cpp
     src/files.cpp
-    src/str.cpp
     src/pack.cpp
     src/shaders.cpp
     src/tasks.cpp
