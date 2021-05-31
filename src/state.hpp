@@ -21,11 +21,10 @@ namespace state {
 
   struct WindowInfo {
     GLFWwindow *window;
-    uint32 width; // in pixels (size of framebuffer)
-    uint32 height; // in pixels (size of framebuffer)
+    int32 width; // in pixels (size of framebuffer)
+    int32 height; // in pixels (size of framebuffer)
     uint32 screencoord_width; // in screen coordinates
     uint32 screencoord_height; // in screen coordinates
-    char title[128];
   };
 
   struct PerfCounters {

@@ -18,17 +18,30 @@ constexpr real32 PI32 = 3.14159265359f;
 constexpr real64 PI = 3.14159265358979323846;
 
 #if !defined(MAX_PATH)
-#if defined(PATH_MAX)
+  #if defined(PATH_MAX)
+    #define MAX_PATH PATH_MAX
+  #else
+    #define MAX_PATH 260
+  #endif
+#endif
 
-#define MAX_PATH PATH_MAX
-
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || \
+    defined(__NT__) || defined(__CYGWIN__) || defined(__MINGW32__)
+  #define PLATFORM_WINDOWS
+#elif defined(__APPLE__)
+  #define PLATFORM_MACOS
+  #define PLATFORM_POSIX
+#elif defined(__linux__) || defined(__unix__)
+  #define PLATFORM_UNIX
+  #define PLATFORM_POSIX
+#elif defined(__FreeBSD)
+  #define PLATFORM_FREEBSD
+  #define PLATFORM_POSIX
 #else
-
-#define MAX_PATH 260
-
-#endif
+  #error "Unknown platform"
 #endif
 
+constexpr char WINDOW_TITLE[] = "peony";
 constexpr char TEXTURE_DIR[] = "resources/textures/";
 constexpr char MODEL_DIR[] = "resources/models/";
 constexpr char FONTS_DIR[] = "resources/fonts/";

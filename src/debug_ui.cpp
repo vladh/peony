@@ -294,23 +294,19 @@ void debug_ui::render_debug_ui(State *state) {
   }
 
   {
-#if 1
     GuiContainer *container = gui::make_container(
       &state->gui_state, "Entities", v2(state->window_info.width - 400.0f, 25.0f)
     );
     get_scene_text_representation(debug_text, state);
     gui::draw_body_text(&state->gui_state, container, debug_text);
-#endif
   }
 
   {
-#if 1
     GuiContainer *container = gui::make_container(
       &state->gui_state, "Materials", v2(state->window_info.width - 600.0f, 25.0f)
     );
     get_materials_text_representation(debug_text, state);
     gui::draw_body_text(&state->gui_state, container, debug_text);
-#endif
   }
 
   gui::draw_console(
