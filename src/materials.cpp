@@ -456,9 +456,6 @@ Material* materials::get_material_by_name(
       return material;
     }
   }
-#if 0
-  logs::warning("Could not find Material with name %s", name);
-#endif
   return nullptr;
 }
 
@@ -518,13 +515,13 @@ void materials::bind_texture_uniforms(Material *material) {
     for (uint32 idx = 0; idx < material->n_textures; idx++) {
       Texture *texture = &material->textures[idx];
       const char *uniform_name = material->texture_uniform_names[idx];
-#if USE_SHADER_DEBUG
-      logs::info(
-        "Setting uniforms: (uniform_name %s) "
-        "(texture->texture_name %d)",
-        uniform_name, texture->texture_name
-      );
-#endif
+      #if USE_SHADER_DEBUG
+        logs::info(
+          "Setting uniforms: (uniform_name %s) "
+          "(texture->texture_name %d)",
+          uniform_name, texture->texture_name
+        );
+      #endif
       shaders::set_int(
         shader_asset,
         uniform_name,

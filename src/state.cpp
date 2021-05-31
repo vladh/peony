@@ -20,8 +20,8 @@ State* state::init_state(
   state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
 
   state->builtin_textures = {
-    .shadowmap_3d_width = min(state->window_info.width, (uint32)2000),
-    .shadowmap_3d_height = min(state->window_info.width, (uint32)2000),
+    .shadowmap_3d_width = min((uint32)state->window_info.width, (uint32)2000),
+    .shadowmap_3d_height = min((uint32)state->window_info.width, (uint32)2000),
     .shadowmap_2d_width = 2560 * 2,
     .shadowmap_2d_height = 1440 * 2,
     .shadowmap_near_clip_dist = 0.05f,

@@ -11,9 +11,10 @@
 
 
 int main() {
+  // Seed RNG
   srand((uint32)time(NULL));
-  defer { logs::info("Bye!"); };
 
+  // Create memory pools
   MemoryPool state_memory_pool = {.size = sizeof(State)};
   defer { memory::destroy_memory_pool(&state_memory_pool); };
   MemoryPool asset_memory_pool = {.size = util::mb_to_b(1024)};

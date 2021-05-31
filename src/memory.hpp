@@ -6,19 +6,19 @@
   (type*)memory::push(pool, sizeof(type), debug_name)
 
 namespace memory {
-#if USE_MEMORYPOOL_ITEM_DEBUG
-  constexpr uint32 MAX_N_MEMORYPOOL_ITEMS = 1024;
-#endif
+  #if USE_MEMORYPOOL_ITEM_DEBUG
+    constexpr uint32 MAX_N_MEMORYPOOL_ITEMS = 1024;
+  #endif
 
   struct MemoryPool {
     uint8 *memory;
     size_t size;
     size_t used;
     uint32 n_items;
-#if USE_MEMORYPOOL_ITEM_DEBUG
-    const char *item_debug_names[MAX_N_MEMORYPOOL_ITEMS];
-    size_t item_debug_sizes[MAX_N_MEMORYPOOL_ITEMS];
-#endif
+    #if USE_MEMORYPOOL_ITEM_DEBUG
+      const char *item_debug_names[MAX_N_MEMORYPOOL_ITEMS];
+      size_t item_debug_sizes[MAX_N_MEMORYPOOL_ITEMS];
+    #endif
   };
 
   void* push(

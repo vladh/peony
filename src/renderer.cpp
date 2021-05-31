@@ -188,18 +188,6 @@ namespace renderer {
     uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
     glDrawBuffers(2, attachments);
 
-#if 0
-    uint32 rbo_depth;
-    glGenRenderbuffers(1, &rbo_depth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
-    glRenderbufferStorage(
-      GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
-      width, height
-    );
-    glFramebufferRenderbuffer(
-      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
-    );
-#else
     uint32 l_depth_texture_name;
     glGenTextures(1, &l_depth_texture_name);
 
@@ -224,7 +212,6 @@ namespace renderer {
       GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
       builtin_textures->l_depth_texture->texture_name, 0
     );
-#endif
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
       logs::fatal("Framebuffer not complete!");
@@ -238,9 +225,9 @@ namespace renderer {
     uint32 width,
     uint32 height
   ) {
-#if USE_BLOOM
-    return;
-#endif
+    #if !USE_BLOOM
+      return;
+    #endif
     glGenFramebuffers(1, &builtin_textures->blur1_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, builtin_textures->blur1_buffer);
     uint32 blur1_texture_name;
@@ -706,12 +693,12 @@ namespace renderer {
         continue;
       }
 
-#if 0
-      logs::info(
-        "Drawing %s",
-        entity_set->entities[drawable_component->entity_handle]->debug_name
-      );
-#endif
+      #if 0
+        logs::info(
+          "Drawing %s",
+          entity_set->entities[drawable_component->entity_handle]->debug_name
+        );
+      #endif
 
       Material *material = materials::get_material_by_name(
         materials, drawable_component->mesh.material_name
@@ -780,9 +767,9 @@ namespace renderer {
     RenderPass render_pass,
     RenderMode render_mode
   ) {
-#if 0
-    logs::info("RenderPass: %s", render_pass_to_string(render_pass));
-#endif
+    #if 0
+      logs::info("RenderPass: %s", render_pass_to_string(render_pass));
+    #endif
     draw_all(
       &state->entity_set,
       &state->drawable_component_set,
@@ -831,67 +818,68 @@ void renderer::init(
 
 WindowInfo renderer::init_window() {
   WindowInfo window_info = {};
-  strcpy(window_info.title, "hi lol");
-
   glfwInit();
 
   logs::info("Using OpenGL 4.1");
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_SAMPLES, 4);
 
-#if defined(__APPLE__)
-  logs::info("Using GLFW_OPENGL_FORWARD_COMPAT");
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-#endif
+  #if defined(PLATFORM_MACOS)
+    // macOS requires a forward compatible context
+    // This means the highest OpenGL version will be used that is at least the version
+    // we specified, and that contains no breaking changes from the version we specified
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  #endif
 
-  if (USE_OPENGL_DEBUG) {
+  #if USE_OPENGL_DEBUG
     logs::info("Using OpenGL debug context");
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-  }
+  #endif
 
+  // Remove window decorations (border etc.)
   glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
+  // For fullscreen windows, do not discard our video mode when minimised
   glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
 
   // Create the window. Right now we're working with screencoord sizes,
   // not pixels!
 
-#if USE_FULLSCREEN
-  int32 n_monitors;
-  GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-  GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
+  #if USE_FULLSCREEN
+    int32 n_monitors;
+    GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+    GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
+    const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+    glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-  const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
-  glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-  glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-  glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-  glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+    window_info.screencoord_width = video_mode->width;
+    window_info.screencoord_height = video_mode->height;
 
-  window_info.screencoord_width = video_mode->width;
-  window_info.screencoord_height = video_mode->height;
+    GLFWwindow *window = glfwCreateWindow(
+      window_info.screencoord_width, window_info.screencoord_height,
+      WINDOW_TITLE,
+      #if USE_WINDOWED_FULLSCREEN
+        nullptr, nullptr
+      #else
+        target_monitor, nullptr
+      #endif
+    );
+  #else
+    window_info.screencoord_width = 1920;
+    window_info.screencoord_height = 1080;
 
-  GLFWwindow *window = glfwCreateWindow(
-    window_info.screencoord_width, window_info.screencoord_height,
-    window_info.title,
-#if USE_WINDOWED_FULLSCREEN
-    nullptr, nullptr
-#else
-    target_monitor, nullptr
-#endif
-  );
-#else
-  window_info.screencoord_width = 1920;
-  window_info.screencoord_height = 1080;
+    GLFWwindow *window = glfwCreateWindow(
+      window_info.screencoord_width, window_info.screencoord_height,
+      WINDOW_TITLE,
+      nullptr, nullptr
+    );
 
-  GLFWwindow *window = glfwCreateWindow(
-    window_info.screencoord_width, window_info.screencoord_height,
-    window_info.title,
-    nullptr, nullptr
-  );
-
-  glfwSetWindowPos(window, 200, 200);
-#endif
+    glfwSetWindowPos(window, 200, 200);
+  #endif
 
   if (!window) {
     logs::fatal("Failed to create GLFW window");
@@ -921,7 +909,7 @@ WindowInfo renderer::init_window() {
   // TODO: Remove GL_EXT_debug_label from GLAD
   // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
 
-  if (USE_OPENGL_DEBUG) {
+  #if USE_OPENGL_DEBUG
     if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
       GLint flags;
       glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
@@ -930,7 +918,9 @@ WindowInfo renderer::init_window() {
         glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
         glDebugMessageCallback(util::debug_message_callback, nullptr);
-        glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+        glDebugMessageControl(
+          GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE
+        );
       } else {
         logs::fatal("Tried to initialise OpenGL debug output but couldn't");
       }
@@ -941,10 +931,9 @@ WindowInfo renderer::init_window() {
         "are supported on this system. Skipping."
       );
     }
-  }
+  #endif
 
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_MULTISAMPLE);
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -952,11 +941,7 @@ WindowInfo renderer::init_window() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Get the framebuffer size. This is the actual window size in pixels.
-  int32 framebuffer_width;
-  int32 framebuffer_height;
-  glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
-  window_info.width = (uint32)framebuffer_width;
-  window_info.height = (uint32)framebuffer_height;
+  glfwGetFramebufferSize(window, &window_info.width, &window_info.height);
   glViewport(0, 0, window_info.width, window_info.height);
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -1183,28 +1168,28 @@ void renderer::render(State *state) {
 
   glDisable(GL_DEPTH_TEST);
 
-#if USE_BLOOM
-  // Blur pass
-  {
-    glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-    copy_scene_data_to_ubo(state, 0, 0, true);
-    render_scene(state, RenderPass::preblur, RenderMode::regular);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-    copy_scene_data_to_ubo(state, 0, 0, false);
-    render_scene(state, RenderPass::blur2, RenderMode::regular);
-
-    for (uint32 idx = 0; idx < 3; idx++) {
+  #if USE_BLOOM
+    // Blur pass
+    {
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
       copy_scene_data_to_ubo(state, 0, 0, true);
-      render_scene(state, RenderPass::blur1, RenderMode::regular);
+      render_scene(state, RenderPass::preblur, RenderMode::regular);
 
       glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
       copy_scene_data_to_ubo(state, 0, 0, false);
-      render_scene(state, RenderPass::blur1, RenderMode::regular);
+      render_scene(state, RenderPass::blur2, RenderMode::regular);
+
+      for (uint32 idx = 0; idx < 3; idx++) {
+        glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
+        copy_scene_data_to_ubo(state, 0, 0, true);
+        render_scene(state, RenderPass::blur1, RenderMode::regular);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
+        copy_scene_data_to_ubo(state, 0, 0, false);
+        render_scene(state, RenderPass::blur1, RenderMode::regular);
+      }
     }
-  }
-#endif
+  #endif
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

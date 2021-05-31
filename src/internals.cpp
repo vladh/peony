@@ -50,55 +50,55 @@ void internals::create_internal_materials(State *state) {
     );
   }
 
-#if USE_BLOOM
-  // preblur
-  {
-    Material *material = materials::init_material(
-      state->materials.push(), "preblur"
-    );
-    shaders::init_shader_asset(
-      &material->shader_asset,
-      &temp_memory_pool,
-      "blur", ShaderType::standard,
-      "screenquad.vert", "blur.frag", ""
-    );
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.l_bright_color_texture, "source_texture"
-    );
-  }
+  #if USE_BLOOM
+    // preblur
+    {
+      Material *material = materials::init_material(
+        state->materials.push(), "preblur"
+      );
+      shaders::init_shader_asset(
+        &material->shader_asset,
+        &temp_memory_pool,
+        "blur", ShaderType::standard,
+        "screenquad.vert", "blur.frag", ""
+      );
+      materials::add_texture_to_material(
+        material, *state->builtin_textures.l_bright_color_texture, "source_texture"
+      );
+    }
 
-  // blur1
-  {
-    Material *material = materials::init_material(
-      state->materials.push(), "blur1"
-    );
-    shaders::init_shader_asset(
-      &material->shader_asset,
-      &temp_memory_pool,
-      "blur", ShaderType::standard,
-      "screenquad.vert", "blur.frag", ""
-    );
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.blur2_texture, "source_texture"
-    );
-  }
+    // blur1
+    {
+      Material *material = materials::init_material(
+        state->materials.push(), "blur1"
+      );
+      shaders::init_shader_asset(
+        &material->shader_asset,
+        &temp_memory_pool,
+        "blur", ShaderType::standard,
+        "screenquad.vert", "blur.frag", ""
+      );
+      materials::add_texture_to_material(
+        material, *state->builtin_textures.blur2_texture, "source_texture"
+      );
+    }
 
-  // blur2
-  {
-    Material *material = materials::init_material(
-      state->materials.push(), "blur2"
-    );
-    shaders::init_shader_asset(
-      &material->shader_asset,
-      &temp_memory_pool,
-      "blur", ShaderType::standard,
-      "screenquad.vert", "blur.frag", ""
-    );
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.blur1_texture, "source_texture"
-    );
-  }
-#endif
+    // blur2
+    {
+      Material *material = materials::init_material(
+        state->materials.push(), "blur2"
+      );
+      shaders::init_shader_asset(
+        &material->shader_asset,
+        &temp_memory_pool,
+        "blur", ShaderType::standard,
+        "screenquad.vert", "blur.frag", ""
+      );
+      materials::add_texture_to_material(
+        material, *state->builtin_textures.blur1_texture, "source_texture"
+      );
+    }
+  #endif
 
   // postprocessing
   {
@@ -114,11 +114,11 @@ void internals::create_internal_materials(State *state) {
     materials::add_texture_to_material(
       material, *state->builtin_textures.l_color_texture, "l_color_texture"
     );
-#if USE_BLOOM
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.blur2_texture, "bloom_texture"
-    );
-#endif
+    #if USE_BLOOM
+      materials::add_texture_to_material(
+        material, *state->builtin_textures.blur2_texture, "bloom_texture"
+      );
+    #endif
     // Uncomment to use fog.
     /* materials::add_texture_to-material( */
     /*   material, *state->l_depth_texture, "l_depth_texture" */
@@ -225,61 +225,61 @@ void internals::create_internal_entities(State *state) {
     models::add_material_to_model_loader(model_loader, "lighting");
   }
 
-#if USE_BLOOM
-  // Preblur screenquad
-  {
-    Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "screenquad_preblur"
-    );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(model_loader "builtin:screenquad_preblur");
-    models::init_entity_loader(
-      entity_loader,
-      "screenquad_preblur",
-      "builtin:screenquad_preblur",
-      RenderPass::preblur,
-      entity->handle
-    );
-    models::add_material_to_model_loader(model_loader, "preblur");
-  }
+  #if USE_BLOOM
+    // Preblur screenquad
+    {
+      Entity *entity = entities::add_entity_to_set(
+        &state->entity_set, "screenquad_preblur"
+      );
+      ModelLoader *model_loader = state->model_loaders.push();
+      EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+      models::init_model_loader(model_loader "builtin:screenquad_preblur");
+      models::init_entity_loader(
+        entity_loader,
+        "screenquad_preblur",
+        "builtin:screenquad_preblur",
+        RenderPass::preblur,
+        entity->handle
+      );
+      models::add_material_to_model_loader(model_loader, "preblur");
+    }
 
-  // Blur 1 screenquad
-  {
-    Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "screenquad_blur1"
-    );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(model_loader, "builtin:screenquad_blur1");
-    models::init_entity_loader(
-      entity_loader,
-      "screenquad_blur1",
-      "builtin:screenquad_blur1",
-      RenderPass::blur1,
-      entity->handle
-    );
-    models::add_material_to_model_loader(model_loader, "blur1");
-  }
+    // Blur 1 screenquad
+    {
+      Entity *entity = entities::add_entity_to_set(
+        &state->entity_set, "screenquad_blur1"
+      );
+      ModelLoader *model_loader = state->model_loaders.push();
+      EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+      models::init_model_loader(model_loader, "builtin:screenquad_blur1");
+      models::init_entity_loader(
+        entity_loader,
+        "screenquad_blur1",
+        "builtin:screenquad_blur1",
+        RenderPass::blur1,
+        entity->handle
+      );
+      models::add_material_to_model_loader(model_loader, "blur1");
+    }
 
-  // Blur 2 screenquad
-  {
-    Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "screenquad_blur2"
-    );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
-    models::init_model_loader(model_loader, "builtin:screenquad_blur2");
-    models::init_entity_loader(
-      entity_loader,
-      "screenquad_blur2",
-      "builtin:screenquad_blur2",
-      RenderPass::blur2,
-      entity->handle
-    );
-    models::add_material_to_model_loader(model_loader, "blur2");
-  }
-#endif
+    // Blur 2 screenquad
+    {
+      Entity *entity = entities::add_entity_to_set(
+        &state->entity_set, "screenquad_blur2"
+      );
+      ModelLoader *model_loader = state->model_loaders.push();
+      EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+      models::init_model_loader(model_loader, "builtin:screenquad_blur2");
+      models::init_entity_loader(
+        entity_loader,
+        "screenquad_blur2",
+        "builtin:screenquad_blur2",
+        RenderPass::blur2,
+        entity->handle
+      );
+      models::add_material_to_model_loader(model_loader, "blur2");
+    }
+  #endif
 
   // Postprocessing screenquad
   {
@@ -319,7 +319,6 @@ void internals::create_internal_entities(State *state) {
 
   // Skysphere
   {
-#if 1
     Entity *entity = entities::add_entity_to_set(
       &state->entity_set, "skysphere"
     );
@@ -340,7 +339,6 @@ void internals::create_internal_entities(State *state) {
       .scale = v3(75.0f),
     };
     models::add_material_to_model_loader(model_loader, "skysphere");
-#endif
   }
 
   // We've created all internal entities, so we will mark the next position

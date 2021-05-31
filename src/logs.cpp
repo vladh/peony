@@ -9,11 +9,11 @@ void logs::fatal(const char *format, ...) {
   vfprintf(stderr, format, vargs);
   fprintf(stderr, "\n");
   va_end(vargs);
-#ifdef _WIN32
-  __debugbreak();
-#else
-  raise(SIGABRT);
-#endif
+  #if defined(PLATFORM_WINDOWS)
+    __debugbreak();
+  #elif defined(PLATFORM_POSIX)
+    raise(SIGABRT);
+  #endif
 }
 
 
