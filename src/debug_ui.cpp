@@ -180,13 +180,13 @@ void debug_ui::render_debug_ui(State *state) {
     );
 
     snprintf(
-      debug_text, dt_size, "%ux%u", state->window_info.width, state->window_info.height
+      debug_text, dt_size, "%ux%u", state->window_size.width, state->window_size.height
     );
     gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
 
     snprintf(
       debug_text, dt_size, "%ux%u",
-      state->window_info.screencoord_width, state->window_info.screencoord_height
+      state->window_size.screencoord_width, state->window_size.screencoord_height
     );
     gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
 
@@ -295,7 +295,7 @@ void debug_ui::render_debug_ui(State *state) {
 
   {
     GuiContainer *container = gui::make_container(
-      &state->gui_state, "Entities", v2(state->window_info.width - 400.0f, 25.0f)
+      &state->gui_state, "Entities", v2(state->window_size.width - 400.0f, 25.0f)
     );
     get_scene_text_representation(debug_text, state);
     gui::draw_body_text(&state->gui_state, container, debug_text);
@@ -303,7 +303,7 @@ void debug_ui::render_debug_ui(State *state) {
 
   {
     GuiContainer *container = gui::make_container(
-      &state->gui_state, "Materials", v2(state->window_info.width - 600.0f, 25.0f)
+      &state->gui_state, "Materials", v2(state->window_size.width - 600.0f, 25.0f)
     );
     get_materials_text_representation(debug_text, state);
     gui::draw_body_text(&state->gui_state, container, debug_text);

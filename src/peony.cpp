@@ -20,14 +20,15 @@ int main() {
   MemoryPool asset_memory_pool = {.size = util::mb_to_b(1024)};
   defer { memory::destroy_memory_pool(&asset_memory_pool); };
 
-  WindowInfo window_info = renderer::init_window();
+  WindowSize window_size;
+  GLFWwindow *window = renderer::init_window(&window_size);
   defer { renderer::destroy_window(); };
-  if (!window_info.window) { return EXIT_FAILURE; }
+  if (!window) { return EXIT_FAILURE; }
 
   State *state = MEMORY_PUSH(&state_memory_pool, State, "state");
-  state::init_state(state, &asset_memory_pool, window_info);
+  state::init_state(state, &asset_memory_pool, window, &window_size);
   MemoryAndState memory_and_state = {&asset_memory_pool, state};
-  glfwSetWindowUserPointer(window_info.window, &memory_and_state);
+  glfwSetWindowUserPointer(window, &memory_and_state);
 
   std::mutex loading_thread_mutex;
   std::thread loading_threads[5];
@@ -44,7 +45,7 @@ int main() {
 
   renderer::init(
     &asset_memory_pool, &state->builtin_textures,
-    window_info.width, window_info.height,
+    window_size.width, window_size.height,
     state
   );
   engine::init(state);
@@ -55,20 +56,17 @@ int main() {
     &state->gui_state,
     &asset_memory_pool,
     &state->input_state,
-    state->window_info.width, state->window_info.height
+    window_size.width, window_size.height
   );
   debugdraw::init(&state->debug_draw_state, &asset_memory_pool);
   cameras::init(
     &state->camera_main,
     CameraType::perspective,
-    state->window_info.width,
-    state->window_info.height
+    window_size.width,
+    window_size.height
   );
   state->camera_active = &state->camera_main;
-  input::init(
-    &state->input_state,
-    state->window_info.window
-  );
+  input::init(&state->input_state, window);
 
   engine::run_main_loop(state);
 

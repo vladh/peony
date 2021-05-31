@@ -1,4 +1,5 @@
 #include <chrono>
+#include <thread>
 namespace chrono = std::chrono;
 #include "../src_external/pstr.h"
 #include "util.hpp"
@@ -434,8 +435,8 @@ namespace engine {
 
     cameras::update_matrices(
       state->camera_active,
-      state->window_info.width,
-      state->window_info.height
+      state->window_size.width,
+      state->window_size.height
     );
 
     state->is_world_loaded = check_all_entities_loaded(state);
@@ -527,7 +528,7 @@ void engine::run_main_loop(State *state) {
 
   while (!state->should_stop) {
     glfwPollEvents();
-    process_input(state->window_info.window, state);
+    process_input(state->window, state);
 
     if (
       !state->is_manual_frame_advance_enabled ||
@@ -558,11 +559,8 @@ void engine::run_main_loop(State *state) {
       }
     }
 
-    START_TIMER(swap_buffers);
-    glfwSwapBuffers(state->window_info.window);
-    END_TIMER_MIN(swap_buffers, 16);
 
-    if (glfwWindowShouldClose(state->window_info.window)) {
+    if (glfwWindowShouldClose(state->window)) {
       state->should_stop = true;
     }
   }
