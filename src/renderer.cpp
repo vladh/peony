@@ -375,55 +375,6 @@ namespace renderer {
   }
 
 
-  pny_internal void resize_renderer_buffers(
-    MemoryPool *memory_pool,
-    Array<Material> *materials,
-    BuiltinTextures *builtin_textures,
-    uint32 width,
-    uint32 height
-  ) {
-    // TODO: Only regenerate once we're done resizing, not for every little bit
-    // of the resize.
-    init_g_buffer(
-      memory_pool, builtin_textures, width, height
-    );
-    init_l_buffer(
-      memory_pool, builtin_textures, width, height
-    );
-    init_blur_buffers(
-      memory_pool, builtin_textures, width, height
-    );
-
-    each (material, *materials) {
-      if (material->n_textures > 0 && material->is_screensize_dependent) {
-        for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
-          Texture *texture = &material->textures[idx_texture];
-          if (texture->type == TextureType::g_position) {
-            material->textures[idx_texture] = *builtin_textures->g_position_texture;
-          } else if (texture->type == TextureType::g_normal) {
-            material->textures[idx_texture] = *builtin_textures->g_normal_texture;
-          } else if (texture->type == TextureType::g_albedo) {
-            material->textures[idx_texture] = *builtin_textures->g_albedo_texture;
-          } else if (texture->type == TextureType::g_pbr) {
-            material->textures[idx_texture] = *builtin_textures->g_pbr_texture;
-          } else if (texture->type == TextureType::l_color) {
-            material->textures[idx_texture] = *builtin_textures->l_color_texture;
-          } else if (texture->type == TextureType::l_bright_color) {
-            material->textures[idx_texture] = *builtin_textures->l_bright_color_texture;
-          } else if (texture->type == TextureType::l_depth) {
-            material->textures[idx_texture] = *builtin_textures->l_depth_texture;
-          } else if (texture->type == TextureType::blur1) {
-            material->textures[idx_texture] = *builtin_textures->blur1_texture;
-          } else if (texture->type == TextureType::blur2) {
-            material->textures[idx_texture] = *builtin_textures->blur2_texture;
-          }
-        }
-        materials::bind_texture_uniforms(material);
-      }
-    }
-  }
-
-
   pny_internal void copy_scene_data_to_ubo(
     State *state,
     uint32 current_shadow_light_idx,
@@ -520,86 +471,6 @@ namespace renderer {
   }
 
 
-  pny_internal void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-    MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
-    logs::info(
-      "Window is now: %d x %d", state->window_size.width, state->window_size.height
-    );
-    state->window_size.width = width;
-    state->window_size.height = height;
-    cameras::update_matrices(
-      state->camera_active,
-      state->window_size.width,
-      state->window_size.height
-    );
-    cameras::update_ui_matrices(
-      state->camera_active,
-      state->window_size.width,
-      state->window_size.height
-    );
-    gui::update_screen_dimensions(
-      &state->gui_state, state->window_size.width, state->window_size.height
-    );
-    resize_renderer_buffers(
-      asset_memory_pool,
-      &state->materials,
-      &state->builtin_textures,
-      width,
-      height
-    );
-  }
-
-
-  pny_internal void mouse_button_callback(
-    GLFWwindow *window, int button, int action, int mods
-  ) {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-
-    input::update_mouse_button(&state->input_state, button, action, mods);
-    gui::update_mouse_button(&state->gui_state);
-  }
-
-
-  pny_internal void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-
-    v2 mouse_pos = v2(x, y);
-    input::update_mouse(&state->input_state, mouse_pos);
-
-    if (state->is_cursor_enabled) {
-      gui::update_mouse(&state->gui_state);
-    } else {
-      cameras::update_mouse(
-        state->camera_active,
-        state->input_state.mouse_3d_offset
-      );
-    }
-  }
-
-
-  pny_internal void key_callback(
-    GLFWwindow* window,
-    int key, int scancode, int action, int mods
-  ) {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-    input::update_keys(&state->input_state, key, scancode, action, mods);
-  }
-
-
-  pny_internal void char_callback(
-    GLFWwindow* window, uint32 codepoint
-  ) {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-    input::update_text_input(&state->input_state, codepoint);
-  }
-
-
   pny_internal void draw(
     RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
@@ -680,8 +551,7 @@ namespace renderer {
     Array<Material> *materials,
     RenderPass render_pass,
     RenderMode render_mode,
-    ShaderAsset *standard_depth_shader_asset,
-    real64 t
+    ShaderAsset *standard_depth_shader_asset
   ) {
     ModelMatrixCache cache = {m4(1.0f), nullptr};
 
@@ -779,9 +649,57 @@ namespace renderer {
       &state->materials,
       render_pass,
       render_mode,
-      &state->standard_depth_shader_asset,
-      state->t
+      &state->standard_depth_shader_asset
     );
+  }
+}
+
+
+void renderer::resize_renderer_buffers(
+  MemoryPool *memory_pool,
+  Array<Material> *materials,
+  BuiltinTextures *builtin_textures,
+  uint32 width,
+  uint32 height
+) {
+  // TODO: Only regenerate once we're done resizing, not for every little bit
+  // of the resize.
+  init_g_buffer(
+    memory_pool, builtin_textures, width, height
+  );
+  init_l_buffer(
+    memory_pool, builtin_textures, width, height
+  );
+  init_blur_buffers(
+    memory_pool, builtin_textures, width, height
+  );
+
+  each (material, *materials) {
+    if (material->n_textures > 0 && material->is_screensize_dependent) {
+      for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
+        Texture *texture = &material->textures[idx_texture];
+        if (texture->type == TextureType::g_position) {
+          material->textures[idx_texture] = *builtin_textures->g_position_texture;
+        } else if (texture->type == TextureType::g_normal) {
+          material->textures[idx_texture] = *builtin_textures->g_normal_texture;
+        } else if (texture->type == TextureType::g_albedo) {
+          material->textures[idx_texture] = *builtin_textures->g_albedo_texture;
+        } else if (texture->type == TextureType::g_pbr) {
+          material->textures[idx_texture] = *builtin_textures->g_pbr_texture;
+        } else if (texture->type == TextureType::l_color) {
+          material->textures[idx_texture] = *builtin_textures->l_color_texture;
+        } else if (texture->type == TextureType::l_bright_color) {
+          material->textures[idx_texture] = *builtin_textures->l_bright_color_texture;
+        } else if (texture->type == TextureType::l_depth) {
+          material->textures[idx_texture] = *builtin_textures->l_depth_texture;
+        } else if (texture->type == TextureType::blur1) {
+          material->textures[idx_texture] = *builtin_textures->blur1_texture;
+        } else if (texture->type == TextureType::blur2) {
+          material->textures[idx_texture] = *builtin_textures->blur2_texture;
+        }
+      }
+      materials::bind_texture_uniforms(material);
+    }
   }
 }
 
@@ -814,147 +732,6 @@ void renderer::init(
   init_shadowmaps(memory_pool, builtin_textures);
   init_ubo(state);
   update_drawing_options(state, state->window);
-}
-
-
-GLFWwindow* renderer::init_window(WindowSize *window_size) {
-  glfwInit();
-
-  logs::info("Using OpenGL 4.1");
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-  #if defined(PLATFORM_MACOS)
-    // macOS requires a forward compatible context
-    // This means the highest OpenGL version will be used that is at least the version
-    // we specified, and that contains no breaking changes from the version we specified
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  #endif
-
-  #if USE_OPENGL_DEBUG
-    logs::info("Using OpenGL debug context");
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-  #endif
-
-  // Remove window decorations (border etc.)
-  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
-
-  // For fullscreen windows, do not discard our video mode when minimised
-  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
-
-  // Create the window. Right now we're working with screencoord sizes,
-  // not pixels!
-
-  #if USE_FULLSCREEN
-    int32 n_monitors;
-    GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-    GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
-    const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
-    glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
-
-    window_size->screencoord_width = video_mode->width;
-    window_size->screencoord_height = video_mode->height;
-
-    GLFWwindow *window = glfwCreateWindow(
-      window_size->screencoord_width, window_size->screencoord_height,
-      WINDOW_TITLE,
-      #if USE_WINDOWED_FULLSCREEN
-        nullptr, nullptr
-      #else
-        target_monitor, nullptr
-      #endif
-    );
-  #else
-    window_size.screencoord_width = 1920;
-    window_size.screencoord_height = 1080;
-
-    GLFWwindow *window = glfwCreateWindow(
-      window_size.screencoord_width, window_size.screencoord_height,
-      WINDOW_TITLE,
-      nullptr, nullptr
-    );
-
-    glfwSetWindowPos(window, 200, 200);
-  #endif
-
-  if (!window) {
-    logs::fatal("Failed to create GLFW window");
-    return nullptr;
-  }
-
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(0);
-
-  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-    logs::fatal("Failed to initialize GLAD");
-    return nullptr;
-  }
-
-  if (!GLAD_GL_ARB_texture_cube_map_array) {
-    logs::fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
-  }
-  if (!GLAD_GL_ARB_texture_storage) {
-    logs::fatal("No support for GLAD_GL_ARB_texture_storage");
-  }
-  if (!GLAD_GL_ARB_buffer_storage) {
-    logs::warning("No support for GLAD_GL_ARB_buffer_storage");
-  }
-
-  // TODO: Remove GL_EXT_debug_marker from GLAD
-  // TODO: Remove GL_EXT_debug_label from GLAD
-  // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
-
-  #if USE_OPENGL_DEBUG
-    if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
-      GLint flags;
-      glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
-
-      if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-        glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-        glDebugMessageCallback(util::debug_message_callback, nullptr);
-        glDebugMessageControl(
-          GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE
-        );
-      } else {
-        logs::fatal("Tried to initialise OpenGL debug output but couldn't");
-      }
-    } else {
-      logs::warning(
-        "Tried to initialise OpenGL debug output but none of "
-        "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
-        "are supported on this system. Skipping."
-      );
-    }
-  #endif
-
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glLineWidth(2.0f);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  // Get the framebuffer size. This is the actual window size in pixels.
-  glfwGetFramebufferSize(window, &window_size->width, &window_size->height);
-  glViewport(0, 0, window_size->width, window_size->height);
-
-  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-  glfwSetCursorPosCallback(window, mouse_callback);
-  glfwSetMouseButtonCallback(window, mouse_button_callback);
-  glfwSetKeyCallback(window, key_callback);
-  glfwSetCharCallback(window, char_callback);
-
-  return window;
-}
-
-
-void renderer::destroy_window() {
-  glfwTerminate();
 }
 
 
