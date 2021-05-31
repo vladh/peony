@@ -112,10 +112,9 @@ namespace state {
     m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
     BuiltinTextures builtin_textures;
 
-    // Common stuff
+    // Camera stuff
     Camera camera_main;
     Camera *camera_active;
-    Array<Material> materials;
 
     // Input stuff
     InputState input_state;
@@ -143,6 +142,7 @@ namespace state {
     PersistentPbo persistent_pbo;
     TextureNamePool texture_name_pool;
     Queue<Task> task_queue;
+    Array<Material> materials;
   };
 
   struct MemoryAndState {
