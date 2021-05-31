@@ -10,8 +10,6 @@ State* state::init_state(
   state->window = window;
   state->window_size = *window_size;
 
-  state->background_color = v4(0.81f, 0.93f, 1.00f, 1.0f);
-
   state->materials = Array<Material>(
     asset_memory_pool, MAX_N_MATERIALS, "materials"
   );

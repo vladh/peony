@@ -74,43 +74,48 @@ namespace state {
   };
 
   struct State {
+    // main stuff
+    GLFWwindow *window;
+    WindowSize window_size;
+
+    // Engine stuff
     bool32 is_manual_frame_advance_enabled;
     bool32 should_manually_advance_to_next_frame;
     bool32 should_stop;
     bool32 should_pause;
-    bool32 should_hide_ui;
-
-    GLFWwindow *window;
-    WindowSize window_size;
-
-    Camera camera_main;
-    Camera *camera_active;
-    InputState input_state;
+    bool32 should_limit_fps;
     char current_scene_name[MAX_COMMON_NAME_LENGTH];
-
     // NOTE: `t` and `dt` will not change when gameplay is paused.
     real64 t; // us
     real64 dt; // us
     real64 timescale_diff;
     PerfCounters perf_counters;
-
-    bool32 is_cursor_enabled;
-    bool32 should_limit_fps;
-    bool32 should_use_wireframe;
-    v4 background_color;
     uint32 n_valid_model_loaders;
     uint32 n_valid_entity_loaders;
-
     bool32 is_world_loaded;
     bool32 was_world_ever_loaded;
-
-    Array<Material> materials;
     Array<ModelLoader> model_loaders;
     uint32 first_non_internal_material_idx;
 
+    // Renderer stuff
+    bool32 is_cursor_enabled;
+    bool32 should_hide_ui;
+    bool32 should_use_wireframe;
+
+    // Common stuff
+    Camera camera_main;
+    Camera *camera_active;
+    Array<Material> materials;
+
+    // Input stuff
+    InputState input_state;
+
+    // Gui stuff
     GuiState gui_state;
+    GameConsole game_console; // TODO: Move into GuiState
+
+    // DebugDraw stuff
     DebugDrawState debug_draw_state;
-    GameConsole game_console;
 
     EntitySet entity_set;
     EntityLoaderSet entity_loader_set;

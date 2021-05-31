@@ -10,6 +10,227 @@
 #include "intrinsics.hpp"
 
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
+  logs::info(
+    "Window is now: %d x %d", state->window_size.width, state->window_size.height
+  );
+  state->window_size.width = width;
+  state->window_size.height = height;
+  cameras::update_matrices(
+    state->camera_active,
+    state->window_size.width,
+    state->window_size.height
+  );
+  cameras::update_ui_matrices(
+    state->camera_active,
+    state->window_size.width,
+    state->window_size.height
+  );
+  gui::update_screen_dimensions(
+    &state->gui_state, state->window_size.width, state->window_size.height
+  );
+  renderer::resize_renderer_buffers(
+    asset_memory_pool,
+    &state->materials,
+    &state->builtin_textures,
+    width,
+    height
+  );
+}
+
+
+void mouse_button_callback(
+  GLFWwindow *window, int button, int action, int mods
+) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+
+  input::update_mouse_button(&state->input_state, button, action, mods);
+  gui::update_mouse_button(&state->gui_state);
+}
+
+
+void mouse_callback(GLFWwindow *window, real64 x, real64 y) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+
+  v2 mouse_pos = v2(x, y);
+  input::update_mouse(&state->input_state, mouse_pos);
+
+  if (state->is_cursor_enabled) {
+    gui::update_mouse(&state->gui_state);
+  } else {
+    cameras::update_mouse(
+      state->camera_active,
+      state->input_state.mouse_3d_offset
+    );
+  }
+}
+
+
+void key_callback(
+  GLFWwindow* window,
+  int key, int scancode, int action, int mods
+) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  input::update_keys(&state->input_state, key, scancode, action, mods);
+}
+
+
+void char_callback(
+  GLFWwindow* window, uint32 codepoint
+) {
+  MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
+  State *state = memory_and_state->state;
+  input::update_text_input(&state->input_state, codepoint);
+}
+
+
+GLFWwindow* init_window(WindowSize *window_size) {
+  glfwInit();
+
+  logs::info("Using OpenGL 4.1");
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+  #if defined(PLATFORM_MACOS)
+    // macOS requires a forward compatible context
+    // This means the highest OpenGL version will be used that is at least the version
+    // we specified, and that contains no breaking changes from the version we specified
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  #endif
+
+  #if USE_OPENGL_DEBUG
+    logs::info("Using OpenGL debug context");
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+  #endif
+
+  // Remove window decorations (border etc.)
+  glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
+  // For fullscreen windows, do not discard our video mode when minimised
+  glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+
+  // Create the window. Right now we're working with screencoord sizes,
+  // not pixels!
+
+  #if USE_FULLSCREEN
+    int32 n_monitors;
+    GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+    GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
+    const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+    glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+
+    window_size->screencoord_width = video_mode->width;
+    window_size->screencoord_height = video_mode->height;
+
+    GLFWwindow *window = glfwCreateWindow(
+      window_size->screencoord_width, window_size->screencoord_height,
+      WINDOW_TITLE,
+      #if USE_WINDOWED_FULLSCREEN
+        nullptr, nullptr
+      #else
+        target_monitor, nullptr
+      #endif
+    );
+  #else
+    window_size.screencoord_width = 1920;
+    window_size.screencoord_height = 1080;
+
+    GLFWwindow *window = glfwCreateWindow(
+      window_size.screencoord_width, window_size.screencoord_height,
+      WINDOW_TITLE,
+      nullptr, nullptr
+    );
+
+    glfwSetWindowPos(window, 200, 200);
+  #endif
+
+  if (!window) {
+    logs::fatal("Failed to create GLFW window");
+    return nullptr;
+  }
+
+  glfwMakeContextCurrent(window);
+  glfwSwapInterval(0);
+
+  if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    logs::fatal("Failed to initialize GLAD");
+    return nullptr;
+  }
+
+  if (!GLAD_GL_ARB_texture_cube_map_array) {
+    logs::fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
+  }
+  if (!GLAD_GL_ARB_texture_storage) {
+    logs::fatal("No support for GLAD_GL_ARB_texture_storage");
+  }
+  if (!GLAD_GL_ARB_buffer_storage) {
+    logs::warning("No support for GLAD_GL_ARB_buffer_storage");
+  }
+
+  // TODO: Remove GL_EXT_debug_marker from GLAD
+  // TODO: Remove GL_EXT_debug_label from GLAD
+  // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
+
+  #if USE_OPENGL_DEBUG
+    if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
+      GLint flags;
+      glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+      if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+        glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+        glDebugMessageCallback(util::debug_message_callback, nullptr);
+        glDebugMessageControl(
+          GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE
+        );
+      } else {
+        logs::fatal("Tried to initialise OpenGL debug output but couldn't");
+      }
+    } else {
+      logs::warning(
+        "Tried to initialise OpenGL debug output but none of "
+        "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
+        "are supported on this system. Skipping."
+      );
+    }
+  #endif
+
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glLineWidth(2.0f);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // Get the framebuffer size. This is the actual window size in pixels.
+  glfwGetFramebufferSize(window, &window_size->width, &window_size->height);
+  glViewport(0, 0, window_size->width, window_size->height);
+
+  glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+  glfwSetCursorPosCallback(window, mouse_callback);
+  glfwSetMouseButtonCallback(window, mouse_button_callback);
+  glfwSetKeyCallback(window, key_callback);
+  glfwSetCharCallback(window, char_callback);
+
+  return window;
+}
+
+
+void destroy_window() {
+  glfwTerminate();
+}
+
+
 int main() {
   // Seed RNG
   srand((uint32)time(NULL));
@@ -20,9 +241,10 @@ int main() {
   MemoryPool asset_memory_pool = {.size = util::mb_to_b(1024)};
   defer { memory::destroy_memory_pool(&asset_memory_pool); };
 
+  // Create window
   WindowSize window_size;
-  GLFWwindow *window = renderer::init_window(&window_size);
-  defer { renderer::destroy_window(); };
+  GLFWwindow *window = init_window(&window_size);
+  defer { destroy_window(); };
   if (!window) { return EXIT_FAILURE; }
 
   State *state = MEMORY_PUSH(&state_memory_pool, State, "state");
