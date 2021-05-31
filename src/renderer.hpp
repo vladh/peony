@@ -13,7 +13,7 @@ namespace renderer {
     uint32 height,
     State *state
   );
-  WindowInfo init_window();
+  GLFWwindow* init_window(WindowSize *window_size);
   void destroy_window();
   void render(State *state);
 }

@@ -4,9 +4,11 @@
 State* state::init_state(
   State *state,
   MemoryPool *asset_memory_pool,
-  WindowInfo window_info
+  GLFWwindow *window,
+  WindowSize *window_size
 ) {
-  state->window_info = window_info;
+  state->window = window;
+  state->window_size = *window_size;
 
   state->background_color = v4(0.81f, 0.93f, 1.00f, 1.0f);
 
@@ -20,8 +22,8 @@ State* state::init_state(
   state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
 
   state->builtin_textures = {
-    .shadowmap_3d_width = min((uint32)state->window_info.width, (uint32)2000),
-    .shadowmap_3d_height = min((uint32)state->window_info.width, (uint32)2000),
+    .shadowmap_3d_width = min((uint32)state->window_size.width, (uint32)2000),
+    .shadowmap_3d_height = min((uint32)state->window_size.width, (uint32)2000),
     .shadowmap_2d_width = 2560 * 2,
     .shadowmap_2d_height = 1440 * 2,
     .shadowmap_near_clip_dist = 0.05f,

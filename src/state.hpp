@@ -19,8 +19,7 @@
 namespace state {
   constexpr uint32 DT_HIST_LENGTH = 512;
 
-  struct WindowInfo {
-    GLFWwindow *window;
+  struct WindowSize {
     int32 width; // in pixels (size of framebuffer)
     int32 height; // in pixels (size of framebuffer)
     uint32 screencoord_width; // in screen coordinates
@@ -80,7 +79,9 @@ namespace state {
     bool32 should_stop;
     bool32 should_pause;
     bool32 should_hide_ui;
-    WindowInfo window_info;
+
+    GLFWwindow *window;
+    WindowSize window_size;
 
     Camera camera_main;
     Camera *camera_active;
@@ -147,9 +148,10 @@ namespace state {
   State* init_state(
     State *state,
     MemoryPool *asset_memory_pool,
-    WindowInfo window_info
+    GLFWwindow *window,
+    WindowSize *window_size
   );
 }
 
-using state::WindowInfo, state::PerfCounters, state::ShaderCommon, state::State,
+using state::WindowSize, state::PerfCounters, state::ShaderCommon, state::State,
   state::MemoryAndState;

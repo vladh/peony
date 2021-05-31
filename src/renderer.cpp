@@ -1,5 +1,6 @@
 #include "../src_external/pstr.h"
 #include "renderer.hpp"
+#include "debug.hpp"
 #include "util.hpp"
 #include "logs.hpp"
 #include "debug_ui.hpp"
@@ -464,8 +465,8 @@ namespace renderer {
 
     shader_common->exposure = state->camera_active->exposure;
     shader_common->t = (float)state->t;
-    shader_common->window_width = state->window_info.width;
-    shader_common->window_height = state->window_info.height;
+    shader_common->window_width = state->window_size.width;
+    shader_common->window_height = state->window_size.height;
 
     uint32 n_point_lights = 0;
     uint32 n_directional_lights = 0;
@@ -524,22 +525,22 @@ namespace renderer {
     State *state = memory_and_state->state;
     MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
     logs::info(
-      "Window is now: %d x %d", state->window_info.width, state->window_info.height
+      "Window is now: %d x %d", state->window_size.width, state->window_size.height
     );
-    state->window_info.width = width;
-    state->window_info.height = height;
+    state->window_size.width = width;
+    state->window_size.height = height;
     cameras::update_matrices(
       state->camera_active,
-      state->window_info.width,
-      state->window_info.height
+      state->window_size.width,
+      state->window_size.height
     );
     cameras::update_ui_matrices(
       state->camera_active,
-      state->window_info.width,
-      state->window_info.height
+      state->window_size.width,
+      state->window_size.height
     );
     gui::update_screen_dimensions(
-      &state->gui_state, state->window_info.width, state->window_info.height
+      &state->gui_state, state->window_size.width, state->window_size.height
     );
     resize_renderer_buffers(
       asset_memory_pool,
@@ -812,12 +813,11 @@ void renderer::init(
   init_blur_buffers(memory_pool, builtin_textures, width, height);
   init_shadowmaps(memory_pool, builtin_textures);
   init_ubo(state);
-  update_drawing_options(state, state->window_info.window);
+  update_drawing_options(state, state->window);
 }
 
 
-WindowInfo renderer::init_window() {
-  WindowInfo window_info = {};
+GLFWwindow* renderer::init_window(WindowSize *window_size) {
   glfwInit();
 
   logs::info("Using OpenGL 4.1");
@@ -856,11 +856,11 @@ WindowInfo renderer::init_window() {
     glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
     glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-    window_info.screencoord_width = video_mode->width;
-    window_info.screencoord_height = video_mode->height;
+    window_size->screencoord_width = video_mode->width;
+    window_size->screencoord_height = video_mode->height;
 
     GLFWwindow *window = glfwCreateWindow(
-      window_info.screencoord_width, window_info.screencoord_height,
+      window_size->screencoord_width, window_size->screencoord_height,
       WINDOW_TITLE,
       #if USE_WINDOWED_FULLSCREEN
         nullptr, nullptr
@@ -869,11 +869,11 @@ WindowInfo renderer::init_window() {
       #endif
     );
   #else
-    window_info.screencoord_width = 1920;
-    window_info.screencoord_height = 1080;
+    window_size.screencoord_width = 1920;
+    window_size.screencoord_height = 1080;
 
     GLFWwindow *window = glfwCreateWindow(
-      window_info.screencoord_width, window_info.screencoord_height,
+      window_size.screencoord_width, window_size.screencoord_height,
       WINDOW_TITLE,
       nullptr, nullptr
     );
@@ -883,16 +883,15 @@ WindowInfo renderer::init_window() {
 
   if (!window) {
     logs::fatal("Failed to create GLFW window");
-    return window_info;
+    return nullptr;
   }
-  window_info.window = window;
 
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0);
 
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     logs::fatal("Failed to initialize GLAD");
-    return window_info;
+    return nullptr;
   }
 
   if (!GLAD_GL_ARB_texture_cube_map_array) {
@@ -941,8 +940,8 @@ WindowInfo renderer::init_window() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   // Get the framebuffer size. This is the actual window size in pixels.
-  glfwGetFramebufferSize(window, &window_info.width, &window_info.height);
-  glViewport(0, 0, window_info.width, window_info.height);
+  glfwGetFramebufferSize(window, &window_size->width, &window_size->height);
+  glViewport(0, 0, window_size->width, window_size->height);
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
@@ -950,7 +949,7 @@ WindowInfo renderer::init_window() {
   glfwSetKeyCallback(window, key_callback);
   glfwSetCharCallback(window, char_callback);
 
-  return window_info;
+  return window;
 }
 
 
@@ -1101,7 +1100,7 @@ void renderer::render(State *state) {
     }
   }
 
-  glViewport(0, 0, state->window_info.width, state->window_info.height);
+  glViewport(0, 0, state->window_size.width, state->window_size.height);
 
   // Geometry pass
   {
@@ -1116,8 +1115,8 @@ void renderer::render(State *state) {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, state->builtin_textures.g_buffer);
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->builtin_textures.l_buffer);
     glBlitFramebuffer(
-      0, 0, state->window_info.width, state->window_info.height,
-      0, 0, state->window_info.width, state->window_info.height,
+      0, 0, state->window_size.width, state->window_size.height,
+      0, 0, state->window_size.width, state->window_size.height,
       GL_DEPTH_BUFFER_BIT, GL_NEAREST
     );
   }
@@ -1213,4 +1212,8 @@ void renderer::render(State *state) {
   }
 
   glEnable(GL_DEPTH_TEST);
+
+  START_TIMER(swap_buffers);
+  glfwSwapBuffers(state->window);
+  END_TIMER_MIN(swap_buffers, 16);
 }
