@@ -19,6 +19,7 @@
 namespace state {
   constexpr uint32 DT_HIST_LENGTH = 512;
 
+  // TODO: Move to main
   struct WindowSize {
     int32 width; // in pixels (size of framebuffer)
     int32 height; // in pixels (size of framebuffer)
@@ -26,6 +27,7 @@ namespace state {
     uint32 screencoord_height; // in screen coordinates
   };
 
+  // TODO: Move to Engine
   struct PerfCounters {
     real64 dt_average;
     real64 dt_hist[DT_HIST_LENGTH];
@@ -33,6 +35,7 @@ namespace state {
     uint32 last_fps;
   };
 
+  // TODO: Move to Renderer
   struct ShaderCommon {
     m4 view;
     m4 projection;
@@ -101,6 +104,13 @@ namespace state {
     bool32 is_cursor_enabled;
     bool32 should_hide_ui;
     bool32 should_use_wireframe;
+    TextureType renderdebug_displayed_texture_type;
+    ShaderAsset standard_depth_shader_asset;
+    uint32 ubo_shader_common;
+    ShaderCommon shader_common;
+    m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
+    m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
+    BuiltinTextures builtin_textures;
 
     // Common stuff
     Camera camera_main;
@@ -117,6 +127,10 @@ namespace state {
     // DebugDraw stuff
     DebugDrawState debug_draw_state;
 
+    // Lights stuff
+    real32 dir_light_angle;
+
+    // ???
     EntitySet entity_set;
     EntityLoaderSet entity_loader_set;
     DrawableComponentSet drawable_component_set;
@@ -125,24 +139,10 @@ namespace state {
     BehaviorComponentSet behavior_component_set;
     AnimationComponentSet animation_component_set;
     PhysicsComponentSet physics_component_set;
-
     BoneMatrixPool bone_matrix_pool;
-
     PersistentPbo persistent_pbo;
     TextureNamePool texture_name_pool;
     Queue<Task> task_queue;
-
-    real32 dir_light_angle;
-    TextureType renderdebug_displayed_texture_type;
-
-    ShaderAsset standard_depth_shader_asset;
-
-    uint32 ubo_shader_common;
-    ShaderCommon shader_common;
-
-    m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
-    m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
-    BuiltinTextures builtin_textures;
   };
 
   struct MemoryAndState {
