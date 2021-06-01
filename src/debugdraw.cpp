@@ -200,5 +200,7 @@ DebugDrawState* debugdraw::init(
 
   memory::destroy_memory_pool(&temp_memory_pool);
 
+  debugdraw::g_dds = debug_draw_state;
+
   return debug_draw_state;
 }

@@ -16,5 +16,5 @@ namespace engine {
   };
 
   void run_main_loop(State *state);
-  void init(State *state);
+  void init(State *state, MemoryPool *asset_memory_pool);
 }

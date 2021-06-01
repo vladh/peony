@@ -23,13 +23,13 @@ namespace engine {
   pny_internal void destroy_non_internal_materials(State *state) {
     for (
       uint32 idx = state->first_non_internal_material_idx;
-      idx < state->materials.length;
+      idx < state->materials_state.materials.length;
       idx++
     ) {
-      materials::destroy_material(state->materials[idx]);
+      materials::destroy_material(state->materials_state.materials[idx]);
     }
 
-    state->materials.delete_elements_after_index(
+    state->materials_state.materials.delete_elements_after_index(
       state->first_non_internal_material_idx
     );
   }
@@ -106,7 +106,7 @@ namespace engine {
 
     // Load scene file
     char scene_path[MAX_PATH] = {};
-    pstr_vcat(scene_path, MAX_PATH, SCENE_DIR, scene_name, SCENE_EXTENSION, nullptr);
+    pstr_vcat(scene_path, MAX_PATH, SCENE_DIR, scene_name, SCENE_EXTENSION, NULL);
     gui::log("Loading scene: %s", scene_path);
 
     PeonyFile *scene_file = MEMORY_PUSH(&temp_memory_pool, PeonyFile, "scene_file");
@@ -142,7 +142,7 @@ namespace engine {
       }
       assert(material_file->n_entries > 0);
       peony_parser_utils::create_material_from_peony_file_entry(
-        state->materials.push(),
+        state->materials_state.materials.push(),
         &material_file->entries[0],
         &state->builtin_textures,
         &temp_memory_pool
@@ -240,11 +240,11 @@ namespace engine {
 
   pny_internal void process_input(GLFWwindow *window, State *state) {
     if (input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
-      if (state->game_console.is_enabled) {
-        state->game_console.is_enabled = false;
+      if (state->gui_state.game_console.is_enabled) {
+        state->gui_state.game_console.is_enabled = false;
         input::disable_text_input(&state->input_state);
       } else {
-        state->game_console.is_enabled = true;
+        state->gui_state.game_console.is_enabled = true;
         input::enable_text_input(&state->input_state);
       }
     }
@@ -345,11 +345,11 @@ namespace engine {
   pny_internal bool32 check_all_entities_loaded(State *state) {
     bool are_all_done_loading = true;
 
-    each (material, state->materials) {
+    each (material, state->materials_state.materials) {
       bool is_done_loading = materials::prepare_material_and_check_if_done(
         material,
-        &state->persistent_pbo,
-        &state->texture_name_pool,
+        &state->materials_state.persistent_pbo,
+        &state->materials_state.texture_name_pool,
         &state->task_queue
       );
       if (!is_done_loading) {
@@ -365,8 +365,8 @@ namespace engine {
       new_n_valid_model_loaders++;
       bool is_done_loading = models::prepare_model_loader_and_check_if_done(
         model_loader,
-        &state->persistent_pbo,
-        &state->texture_name_pool,
+        &state->materials_state.persistent_pbo,
+        &state->materials_state.texture_name_pool,
         &state->task_queue,
         &state->bone_matrix_pool
       );
@@ -567,7 +567,51 @@ void engine::run_main_loop(State *state) {
 }
 
 
-void engine::init(State *state) {
+void engine::init(State *state, MemoryPool *asset_memory_pool) {
+  state->model_loaders = Array<ModelLoader>(
+    asset_memory_pool, MAX_N_MODELS, "model_loaders"
+  );
+  state->entity_loader_set = {
+    .loaders = Array<EntityLoader>(
+      asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1
+    )
+  };
+  state->entity_set = {
+    .entities = Array<Entity>(
+      asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1
+    )
+  };
+  state->drawable_component_set = {
+    .components = Array<DrawableComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1
+    )
+  };
+  state->light_component_set = {
+    .components = Array<LightComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1
+    )
+  };
+  state->spatial_component_set = {
+    .components = Array<SpatialComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1
+    )
+  };
+  state->behavior_component_set = {
+    .components = Array<BehaviorComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1
+    )
+  };
+  state->animation_component_set = {
+    .components = Array<AnimationComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1
+    )
+  };
+  state->physics_component_set = {
+    .components = Array<PhysicsComponent>(
+      asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1
+    )
+  };
+
   internals::create_internal_materials(state);
   internals::create_internal_entities(state);
 }

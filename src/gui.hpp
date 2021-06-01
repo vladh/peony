@@ -81,6 +81,9 @@ namespace gui {
     v2 window_dimensions;
     uint32 n_vertices_pushed;
 
+    // Console
+    GameConsole game_console;
+
     // Containers
     Array<GuiContainer> containers;
     GuiContainer *container_being_moved;
