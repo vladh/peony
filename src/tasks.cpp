@@ -17,17 +17,17 @@ namespace tasks {
 
 
 void tasks::run_loading_loop(
+  TasksState *tasks_state,
   std::mutex *mutex,
   bool32 *should_stop,
-  Queue<Task> *task_queue,
   uint32 idx_thread
 ) {
   while (!*should_stop) {
     Task *task = nullptr;
 
     mutex->lock();
-    if (task_queue->size > 0) {
-      task = task_queue->pop();
+    if (tasks_state->task_queue.size > 0) {
+      task = tasks_state->task_queue.pop();
     }
     mutex->unlock();
 
@@ -37,4 +37,9 @@ void tasks::run_loading_loop(
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
+}
+
+
+void tasks::init(TasksState *tasks_state, MemoryPool *pool) {
+  tasks_state->task_queue = Queue<Task>(pool, 128, "task_queue");
 }

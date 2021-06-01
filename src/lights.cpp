@@ -47,11 +47,11 @@ bool32 lights::is_light_component_valid(LightComponent *light_component) {
 
 
 void lights::update_light_components(
+  LightsState *lights_state,
   LightComponentSet *light_component_set,
   SpatialComponentSet *spatial_component_set,
   real64 t,
-  v3 camera_position,
-  real32 dir_light_angle
+  v3 camera_position
 ) {
   each (light_component, light_component_set->components) {
     if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
@@ -77,8 +77,13 @@ void lights::update_light_components(
       spatial_component->position = camera_position +
         -light_component->direction * DIRECTIONAL_LIGHT_DISTANCE;
       light_component->direction = v3(
-        sin(dir_light_angle), -cos(dir_light_angle), 0.0f
+        sin(lights_state->dir_light_angle), -cos(lights_state->dir_light_angle), 0.0f
       );
     }
   }
+}
+
+
+void lights::init(LightsState *lights_state) {
+  lights_state->dir_light_angle = radians(55.0f);
 }

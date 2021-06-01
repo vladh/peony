@@ -53,6 +53,7 @@ constexpr char SHADER_DIR[] = "src_shaders/";
 constexpr char DEFAULT_SCENE[] = "terraintest";
 constexpr char SCENE_EXTENSION[] = ".peony_scene";
 constexpr char MATERIAL_FILE_EXTENSION[] = ".peony_materials";
+constexpr uint32 N_LOADING_THREADS = 5;
 constexpr uint32 MAX_N_ENTITIES = 256;
 constexpr uint32 MAX_N_MODELS = 128;
 constexpr uint32 MAX_N_ANIMATED_MODELS = 128;

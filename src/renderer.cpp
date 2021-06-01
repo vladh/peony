@@ -383,9 +383,11 @@ namespace renderer {
   ) {
     ShaderCommon *shader_common = &state->shader_common;
 
-    shader_common->view = state->camera_active->view;
-    shader_common->projection = state->camera_active->projection;
-    shader_common->ui_projection = state->camera_active->ui_projection;
+    Camera *camera = state->cameras_state.camera_active;
+
+    shader_common->view = camera->view;
+    shader_common->projection = camera->projection;
+    shader_common->ui_projection = camera->ui_projection;
     memcpy(
       shader_common->shadowmap_3d_transforms,
       state->shadowmap_3d_transforms,
@@ -397,13 +399,13 @@ namespace renderer {
       sizeof(state->shadowmap_2d_transforms)
     );
 
-    shader_common->camera_position = v4(state->camera_active->position, 1.0f);
-    shader_common->camera_pitch = (float)state->camera_active->pitch;
+    shader_common->camera_position = v4(camera->position, 1.0f);
+    shader_common->camera_pitch = (float)camera->pitch;
 
-    shader_common->camera_horizontal_fov = state->camera_active->horizontal_fov;
-    shader_common->camera_vertical_fov = state->camera_active->vertical_fov;
-    shader_common->camera_near_clip_dist = state->camera_active->near_clip_dist;
-    shader_common->camera_far_clip_dist = state->camera_active->far_clip_dist;
+    shader_common->camera_horizontal_fov = camera->horizontal_fov;
+    shader_common->camera_vertical_fov = camera->vertical_fov;
+    shader_common->camera_near_clip_dist = camera->near_clip_dist;
+    shader_common->camera_far_clip_dist = camera->far_clip_dist;
 
     shader_common->current_shadow_light_idx = current_shadow_light_idx;
     shader_common->current_shadow_light_type = current_shadow_light_type;
@@ -414,7 +416,7 @@ namespace renderer {
       state->renderdebug_displayed_texture_type;
     shader_common->unused_pad = 0;
 
-    shader_common->exposure = state->camera_active->exposure;
+    shader_common->exposure = camera->exposure;
     shader_common->t = (float)state->t;
     shader_common->window_width = state->window_size.width;
     shader_common->window_height = state->window_size.height;

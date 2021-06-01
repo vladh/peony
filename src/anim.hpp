@@ -42,6 +42,10 @@ namespace anim {
     Array<AnimationComponent> components;
   };
 
+  struct AnimState {
+    BoneMatrixPool bone_matrix_pool;
+  };
+
   bool32 is_animation_component_valid(AnimationComponent *animation_component);
   uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool);
   m4* get_bone_matrix(
@@ -68,7 +72,9 @@ namespace anim {
     SpatialComponentSet *spatial_component_set,
     AnimationComponentSet *animation_component_set
   );
+  void init(AnimState *anim_state, MemoryPool *pool);
 }
 
 using anim::BoneMatrixPool, anim::Bone, anim::Animation,
-  anim::AnimationComponent, anim::AnimationComponentSet;
+  anim::AnimationComponent, anim::AnimationComponentSet,
+  anim::AnimState;

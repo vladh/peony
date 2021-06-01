@@ -231,7 +231,7 @@ namespace engine {
   pny_internal void update_light_position(State *state, real32 amount) {
     each (light_component, state->light_component_set.components) {
       if (light_component->type == LightType::directional) {
-        state->dir_light_angle += amount;
+        state->lights_state.dir_light_angle += amount;
         break;
       }
     }
@@ -268,19 +268,19 @@ namespace engine {
 
     // Continuous
     if (input::is_key_down(&state->input_state, GLFW_KEY_W)) {
-      cameras::move_front_back(state->camera_active, 1, state->dt);
+      cameras::move_front_back(state->cameras_state.camera_active, 1, state->dt);
     }
 
     if (input::is_key_down(&state->input_state, GLFW_KEY_S)) {
-      cameras::move_front_back(state->camera_active, -1, state->dt);
+      cameras::move_front_back(state->cameras_state.camera_active, -1, state->dt);
     }
 
     if (input::is_key_down(&state->input_state, GLFW_KEY_A)) {
-      cameras::move_left_right(state->camera_active, -1, state->dt);
+      cameras::move_left_right(state->cameras_state.camera_active, -1, state->dt);
     }
 
     if (input::is_key_down(&state->input_state, GLFW_KEY_D)) {
-      cameras::move_left_right(state->camera_active, 1, state->dt);
+      cameras::move_left_right(state->cameras_state.camera_active, 1, state->dt);
     }
 
     if (input::is_key_down(&state->input_state, GLFW_KEY_Z)) {
@@ -292,11 +292,11 @@ namespace engine {
     }
 
     if (input::is_key_down(&state->input_state, GLFW_KEY_SPACE)) {
-      cameras::move_up_down(state->camera_active, 1, state->dt);
+      cameras::move_up_down(state->cameras_state.camera_active, 1, state->dt);
     }
 
     if (input::is_key_down(&state->input_state, GLFW_KEY_LEFT_CONTROL)) {
-      cameras::move_up_down(state->camera_active, -1, state->dt);
+      cameras::move_up_down(state->cameras_state.camera_active, -1, state->dt);
     }
 
     // Transient
@@ -350,7 +350,7 @@ namespace engine {
         material,
         &state->materials_state.persistent_pbo,
         &state->materials_state.texture_name_pool,
-        &state->task_queue
+        &state->tasks_state.task_queue
       );
       if (!is_done_loading) {
         are_all_done_loading = false;
@@ -367,8 +367,8 @@ namespace engine {
         model_loader,
         &state->materials_state.persistent_pbo,
         &state->materials_state.texture_name_pool,
-        &state->task_queue,
-        &state->bone_matrix_pool
+        &state->tasks_state.task_queue,
+        &state->anim_state.bone_matrix_pool
       );
       if (!is_done_loading) {
         are_all_done_loading = false;
@@ -434,7 +434,7 @@ namespace engine {
     }
 
     cameras::update_matrices(
-      state->camera_active,
+      state->cameras_state.camera_active,
       state->window_size.width,
       state->window_size.height
     );
@@ -442,11 +442,11 @@ namespace engine {
     state->is_world_loaded = check_all_entities_loaded(state);
 
     lights::update_light_components(
+      &state->lights_state,
       &state->light_component_set,
       &state->spatial_component_set,
       state->t,
-      state->camera_active->position,
-      state->dir_light_angle
+      state->cameras_state.camera_active->position
     );
 
     behavior::update_behavior_components(
@@ -460,7 +460,7 @@ namespace engine {
       &state->animation_component_set,
       &state->spatial_component_set,
       state->t,
-      &state->bone_matrix_pool
+      &state->anim_state.bone_matrix_pool
     );
 
     physics::update_physics_components(

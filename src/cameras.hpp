@@ -23,6 +23,11 @@ namespace cameras {
     real32 speed;
   };
 
+  struct CamerasState {
+    Camera camera_main;
+    Camera *camera_active;
+  };
+
   void update_matrices(
     Camera *camera, uint32 window_width, uint32 window_height
   );
@@ -33,12 +38,11 @@ namespace cameras {
   void move_left_right(Camera *camera, real32 sign, real64 dt);
   void move_up_down(Camera *camera, real32 sign, real64 dt);
   void update_mouse(Camera *camera, v2 mouse_offset);
-  Camera* init(
-    Camera *camera,
-    CameraType new_type,
+  void init(
+    CamerasState *cameras_state,
     uint32 window_width,
     uint32 window_height
   );
 }
 
-using cameras::CameraType, cameras::Camera;
+using cameras::CameraType, cameras::Camera, cameras::CamerasState;

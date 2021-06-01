@@ -237,3 +237,19 @@ AnimationComponent* anim::find_animation_component(
 
   return nullptr;
 }
+
+
+void anim::init(AnimState *anim_state, MemoryPool *pool) {
+  anim_state->bone_matrix_pool.bone_matrices = Array<m4>(
+    pool,
+    MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
+    "bone_matrices",
+    true
+  );
+  anim_state->bone_matrix_pool.times = Array<real64>(
+    pool,
+    MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
+    "bone_matrix_times",
+    true
+  );
+}

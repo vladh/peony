@@ -25,18 +25,23 @@ namespace lights {
     Array<LightComponent> components;
   };
 
+  struct LightsState {
+    real32 dir_light_angle;
+  };
+
   const char* light_type_to_string(LightType light_type);
   LightType light_type_from_string(const char *str);
   uint32 light_type_to_int(LightType light_type);
   bool32 is_light_component_valid(LightComponent *light_component);
   void update_light_components(
+    LightsState *lights_state,
     LightComponentSet *light_component_set,
     SpatialComponentSet *spatial_component_set,
     real64 t,
-    v3 camera_position,
-    real32 dir_light_angle
+    v3 camera_position
   );
+  void init(LightsState *state);
 }
 
 using lights::LightType, lights::LightComponent,
-  lights::LightComponentSet;
+  lights::LightComponentSet, lights::LightsState;
