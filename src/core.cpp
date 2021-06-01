@@ -22,12 +22,12 @@ namespace core {
     state->window_size.width = width;
     state->window_size.height = height;
     cameras::update_matrices(
-      state->camera_active,
+      state->cameras_state.camera_active,
       state->window_size.width,
       state->window_size.height
     );
     cameras::update_ui_matrices(
-      state->camera_active,
+      state->cameras_state.camera_active,
       state->window_size.width,
       state->window_size.height
     );
@@ -66,7 +66,7 @@ namespace core {
       gui::update_mouse(&state->gui_state);
     } else {
       cameras::update_mouse(
-        state->camera_active,
+        state->cameras_state.camera_active,
         state->input_state.mouse_3d_offset
       );
     }
@@ -236,13 +236,15 @@ namespace core {
     state->window = init_window(&state->window_size);
     if (!state->window) { return nullptr; }
 
+    materials::init(&state->materials_state, asset_memory_pool);
+
     renderer::init(
       asset_memory_pool, &state->builtin_textures,
       state->window_size.width, state->window_size.height,
       state
     );
-    materials::init(&state->materials_state, asset_memory_pool);
     engine::init(state, asset_memory_pool);
+
     gui::init(
       &state->gui_state,
       asset_memory_pool,
@@ -251,34 +253,12 @@ namespace core {
     );
     debugdraw::init(&state->debug_draw_state, asset_memory_pool);
     input::init(&state->input_state, state->window);
-
-    // Cameras
+    lights::init(&state->lights_state);
+    tasks::init(&state->tasks_state, asset_memory_pool);
+    anim::init(&state->anim_state, asset_memory_pool);
     cameras::init(
-      &state->camera_main,
-      CameraType::perspective,
-      state->window_size.width,
-      state->window_size.height
-    );
-    state->camera_active = &state->camera_main;
-
-    // Lights
-    state->dir_light_angle = radians(55.0f);
-
-    // Tasks
-    state->task_queue = Queue<Task>(asset_memory_pool, 128, "task_queue");
-
-    // Anim
-    state->bone_matrix_pool.bone_matrices = Array<m4>(
-      asset_memory_pool,
-      MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
-      "bone_matrices",
-      true
-    );
-    state->bone_matrix_pool.times = Array<real64>(
-      asset_memory_pool,
-      MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
-      "bone_matrix_times",
-      true
+      &state->cameras_state,
+      state->window_size.width, state->window_size.height
     );
 
     return state;
@@ -304,23 +284,22 @@ int core::run() {
   defer { destroy_state(state); };
 
   // Set up globals
-  debugdraw::g_dds = &state->debug_draw_state;
   MemoryAndState memory_and_state = {&asset_memory_pool, state};
   glfwSetWindowUserPointer(state->window, &memory_and_state);
 
   // Set up loading threads
   std::mutex loading_thread_mutex;
-  std::thread loading_threads[5];
-  range (0, 5) {
+  std::thread loading_threads[N_LOADING_THREADS];
+  range (0, N_LOADING_THREADS) {
     loading_threads[idx] = std::thread(
       tasks::run_loading_loop,
+      &state->tasks_state,
       &loading_thread_mutex,
       &state->should_stop,
-      &state->task_queue,
       idx
     );
   }
-  defer { range (0, 5) { loading_threads[idx].join(); } };
+  defer { range (0, N_LOADING_THREADS) { loading_threads[idx].join(); } };
 
   // Run main loop
   engine::run_main_loop(state);

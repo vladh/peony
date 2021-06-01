@@ -11,6 +11,8 @@
 #include "cameras.hpp"
 #include "debugdraw.hpp"
 #include "physics.hpp"
+#include "tasks.hpp"
+#include "anim.hpp"
 #include "memory.hpp"
 #include "array.hpp"
 #include "stackarray.hpp"
@@ -118,30 +120,14 @@ namespace state {
     m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
     BuiltinTextures builtin_textures;
 
-    // Camera stuff
-    Camera camera_main;
-    Camera *camera_active;
-
-    // Input stuff
+    CamerasState cameras_state;
     InputState input_state;
-
-    // Gui stuff
     GuiState gui_state;
-
-    // DebugDraw stuff
     DebugDrawState debug_draw_state;
-
-    // Lights stuff
-    real32 dir_light_angle;
-
-    // Anim stuff
-    BoneMatrixPool bone_matrix_pool;
-
-    // Materials stuff
+    LightsState lights_state;
+    AnimState anim_state;
     MaterialsState materials_state;
-
-    // Task stuff
-    Queue<Task> task_queue;
+    TasksState tasks_state;
   };
 
   struct MemoryAndState {

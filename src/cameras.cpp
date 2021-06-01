@@ -107,27 +107,26 @@ void cameras::update_mouse(Camera *camera, v2 mouse_offset) {
 }
 
 
-Camera* cameras::init(
-  Camera *camera,
-  CameraType new_type,
+void cameras::init(
+  CamerasState *cameras_state,
   uint32 window_width,
   uint32 window_height
 ) {
-  camera->type = new_type;
-  camera->yaw = -45.0f;
-  camera->pitch = 0.0f;
-  camera->position = v3(-7.0f, 3.0f, 7.0f);
-  camera->front = v3(0.0f, 0.0f, 0.0f);
-  camera->up = v3(0.0f, 1.0f, 0.0f);
-  camera->speed = 5.0f;
-  camera->horizontal_fov = 60.0f;
-  camera->vertical_fov = 0.0f; // Filled in later
-  camera->near_clip_dist = 0.1f;
-  camera->far_clip_dist = 600.0f;
-  camera->exposure = 1.0f;
+  cameras_state->camera_main.type = CameraType::perspective;
+  cameras_state->camera_main.yaw = -45.0f;
+  cameras_state->camera_main.pitch = 0.0f;
+  cameras_state->camera_main.position = v3(-7.0f, 3.0f, 7.0f);
+  cameras_state->camera_main.front = v3(0.0f, 0.0f, 0.0f);
+  cameras_state->camera_main.up = v3(0.0f, 1.0f, 0.0f);
+  cameras_state->camera_main.speed = 5.0f;
+  cameras_state->camera_main.horizontal_fov = 60.0f;
+  cameras_state->camera_main.vertical_fov = 0.0f; // Filled in later
+  cameras_state->camera_main.near_clip_dist = 0.1f;
+  cameras_state->camera_main.far_clip_dist = 600.0f;
+  cameras_state->camera_main.exposure = 1.0f;
 
-  update_matrices(camera, window_width, window_height);
-  update_ui_matrices(camera, window_width, window_height);
+  update_matrices(&cameras_state->camera_main, window_width, window_height);
+  update_ui_matrices(&cameras_state->camera_main, window_width, window_height);
 
-  return camera;
+  cameras_state->camera_active = &cameras_state->camera_main;
 }
