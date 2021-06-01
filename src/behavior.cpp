@@ -1,6 +1,7 @@
 #include "logs.hpp"
 #include "behavior_functions.hpp"
 #include "behavior.hpp"
+#include "engine.hpp"
 #include "intrinsics.hpp"
 
 
@@ -44,14 +45,11 @@ bool32 behavior::is_behavior_component_valid(BehaviorComponent *behavior_compone
 }
 
 
-#if 0
 void behavior::update_behavior_components(
-  void *state,
-  BehaviorComponentSet *behavior_component_set,
-  SpatialComponentSet *spatial_component_set,
-  real64 t
+  BehaviorState *behavior_state,
+  EngineState *engine_state
 ) {
-  each (behavior_component, behavior_component_set->components) {
+  each (behavior_component, engine_state->behavior_component_set.components) {
     if (!is_behavior_component_valid(behavior_component)) {
       continue;
     }
@@ -60,8 +58,16 @@ void behavior::update_behavior_components(
 
     auto handler = function_map[(uint32)behavior_component->behavior];
     if (handler) {
-      handler(state, entity_handle);
+      handler(behavior_state, entity_handle);
     }
   }
 }
-#endif
+
+
+void behavior::init(
+  BehaviorState *behavior_state,
+  State *state
+) {
+  // NOTE: behavior needs the global state to pass to the behavior functions
+  behavior_state->state = state;
+}

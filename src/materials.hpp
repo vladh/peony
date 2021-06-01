@@ -77,38 +77,6 @@ namespace materials {
     bool32 is_builtin = false;
   };
 
-  struct BuiltinTextures {
-    Texture *g_position_texture;
-    Texture *g_normal_texture;
-    Texture *g_albedo_texture;
-    Texture *g_pbr_texture;
-
-    Texture *l_color_texture;
-    Texture *l_bright_color_texture;
-    Texture *l_depth_texture;
-
-    Texture *blur1_texture;
-    Texture *blur2_texture;
-
-    Texture *shadowmaps_3d_texture;
-    Texture *shadowmaps_2d_texture;
-
-    uint32 g_buffer;
-    uint32 l_buffer;
-    uint32 blur1_buffer;
-    uint32 blur2_buffer;
-    uint32 shadowmaps_3d_framebuffer;
-    uint32 shadowmaps_3d;
-    uint32 shadowmaps_2d_framebuffer;
-    uint32 shadowmaps_2d;
-    uint32 shadowmap_3d_width;
-    uint32 shadowmap_3d_height;
-    uint32 shadowmap_2d_width;
-    uint32 shadowmap_2d_height;
-    real32 shadowmap_near_clip_dist;
-    real32 shadowmap_far_clip_dist;
-  };
-
   enum class MaterialState {
     empty,
     initialized,
@@ -197,5 +165,5 @@ namespace materials {
 
 using materials::TextureNamePool, materials::PersistentPbo,
   materials::TextureAtlas, materials::TextureType, materials::Texture,
-  materials::BuiltinTextures, materials::MaterialState, materials::Material,
+  materials::MaterialState, materials::Material,
   materials::MaterialsState;

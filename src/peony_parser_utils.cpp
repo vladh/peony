@@ -2,6 +2,7 @@
 #include "peony_parser_utils.hpp"
 #include "logs.hpp"
 #include "constants.hpp"
+#include "renderer.hpp"
 #include "intrinsics.hpp"
 
 

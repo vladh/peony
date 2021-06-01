@@ -160,7 +160,7 @@ void input::reset_n_key_state_changes_this_frame(InputState *input_state) {
 }
 
 
-InputState* input::init(InputState *input_state, GLFWwindow *window) {
+void input::init(InputState *input_state, GLFWwindow *window) {
   input_state->window = window;
   input_state->mouse_3d_sensitivity = 0.1f;
   input_state->arrow_cursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
@@ -169,5 +169,4 @@ InputState* input::init(InputState *input_state, GLFWwindow *window) {
   input_state->hand_cursor = glfwCreateStandardCursor(GLFW_HAND_CURSOR);
   input_state->hresize_cursor = glfwCreateStandardCursor(GLFW_HRESIZE_CURSOR);
   input_state->vresize_cursor = glfwCreateStandardCursor(GLFW_VRESIZE_CURSOR);
-  return input_state;
 }

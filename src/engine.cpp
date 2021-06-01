@@ -477,6 +477,7 @@ namespace engine {
     TasksState *tasks_state,
     AnimState *anim_state,
     LightsState *lights_state,
+    BehaviorState *behavior_state,
     WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
@@ -504,14 +505,10 @@ namespace engine {
       cameras_state->camera_active->position
     );
 
-    #if 0
     behavior::update_behavior_components(
-      state,
-      &state->behavior_component_set,
-      &state->spatial_component_set,
-      state->t
+      behavior_state,
+      engine_state
     );
-    #endif
 
     anim::update_animation_components(
       &engine_state->animation_component_set,
@@ -593,6 +590,7 @@ void engine::run_main_loop(
   LightsState *lights_state,
   TasksState *tasks_state,
   AnimState *anim_state,
+  BehaviorState *behavior_state,
   GLFWwindow *window,
   WindowSize *window_size
 ) {
@@ -634,6 +632,7 @@ void engine::run_main_loop(
           tasks_state,
           anim_state,
           lights_state,
+          behavior_state,
           window_size
         );
         renderer::render(

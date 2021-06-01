@@ -55,7 +55,7 @@ namespace input {
   void set_cursor(InputState *input_state, GLFWcursor *new_cursor);
   void reset_n_mouse_button_state_changes_this_frame(InputState *input_state);
   void reset_n_key_state_changes_this_frame(InputState *input_state);
-  InputState* init(InputState *input_state, GLFWwindow *window);
+  void init(InputState *input_state, GLFWwindow *window);
 }
 
 using input::InputState;

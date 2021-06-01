@@ -76,6 +76,7 @@ namespace engine {
     LightsState *lights_state,
     TasksState *tasks_state,
     AnimState *anim_state,
+    BehaviorState *behavior_state,
     GLFWwindow *window,
     WindowSize *window_size
   );
