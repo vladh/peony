@@ -153,7 +153,7 @@ void debugdraw::render(DebugDrawState *debug_draw_state) {
 }
 
 
-DebugDrawState* debugdraw::init(
+void debugdraw::init(
   DebugDrawState* debug_draw_state,
   MemoryPool *memory_pool
 ) {
@@ -201,6 +201,4 @@ DebugDrawState* debugdraw::init(
   memory::destroy_memory_pool(&temp_memory_pool);
 
   debugdraw::g_dds = debug_draw_state;
-
-  return debug_draw_state;
 }

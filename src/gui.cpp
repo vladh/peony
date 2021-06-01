@@ -821,9 +821,9 @@ void gui::set_heading(
 }
 
 
-GuiState* gui::init(
-  GuiState* gui_state,
+void gui::init(
   MemoryPool *memory_pool,
+  GuiState* gui_state,
   InputState *input_state,
   uint32 window_width, uint32 window_height
 ) {
@@ -855,7 +855,7 @@ GuiState* gui::init(
 
     if (FT_Init_FreeType(&ft_library)) {
       logs::error("Could not init FreeType");
-      return nullptr;
+      return;
     }
 
     fonts::init_font_asset(
@@ -925,6 +925,4 @@ GuiState* gui::init(
   gui::g_console = &gui_state->game_console;
 
   log("Hello world!");
-
-  return gui_state;
 }

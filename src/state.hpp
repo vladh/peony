@@ -10,6 +10,7 @@
 #include "memory.hpp"
 #include "engine.hpp"
 #include "renderer.hpp"
+#include "behavior.hpp"
 #include "array.hpp"
 #include "stackarray.hpp"
 #include "queue.hpp"
@@ -28,6 +29,7 @@ struct State {
   MaterialsState materials_state;
   TasksState tasks_state;
   DebugDrawState debug_draw_state;
+  BehaviorState behavior_state;
 };
 
 struct MemoryAndState {

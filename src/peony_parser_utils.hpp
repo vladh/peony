@@ -3,7 +3,7 @@
 #include "array.hpp"
 #include "peony_parser.hpp"
 #include "models.hpp"
-#include "materials.hpp"
+#include "renderer.hpp"
 
 namespace peony_parser_utils {
   constexpr const char *TEXTURE_PREFIX = "textures.";

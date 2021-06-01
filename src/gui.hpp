@@ -71,8 +71,10 @@ namespace gui {
   };
 
   struct GuiState {
-    ShaderAsset shader_asset;
+    // NOTE: We're holding a pointer to another state here. What does this mean?
     InputState *input_state;
+
+    ShaderAsset shader_asset;
     GLFWcursor *requested_cursor;
     Array<FontAsset> font_assets;
     TextureAtlas texture_atlas;
@@ -145,9 +147,9 @@ namespace gui {
     const char *text, real32 opacity,
     real32 fadeout_duration, real32 fadeout_delay
   );
-  GuiState* init(
-    GuiState* gui_state,
+  void init(
     MemoryPool *memory_pool,
+    GuiState* gui_state,
     InputState *input_state,
     uint32 window_width, uint32 window_height
   );

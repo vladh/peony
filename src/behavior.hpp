@@ -5,6 +5,9 @@
 #include "entities.hpp"
 #include "spatial.hpp"
 
+struct State;
+struct EngineState;
+
 namespace behavior {
   enum class Behavior {
     none,
@@ -22,6 +25,10 @@ namespace behavior {
     Array<BehaviorComponent> components;
   };
 
+  struct BehaviorState {
+    State *state;
+  };
+
   typedef void (*BehaviorFunction) (void *state, EntityHandle entity_handle);
 
   extern BehaviorFunction function_map[(uint32)Behavior::length];
@@ -30,12 +37,15 @@ namespace behavior {
   Behavior behavior_from_string(const char *str);
   bool32 is_behavior_component_valid(BehaviorComponent *behavior_component);
   void update_behavior_components(
-    void *state,
-    BehaviorComponentSet *behavior_component_set,
-    SpatialComponentSet *spatial_component_set,
-    real64 t
+    BehaviorState *behavior_state,
+    EngineState *engine_state
+  );
+  void init(
+    BehaviorState *behavior_state,
+    State *state
   );
 }
 
 using behavior::Behavior, behavior::BehaviorComponent,
-  behavior::BehaviorComponentSet, behavior::BehaviorFunction;
+  behavior::BehaviorComponentSet, behavior::BehaviorFunction,
+  behavior::BehaviorState;

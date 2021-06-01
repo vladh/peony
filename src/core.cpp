@@ -208,6 +208,10 @@ namespace core {
       }
     #endif
 
+    // Enable multisampling
+    glEnable(GL_MULTISAMPLE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -239,8 +243,6 @@ namespace core {
 
     engine::init(&state->engine_state, asset_memory_pool);
     materials::init(&state->materials_state, asset_memory_pool);
-
-    // NOTE: Left off reviewing here
     renderer::init(
       &state->renderer_state,
       asset_memory_pool,
@@ -253,9 +255,9 @@ namespace core {
       &state->materials_state
     );
     gui::init(
-      &state->gui_state,
       asset_memory_pool,
-      &state->input_state,
+      &state->gui_state,
+      &state->input_state, // NOTE: Woah! What does this mean?
       state->window_size.width, state->window_size.height
     );
     debugdraw::init(&state->debug_draw_state, asset_memory_pool);
@@ -266,6 +268,11 @@ namespace core {
     cameras::init(
       &state->cameras_state,
       state->window_size.width, state->window_size.height
+    );
+    behavior::init(
+      &state->behavior_state,
+      // NOTE: behavior needs the global state to pass to the behavior functions
+      state
     );
 
     return state;
@@ -319,6 +326,7 @@ int core::run() {
     &state->lights_state,
     &state->tasks_state,
     &state->anim_state,
+    &state->behavior_state,
     state->window,
     &state->window_size
   );

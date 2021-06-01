@@ -68,7 +68,7 @@ namespace debugdraw {
     v4 color
   );
   void render(DebugDrawState *debug_draw_state);
-  DebugDrawState* init(
+  void init(
     DebugDrawState* debug_draw_state,
     MemoryPool *memory_pool
   );
