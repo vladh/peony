@@ -713,6 +713,6 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
 
-  g_t = &engine_state->t;
-  g_dt = &engine_state->dt;
+  engine::g_t = &engine_state->t;
+  engine::g_dt = &engine_state->dt;
 }
