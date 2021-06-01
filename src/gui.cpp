@@ -922,6 +922,8 @@ GuiState* gui::init(
 
   memory::destroy_memory_pool(&temp_memory_pool);
 
+  gui::g_console = &gui_state->game_console;
+
   log("Hello world!");
 
   return gui_state;

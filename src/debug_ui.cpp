@@ -135,7 +135,7 @@ namespace debug_ui {
     strcat(text, "Internal:\n");
 
     uint32 idx = 0;
-    each (material, state->materials) {
+    each (material, state->materials_state.materials) {
       strcat(text, "- ");
       strcat(text, material->name);
       strcat(text, "\n");
@@ -202,7 +202,7 @@ void debug_ui::render_debug_ui(State *state) {
     snprintf(debug_text, dt_size, state->is_world_loaded ? "yes" : "no");
     gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
 
-    snprintf(debug_text, dt_size, "%u", state->materials.length);
+    snprintf(debug_text, dt_size, "%u", state->materials_state.materials.length);
     gui::draw_named_value(
       &state->gui_state, container, "materials.length", debug_text
     );
@@ -281,14 +281,14 @@ void debug_ui::render_debug_ui(State *state) {
     if (gui::draw_button(
       &state->gui_state, container, "Reload shaders"
     )) {
-      materials::reload_shaders(&state->materials);
+      materials::reload_shaders(&state->materials_state.materials);
       gui::set_heading(&state->gui_state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (gui::draw_button(
       &state->gui_state, container, "Delete PBO"
     )) {
-      materials::delete_persistent_pbo(&state->persistent_pbo);
+      materials::delete_persistent_pbo(&state->materials_state.persistent_pbo);
       gui::set_heading(&state->gui_state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }

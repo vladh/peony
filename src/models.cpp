@@ -524,7 +524,7 @@ namespace models {
     // NOTE: This function stores its vertex data in the MemoryPool for each
     // mesh, and so is intended to be called from a separate thread.
     char full_path[MAX_PATH] = {};
-    pstr_vcat(full_path, MAX_PATH, MODEL_DIR, model_loader->model_path, nullptr);
+    pstr_vcat(full_path, MAX_PATH, MODEL_DIR, model_loader->model_path, NULL);
 
     START_TIMER(assimp_import);
     const aiScene *scene = aiImportFile(

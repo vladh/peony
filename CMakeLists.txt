@@ -50,7 +50,8 @@ else()
     src/internals.cpp
     src/engine.cpp
     src/behavior_functions.cpp
-    src/peony.cpp
+    src/core.cpp
+    src/main.cpp
   )
 endif()
 

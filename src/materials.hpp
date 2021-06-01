@@ -137,6 +137,11 @@ namespace materials {
     bool32 should_use_normal_map = false;
   };
 
+  struct MaterialsState {
+    PersistentPbo persistent_pbo;
+    TextureNamePool texture_name_pool;
+    Array<Material> materials;
+  };
 
   const char* texture_type_to_string(TextureType texture_type);
   TextureType texture_type_from_string(const char* str);
@@ -178,8 +183,7 @@ namespace materials {
   void bind_texture_uniforms(Material *material);
   void delete_persistent_pbo(PersistentPbo *ppbo);
   void init(
-    PersistentPbo *ppbo,
-    TextureNamePool *texture_name_pool,
+    MaterialsState *materials_state,
     MemoryPool *memory_pool
   );
   bool32 prepare_material_and_check_if_done(
@@ -193,4 +197,5 @@ namespace materials {
 
 using materials::TextureNamePool, materials::PersistentPbo,
   materials::TextureAtlas, materials::TextureType, materials::Texture,
-  materials::BuiltinTextures, materials::MaterialState, materials::Material;
+  materials::BuiltinTextures, materials::MaterialState, materials::Material,
+  materials::MaterialsState;

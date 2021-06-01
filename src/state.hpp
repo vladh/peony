@@ -19,7 +19,6 @@
 namespace state {
   constexpr uint32 DT_HIST_LENGTH = 512;
 
-  // TODO: Move to main
   struct WindowSize {
     int32 width; // in pixels (size of framebuffer)
     int32 height; // in pixels (size of framebuffer)
@@ -77,7 +76,6 @@ namespace state {
   };
 
   struct State {
-    // Core stuff
     GLFWwindow *window;
     WindowSize window_size;
 
@@ -97,10 +95,10 @@ namespace state {
     uint32 n_valid_entity_loaders;
     bool32 is_world_loaded;
     bool32 was_world_ever_loaded;
-    Array<ModelLoader> model_loaders;
     uint32 first_non_internal_material_idx;
-    EntitySet entity_set;
+    Array<ModelLoader> model_loaders;
     EntityLoaderSet entity_loader_set;
+    EntitySet entity_set;
     DrawableComponentSet drawable_component_set;
     LightComponentSet light_component_set;
     SpatialComponentSet spatial_component_set;
@@ -129,7 +127,6 @@ namespace state {
 
     // Gui stuff
     GuiState gui_state;
-    GameConsole game_console; // TODO: Move into GuiState
 
     // DebugDraw stuff
     DebugDrawState debug_draw_state;
@@ -141,9 +138,7 @@ namespace state {
     BoneMatrixPool bone_matrix_pool;
 
     // Materials stuff
-    PersistentPbo persistent_pbo;
-    TextureNamePool texture_name_pool;
-    Array<Material> materials;
+    MaterialsState materials_state;
 
     // Task stuff
     Queue<Task> task_queue;
@@ -153,14 +148,7 @@ namespace state {
     MemoryPool *asset_memory_pool;
     State *state;
   };
-
-  State* init_state(
-    State *state,
-    MemoryPool *asset_memory_pool,
-    GLFWwindow *window,
-    WindowSize *window_size
-  );
 }
 
-using state::WindowSize, state::PerfCounters, state::ShaderCommon, state::State,
-  state::MemoryAndState;
+using state::PerfCounters, state::ShaderCommon, state::State,
+  state::MemoryAndState, state::WindowSize;

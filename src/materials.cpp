@@ -4,6 +4,7 @@
 #include "util.hpp"
 #include "logs.hpp"
 #include "files.hpp"
+#include "state.hpp"
 #include "materials.hpp"
 #include "intrinsics.hpp"
 
@@ -541,12 +542,14 @@ void materials::delete_persistent_pbo(PersistentPbo *ppbo) {
 
 
 void materials::init(
-  PersistentPbo *ppbo,
-  TextureNamePool *texture_name_pool,
+  MaterialsState *materials_state,
   MemoryPool *memory_pool
 ) {
-  init_texture_name_pool(texture_name_pool, memory_pool, 64, 4);
-  init_persistent_pbo(ppbo, 25, 2048, 2048, 4);
+  materials_state->materials = Array<Material>(
+    memory_pool, MAX_N_MATERIALS, "materials"
+  );
+  init_texture_name_pool(&materials_state->texture_name_pool, memory_pool, 64, 4);
+  init_persistent_pbo(&materials_state->persistent_pbo, 25, 2048, 2048, 4);
 }
 
 

@@ -9,7 +9,7 @@ void internals::create_internal_materials(State *state) {
   // unknown
   {
     Material *material = materials::init_material(
-      state->materials.push(), "unknown"
+      state->materials_state.materials.push(), "unknown"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -22,7 +22,7 @@ void internals::create_internal_materials(State *state) {
   // lighting
   {
     Material *material = materials::init_material(
-      state->materials.push(), "lighting"
+      state->materials_state.materials.push(), "lighting"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -54,7 +54,7 @@ void internals::create_internal_materials(State *state) {
     // preblur
     {
       Material *material = materials::init_material(
-        state->materials.push(), "preblur"
+        state->materials_state.materials.push(), "preblur"
       );
       shaders::init_shader_asset(
         &material->shader_asset,
@@ -70,7 +70,7 @@ void internals::create_internal_materials(State *state) {
     // blur1
     {
       Material *material = materials::init_material(
-        state->materials.push(), "blur1"
+        state->materials_state.materials.push(), "blur1"
       );
       shaders::init_shader_asset(
         &material->shader_asset,
@@ -86,7 +86,7 @@ void internals::create_internal_materials(State *state) {
     // blur2
     {
       Material *material = materials::init_material(
-        state->materials.push(), "blur2"
+        state->materials_state.materials.push(), "blur2"
       );
       shaders::init_shader_asset(
         &material->shader_asset,
@@ -103,7 +103,7 @@ void internals::create_internal_materials(State *state) {
   // postprocessing
   {
     Material *material = materials::init_material(
-      state->materials.push(), "postprocessing"
+      state->materials_state.materials.push(), "postprocessing"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -128,7 +128,7 @@ void internals::create_internal_materials(State *state) {
   // renderdebug
   {
     Material *material = materials::init_material(
-      state->materials.push(), "renderdebug"
+      state->materials_state.materials.push(), "renderdebug"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -178,7 +178,7 @@ void internals::create_internal_materials(State *state) {
   // skysphere
   {
     Material *material = materials::init_material(
-      state->materials.push(), "skysphere"
+      state->materials_state.materials.push(), "skysphere"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -190,7 +190,7 @@ void internals::create_internal_materials(State *state) {
 
   // We've created all internal materials, so we will mark the next position
   // in the array of materials, so we know where non-internal materials start.
-  state->first_non_internal_material_idx = state->materials.length;
+  state->first_non_internal_material_idx = state->materials_state.materials.length;
 
   memory::destroy_memory_pool(&temp_memory_pool);
 }

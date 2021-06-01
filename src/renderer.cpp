@@ -646,7 +646,7 @@ namespace renderer {
       &state->drawable_component_set,
       &state->spatial_component_set,
       &state->animation_component_set,
-      &state->materials,
+      &state->materials_state.materials,
       render_pass,
       render_mode,
       &state->standard_depth_shader_asset
@@ -726,6 +726,14 @@ void renderer::init(
   uint32 height,
   State *state
 ) {
+  state->builtin_textures = {
+    .shadowmap_3d_width = min((uint32)state->window_size.width, (uint32)2000),
+    .shadowmap_3d_height = min((uint32)state->window_size.width, (uint32)2000),
+    .shadowmap_2d_width = 2560 * 2,
+    .shadowmap_2d_height = 1440 * 2,
+    .shadowmap_near_clip_dist = 0.05f,
+    .shadowmap_far_clip_dist = 200.0f,
+  };
   init_g_buffer(memory_pool, builtin_textures, width, height);
   init_l_buffer(memory_pool, builtin_textures, width, height);
   init_blur_buffers(memory_pool, builtin_textures, width, height);
