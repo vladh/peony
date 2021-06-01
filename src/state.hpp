@@ -77,7 +77,7 @@ namespace state {
   };
 
   struct State {
-    // main stuff
+    // Core stuff
     GLFWwindow *window;
     WindowSize window_size;
 
@@ -99,6 +99,14 @@ namespace state {
     bool32 was_world_ever_loaded;
     Array<ModelLoader> model_loaders;
     uint32 first_non_internal_material_idx;
+    EntitySet entity_set;
+    EntityLoaderSet entity_loader_set;
+    DrawableComponentSet drawable_component_set;
+    LightComponentSet light_component_set;
+    SpatialComponentSet spatial_component_set;
+    BehaviorComponentSet behavior_component_set;
+    AnimationComponentSet animation_component_set;
+    PhysicsComponentSet physics_component_set;
 
     // Renderer stuff
     bool32 is_cursor_enabled;
@@ -129,20 +137,16 @@ namespace state {
     // Lights stuff
     real32 dir_light_angle;
 
-    // ???
-    EntitySet entity_set;
-    EntityLoaderSet entity_loader_set;
-    DrawableComponentSet drawable_component_set;
-    LightComponentSet light_component_set;
-    SpatialComponentSet spatial_component_set;
-    BehaviorComponentSet behavior_component_set;
-    AnimationComponentSet animation_component_set;
-    PhysicsComponentSet physics_component_set;
+    // Anim stuff
     BoneMatrixPool bone_matrix_pool;
+
+    // Materials stuff
     PersistentPbo persistent_pbo;
     TextureNamePool texture_name_pool;
-    Queue<Task> task_queue;
     Array<Material> materials;
+
+    // Task stuff
+    Queue<Task> task_queue;
   };
 
   struct MemoryAndState {
