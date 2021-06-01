@@ -1,11 +1,12 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
 #include "types.hpp"
 #include "materials.hpp"
 #include "lights.hpp"
 #include "memory.hpp"
-#include "state.hpp"
+#include "cameras.hpp"
+#include "gui.hpp"
+#include "core.hpp"
 
 struct EngineState;
 

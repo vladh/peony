@@ -11,6 +11,8 @@ namespace chrono = std::chrono;
 #include "models.hpp"
 #include "renderer.hpp"
 #include "materials.hpp"
+#include "core.hpp"
+#include "cameras.hpp"
 
 static constexpr uint32 DT_HIST_LENGTH = 512;
 

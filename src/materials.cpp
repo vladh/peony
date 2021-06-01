@@ -4,7 +4,6 @@
 #include "util.hpp"
 #include "logs.hpp"
 #include "files.hpp"
-#include "state.hpp"
 #include "materials.hpp"
 #include "intrinsics.hpp"
 

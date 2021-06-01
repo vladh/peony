@@ -3,7 +3,7 @@ project(peony VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-set(UNITY true)
+set(UNITY false)
 
 # Treat all .c files as .cpp files
 file(GLOB_RECURSE CFILES "${CMAKE_SOURCE_DIR}/src_external/*.c")
@@ -44,7 +44,6 @@ else()
     src/peony_parser.cpp
     src/peony_parser_utils.cpp
     src/cameras.cpp
-    src/state.cpp
     src/debug_ui.cpp
     src/renderer.cpp
     src/internals.cpp
