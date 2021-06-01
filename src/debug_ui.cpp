@@ -1,12 +1,13 @@
 #include "debug_ui.hpp"
 #include "entities.hpp"
+#include "engine.hpp"
 #include "intrinsics.hpp"
 
 
 namespace debug_ui {
   pny_internal void get_entity_text_representation(
     char *text,
-    State *state,
+    EngineState *engine_state,
     Entity *entity,
     uint8 depth
   ) {
@@ -14,7 +15,7 @@ namespace debug_ui {
 
     EntityHandle handle = entity->handle;
     SpatialComponent *spatial_component =
-      state->spatial_component_set.components[handle];
+      engine_state->spatial_component_set.components[handle];
 
     // Children will be drawn under their parents.
     if (
@@ -29,16 +30,16 @@ namespace debug_ui {
       spatial_component
     );
     bool32 has_drawable_component = models::is_drawable_component_valid(
-      state->drawable_component_set.components[handle]
+      engine_state->drawable_component_set.components[handle]
     );
     bool32 has_light_component = lights::is_light_component_valid(
-      state->light_component_set.components[handle]
+      engine_state->light_component_set.components[handle]
     );
     bool32 has_behavior_component = behavior::is_behavior_component_valid(
-      state->behavior_component_set.components[handle]
+      engine_state->behavior_component_set.components[handle]
     );
     bool32 has_animation_component = anim::is_animation_component_valid(
-      state->animation_component_set.components[handle]
+      engine_state->animation_component_set.components[handle]
     );
 
     for (uint8 level = 0; level < depth; level++) {
@@ -80,7 +81,7 @@ namespace debug_ui {
     if (spatial::is_spatial_component_valid(spatial_component)) {
       // NOTE: This is super slow lol.
       uint32 n_children_found = 0;
-      each (child_spatial_component, state->spatial_component_set.components) {
+      each (child_spatial_component, engine_state->spatial_component_set.components) {
         if (
           child_spatial_component->parent_entity_handle ==
             spatial_component->entity_handle
@@ -90,12 +91,12 @@ namespace debug_ui {
             continue;
           }
           EntityHandle child_handle = child_spatial_component->entity_handle;
-          Entity *child_entity = state->entity_set.entities[child_handle];
+          Entity *child_entity = engine_state->entity_set.entities[child_handle];
 
           if (text[strlen(text) - 1] != '\n') {
             strcat(text, "\n");
           }
-          get_entity_text_representation(text, state, child_entity, depth + 1);
+          get_entity_text_representation(text, engine_state, child_entity, depth + 1);
         }
       }
       if (n_children_found > 5) {
@@ -116,11 +117,14 @@ namespace debug_ui {
   }
 
 
-  pny_internal void get_scene_text_representation(char *text, State *state) {
+  pny_internal void get_scene_text_representation(
+    char *text,
+    EngineState *engine_state
+  ) {
     text[0] = '\0';
 
-    each (entity, state->entity_set.entities) {
-      get_entity_text_representation(text, state, entity, 0);
+    each (entity, engine_state->entity_set.entities) {
+      get_entity_text_representation(text, engine_state, entity, 0);
     }
 
     if (text[strlen(text) - 1] == '\n') {
@@ -129,17 +133,21 @@ namespace debug_ui {
   }
 
 
-  pny_internal void get_materials_text_representation(char *text, State *state) {
+  pny_internal void get_materials_text_representation(
+    char *text,
+    MaterialsState *materials_state,
+    EngineState *engine_state
+  ) {
     text[0] = '\0';
 
     strcat(text, "Internal:\n");
 
     uint32 idx = 0;
-    each (material, state->materials_state.materials) {
+    each (material, materials_state->materials) {
       strcat(text, "- ");
       strcat(text, material->name);
       strcat(text, "\n");
-      if (idx == state->first_non_internal_material_idx - 1) {
+      if (idx == engine_state->first_non_internal_material_idx - 1) {
         strcat(text, "Non-internal: \n");
       }
       idx++;
@@ -152,165 +160,176 @@ namespace debug_ui {
 }
 
 
-void debug_ui::render_debug_ui(State *state) {
+void debug_ui::render_debug_ui(
+  EngineState *engine_state,
+  RendererState *renderer_state,
+  GuiState *gui_state,
+  MaterialsState *materials_state,
+  InputState *input_state,
+  WindowSize *window_size
+) {
   char debug_text[1 << 14];
   size_t dt_size = sizeof(debug_text);
 
-  gui::start_drawing(&state->gui_state);
+  gui::start_drawing(gui_state);
 
-  if (state->gui_state.heading_opacity > 0.0f) {
+  if (gui_state->heading_opacity > 0.0f) {
     gui::draw_heading(
-      &state->gui_state,
-      state->gui_state.heading_text,
-      v4(0.0f, 0.33f, 0.93f, state->gui_state.heading_opacity)
+      gui_state,
+      gui_state->heading_text,
+      v4(0.0f, 0.33f, 0.93f, gui_state->heading_opacity)
     );
-    if (state->gui_state.heading_fadeout_delay > 0.0f) {
-      state->gui_state.heading_fadeout_delay -= (real32)state->dt;
+    if (gui_state->heading_fadeout_delay > 0.0f) {
+      gui_state->heading_fadeout_delay -= (real32)(*engine::g_dt);
     } else {
-      state->gui_state.heading_opacity -=
-        state->gui_state.heading_fadeout_duration * (real32)state->dt;
+      gui_state->heading_opacity -=
+        gui_state->heading_fadeout_duration * (real32)(*engine::g_dt);
     }
   }
 
   {
     strcpy(debug_text, "Peony debug info: ");
-    strcat(debug_text, state->current_scene_name);
+    strcat(debug_text, engine_state->current_scene_name);
     GuiContainer *container = gui::make_container(
-      &state->gui_state, debug_text, v2(25.0f, 25.0f)
+      gui_state, debug_text, v2(25.0f, 25.0f)
     );
 
     snprintf(
-      debug_text, dt_size, "%ux%u", state->window_size.width, state->window_size.height
+      debug_text, dt_size, "%ux%u", window_size->width, window_size->height
     );
-    gui::draw_named_value(&state->gui_state, container, "screen size", debug_text);
+    gui::draw_named_value(gui_state, container, "screen size", debug_text);
 
     snprintf(
       debug_text, dt_size, "%ux%u",
-      state->window_size.screencoord_width, state->window_size.screencoord_height
+      window_size->screencoord_width, window_size->screencoord_height
     );
-    gui::draw_named_value(&state->gui_state, container, "window size", debug_text);
+    gui::draw_named_value(gui_state, container, "window size", debug_text);
 
-    snprintf(debug_text, dt_size, "%u fps", state->perf_counters.last_fps);
-    gui::draw_named_value(&state->gui_state, container, "fps", debug_text);
+    snprintf(debug_text, dt_size, "%u fps", engine_state->perf_counters.last_fps);
+    gui::draw_named_value(gui_state, container, "fps", debug_text);
 
-    snprintf(debug_text, dt_size, "%.2f ms", state->perf_counters.dt_average * 1000.0f);
-    gui::draw_named_value(&state->gui_state, container, "dt", debug_text);
-
-    snprintf(debug_text, dt_size, "%.2f", 1.0f + state->timescale_diff);
-    gui::draw_named_value(&state->gui_state, container, "ts", debug_text);
-
-    snprintf(debug_text, dt_size, state->is_world_loaded ? "yes" : "no");
-    gui::draw_named_value(&state->gui_state, container, "is_world_loaded", debug_text);
-
-    snprintf(debug_text, dt_size, "%u", state->materials_state.materials.length);
-    gui::draw_named_value(
-      &state->gui_state, container, "materials.length", debug_text
+    snprintf(
+      debug_text, dt_size, "%.2f ms", engine_state->perf_counters.dt_average * 1000.0f
     );
+    gui::draw_named_value(gui_state, container, "dt", debug_text);
 
-    snprintf(debug_text, dt_size, "%u", state->entity_set.entities.length);
-    gui::draw_named_value(&state->gui_state, container, "entities.length", debug_text);
+    snprintf(debug_text, dt_size, "%.2f", 1.0f + engine_state->timescale_diff);
+    gui::draw_named_value(gui_state, container, "ts", debug_text);
 
-    snprintf(debug_text, dt_size, "%u", state->model_loaders.length);
+    snprintf(debug_text, dt_size, engine_state->is_world_loaded ? "yes" : "no");
+    gui::draw_named_value(gui_state, container, "is_world_loaded", debug_text);
+
+    snprintf(debug_text, dt_size, "%u", materials_state->materials.length);
     gui::draw_named_value(
-      &state->gui_state, container, "model_loaders.length", debug_text
+      gui_state, container, "materials.length", debug_text
     );
 
-    snprintf(debug_text, dt_size, "%u", state->n_valid_model_loaders);
+    snprintf(debug_text, dt_size, "%u", engine_state->entity_set.entities.length);
+    gui::draw_named_value(gui_state, container, "entities.length", debug_text);
+
+    snprintf(debug_text, dt_size, "%u", engine_state->model_loaders.length);
     gui::draw_named_value(
-      &state->gui_state, container, "n_valid_model_loaders", debug_text
+      gui_state, container, "model_loaders.length", debug_text
     );
 
-    snprintf(debug_text, dt_size, "%u", state->entity_loader_set.loaders.length);
+    snprintf(debug_text, dt_size, "%u", engine_state->n_valid_model_loaders);
     gui::draw_named_value(
-      &state->gui_state, container, "entity_loader_set.length", debug_text
+      gui_state, container, "n_valid_model_loaders", debug_text
     );
 
-    snprintf(debug_text, dt_size, "%u", state->n_valid_entity_loaders);
+    snprintf(debug_text, dt_size, "%u", engine_state->entity_loader_set.loaders.length);
     gui::draw_named_value(
-      &state->gui_state, container, "n_valid_entity_loaders", debug_text
+      gui_state, container, "entity_loader_set.length", debug_text
+    );
+
+    snprintf(debug_text, dt_size, "%u", engine_state->n_valid_entity_loaders);
+    gui::draw_named_value(
+      gui_state, container, "n_valid_entity_loaders", debug_text
     );
 
     if (gui::draw_toggle(
-      &state->gui_state, container, "Wireframe mode", &state->should_use_wireframe
+      gui_state, container, "Wireframe mode",
+      &renderer_state->should_use_wireframe
     )) {
-      state->should_use_wireframe = !state->should_use_wireframe;
-      if (state->should_use_wireframe) {
-        gui::set_heading(&state->gui_state, "Wireframe mode on.", 1.0f, 1.0f, 1.0f);
+      renderer_state->should_use_wireframe =
+        !renderer_state->should_use_wireframe;
+      if (renderer_state->should_use_wireframe) {
+        gui::set_heading(gui_state, "Wireframe mode on.", 1.0f, 1.0f, 1.0f);
       } else {
-        gui::set_heading(&state->gui_state, "Wireframe mode off.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading(gui_state, "Wireframe mode off.", 1.0f, 1.0f, 1.0f);
       }
     }
 
     if (gui::draw_toggle(
-      &state->gui_state, container, "FPS limit", &state->should_limit_fps
+      gui_state, container, "FPS limit", &engine_state->should_limit_fps
     )) {
-      state->should_limit_fps = !state->should_limit_fps;
-      if (state->should_limit_fps) {
-        gui::set_heading(&state->gui_state, "FPS limit enabled.", 1.0f, 1.0f, 1.0f);
+      engine_state->should_limit_fps = !engine_state->should_limit_fps;
+      if (engine_state->should_limit_fps) {
+        gui::set_heading(gui_state, "FPS limit enabled.", 1.0f, 1.0f, 1.0f);
       } else {
-        gui::set_heading(&state->gui_state, "FPS limit disabled.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading(gui_state, "FPS limit disabled.", 1.0f, 1.0f, 1.0f);
       }
     }
 
     if (gui::draw_toggle(
-      &state->gui_state, container, "Manual frame advance", &state->is_manual_frame_advance_enabled
+      gui_state, container, "Manual frame advance",
+      &engine_state->is_manual_frame_advance_enabled
     )) {
-      state->is_manual_frame_advance_enabled = !state->is_manual_frame_advance_enabled;
-      if (state->is_manual_frame_advance_enabled) {
+      engine_state->is_manual_frame_advance_enabled =
+        !engine_state->is_manual_frame_advance_enabled;
+      if (engine_state->is_manual_frame_advance_enabled) {
         gui::set_heading(
-          &state->gui_state, "Manual frame advance enabled.", 1.0f, 1.0f, 1.0f
+          gui_state, "Manual frame advance enabled.", 1.0f, 1.0f, 1.0f
         );
       } else {
         gui::set_heading(
-          &state->gui_state, "Manual frame advance disabled.", 1.0f, 1.0f, 1.0f
+          gui_state, "Manual frame advance disabled.", 1.0f, 1.0f, 1.0f
         );
       }
     }
 
     if (gui::draw_toggle(
-      &state->gui_state, container, "Pause", &state->should_pause
+      gui_state, container, "Pause", &engine_state->should_pause
     )) {
-      state->should_pause = !state->should_pause;
-      if (state->should_pause) {
-        gui::set_heading(&state->gui_state, "Pause enabled.", 1.0f, 1.0f, 1.0f);
+      engine_state->should_pause = !engine_state->should_pause;
+      if (engine_state->should_pause) {
+        gui::set_heading(gui_state, "Pause enabled.", 1.0f, 1.0f, 1.0f);
       } else {
-        gui::set_heading(&state->gui_state, "Pause disabled.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading(gui_state, "Pause disabled.", 1.0f, 1.0f, 1.0f);
       }
     }
 
     if (gui::draw_button(
-      &state->gui_state, container, "Reload shaders"
+      gui_state, container, "Reload shaders"
     )) {
-      materials::reload_shaders(&state->materials_state.materials);
-      gui::set_heading(&state->gui_state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
+      materials::reload_shaders(&materials_state->materials);
+      gui::set_heading(gui_state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (gui::draw_button(
-      &state->gui_state, container, "Delete PBO"
+      gui_state, container, "Delete PBO"
     )) {
-      materials::delete_persistent_pbo(&state->materials_state.persistent_pbo);
-      gui::set_heading(&state->gui_state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
+      materials::delete_persistent_pbo(&materials_state->persistent_pbo);
+      gui::set_heading(gui_state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }
 
   {
     GuiContainer *container = gui::make_container(
-      &state->gui_state, "Entities", v2(state->window_size.width - 400.0f, 25.0f)
+      gui_state, "Entities", v2(window_size->width - 400.0f, 25.0f)
     );
-    get_scene_text_representation(debug_text, state);
-    gui::draw_body_text(&state->gui_state, container, debug_text);
+    get_scene_text_representation(debug_text, engine_state);
+    gui::draw_body_text(gui_state, container, debug_text);
   }
 
   {
     GuiContainer *container = gui::make_container(
-      &state->gui_state, "Materials", v2(state->window_size.width - 600.0f, 25.0f)
+      gui_state, "Materials", v2(window_size->width - 600.0f, 25.0f)
     );
-    get_materials_text_representation(debug_text, state);
-    gui::draw_body_text(&state->gui_state, container, debug_text);
+    get_materials_text_representation(debug_text, materials_state, engine_state);
+    gui::draw_body_text(gui_state, container, debug_text);
   }
 
-  gui::draw_console(
-    &state->gui_state, state->input_state.text_input
-  );
-  gui::render(&state->gui_state);
+  gui::draw_console(gui_state, input_state->text_input);
+  gui::render(gui_state);
 }

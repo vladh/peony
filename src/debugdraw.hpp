@@ -1,6 +1,7 @@
 #pragma once
 
 #include "spatial.hpp"
+#include "shaders.hpp"
 #include "types.hpp"
 
 namespace debugdraw {

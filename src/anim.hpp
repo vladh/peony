@@ -57,7 +57,6 @@ namespace anim {
   void update_animation_components(
     AnimationComponentSet *animation_component_set,
     SpatialComponentSet *spatial_component_set,
-    real64 t,
     BoneMatrixPool *bone_matrix_pool
   );
   void make_bone_matrices_for_animation_bone(

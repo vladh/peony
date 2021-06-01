@@ -1,15 +1,22 @@
+#include "engine.hpp"
+#include "renderer.hpp"
 #include "materials.hpp"
 #include "shaders.hpp"
 #include "internals.hpp"
 
 
-void internals::create_internal_materials(State *state) {
+void internals::create_internal_materials(
+  EngineState *engine_state,
+  RendererState *renderer_state,
+  MaterialsState *materials_state
+) {
   MemoryPool temp_memory_pool = {};
+  BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
 
   // unknown
   {
     Material *material = materials::init_material(
-      state->materials_state.materials.push(), "unknown"
+      materials_state->materials.push(), "unknown"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -22,7 +29,7 @@ void internals::create_internal_materials(State *state) {
   // lighting
   {
     Material *material = materials::init_material(
-      state->materials_state.materials.push(), "lighting"
+      materials_state->materials.push(), "lighting"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -31,22 +38,22 @@ void internals::create_internal_materials(State *state) {
       "screenquad.vert", "lighting.frag", ""
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_position_texture, "g_position_texture"
+      material, *builtin_textures->g_position_texture, "g_position_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_normal_texture, "g_normal_texture"
+      material, *builtin_textures->g_normal_texture, "g_normal_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_albedo_texture, "g_albedo_texture"
+      material, *builtin_textures->g_albedo_texture, "g_albedo_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
+      material, *builtin_textures->g_pbr_texture, "g_pbr_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
+      material, *builtin_textures->shadowmaps_3d_texture, "shadowmaps_3d"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
+      material, *builtin_textures->shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
 
@@ -54,7 +61,7 @@ void internals::create_internal_materials(State *state) {
     // preblur
     {
       Material *material = materials::init_material(
-        state->materials_state.materials.push(), "preblur"
+        materials_state->materials.push(), "preblur"
       );
       shaders::init_shader_asset(
         &material->shader_asset,
@@ -63,14 +70,15 @@ void internals::create_internal_materials(State *state) {
         "screenquad.vert", "blur.frag", ""
       );
       materials::add_texture_to_material(
-        material, *state->builtin_textures.l_bright_color_texture, "source_texture"
+        material,
+        *builtin_textures->l_bright_color_texture, "source_texture"
       );
     }
 
     // blur1
     {
       Material *material = materials::init_material(
-        state->materials_state.materials.push(), "blur1"
+        materials_state->materials.push(), "blur1"
       );
       shaders::init_shader_asset(
         &material->shader_asset,
@@ -79,14 +87,15 @@ void internals::create_internal_materials(State *state) {
         "screenquad.vert", "blur.frag", ""
       );
       materials::add_texture_to_material(
-        material, *state->builtin_textures.blur2_texture, "source_texture"
+        material,
+        *builtin_textures->blur2_texture, "source_texture"
       );
     }
 
     // blur2
     {
       Material *material = materials::init_material(
-        state->materials_state.materials.push(), "blur2"
+        materials_state->materials.push(), "blur2"
       );
       shaders::init_shader_asset(
         &material->shader_asset,
@@ -95,7 +104,8 @@ void internals::create_internal_materials(State *state) {
         "screenquad.vert", "blur.frag", ""
       );
       materials::add_texture_to_material(
-        material, *state->builtin_textures.blur1_texture, "source_texture"
+        material,
+        *builtin_textures->blur1_texture, "source_texture"
       );
     }
   #endif
@@ -103,7 +113,7 @@ void internals::create_internal_materials(State *state) {
   // postprocessing
   {
     Material *material = materials::init_material(
-      state->materials_state.materials.push(), "postprocessing"
+      materials_state->materials.push(), "postprocessing"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -112,23 +122,24 @@ void internals::create_internal_materials(State *state) {
       "screenquad.vert", "postprocessing.frag", ""
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.l_color_texture, "l_color_texture"
+      material, *builtin_textures->l_color_texture, "l_color_texture"
     );
     #if USE_BLOOM
       materials::add_texture_to_material(
-        material, *state->builtin_textures.blur2_texture, "bloom_texture"
+        material, *builtin_textures->blur2_texture, "bloom_texture"
       );
     #endif
     // Uncomment to use fog.
     /* materials::add_texture_to-material( */
-    /*   material, *state->l_depth_texture, "l_depth_texture" */
+    /*   material, */
+    /*   *renderer_state->l_depth_texture, "l_depth_texture" */
     /* ); */
   }
 
   // renderdebug
   {
     Material *material = materials::init_material(
-      state->materials_state.materials.push(), "renderdebug"
+      materials_state->materials.push(), "renderdebug"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -138,47 +149,47 @@ void internals::create_internal_materials(State *state) {
     );
 
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_position_texture, "g_position_texture"
+      material, *renderer_state->builtin_textures.g_position_texture, "g_position_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_normal_texture, "g_normal_texture"
+      material, *renderer_state->builtin_textures.g_normal_texture, "g_normal_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_albedo_texture, "g_albedo_texture"
+      material, *renderer_state->builtin_textures.g_albedo_texture, "g_albedo_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.g_pbr_texture, "g_pbr_texture"
-    );
-
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.g_position_texture, "l_color_texture"
-    );
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.l_color_texture, "l_bright_color_texture"
-    );
-    materials::add_texture_to_material(
-      material, *state->builtin_textures.l_color_texture, "l_depth_texture"
+      material, *renderer_state->builtin_textures.g_pbr_texture, "g_pbr_texture"
     );
 
     materials::add_texture_to_material(
-      material, *state->builtin_textures.l_color_texture, "blur1_texture"
+      material, *renderer_state->builtin_textures.g_position_texture, "l_color_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.l_color_texture, "blur2_texture"
+      material, *renderer_state->builtin_textures.l_color_texture, "l_bright_color_texture"
+    );
+    materials::add_texture_to_material(
+      material, *renderer_state->builtin_textures.l_color_texture, "l_depth_texture"
     );
 
     materials::add_texture_to_material(
-      material, *state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
+      material, *renderer_state->builtin_textures.l_color_texture, "blur1_texture"
     );
     materials::add_texture_to_material(
-      material, *state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
+      material, *renderer_state->builtin_textures.l_color_texture, "blur2_texture"
+    );
+
+    materials::add_texture_to_material(
+      material, *renderer_state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
+    );
+    materials::add_texture_to_material(
+      material, *renderer_state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
 
   // skysphere
   {
     Material *material = materials::init_material(
-      state->materials_state.materials.push(), "skysphere"
+      materials_state->materials.push(), "skysphere"
     );
     shaders::init_shader_asset(
       &material->shader_asset,
@@ -190,17 +201,21 @@ void internals::create_internal_materials(State *state) {
 
   // We've created all internal materials, so we will mark the next position
   // in the array of materials, so we know where non-internal materials start.
-  state->first_non_internal_material_idx = state->materials_state.materials.length;
+  engine_state->first_non_internal_material_idx = materials_state->materials.length;
 
   memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void internals::create_internal_entities(State *state) {
+void internals::create_internal_entities(
+  EngineState *engine_state,
+  RendererState *renderer_state,
+  MaterialsState *materials_state
+) {
   MemoryPool temp_memory_pool = {};
 
   shaders::init_shader_asset(
-    &state->standard_depth_shader_asset,
+    &renderer_state->standard_depth_shader_asset,
     &temp_memory_pool,
     "standard_depth", ShaderType::depth,
     "standard_depth.vert", "standard_depth.frag",
@@ -210,10 +225,11 @@ void internals::create_internal_entities(State *state) {
   // Lighting screenquad
   {
     Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "screenquad_lighting"
+      &engine_state->entity_set, "screenquad_lighting"
     );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = engine_state->model_loaders.push();
+    EntityLoader *entity_loader =
+      engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_lighting");
     models::init_entity_loader(
       entity_loader,
@@ -229,10 +245,11 @@ void internals::create_internal_entities(State *state) {
     // Preblur screenquad
     {
       Entity *entity = entities::add_entity_to_set(
-        &state->entity_set, "screenquad_preblur"
+        &engine_state->entity_set, "screenquad_preblur"
       );
-      ModelLoader *model_loader = state->model_loaders.push();
-      EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+      ModelLoader *model_loader = engine_state->model_loaders.push();
+      EntityLoader *entity_loader = 
+        engine_state->entity_loader_set.loaders[entity->handle];
       models::init_model_loader(model_loader "builtin:screenquad_preblur");
       models::init_entity_loader(
         entity_loader,
@@ -247,10 +264,11 @@ void internals::create_internal_entities(State *state) {
     // Blur 1 screenquad
     {
       Entity *entity = entities::add_entity_to_set(
-        &state->entity_set, "screenquad_blur1"
+        &engine_state->entity_set, "screenquad_blur1"
       );
-      ModelLoader *model_loader = state->model_loaders.push();
-      EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+      ModelLoader *model_loader = engine_state->model_loaders.push();
+      EntityLoader *entity_loader =
+        engine_state->entity_loader_set.loaders[entity->handle];
       models::init_model_loader(model_loader, "builtin:screenquad_blur1");
       models::init_entity_loader(
         entity_loader,
@@ -265,10 +283,11 @@ void internals::create_internal_entities(State *state) {
     // Blur 2 screenquad
     {
       Entity *entity = entities::add_entity_to_set(
-        &state->entity_set, "screenquad_blur2"
+        &engine_state->entity_set, "screenquad_blur2"
       );
-      ModelLoader *model_loader = state->model_loaders.push();
-      EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+      ModelLoader *model_loader = engine_state->model_loaders.push();
+      EntityLoader *entity_loader =
+        engine_state->entity_loader_set.loaders[entity->handle];
       models::init_model_loader(model_loader, "builtin:screenquad_blur2");
       models::init_entity_loader(
         entity_loader,
@@ -284,10 +303,11 @@ void internals::create_internal_entities(State *state) {
   // Postprocessing screenquad
   {
     Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "screenquad_postprocessing"
+      &engine_state->entity_set, "screenquad_postprocessing"
     );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = engine_state->model_loaders.push();
+    EntityLoader *entity_loader = 
+      engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_postprocessing");
     models::init_entity_loader(
       entity_loader,
@@ -302,10 +322,11 @@ void internals::create_internal_entities(State *state) {
   // Debug screenquad
   {
     Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "screenquad_renderdebug"
+      &engine_state->entity_set, "screenquad_renderdebug"
     );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = engine_state->model_loaders.push();
+    EntityLoader *entity_loader = 
+      engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_renderdebug");
     models::init_entity_loader(
       entity_loader,
@@ -320,10 +341,11 @@ void internals::create_internal_entities(State *state) {
   // Skysphere
   {
     Entity *entity = entities::add_entity_to_set(
-      &state->entity_set, "skysphere"
+      &engine_state->entity_set, "skysphere"
     );
-    ModelLoader *model_loader = state->model_loaders.push();
-    EntityLoader *entity_loader = state->entity_loader_set.loaders[entity->handle];
+    ModelLoader *model_loader = engine_state->model_loaders.push();
+    EntityLoader *entity_loader =
+      engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:skysphere");
     models::init_entity_loader(
       entity_loader,
@@ -344,7 +366,26 @@ void internals::create_internal_entities(State *state) {
   // We've created all internal entities, so we will mark the next position
   // in the EntitySet, to know that that position is where the non-internal
   // entities start.
-  state->entity_set.first_non_internal_handle = state->entity_set.next_handle;
+  engine_state->entity_set.first_non_internal_handle =
+    engine_state->entity_set.next_handle;
 
   memory::destroy_memory_pool(&temp_memory_pool);
+}
+
+
+void internals::init(
+  EngineState *engine_state,
+  RendererState *renderer_state,
+  MaterialsState *materials_state
+) {
+  create_internal_materials(
+    engine_state,
+    renderer_state,
+    materials_state
+  );
+  create_internal_entities(
+    engine_state,
+    renderer_state,
+    materials_state
+  );
 }

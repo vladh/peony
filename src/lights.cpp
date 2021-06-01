@@ -1,5 +1,6 @@
 #include "logs.hpp"
 #include "lights.hpp"
+#include "engine.hpp"
 #include "intrinsics.hpp"
 
 
@@ -50,7 +51,6 @@ void lights::update_light_components(
   LightsState *lights_state,
   LightComponentSet *light_component_set,
   SpatialComponentSet *spatial_component_set,
-  real64 t,
   v3 camera_position
 ) {
   each (light_component, light_component_set->components) {
@@ -69,7 +69,7 @@ void lights::update_light_components(
     }
 
     if (light_component->type == LightType::point) {
-      light_component->color.b = ((real32)sin(t) + 1.0f) / 2.0f * 50.0f;
+      light_component->color.b = ((real32)sin(*engine::g_t) + 1.0f) / 2.0f * 50.0f;
     }
 
     // For the sun! :)

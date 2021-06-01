@@ -1,5 +1,7 @@
 #include "../src_external/pstr.h"
 #include "renderer.hpp"
+#include "engine.hpp"
+#include "materials.hpp"
 #include "debug.hpp"
 #include "util.hpp"
 #include "logs.hpp"
@@ -289,12 +291,14 @@ namespace renderer {
   }
 
 
-  pny_internal void init_ubo(State *state) {
-    glGenBuffers(1, &state->ubo_shader_common);
-    glBindBuffer(GL_UNIFORM_BUFFER, state->ubo_shader_common);
+  pny_internal void init_ubo(RendererState *renderer_state) {
+    glGenBuffers(1, &renderer_state->ubo_shader_common);
+    glBindBuffer(GL_UNIFORM_BUFFER, renderer_state->ubo_shader_common);
     glBufferData(GL_UNIFORM_BUFFER, sizeof(ShaderCommon), NULL, GL_STATIC_DRAW);
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 0, state->ubo_shader_common, 0, sizeof(ShaderCommon));
+    glBindBufferRange(
+      GL_UNIFORM_BUFFER, 0, renderer_state->ubo_shader_common, 0, sizeof(ShaderCommon)
+    );
   }
 
 
@@ -376,27 +380,29 @@ namespace renderer {
 
 
   pny_internal void copy_scene_data_to_ubo(
-    State *state,
+    RendererState *renderer_state,
+    CamerasState *cameras_state,
+    EngineState *engine_state,
+    WindowSize *window_size,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
     bool32 is_blur_horizontal
   ) {
-    ShaderCommon *shader_common = &state->shader_common;
-
-    Camera *camera = state->cameras_state.camera_active;
+    ShaderCommon *shader_common = &renderer_state->shader_common;
+    Camera *camera = cameras_state->camera_active;
 
     shader_common->view = camera->view;
     shader_common->projection = camera->projection;
     shader_common->ui_projection = camera->ui_projection;
     memcpy(
       shader_common->shadowmap_3d_transforms,
-      state->shadowmap_3d_transforms,
-      sizeof(state->shadowmap_3d_transforms)
+      renderer_state->shadowmap_3d_transforms,
+      sizeof(renderer_state->shadowmap_3d_transforms)
     );
     memcpy(
       shader_common->shadowmap_2d_transforms,
-      state->shadowmap_2d_transforms,
-      sizeof(state->shadowmap_2d_transforms)
+      renderer_state->shadowmap_2d_transforms,
+      sizeof(renderer_state->shadowmap_2d_transforms)
     );
 
     shader_common->camera_position = v4(camera->position, 1.0f);
@@ -410,27 +416,28 @@ namespace renderer {
     shader_common->current_shadow_light_idx = current_shadow_light_idx;
     shader_common->current_shadow_light_type = current_shadow_light_type;
 
-    shader_common->shadow_far_clip_dist = state->builtin_textures.shadowmap_far_clip_dist;
+    shader_common->shadow_far_clip_dist =
+      renderer_state->builtin_textures.shadowmap_far_clip_dist;
     shader_common->is_blur_horizontal = is_blur_horizontal;
     shader_common->renderdebug_displayed_texture_type =
-      state->renderdebug_displayed_texture_type;
+      renderer_state->renderdebug_displayed_texture_type;
     shader_common->unused_pad = 0;
 
     shader_common->exposure = camera->exposure;
-    shader_common->t = (float)state->t;
-    shader_common->window_width = state->window_size.width;
-    shader_common->window_height = state->window_size.height;
+    shader_common->t = (float)(*engine::g_t);
+    shader_common->window_width = window_size->width;
+    shader_common->window_height = window_size->height;
 
     uint32 n_point_lights = 0;
     uint32 n_directional_lights = 0;
 
-    each (light_component, state->light_component_set.components) {
+    each (light_component, engine_state->light_component_set.components) {
       if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
         continue;
       }
 
       SpatialComponent *spatial_component =
-        state->spatial_component_set.components[light_component->entity_handle];
+        engine_state->spatial_component_set.components[light_component->entity_handle];
 
       if (!(
         lights::is_light_component_valid(light_component) &&
@@ -465,11 +472,6 @@ namespace renderer {
     shader_common->n_directional_lights = n_directional_lights;
 
     glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ShaderCommon), shader_common);
-  }
-
-
-  pny_internal void copy_scene_data_to_ubo(State *state) {
-    copy_scene_data_to_ubo(state, 0, 0, false);
   }
 
 
@@ -636,7 +638,9 @@ namespace renderer {
 
 
   pny_internal void render_scene(
-    State *state,
+    EngineState *engine_state,
+    MaterialsState *materials_state,
+    RendererState *renderer_state,
     RenderPass render_pass,
     RenderMode render_mode
   ) {
@@ -644,14 +648,14 @@ namespace renderer {
       logs::info("RenderPass: %s", render_pass_to_string(render_pass));
     #endif
     draw_all(
-      &state->entity_set,
-      &state->drawable_component_set,
-      &state->spatial_component_set,
-      &state->animation_component_set,
-      &state->materials_state.materials,
+      &engine_state->entity_set,
+      &engine_state->drawable_component_set,
+      &engine_state->spatial_component_set,
+      &engine_state->animation_component_set,
+      &materials_state->materials,
       render_pass,
       render_mode,
-      &state->standard_depth_shader_asset
+      &renderer_state->standard_depth_shader_asset
     );
   }
 }
@@ -706,14 +710,17 @@ void renderer::resize_renderer_buffers(
 }
 
 
-void renderer::update_drawing_options(State *state, GLFWwindow *window) {
-  if (state->is_cursor_enabled) {
+void renderer::update_drawing_options(
+  RendererState *renderer_state,
+  GLFWwindow *window
+) {
+  if (renderer_state->is_cursor_enabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   } else {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   }
 
-  if (state->should_use_wireframe) {
+  if (renderer_state->should_use_wireframe) {
     // This will be handled in the rendering loop.
   } else {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -721,48 +728,47 @@ void renderer::update_drawing_options(State *state, GLFWwindow *window) {
 }
 
 
-void renderer::init(
-  MemoryPool *memory_pool,
-  BuiltinTextures *builtin_textures,
-  uint32 width,
-  uint32 height,
-  State *state
+void renderer::render(
+  RendererState *renderer_state,
+  EngineState *engine_state,
+  MaterialsState *materials_state,
+  CamerasState *cameras_state,
+  GuiState *gui_state,
+  InputState *input_state,
+  GLFWwindow *window,
+  WindowSize *window_size
 ) {
-  state->builtin_textures = {
-    .shadowmap_3d_width = min((uint32)state->window_size.width, (uint32)2000),
-    .shadowmap_3d_height = min((uint32)state->window_size.width, (uint32)2000),
-    .shadowmap_2d_width = 2560 * 2,
-    .shadowmap_2d_height = 1440 * 2,
-    .shadowmap_near_clip_dist = 0.05f,
-    .shadowmap_far_clip_dist = 200.0f,
-  };
-  init_g_buffer(memory_pool, builtin_textures, width, height);
-  init_l_buffer(memory_pool, builtin_textures, width, height);
-  init_blur_buffers(memory_pool, builtin_textures, width, height);
-  init_shadowmaps(memory_pool, builtin_textures);
-  init_ubo(state);
-  update_drawing_options(state, state->window);
-}
-
-
-void renderer::render(State *state) {
-  copy_scene_data_to_ubo(state);
+  copy_scene_data_to_ubo(
+    renderer_state,
+    cameras_state,
+    engine_state,
+    window_size,
+    0, 0, false
+  );
 
   // Clear framebuffers
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
+    glBindFramebuffer(
+      GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer
+    );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.l_buffer);
+    glBindFramebuffer(
+      GL_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer
+    );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.blur1_buffer);
+    glBindFramebuffer(
+      GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer
+    );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.blur2_buffer);
+    glBindFramebuffer(
+      GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer
+    );
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
@@ -773,22 +779,22 @@ void renderer::render(State *state) {
       m4 perspective_projection = glm::perspective(
         radians(90.0f),
         (
-          (real32)state->builtin_textures.shadowmap_3d_width /
-          (real32)state->builtin_textures.shadowmap_3d_height
+          (real32)renderer_state->builtin_textures.shadowmap_3d_width /
+          (real32)renderer_state->builtin_textures.shadowmap_3d_height
         ),
-        state->builtin_textures.shadowmap_near_clip_dist,
-        state->builtin_textures.shadowmap_far_clip_dist
+        renderer_state->builtin_textures.shadowmap_near_clip_dist,
+        renderer_state->builtin_textures.shadowmap_far_clip_dist
       );
 
       uint32 idx_light = 0;
 
-      each (light_component, state->light_component_set.components) {
+      each (light_component, engine_state->light_component_set.components) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
           continue;
         }
 
         SpatialComponent *spatial_component =
-          state->spatial_component_set.components[light_component->entity_handle];
+          engine_state->spatial_component_set.components[light_component->entity_handle];
 
         if (!(
           lights::is_light_component_valid(light_component) &&
@@ -801,7 +807,7 @@ void renderer::render(State *state) {
         v3 position = spatial_component->position;
 
         for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
-          state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
+          renderer_state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
             perspective_projection * glm::lookAt(
               position,
               position + models::CUBEMAP_OFFSETS[idx_face],
@@ -811,18 +817,30 @@ void renderer::render(State *state) {
 
         glViewport(
           0, 0,
-          state->builtin_textures.shadowmap_3d_width,
-          state->builtin_textures.shadowmap_3d_height
+          renderer_state->builtin_textures.shadowmap_3d_width,
+          renderer_state->builtin_textures.shadowmap_3d_height
         );
         glBindFramebuffer(
-          GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_3d_framebuffer
+          GL_FRAMEBUFFER, renderer_state->builtin_textures.shadowmaps_3d_framebuffer
         );
         glClear(GL_DEPTH_BUFFER_BIT);
 
         copy_scene_data_to_ubo(
-          state, idx_light, lights::light_type_to_int(light_component->type), false
+          renderer_state,
+          cameras_state,
+          engine_state,
+          window_size,
+          idx_light,
+          lights::light_type_to_int(light_component->type),
+          false
         );
-        render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
+        render_scene(
+          engine_state,
+          materials_state,
+          renderer_state,
+          RenderPass::shadowcaster,
+          RenderMode::depth
+        );
 
         idx_light++;
       }
@@ -831,27 +849,27 @@ void renderer::render(State *state) {
     // Directional lights
     {
       real32 ortho_ratio = (
-        (real32)state->builtin_textures.shadowmap_2d_width /
-        (real32)state->builtin_textures.shadowmap_2d_height
+        (real32)renderer_state->builtin_textures.shadowmap_2d_width /
+        (real32)renderer_state->builtin_textures.shadowmap_2d_height
       );
       real32 ortho_width = 100.0f;
       real32 ortho_height = ortho_width / ortho_ratio;
       m4 ortho_projection = glm::ortho(
         -ortho_width, ortho_width,
         -ortho_height, ortho_height,
-        state->builtin_textures.shadowmap_near_clip_dist,
-        state->builtin_textures.shadowmap_far_clip_dist
+        renderer_state->builtin_textures.shadowmap_near_clip_dist,
+        renderer_state->builtin_textures.shadowmap_far_clip_dist
       );
 
       uint32 idx_light = 0;
 
-      each (light_component, state->light_component_set.components) {
+      each (light_component, engine_state->light_component_set.components) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
           continue;
         }
 
         SpatialComponent *spatial_component =
-          state->spatial_component_set.components[light_component->entity_handle];
+          engine_state->spatial_component_set.components[light_component->entity_handle];
 
         if (!(
           lights::is_light_component_valid(light_component) &&
@@ -861,59 +879,92 @@ void renderer::render(State *state) {
           continue;
         }
 
-        state->shadowmap_2d_transforms[idx_light] = ortho_projection * glm::lookAt(
-          spatial_component->position,
-          spatial_component->position + light_component->direction,
-          v3(0.0f, -1.0f, 0.0f)
-        );
+        renderer_state->shadowmap_2d_transforms[idx_light] = ortho_projection *
+          glm::lookAt(
+            spatial_component->position,
+            spatial_component->position + light_component->direction,
+            v3(0.0f, -1.0f, 0.0f)
+          );
 
         glViewport(
           0, 0,
-          state->builtin_textures.shadowmap_2d_width,
-          state->builtin_textures.shadowmap_2d_height
+          renderer_state->builtin_textures.shadowmap_2d_width,
+          renderer_state->builtin_textures.shadowmap_2d_height
         );
         glBindFramebuffer(
-          GL_FRAMEBUFFER, state->builtin_textures.shadowmaps_2d_framebuffer
+          GL_FRAMEBUFFER, renderer_state->builtin_textures.shadowmaps_2d_framebuffer
         );
         glClear(GL_DEPTH_BUFFER_BIT);
 
         copy_scene_data_to_ubo(
-          state, idx_light, lights::light_type_to_int(light_component->type), false
+          renderer_state,
+          cameras_state,
+          engine_state,
+          window_size,
+          idx_light,
+          lights::light_type_to_int(light_component->type),
+          false
         );
-        render_scene(state, RenderPass::shadowcaster, RenderMode::depth);
+        render_scene(
+          engine_state,
+          materials_state,
+          renderer_state,
+          RenderPass::shadowcaster,
+          RenderMode::depth
+        );
 
         idx_light++;
       }
     }
   }
 
-  glViewport(0, 0, state->window_size.width, state->window_size.height);
+  glViewport(0, 0, window_size->width, window_size->height);
 
   // Geometry pass
   {
-    if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
-    glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.g_buffer);
-    render_scene(state, RenderPass::deferred, RenderMode::regular);
-    if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
+    if (renderer_state->should_use_wireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer);
+    render_scene(
+      engine_state,
+      materials_state,
+      renderer_state,
+      RenderPass::deferred,
+      RenderMode::regular
+    );
+    if (renderer_state->should_use_wireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
   }
 
   // Copy depth from geometry pass to lighting pass
   {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, state->builtin_textures.g_buffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state->builtin_textures.l_buffer);
+    glBindFramebuffer(
+      GL_READ_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer
+    );
+    glBindFramebuffer(
+      GL_DRAW_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer
+    );
     glBlitFramebuffer(
-      0, 0, state->window_size.width, state->window_size.height,
-      0, 0, state->window_size.width, state->window_size.height,
+      0, 0, window_size->width, window_size->height,
+      0, 0, window_size->width, window_size->height,
       GL_DEPTH_BUFFER_BIT, GL_NEAREST
     );
   }
 
-  glBindFramebuffer(GL_FRAMEBUFFER, state->builtin_textures.l_buffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer);
 
   // Lighting pass
   {
     glDisable(GL_DEPTH_TEST);
-    render_scene(state, RenderPass::lighting, RenderMode::regular);
+    render_scene(
+      engine_state,
+      materials_state,
+      renderer_state,
+      RenderPass::lighting,
+      RenderMode::regular
+    );
     glEnable(GL_DEPTH_TEST);
   }
 
@@ -929,7 +980,13 @@ void renderer::render(State *state) {
       // Draw at the very back of our depth range, so as to be behind everything.
       glDepthRange(0.9999f, 1.0f);
 
-      render_scene(state, RenderPass::forward_skybox, RenderMode::regular);
+      render_scene(
+        engine_state,
+        materials_state,
+        renderer_state,
+        RenderPass::forward_skybox,
+        RenderMode::regular
+      );
 
       glDepthRange(0.0f, 1.0f);
       glDepthMask(GL_TRUE);
@@ -938,17 +995,33 @@ void renderer::render(State *state) {
 
     // Forward
     {
-      if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
-      render_scene(state, RenderPass::forward_depth, RenderMode::regular);
+      if (renderer_state->should_use_wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      }
+      render_scene(
+        engine_state,
+        materials_state,
+        renderer_state,
+        RenderPass::forward_depth,
+        RenderMode::regular
+      );
       glDisable(GL_DEPTH_TEST);
-      render_scene(state, RenderPass::forward_nodepth, RenderMode::regular);
+      render_scene(
+        engine_state,
+        materials_state,
+        renderer_state,
+        RenderPass::forward_nodepth,
+        RenderMode::regular
+      );
       glEnable(GL_DEPTH_TEST);
-      if (state->should_use_wireframe) { glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); }
+      if (renderer_state->should_use_wireframe) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      }
     }
 
     // Debug draw pass
     {
-      debugdraw::render(&state->debug_draw_state);
+      debugdraw::render(debugdraw::g_dds);
     }
   }
 
@@ -957,22 +1030,70 @@ void renderer::render(State *state) {
   #if USE_BLOOM
     // Blur pass
     {
-      glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-      copy_scene_data_to_ubo(state, 0, 0, true);
-      render_scene(state, RenderPass::preblur, RenderMode::regular);
+      glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur1_buffer);
+      copy_scene_data_to_ubo(
+        renderer_state,
+        cameras_state,
+        engine_state,
+        window_size,
+        0, 0, true
+      );
+      render_scene(
+        engine_state,
+        materials_state,
+        renderer_state,
+        RenderPass::preblur,
+        RenderMode::regular
+      );
 
-      glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-      copy_scene_data_to_ubo(state, 0, 0, false);
-      render_scene(state, RenderPass::blur2, RenderMode::regular);
+      glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur2_buffer);
+      copy_scene_data_to_ubo(
+        renderer_state,
+        cameras_state,
+        engine_state,
+        window_size,
+        0, 0, false
+      );
+      render_scene(
+        engine_state,
+        materials_state,
+        renderer_state,
+        RenderPass::blur2,
+        RenderMode::regular
+      );
 
       for (uint32 idx = 0; idx < 3; idx++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, state->blur1_buffer);
-        copy_scene_data_to_ubo(state, 0, 0, true);
-        render_scene(state, RenderPass::blur1, RenderMode::regular);
+        glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur1_buffer);
+        copy_scene_data_to_ubo(
+          renderer_state,
+          cameras_state,
+          engine_state,
+          window_size,
+          0, 0, true
+        );
+        render_scene(
+          engine_state,
+          materials_state,
+          renderer_state,
+          RenderPass::blur1,
+          RenderMode::regular
+        );
 
-        glBindFramebuffer(GL_FRAMEBUFFER, state->blur2_buffer);
-        copy_scene_data_to_ubo(state, 0, 0, false);
-        render_scene(state, RenderPass::blur1, RenderMode::regular);
+        glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur2_buffer);
+        copy_scene_data_to_ubo(
+          renderer_state,
+          cameras_state,
+          engine_state,
+          window_size,
+          0, 0, false
+        );
+        render_scene(
+          engine_state,
+          materials_state,
+          renderer_state,
+          RenderPass::blur1,
+          RenderMode::regular
+        );
       }
     }
   #endif
@@ -981,19 +1102,38 @@ void renderer::render(State *state) {
 
   // Postprocessing pass
   {
-    render_scene(state, RenderPass::postprocessing, RenderMode::regular);
+    render_scene(
+      engine_state,
+      materials_state,
+      renderer_state,
+      RenderPass::postprocessing,
+      RenderMode::regular
+    );
   }
 
   // Debug pass
   {
-    render_scene(state, RenderPass::renderdebug, RenderMode::regular);
+    render_scene(
+      engine_state,
+      materials_state,
+      renderer_state,
+      RenderPass::renderdebug,
+      RenderMode::regular
+    );
   }
 
   // UI pass
   {
     glEnable(GL_BLEND);
-    if (!state->should_hide_ui) {
-      debug_ui::render_debug_ui(state);
+    if (!renderer_state->should_hide_ui) {
+      debug_ui::render_debug_ui(
+        engine_state,
+        renderer_state,
+        gui_state,
+        materials_state,
+        input_state,
+        window_size
+      );
     }
     glDisable(GL_BLEND);
   }
@@ -1001,6 +1141,30 @@ void renderer::render(State *state) {
   glEnable(GL_DEPTH_TEST);
 
   START_TIMER(swap_buffers);
-  glfwSwapBuffers(state->window);
+  glfwSwapBuffers(window);
   END_TIMER_MIN(swap_buffers, 16);
+}
+
+
+void renderer::init(
+  RendererState *renderer_state,
+  MemoryPool *memory_pool,
+  uint32 width,
+  uint32 height,
+  GLFWwindow *window
+) {
+  renderer_state->builtin_textures = {
+    .shadowmap_3d_width = min((uint32)width, (uint32)2000),
+    .shadowmap_3d_height = min((uint32)width, (uint32)2000),
+    .shadowmap_2d_width = 2560 * 2,
+    .shadowmap_2d_height = 1440 * 2,
+    .shadowmap_near_clip_dist = 0.05f,
+    .shadowmap_far_clip_dist = 200.0f,
+  };
+  init_g_buffer(memory_pool, &renderer_state->builtin_textures, width, height);
+  init_l_buffer(memory_pool, &renderer_state->builtin_textures, width, height);
+  init_blur_buffers(memory_pool, &renderer_state->builtin_textures, width, height);
+  init_shadowmaps(memory_pool, &renderer_state->builtin_textures);
+  init_ubo(renderer_state);
+  update_drawing_options(renderer_state, window);
 }

@@ -37,7 +37,6 @@ namespace lights {
     LightsState *lights_state,
     LightComponentSet *light_component_set,
     SpatialComponentSet *spatial_component_set,
-    real64 t,
     v3 camera_position
   );
   void init(LightsState *state);
