@@ -1,6 +1,6 @@
 #include <chrono>
-#include <thread>
 namespace chrono = std::chrono;
+#include <thread>
 #include "../src_external/pstr.h"
 #include "util.hpp"
 #include "engine.hpp"
@@ -14,67 +14,78 @@ namespace chrono = std::chrono;
 #include "intrinsics.hpp"
 
 
+real64 *engine::g_t = nullptr;
+real64 *engine::g_dt = nullptr;
+
+
 namespace engine {
-  pny_internal void destroy_model_loaders(State *state) {
-    state->model_loaders.clear();
+  pny_internal void destroy_model_loaders(EngineState *engine_state) {
+    engine_state->model_loaders.clear();
   }
 
 
-  pny_internal void destroy_non_internal_materials(State *state) {
+  pny_internal void destroy_non_internal_materials(
+    EngineState *engine_state,
+    MaterialsState *materials_state
+  ) {
     for (
-      uint32 idx = state->first_non_internal_material_idx;
-      idx < state->materials_state.materials.length;
+      uint32 idx = engine_state->first_non_internal_material_idx;
+      idx < materials_state->materials.length;
       idx++
     ) {
-      materials::destroy_material(state->materials_state.materials[idx]);
+      materials::destroy_material(materials_state->materials[idx]);
     }
 
-    state->materials_state.materials.delete_elements_after_index(
-      state->first_non_internal_material_idx
+    materials_state->materials.delete_elements_after_index(
+      engine_state->first_non_internal_material_idx
     );
   }
 
 
-  pny_internal void destroy_non_internal_entities(State *state) {
+  pny_internal void destroy_non_internal_entities(EngineState *engine_state) {
     for (
-      uint32 idx = state->entity_set.first_non_internal_handle;
-      idx < state->entity_set.entities.length;
+      uint32 idx = engine_state->entity_set.first_non_internal_handle;
+      idx < engine_state->entity_set.entities.length;
       idx++
     ) {
       models::destroy_drawable_component(
-        state->drawable_component_set.components[idx]
+        engine_state->drawable_component_set.components[idx]
       );
     }
 
-    state->entity_set.next_handle = state->entity_set.first_non_internal_handle;
-    state->entity_set.entities.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->entity_set.next_handle =
+      engine_state->entity_set.first_non_internal_handle;
+    engine_state->entity_set.entities.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
-    state->entity_loader_set.loaders.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->entity_loader_set.loaders.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
-    state->light_component_set.components.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->light_component_set.components.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
-    state->spatial_component_set.components.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->spatial_component_set.components.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
-    state->drawable_component_set.components.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->drawable_component_set.components.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
-    state->behavior_component_set.components.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->behavior_component_set.components.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
-    state->animation_component_set.components.delete_elements_after_index(
-      state->entity_set.first_non_internal_handle
+    engine_state->animation_component_set.components.delete_elements_after_index(
+      engine_state->entity_set.first_non_internal_handle
     );
   }
 
 
-  pny_internal void destroy_scene(State *state) {
+  pny_internal void destroy_scene(
+    EngineState *engine_state,
+    MaterialsState *materials_state
+  ) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
-    if (!state->is_world_loaded) {
+    if (!engine_state->is_world_loaded) {
       logs::info(
         "Cannot load or unload scene while loading is already in progress."
       );
@@ -83,19 +94,21 @@ namespace engine {
 
     // TODO: Also reclaim texture names from TextureNamePool, otherwise we'll
     // end up overflowing.
-    destroy_model_loaders(state);
-    destroy_non_internal_materials(state);
-    destroy_non_internal_entities(state);
+    destroy_model_loaders(engine_state);
+    destroy_non_internal_materials(engine_state, materials_state);
+    destroy_non_internal_entities(engine_state);
   }
 
 
   pny_internal bool32 load_scene(
     const char *scene_name,
-    State *state
+    EngineState *engine_state,
+    RendererState *renderer_state,
+    MaterialsState *materials_state
   ) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
-    if (!state->is_world_loaded) {
+    if (!engine_state->is_world_loaded) {
       gui::log("Cannot load or unload scene while loading is already in progress.");
       return false;
     }
@@ -116,8 +129,8 @@ namespace engine {
     }
 
     // Destroy our current scene after we've confirmed we could load the new scene.
-    destroy_scene(state);
-    pstr_copy(state->current_scene_name, MAX_COMMON_NAME_LENGTH, scene_name);
+    destroy_scene(engine_state, materials_state);
+    pstr_copy(engine_state->current_scene_name, MAX_COMMON_NAME_LENGTH, scene_name);
 
     // Get only the unique used materials
     Array<char[MAX_COMMON_NAME_LENGTH]> used_materials(
@@ -142,9 +155,9 @@ namespace engine {
       }
       assert(material_file->n_entries > 0);
       peony_parser_utils::create_material_from_peony_file_entry(
-        state->materials_state.materials.push(),
+        materials_state->materials.push(),
         &material_file->entries[0],
-        &state->builtin_textures,
+        &renderer_state->builtin_textures,
         &temp_memory_pool
       );
     }
@@ -153,7 +166,9 @@ namespace engine {
       PeonyFileEntry *entry = &scene_file->entries[idx];
 
       // Create Entity
-      Entity *entity = entities::add_entity_to_set(&state->entity_set, entry->name);
+      Entity *entity = entities::add_entity_to_set(
+        &engine_state->entity_set, entry->name
+      );
 
       // Create ModelLoader
       char const *model_path = peony_parser_utils::get_string(
@@ -162,7 +177,7 @@ namespace engine {
       // NOTE: We only want to make a ModelLoader from this PeonyFileEntry if we haven't
       // already encountered this model in a previous entry. If two entities
       // have the same `model_path`, we just make one model and use it in both.
-      ModelLoader *found_model_loader = state->model_loaders.find(
+      ModelLoader *found_model_loader = engine_state->model_loaders.find(
         [model_path](ModelLoader *candidate_model_loader) -> bool32 {
           return pstr_eq(
             model_path,
@@ -176,7 +191,7 @@ namespace engine {
         peony_parser_utils::create_model_loader_from_peony_file_entry(
           entry,
           entity->handle,
-          state->model_loaders.push()
+          engine_state->model_loaders.push()
         );
       }
 
@@ -184,7 +199,7 @@ namespace engine {
       peony_parser_utils::create_entity_loader_from_peony_file_entry(
         entry,
         entity->handle,
-        state->entity_loader_set.loaders[entity->handle]
+        engine_state->entity_loader_set.loaders[entity->handle]
       );
     }
 
@@ -192,14 +207,19 @@ namespace engine {
   }
 
 
-  pny_internal void handle_console_command(State *state) {
-    gui::log("%s%s", gui::CONSOLE_SYMBOL, state->input_state.text_input);
+  pny_internal void handle_console_command(
+    EngineState *engine_state,
+    RendererState *renderer_state,
+    MaterialsState *materials_state,
+    InputState *input_state
+  ) {
+    gui::log("%s%s", gui::CONSOLE_SYMBOL, input_state->text_input);
 
     char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
     char arguments[input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {0};
 
     pstr_split_on_first_occurrence(
-      state->input_state.text_input,
+      input_state->text_input,
       command, input::MAX_TEXT_INPUT_COMMAND_LENGTH,
       arguments, input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH,
       ' '
@@ -215,142 +235,164 @@ namespace engine {
         "help: show help"
       );
     } else if (pstr_eq(command, "loadscene")) {
-      load_scene(arguments, state);
+      load_scene(arguments, engine_state, renderer_state, materials_state);
     } else if (pstr_eq(command, "renderdebug")) {
-      state->renderdebug_displayed_texture_type = materials::texture_type_from_string(
-        arguments
-      );
+      renderer_state->renderdebug_displayed_texture_type =
+        materials::texture_type_from_string(arguments);
     } else {
       gui::log("Unknown command: %s", command);
     }
 
-    pstr_clear(state->input_state.text_input);
+    pstr_clear(input_state->text_input);
   }
 
 
-  pny_internal void update_light_position(State *state, real32 amount) {
-    each (light_component, state->light_component_set.components) {
+  pny_internal void update_light_position(
+    EngineState *engine_state,
+    LightsState *lights_state,
+    real32 amount
+  ) {
+    each (light_component, engine_state->light_component_set.components) {
       if (light_component->type == LightType::directional) {
-        state->lights_state.dir_light_angle += amount;
+        lights_state->dir_light_angle += amount;
         break;
       }
     }
   }
 
 
-  pny_internal void process_input(GLFWwindow *window, State *state) {
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_GRAVE_ACCENT)) {
-      if (state->gui_state.game_console.is_enabled) {
-        state->gui_state.game_console.is_enabled = false;
-        input::disable_text_input(&state->input_state);
+  pny_internal void process_input(
+    GLFWwindow *window,
+    EngineState *engine_state,
+    RendererState *renderer_state,
+    MaterialsState *materials_state,
+    InputState *input_state,
+    GuiState *gui_state,
+    CamerasState *cameras_state,
+    LightsState *lights_state
+  ) {
+    if (input::is_key_now_down(input_state, GLFW_KEY_GRAVE_ACCENT)) {
+      if (gui_state->game_console.is_enabled) {
+        gui_state->game_console.is_enabled = false;
+        input::disable_text_input(input_state);
       } else {
-        state->gui_state.game_console.is_enabled = true;
-        input::enable_text_input(&state->input_state);
+        gui_state->game_console.is_enabled = true;
+        input::enable_text_input(input_state);
       }
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_ENTER)) {
-      handle_console_command(state);
+    if (input::is_key_now_down(input_state, GLFW_KEY_ENTER)) {
+      handle_console_command(
+        engine_state, renderer_state, materials_state, input_state
+      );
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
-      input::do_text_input_backspace(&state->input_state);
+    if (input::is_key_now_down(input_state, GLFW_KEY_BACKSPACE)) {
+      input::do_text_input_backspace(input_state);
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
-      input::clear_text_input(&state->input_state);
+    if (input::is_key_now_down(input_state, GLFW_KEY_ESCAPE)) {
+      input::clear_text_input(input_state);
     }
 
-    if (state->input_state.is_text_input_enabled) {
+    if (input_state->is_text_input_enabled) {
       // If we're typing text in, don't run any of the following stuff.
       return;
     }
 
     // Continuous
-    if (input::is_key_down(&state->input_state, GLFW_KEY_W)) {
-      cameras::move_front_back(state->cameras_state.camera_active, 1, state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_W)) {
+      cameras::move_front_back(cameras_state->camera_active, 1, *engine::g_dt);
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_S)) {
-      cameras::move_front_back(state->cameras_state.camera_active, -1, state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_S)) {
+      cameras::move_front_back(cameras_state->camera_active, -1, *engine::g_dt);
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_A)) {
-      cameras::move_left_right(state->cameras_state.camera_active, -1, state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_A)) {
+      cameras::move_left_right(cameras_state->camera_active, -1, *engine::g_dt);
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_D)) {
-      cameras::move_left_right(state->cameras_state.camera_active, 1, state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_D)) {
+      cameras::move_left_right(cameras_state->camera_active, 1, *engine::g_dt);
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_Z)) {
-      update_light_position(state, 0.10f * (real32)state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_Z)) {
+      update_light_position(engine_state, lights_state, 0.10f * (real32)(*engine::g_dt));
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_X)) {
-      update_light_position(state, -0.10f * (real32)state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_X)) {
+      update_light_position(engine_state, lights_state, -0.10f * (real32)(*engine::g_dt));
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_SPACE)) {
-      cameras::move_up_down(state->cameras_state.camera_active, 1, state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_SPACE)) {
+      cameras::move_up_down(cameras_state->camera_active, 1, *engine::g_dt);
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_LEFT_CONTROL)) {
-      cameras::move_up_down(state->cameras_state.camera_active, -1, state->dt);
+    if (input::is_key_down(input_state, GLFW_KEY_LEFT_CONTROL)) {
+      cameras::move_up_down(cameras_state->camera_active, -1, *engine::g_dt);
     }
 
     // Transient
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_ESCAPE)) {
+    if (input::is_key_now_down(input_state, GLFW_KEY_ESCAPE)) {
       glfwSetWindowShouldClose(window, true);
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_C)) {
-      state->is_cursor_enabled = !state->is_cursor_enabled;
-      renderer::update_drawing_options(state, window);
+    if (input::is_key_now_down(input_state, GLFW_KEY_C)) {
+      renderer_state->is_cursor_enabled = !renderer_state->is_cursor_enabled;
+      renderer::update_drawing_options(renderer_state, window);
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_R)) {
+    if (input::is_key_now_down(input_state, GLFW_KEY_R)) {
       load_scene(
-        state->current_scene_name, state
+        engine_state->current_scene_name,
+        engine_state,
+        renderer_state,
+        materials_state
       );
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_TAB)) {
-      state->should_pause = !state->should_pause;
+    if (input::is_key_now_down(input_state, GLFW_KEY_TAB)) {
+      engine_state->should_pause = !engine_state->should_pause;
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_MINUS)) {
-      state->timescale_diff -= 0.1f;
+    if (input::is_key_now_down(input_state, GLFW_KEY_MINUS)) {
+      engine_state->timescale_diff -= 0.1f;
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_EQUAL)) {
-      state->timescale_diff += 0.1f;
+    if (input::is_key_now_down(input_state, GLFW_KEY_EQUAL)) {
+      engine_state->timescale_diff += 0.1f;
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_BACKSPACE)) {
-      state->should_hide_ui = !state->should_hide_ui;
+    if (input::is_key_now_down(input_state, GLFW_KEY_BACKSPACE)) {
+      renderer_state->should_hide_ui = !renderer_state->should_hide_ui;
     }
 
-    if (input::is_key_down(&state->input_state, GLFW_KEY_ENTER)) {
-      state->should_manually_advance_to_next_frame = true;
+    if (input::is_key_down(input_state, GLFW_KEY_ENTER)) {
+      engine_state->should_manually_advance_to_next_frame = true;
     }
 
-    if (input::is_key_now_down(&state->input_state, GLFW_KEY_0)) {
-      destroy_scene(state);
-      gui::set_heading(&state->gui_state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
+    if (input::is_key_now_down(input_state, GLFW_KEY_0)) {
+      destroy_scene(engine_state, materials_state);
+      gui::set_heading(gui_state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
     }
   }
 
 
-  pny_internal bool32 check_all_entities_loaded(State *state) {
+  pny_internal bool32 check_all_entities_loaded(
+    EngineState *engine_state,
+    MaterialsState *materials_state,
+    TasksState *tasks_state,
+    AnimState *anim_state
+  ) {
     bool are_all_done_loading = true;
 
-    each (material, state->materials_state.materials) {
+    each (material, materials_state->materials) {
       bool is_done_loading = materials::prepare_material_and_check_if_done(
         material,
-        &state->materials_state.persistent_pbo,
-        &state->materials_state.texture_name_pool,
-        &state->tasks_state.task_queue
+        &materials_state->persistent_pbo,
+        &materials_state->texture_name_pool,
+        &tasks_state->task_queue
       );
       if (!is_done_loading) {
         are_all_done_loading = false;
@@ -358,32 +400,32 @@ namespace engine {
     }
 
     uint32 new_n_valid_model_loaders = 0;
-    each (model_loader, state->model_loaders) {
+    each (model_loader, engine_state->model_loaders) {
       if (!is_model_loader_valid(model_loader)) {
         continue;
       }
       new_n_valid_model_loaders++;
       bool is_done_loading = models::prepare_model_loader_and_check_if_done(
         model_loader,
-        &state->materials_state.persistent_pbo,
-        &state->materials_state.texture_name_pool,
-        &state->tasks_state.task_queue,
-        &state->anim_state.bone_matrix_pool
+        &materials_state->persistent_pbo,
+        &materials_state->texture_name_pool,
+        &tasks_state->task_queue,
+        &anim_state->bone_matrix_pool
       );
       if (!is_done_loading) {
         are_all_done_loading = false;
       }
     }
-    state->n_valid_model_loaders = new_n_valid_model_loaders;
+    engine_state->n_valid_model_loaders = new_n_valid_model_loaders;
 
     uint32 new_n_valid_entity_loaders = 0;
-    each (entity_loader, state->entity_loader_set.loaders) {
+    each (entity_loader, engine_state->entity_loader_set.loaders) {
       if (!is_entity_loader_valid(entity_loader)) {
         continue;
       }
       new_n_valid_entity_loaders++;
 
-      ModelLoader *model_loader = state->model_loaders.find(
+      ModelLoader *model_loader = engine_state->model_loaders.find(
         [entity_loader](ModelLoader *candidate_model_loader) -> bool32 {
           return pstr_eq(entity_loader->model_path, candidate_model_loader->model_path);
         }
@@ -397,14 +439,14 @@ namespace engine {
 
       bool is_done_loading = models::prepare_entity_loader_and_check_if_done(
         entity_loader,
-        &state->entity_set,
+        &engine_state->entity_set,
         model_loader,
-        &state->drawable_component_set,
-        &state->spatial_component_set,
-        &state->light_component_set,
-        &state->behavior_component_set,
-        &state->animation_component_set,
-        &state->physics_component_set
+        &engine_state->drawable_component_set,
+        &engine_state->spatial_component_set,
+        &engine_state->light_component_set,
+        &engine_state->behavior_component_set,
+        &engine_state->animation_component_set,
+        &engine_state->physics_component_set
       );
 
       // NOTE: If a certain EntityLoader is complete, it's done everything it
@@ -421,51 +463,65 @@ namespace engine {
         are_all_done_loading = false;
       }
     }
-    state->n_valid_entity_loaders = new_n_valid_entity_loaders;
+    engine_state->n_valid_entity_loaders = new_n_valid_entity_loaders;
 
     return are_all_done_loading;
   }
 
 
-  pny_internal void update(State *state) {
-    if (state->is_world_loaded && !state->was_world_ever_loaded) {
-      load_scene(DEFAULT_SCENE, state);
-      state->was_world_ever_loaded = true;
+  pny_internal void update(
+    EngineState *engine_state,
+    RendererState *renderer_state,
+    MaterialsState *materials_state,
+    CamerasState *cameras_state,
+    TasksState *tasks_state,
+    AnimState *anim_state,
+    LightsState *lights_state,
+    WindowSize *window_size
+  ) {
+    if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
+      load_scene(DEFAULT_SCENE, engine_state, renderer_state, materials_state);
+      engine_state->was_world_ever_loaded = true;
     }
 
     cameras::update_matrices(
-      state->cameras_state.camera_active,
-      state->window_size.width,
-      state->window_size.height
+      cameras_state->camera_active,
+      window_size->width,
+      window_size->height
     );
 
-    state->is_world_loaded = check_all_entities_loaded(state);
+    engine_state->is_world_loaded = check_all_entities_loaded(
+      engine_state,
+      materials_state,
+      tasks_state,
+      anim_state
+    );
 
     lights::update_light_components(
-      &state->lights_state,
-      &state->light_component_set,
-      &state->spatial_component_set,
-      state->t,
-      state->cameras_state.camera_active->position
+      lights_state,
+      &engine_state->light_component_set,
+      &engine_state->spatial_component_set,
+      cameras_state->camera_active->position
     );
 
+    #if 0
     behavior::update_behavior_components(
       state,
       &state->behavior_component_set,
       &state->spatial_component_set,
       state->t
     );
+    #endif
 
     anim::update_animation_components(
-      &state->animation_component_set,
-      &state->spatial_component_set,
-      state->t,
-      &state->anim_state.bone_matrix_pool
+      &engine_state->animation_component_set,
+      &engine_state->spatial_component_set,
+      &anim_state->bone_matrix_pool
     );
 
     physics::update_physics_components(
-      &state->physics_component_set,
-      &state->spatial_component_set
+      &engine_state->physics_component_set,
+      &engine_state->spatial_component_set
     );
   }
 
@@ -499,119 +555,164 @@ namespace engine {
   }
 
 
-  pny_internal void update_dt_and_perf_counters(State *state, TimingInfo *timing) {
-    state->dt = util::get_us_from_duration(
+  pny_internal void update_dt_and_perf_counters(
+    EngineState *engine_state,
+    TimingInfo *timing
+  ) {
+    engine_state->dt = util::get_us_from_duration(
       timing->frame_start - timing->last_frame_start
     );
-    if (state->timescale_diff != 0.0f) {
-      state->dt *= max(1.0f + state->timescale_diff, (real64)0.01f);
+    if (engine_state->timescale_diff != 0.0f) {
+      engine_state->dt *= max(1.0f + engine_state->timescale_diff, (real64)0.01f);
     }
 
-    state->perf_counters.dt_hist[state->perf_counters.dt_hist_idx] = state->dt;
-    state->perf_counters.dt_hist_idx++;
-    if (state->perf_counters.dt_hist_idx >= state::DT_HIST_LENGTH) {
-      state->perf_counters.dt_hist_idx = 0;
+    engine_state->perf_counters.dt_hist[engine_state->perf_counters.dt_hist_idx] =
+      engine_state->dt;
+    engine_state->perf_counters.dt_hist_idx++;
+    if (engine_state->perf_counters.dt_hist_idx >= DT_HIST_LENGTH) {
+      engine_state->perf_counters.dt_hist_idx = 0;
     }
     real64 dt_hist_sum = 0.0f;
-    for (uint32 idx = 0; idx < state::DT_HIST_LENGTH; idx++) {
-      dt_hist_sum += state->perf_counters.dt_hist[idx];
+    for (uint32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
+      dt_hist_sum += engine_state->perf_counters.dt_hist[idx];
     }
-    state->perf_counters.dt_average = dt_hist_sum / state::DT_HIST_LENGTH;
+    engine_state->perf_counters.dt_average = dt_hist_sum / DT_HIST_LENGTH;
 
-    state->t += state->dt;
+    engine_state->t += engine_state->dt;
   }
 }
 
 
-void engine::run_main_loop(State *state) {
+void engine::run_main_loop(
+  EngineState *engine_state,
+  RendererState *renderer_state,
+  MaterialsState *materials_state,
+  CamerasState *cameras_state,
+  GuiState *gui_state,
+  InputState *input_state,
+  LightsState *lights_state,
+  TasksState *tasks_state,
+  AnimState *anim_state,
+  GLFWwindow *window,
+  WindowSize *window_size
+) {
   TimingInfo timing = init_timing_info(165);
 
-  while (!state->should_stop) {
+  while (!engine_state->should_stop) {
     glfwPollEvents();
-    process_input(state->window, state);
+    process_input(
+      window,
+      engine_state,
+      renderer_state,
+      materials_state,
+      input_state,
+      gui_state,
+      cameras_state,
+      lights_state
+    );
 
     if (
-      !state->is_manual_frame_advance_enabled ||
-      state->should_manually_advance_to_next_frame
+      !engine_state->is_manual_frame_advance_enabled ||
+      engine_state->should_manually_advance_to_next_frame
     ) {
-      update_timing_info(&timing, &state->perf_counters.last_fps);
+      update_timing_info(&timing, &engine_state->perf_counters.last_fps);
 
       // If we should pause, stop time-based events.
-      if (!state->should_pause) { update_dt_and_perf_counters(state, &timing); }
+      if (!engine_state->should_pause) {
+        update_dt_and_perf_counters(engine_state, &timing);
+      }
 
       // NOTE: Don't render on the very first frame. This avoids flashing that happens
       // in fullscreen. There is a better way to handle this, but whatever, figure it
       // out later.
       if (timing.n_frames_since_start > 1) {
-        update(state);
-        renderer::render(state);
+        update(
+          engine_state,
+          renderer_state,
+          materials_state,
+          cameras_state,
+          tasks_state,
+          anim_state,
+          lights_state,
+          window_size
+        );
+        renderer::render(
+          renderer_state,
+          engine_state,
+          materials_state,
+          cameras_state,
+          gui_state,
+          input_state,
+          window,
+          window_size
+        );
       }
 
-      if (state->is_manual_frame_advance_enabled) {
-        state->should_manually_advance_to_next_frame = false;
+      if (engine_state->is_manual_frame_advance_enabled) {
+        engine_state->should_manually_advance_to_next_frame = false;
       }
 
-      input::reset_n_mouse_button_state_changes_this_frame(&state->input_state);
-      input::reset_n_key_state_changes_this_frame(&state->input_state);
+      input::reset_n_mouse_button_state_changes_this_frame(input_state);
+      input::reset_n_key_state_changes_this_frame(input_state);
 
-      if (state->should_limit_fps) {
+      if (engine_state->should_limit_fps) {
         std::this_thread::sleep_until(timing.time_frame_should_end);
       }
     }
 
 
-    if (glfwWindowShouldClose(state->window)) {
-      state->should_stop = true;
+    if (glfwWindowShouldClose(window)) {
+      engine_state->should_stop = true;
     }
   }
 }
 
 
-void engine::init(State *state, MemoryPool *asset_memory_pool) {
-  state->model_loaders = Array<ModelLoader>(
+void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
+  engine_state->model_loaders = Array<ModelLoader>(
     asset_memory_pool, MAX_N_MODELS, "model_loaders"
   );
-  state->entity_loader_set = {
+  engine_state->entity_loader_set = {
     .loaders = Array<EntityLoader>(
       asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1
     )
   };
-  state->entity_set = {
+  engine_state->entity_set = {
     .entities = Array<Entity>(
       asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1
     )
   };
-  state->drawable_component_set = {
+  engine_state->drawable_component_set = {
     .components = Array<DrawableComponent>(
       asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1
     )
   };
-  state->light_component_set = {
+  engine_state->light_component_set = {
     .components = Array<LightComponent>(
       asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1
     )
   };
-  state->spatial_component_set = {
+  engine_state->spatial_component_set = {
     .components = Array<SpatialComponent>(
       asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1
     )
   };
-  state->behavior_component_set = {
+  engine_state->behavior_component_set = {
     .components = Array<BehaviorComponent>(
       asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1
     )
   };
-  state->animation_component_set = {
+  engine_state->animation_component_set = {
     .components = Array<AnimationComponent>(
       asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1
     )
   };
-  state->physics_component_set = {
+  engine_state->physics_component_set = {
     .components = Array<PhysicsComponent>(
       asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1
     )
   };
 
-  internals::create_internal_materials(state);
-  internals::create_internal_entities(state);
+  g_t = &engine_state->t;
+  g_dt = &engine_state->dt;
 }

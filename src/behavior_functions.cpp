@@ -3,6 +3,7 @@
 
 
 void behavior_functions::test(State *state, EntityHandle entity_handle) {
+  #if 0
   SpatialComponent *spatial_component =
     state->spatial_component_set.components[entity_handle];
   if (!spatial_component) {
@@ -13,10 +14,12 @@ void behavior_functions::test(State *state, EntityHandle entity_handle) {
   spatial_component->rotation =
     glm::angleAxis((real32)sin(1.0f - state->t), v3(0.0f, 1.0f, 0.0f)) *
     glm::angleAxis((real32)cos(1.0f - state->t), v3(1.0f, 0.0f, 0.0f));
+  #endif
 }
 
 
 void behavior_functions::char_movement_test(State *state, EntityHandle entity_handle) {
+  #if 0
   SpatialComponent *spatial_component =
     state->spatial_component_set.components[entity_handle];
   if (!spatial_component) {
@@ -140,5 +143,6 @@ void behavior_functions::char_movement_test(State *state, EntityHandle entity_ha
       );
     }
   }
+  #endif
   #endif
 }

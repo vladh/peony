@@ -1,5 +1,6 @@
 #include "util.hpp"
 #include "logs.hpp"
+#include "engine.hpp"
 #include "anim.hpp"
 #include "intrinsics.hpp"
 
@@ -80,7 +81,6 @@ m4* anim::get_bone_matrix(
 void anim::update_animation_components(
   AnimationComponentSet *animation_component_set,
   SpatialComponentSet *spatial_component_set,
-  real64 t,
   BoneMatrixPool *bone_matrix_pool
 ) {
   each (animation_component, animation_component_set->components) {
@@ -108,7 +108,7 @@ void anim::update_animation_components(
 
       // If we have multiple anim keys, find the right ones and interpolate.
       } else {
-        real64 animation_timepoint = fmod(t, animation->duration);
+        real64 animation_timepoint = fmod(*engine::g_t, animation->duration);
 
         uint32 idx_anim_key = get_bone_matrix_anim_key_for_timepoint(
           bone_matrix_pool,

@@ -4,6 +4,7 @@
 #include "logs.hpp"
 #include "util.hpp"
 #include "renderer.hpp"
+#include "internals.hpp"
 #include "engine.hpp"
 #include "state.hpp"
 #include "peony_parser.hpp"
@@ -37,7 +38,7 @@ namespace core {
     renderer::resize_renderer_buffers(
       asset_memory_pool,
       &state->materials_state.materials,
-      &state->builtin_textures,
+      &state->renderer_state.builtin_textures,
       width,
       height
     );
@@ -62,7 +63,7 @@ namespace core {
     v2 mouse_pos = v2(x, y);
     input::update_mouse(&state->input_state, mouse_pos);
 
-    if (state->is_cursor_enabled) {
+    if (state->renderer_state.is_cursor_enabled) {
       gui::update_mouse(&state->gui_state);
     } else {
       cameras::update_mouse(
@@ -236,15 +237,19 @@ namespace core {
     state->window = init_window(&state->window_size);
     if (!state->window) { return nullptr; }
 
+    engine::init(&state->engine_state, asset_memory_pool);
     materials::init(&state->materials_state, asset_memory_pool);
-
     renderer::init(
-      asset_memory_pool, &state->builtin_textures,
+      &state->renderer_state,
+      asset_memory_pool,
       state->window_size.width, state->window_size.height,
-      state
+      state->window
     );
-    engine::init(state, asset_memory_pool);
-
+    internals::init(
+      &state->engine_state,
+      &state->renderer_state,
+      &state->materials_state
+    );
     gui::init(
       &state->gui_state,
       asset_memory_pool,
@@ -295,14 +300,26 @@ int core::run() {
       tasks::run_loading_loop,
       &state->tasks_state,
       &loading_thread_mutex,
-      &state->should_stop,
+      &state->engine_state.should_stop,
       idx
     );
   }
   defer { range (0, N_LOADING_THREADS) { loading_threads[idx].join(); } };
 
   // Run main loop
-  engine::run_main_loop(state);
+  engine::run_main_loop(
+    &state->engine_state,
+    &state->renderer_state,
+    &state->materials_state,
+    &state->cameras_state,
+    &state->gui_state,
+    &state->input_state,
+    &state->lights_state,
+    &state->tasks_state,
+    &state->anim_state,
+    state->window,
+    &state->window_size
+  );
 
   return EXIT_SUCCESS;
 }

@@ -44,6 +44,7 @@ bool32 behavior::is_behavior_component_valid(BehaviorComponent *behavior_compone
 }
 
 
+#if 0
 void behavior::update_behavior_components(
   void *state,
   BehaviorComponentSet *behavior_component_set,
@@ -63,3 +64,4 @@ void behavior::update_behavior_components(
     }
   }
 }
+#endif
