@@ -6,6 +6,7 @@
 #include "util.hpp"
 #include "logs.hpp"
 #include "debug_ui.hpp"
+#include "debugdraw.hpp"
 #include "intrinsics.hpp"
 
 

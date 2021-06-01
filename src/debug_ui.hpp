@@ -5,7 +5,6 @@
 #include "gui.hpp"
 #include "materials.hpp"
 #include "input.hpp"
-#include "state.hpp"
 
 namespace debug_ui {
   void render_debug_ui(
