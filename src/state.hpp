@@ -23,11 +23,11 @@ struct State {
   CamerasState cameras_state;
   InputState input_state;
   GuiState gui_state;
-  DebugDrawState debug_draw_state;
   LightsState lights_state;
   AnimState anim_state;
   MaterialsState materials_state;
   TasksState tasks_state;
+  DebugDrawState debug_draw_state;
 };
 
 struct MemoryAndState {
