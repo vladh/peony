@@ -209,14 +209,11 @@ namespace materials {
       "texture_names"
     );
 
-    glGenTextures(
-      pool->n_textures * pool->n_sizes,
-      pool->texture_names
-    );
+    glGenTextures(pool->n_textures * pool->n_sizes, pool->texture_names);
 
-    for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
-      for (uint32 idx_for_size = 0; idx_for_size < pool->n_textures; idx_for_size++) {
-        uint32 idx_name = (idx_size * pool->n_textures) + idx_for_size;
+    range_named (idx_size, 0, pool->n_sizes) {
+      range_named (idx_texture, 0, pool->n_textures) {
+        uint32 idx_name = (idx_size * pool->n_textures) + idx_texture;
         glBindTexture(GL_TEXTURE_2D, pool->texture_names[idx_name]);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

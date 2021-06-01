@@ -239,6 +239,8 @@ namespace core {
 
     engine::init(&state->engine_state, asset_memory_pool);
     materials::init(&state->materials_state, asset_memory_pool);
+
+    // NOTE: Left off reviewing here
     renderer::init(
       &state->renderer_state,
       asset_memory_pool,
