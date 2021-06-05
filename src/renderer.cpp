@@ -208,50 +208,59 @@ namespace renderer {
       glDrawBuffers(2, attachments);
     }
 
-    // Depth buffer
-    {
-      uint32 rbo_depth;
-      glGenRenderbuffers(1, &rbo_depth);
-      glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
-      glRenderbufferStorage(
-        GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
-        width, height
-      );
-      glFramebufferRenderbuffer(
-        GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
-      );
-    }
+    #if USE_FOG
+      // l_depth_texture
+      // NOTE: Either this or the depth buffer should be enabled, not both
+      // NOTE: This does not work on macOS. The most likely reason is that in the render()
+      // function, we copy the depth framebuffer from the g_buffer to the "depth
+      // framebuffer" of the l_buffer (this one). Of course, the l_buffer does not have a
+      // depth framebuffer, but it has a depth texture. It looks like some machines are
+      // capable of doing the right thing, but we can't rely on being able to do this. The
+      // solution would probably be to use a depth texture for the g_buffer as well. That
+      // way, we know we can copy the depth from one to the other without issues.  For the
+      // moment, we're not using fog, so this is just commented out.
+      {
+        uint32 l_depth_texture_name;
+        glGenTextures(1, &l_depth_texture_name);
 
-    // Depth texture
-    // Comment the rbo_depth above and uncomment this block to use fog
-    // NOTE: This does not work on macOS for some reason, perhaps we're doing something
-    // wrong.
-    {
-      /* uint32 l_depth_texture_name; */
-      /* glGenTextures(1, &l_depth_texture_name); */
+        *l_depth_texture = materials::init_texture(
+          MEMORY_PUSH(memory_pool, Texture, "l_depth_texture"),
+          GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
+          width, height, 1
+        );
+        (*l_depth_texture)->is_builtin = true;
 
-      /* *l_depth_texture = materials::init_texture( */
-      /*   MEMORY_PUSH(memory_pool, Texture, "l_depth_texture"), */
-      /*   GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name, */
-      /*   width, height, 1 */
-      /* ); */
-      /* (*l_depth_texture)->is_builtin = true; */
-
-      /* glBindTexture(GL_TEXTURE_2D, (*l_depth_texture)->texture_name); */
-      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); */
-      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); */
-      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); */
-      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); */
-      /* glTexImage2D( */
-      /*   GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, */
-      /*   (*l_depth_texture)->width, (*l_depth_texture)->height, */
-      /*   0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL */
-      /* ); */
-      /* glFramebufferTexture2D( */
-      /*   GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, */
-      /*   (*l_depth_texture)->texture_name, 0 */
-      /* ); */
-    }
+        glBindTexture(GL_TEXTURE_2D, (*l_depth_texture)->texture_name);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexImage2D(
+          GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+          (*l_depth_texture)->width, (*l_depth_texture)->height,
+          0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
+        );
+        glFramebufferTexture2D(
+          GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+          (*l_depth_texture)->texture_name, 0
+        );
+      }
+    #else
+      // Depth buffer
+      // NOTE: Either this or the l_depth_texure should be enabled, not both
+      {
+        uint32 rbo_depth;
+        glGenRenderbuffers(1, &rbo_depth);
+        glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+        glRenderbufferStorage(
+          GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+          width, height
+        );
+        glFramebufferRenderbuffer(
+          GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
+        );
+      }
+    #endif
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
       logs::fatal("Framebuffer not complete!");

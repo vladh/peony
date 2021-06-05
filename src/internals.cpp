@@ -124,16 +124,19 @@ void internals::create_internal_materials(
     materials::add_texture_to_material(
       material, *builtin_textures->l_color_texture, "l_color_texture"
     );
+
     #if USE_BLOOM
       materials::add_texture_to_material(
         material, *builtin_textures->blur2_texture, "bloom_texture"
       );
     #endif
-    // Uncomment to use fog.
-    /* materials::add_texture_to-material( */
-    /*   material, */
-    /*   *renderer_state->l_depth_texture, "l_depth_texture" */
-    /* ); */
+
+    #if USE_FOG
+      materials::add_texture_to-material(
+        material,
+        *renderer_state->l_depth_texture, "l_depth_texture"
+      );
+    #endif
   }
 
   // renderdebug
@@ -167,17 +170,21 @@ void internals::create_internal_materials(
     materials::add_texture_to_material(
       material, *renderer_state->builtin_textures.l_color_texture, "l_bright_color_texture"
     );
-    // Uncomment to use fog.
-    materials::add_texture_to_material(
-      material, *renderer_state->builtin_textures.l_color_texture, "l_depth_texture"
-    );
 
+    #if USE_FOG
     materials::add_texture_to_material(
-      material, *renderer_state->builtin_textures.l_color_texture, "blur1_texture"
+      material, *renderer_state->builtin_textures.l_depth_texture, "l_depth_texture"
     );
-    materials::add_texture_to_material(
-      material, *renderer_state->builtin_textures.l_color_texture, "blur2_texture"
-    );
+    #endif
+
+    #if USE_BLOOM
+      materials::add_texture_to_material(
+        material, *renderer_state->builtin_textures.blur1_texture, "blur1_texture"
+      );
+      materials::add_texture_to_material(
+        material, *renderer_state->builtin_textures.blur2_texture, "blur2_texture"
+      );
+    #endif
 
     materials::add_texture_to_material(
       material, *renderer_state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"

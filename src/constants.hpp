@@ -11,6 +11,7 @@
 #define USE_ANIMATION_DEBUG false
 #define USE_SHADER_DEBUG false
 #define USE_BLOOM false
+#define USE_FOG false
 #define TARGET_MONITOR 0
 #define USE_OPENGL_DEBUG false
 
