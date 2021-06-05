@@ -233,13 +233,12 @@ namespace core {
   }
 
 
-  State* init_state(
-    MemoryPool *state_memory_pool,
+  bool32 init_state(
+    State *state,
     MemoryPool *asset_memory_pool
   ) {
-    State *state = MEMORY_PUSH(state_memory_pool, State, "state");
     state->window = init_window(&state->window_size);
-    if (!state->window) { return nullptr; }
+    if (!state->window) { return false; }
 
     engine::init(&state->engine_state, asset_memory_pool);
     materials::init(&state->materials_state, asset_memory_pool);
@@ -275,7 +274,7 @@ namespace core {
       state
     );
 
-    return state;
+    return true;
   }
 
 
@@ -286,15 +285,16 @@ namespace core {
 
 
 int core::run() {
-  // Create memory pools
-  MemoryPool state_memory_pool = {.size = sizeof(State)};
-  defer { memory::destroy_memory_pool(&state_memory_pool); };
+  // Allocate memory
+  State *state = (State*)calloc(1, sizeof(State));
+  defer { free(state); };
   MemoryPool asset_memory_pool = {.size = util::mb_to_b(1024)};
   defer { memory::destroy_memory_pool(&asset_memory_pool); };
 
   // Make state
-  State *state = init_state(&state_memory_pool, &asset_memory_pool);
-  if (!state) { return EXIT_FAILURE; }
+  if (!init_state(state, &asset_memory_pool)) {
+    return EXIT_FAILURE;
+  }
   defer { destroy_state(state); };
 
   // Set up globals
