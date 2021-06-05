@@ -620,32 +620,27 @@ void engine::run_main_loop(
         update_dt_and_perf_counters(engine_state, &timing);
       }
 
-      // NOTE: Don't render on the very first frame. This avoids flashing that happens
-      // in fullscreen. There is a better way to handle this, but whatever, figure it
-      // out later.
-      if (timing.n_frames_since_start > 1) {
-        update(
-          engine_state,
-          renderer_state,
-          materials_state,
-          cameras_state,
-          tasks_state,
-          anim_state,
-          lights_state,
-          behavior_state,
-          window_size
-        );
-        renderer::render(
-          renderer_state,
-          engine_state,
-          materials_state,
-          cameras_state,
-          gui_state,
-          input_state,
-          window,
-          window_size
-        );
-      }
+      update(
+        engine_state,
+        renderer_state,
+        materials_state,
+        cameras_state,
+        tasks_state,
+        anim_state,
+        lights_state,
+        behavior_state,
+        window_size
+      );
+      renderer::render(
+        renderer_state,
+        engine_state,
+        materials_state,
+        cameras_state,
+        gui_state,
+        input_state,
+        window,
+        window_size
+      );
 
       if (engine_state->is_manual_frame_advance_enabled) {
         engine_state->should_manually_advance_to_next_frame = false;

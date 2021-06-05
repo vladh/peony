@@ -5,7 +5,9 @@
 Peony is a 3D game engine written from scratch in C++. It's currently a work
 in progress.
 
-You can read more about it in these blog posts:
+If you'd like to read the code, you can start at `src/main.cpp`.
+
+There is more information about Peony and its features in these blog posts:
 
 * [Game Engine: How I Implemented Skeletal
   Animation](https://vladh.net/articles/game-engine-skeletal-animation.html)
