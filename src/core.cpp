@@ -145,11 +145,11 @@ namespace core {
         #endif
       );
     #else
-      window_size.screencoord_width = 1920;
-      window_size.screencoord_height = 1080;
+      window_size->screencoord_width = 1920;
+      window_size->screencoord_height = 1080;
 
       GLFWwindow *window = glfwCreateWindow(
-        window_size.screencoord_width, window_size.screencoord_height,
+        window_size->screencoord_width, window_size->screencoord_height,
         WINDOW_TITLE,
         nullptr, nullptr
       );

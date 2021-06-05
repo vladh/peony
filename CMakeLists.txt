@@ -9,50 +9,32 @@ set(UNITY true)
 file(GLOB_RECURSE CFILES "${CMAKE_SOURCE_DIR}/src_external/*.c")
 set_source_files_properties(${CFILES} PROPERTIES LANGUAGE CXX)
 
+# Get source files
 if (UNITY)
-  add_executable(
-    peony
-    # WIN32
-    src/_unity.cpp
-  )
+  set(SOURCE_FILES "src/_unity.cpp")
 else()
-  add_executable(
-    peony
-    # WIN32
-    src_external/glad.cpp
-    src_external/pstr.c
-    src/logs.cpp
-    src/util.cpp
-    src/debug.cpp
-    src/memory.cpp
-    src/files.cpp
-    src/pack.cpp
-    src/shaders.cpp
-    src/tasks.cpp
-    src/materials.cpp
-    src/fonts.cpp
-    src/entities.cpp
-    src/spatial.cpp
-    src/lights.cpp
-    src/behavior.cpp
-    src/anim.cpp
-    src/debugdraw.cpp
-    src/input.cpp
-    src/gui.cpp
-    src/physics.cpp
-    src/models.cpp
-    src/peony_parser.cpp
-    src/peony_parser_utils.cpp
-    src/cameras.cpp
-    src/debug_ui.cpp
-    src/renderer.cpp
-    src/internals.cpp
-    src/engine.cpp
-    src/behavior_functions.cpp
-    src/core.cpp
-    src/main.cpp
+  file(
+    GLOB_RECURSE
+    SOURCE_FILES
+    "${CMAKE_SOURCE_DIR}/src_external/*"
+    "${CMAKE_SOURCE_DIR}/src/*"
   )
 endif()
+
+# Set the bundle type
+set(BUNDLE_TYPE "")
+if (MSVC)
+  # set(BUNDLE_TYPE "WIN32")
+else()
+  set(BUNDLE_TYPE "MACOSX_BUNDLE")
+endif()
+
+add_executable(peony ${BUNDLE_TYPE} ${SOURCE_FILES})
+
+set_target_properties(peony PROPERTIES
+  BUNDLE True
+  MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/cmake/Info.plist
+)
 
 find_package(glfw REQUIRED)
 find_package(freetype REQUIRED)
