@@ -145,84 +145,113 @@ namespace renderer {
     glGenFramebuffers(1, l_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *l_buffer);
 
-    uint32 l_color_texture_name;
-    glGenTextures(1, &l_color_texture_name);
+    // l_color_texture
+    {
+      uint32 l_color_texture_name;
+      glGenTextures(1, &l_color_texture_name);
 
-    *l_color_texture = materials::init_texture(
-      MEMORY_PUSH(memory_pool, Texture, "l_color_texture"),
-      GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
-      width, height, 4
-    );
-    (*l_color_texture)->is_builtin = true;
+      *l_color_texture = materials::init_texture(
+        MEMORY_PUSH(memory_pool, Texture, "l_color_texture"),
+        GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
+        width, height, 4
+      );
+      (*l_color_texture)->is_builtin = true;
 
-    glBindTexture(GL_TEXTURE_2D, (*l_color_texture)->texture_name);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGBA16F,
-      (*l_color_texture)->width, (*l_color_texture)->height,
-      0, GL_RGBA, GL_FLOAT, NULL
-    );
-    glFramebufferTexture2D(
-      GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-      (*l_color_texture)->texture_name, 0
-    );
+      glBindTexture(GL_TEXTURE_2D, (*l_color_texture)->texture_name);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA16F,
+        (*l_color_texture)->width, (*l_color_texture)->height,
+        0, GL_RGBA, GL_FLOAT, NULL
+      );
+      glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+        (*l_color_texture)->texture_name, 0
+      );
+    }
 
-    uint32 l_bright_color_texture_name;
-    glGenTextures(1, &l_bright_color_texture_name);
+    // l_bright_color_texture
+    {
+      uint32 l_bright_color_texture_name;
+      glGenTextures(1, &l_bright_color_texture_name);
 
-    *l_bright_color_texture = materials::init_texture(
-      MEMORY_PUSH(memory_pool, Texture, "l_bright_color_texture"),
-      GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
-      width, height, 4
-    );
-    (*l_bright_color_texture)->is_builtin = true;
+      *l_bright_color_texture = materials::init_texture(
+        MEMORY_PUSH(memory_pool, Texture, "l_bright_color_texture"),
+        GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
+        width, height, 4
+      );
+      (*l_bright_color_texture)->is_builtin = true;
 
-    glBindTexture(GL_TEXTURE_2D, (*l_bright_color_texture)->texture_name);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_RGBA16F,
-      (*l_bright_color_texture)->width,
-      (*l_bright_color_texture)->height,
-      0, GL_RGBA, GL_FLOAT, NULL
-    );
-    glFramebufferTexture2D(
-      GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
-      (*l_bright_color_texture)->texture_name, 0
-    );
+      glBindTexture(GL_TEXTURE_2D, (*l_bright_color_texture)->texture_name);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+      glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA16F,
+        (*l_bright_color_texture)->width,
+        (*l_bright_color_texture)->height,
+        0, GL_RGBA, GL_FLOAT, NULL
+      );
+      glFramebufferTexture2D(
+        GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D,
+        (*l_bright_color_texture)->texture_name, 0
+      );
+    }
 
-    uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-    glDrawBuffers(2, attachments);
+    // Attach textures
+    {
+      uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+      glDrawBuffers(2, attachments);
+    }
 
-    uint32 l_depth_texture_name;
-    glGenTextures(1, &l_depth_texture_name);
+    // Depth buffer
+    {
+      uint32 rbo_depth;
+      glGenRenderbuffers(1, &rbo_depth);
+      glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
+      glRenderbufferStorage(
+        GL_RENDERBUFFER, GL_DEPTH_COMPONENT,
+        width, height
+      );
+      glFramebufferRenderbuffer(
+        GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo_depth
+      );
+    }
 
-    *l_depth_texture = materials::init_texture(
-      MEMORY_PUSH(memory_pool, Texture, "l_depth_texture"),
-      GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
-      width, height, 1
-    );
-    (*l_depth_texture)->is_builtin = true;
+    // Depth texture
+    // Comment the rbo_depth above and uncomment this block to use fog
+    // NOTE: This does not work on macOS for some reason, perhaps we're doing something
+    // wrong.
+    {
+      /* uint32 l_depth_texture_name; */
+      /* glGenTextures(1, &l_depth_texture_name); */
 
-    glBindTexture(GL_TEXTURE_2D, (*l_depth_texture)->texture_name);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(
-      GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
-      (*l_depth_texture)->width, (*l_depth_texture)->height,
-      0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL
-    );
-    glFramebufferTexture2D(
-      GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-      (*l_depth_texture)->texture_name, 0
-    );
+      /* *l_depth_texture = materials::init_texture( */
+      /*   MEMORY_PUSH(memory_pool, Texture, "l_depth_texture"), */
+      /*   GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name, */
+      /*   width, height, 1 */
+      /* ); */
+      /* (*l_depth_texture)->is_builtin = true; */
+
+      /* glBindTexture(GL_TEXTURE_2D, (*l_depth_texture)->texture_name); */
+      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); */
+      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); */
+      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); */
+      /* glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); */
+      /* glTexImage2D( */
+      /*   GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, */
+      /*   (*l_depth_texture)->width, (*l_depth_texture)->height, */
+      /*   0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL */
+      /* ); */
+      /* glFramebufferTexture2D( */
+      /*   GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, */
+      /*   (*l_depth_texture)->texture_name, 0 */
+      /* ); */
+    }
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
       logs::fatal("Framebuffer not complete!");
@@ -1138,7 +1167,7 @@ void renderer::render(
     );
   }
 
-  // Debug pass
+  // Render debug pass
   {
     render_scene(
       engine_state,
@@ -1170,6 +1199,9 @@ void renderer::render(
   START_TIMER(swap_buffers);
   glfwSwapBuffers(window);
   END_TIMER_MIN(swap_buffers, 16);
+
+  // Do any needed post-render cleanup
+  debugdraw::clear(debugdraw::g_dds);
 }
 
 

@@ -67,6 +67,7 @@ namespace debugdraw {
     real32 size,
     v4 color
   );
+  void clear(DebugDrawState *debug_draw_state);
   void render(DebugDrawState *debug_draw_state);
   void init(
     DebugDrawState* debug_draw_state,

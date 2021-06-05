@@ -167,6 +167,7 @@ void internals::create_internal_materials(
     materials::add_texture_to_material(
       material, *renderer_state->builtin_textures.l_color_texture, "l_bright_color_texture"
     );
+    // Uncomment to use fog.
     materials::add_texture_to_material(
       material, *renderer_state->builtin_textures.l_color_texture, "l_depth_texture"
     );

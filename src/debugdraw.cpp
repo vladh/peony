@@ -1,6 +1,7 @@
 #include "../src_external/glad/glad.h"
 #include "shaders.hpp"
 #include "util.hpp"
+#include "logs.hpp"
 #include "debugdraw.hpp"
 #include "intrinsics.hpp"
 
@@ -14,6 +15,12 @@ namespace debugdraw {
     DebugDrawVertex vertices[],
     uint32 n_vertices
   ) {
+    if(debug_draw_state->n_vertices_pushed + n_vertices > MAX_N_VERTICES) {
+      logs::error(
+        "Pushed too many DebugDraw vertices, did you forget to call debugdraw::clear()?"
+      );
+      return;
+    }
     range (0, n_vertices) {
       debug_draw_state->vertices[debug_draw_state->n_vertices_pushed + idx] =
         vertices[idx];
@@ -136,6 +143,11 @@ void debugdraw::draw_point(
 }
 
 
+void debugdraw::clear(DebugDrawState *debug_draw_state) {
+  debug_draw_state->n_vertices_pushed = 0;
+}
+
+
 void debugdraw::render(DebugDrawState *debug_draw_state) {
   glBindVertexArray(debug_draw_state->vao);
   glBindBuffer(GL_ARRAY_BUFFER, debug_draw_state->vbo);
@@ -149,7 +161,6 @@ void debugdraw::render(DebugDrawState *debug_draw_state) {
   glUseProgram(debug_draw_state->shader_asset.program);
 
   glDrawArrays(GL_LINES, 0, debug_draw_state->n_vertices_pushed);
-  debug_draw_state->n_vertices_pushed = 0;
 }
 
 
