@@ -789,25 +789,13 @@ void renderer::render(
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindFramebuffer(
-      GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer
-    );
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindFramebuffer(
-      GL_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer
-    );
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindFramebuffer(
-      GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer
-    );
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glBindFramebuffer(
-      GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer
-    );
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   }
 
