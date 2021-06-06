@@ -420,6 +420,12 @@ Material* materials::init_material(
   Material *material,
   const char *name
 ) {
+  // Hardcoded values for when we can't load a texture.
+  material->albedo_static = v4(-1.0f, -1.0f, -1.0f, -1.0f);
+  material->metallic_static = -1.0f;
+  material->roughness_static = -1.0f;
+  material->ao_static = -1.0f;
+
   pstr_copy(material->name, MAX_COMMON_NAME_LENGTH, name);
   material->state = MaterialState::initialized;
   return material;

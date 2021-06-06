@@ -97,12 +97,11 @@ namespace materials {
     char texture_uniform_names[MAX_N_UNIFORMS][MAX_UNIFORM_LENGTH];
     uint32 idx_texture_uniform_names;
 
-    // Hardcoded values for when we can't load a texture.
-    v4 albedo_static = v4(-1.0f, -1.0f, -1.0f, -1.0f);
-    real32 metallic_static = -1.0f;
-    real32 roughness_static = -1.0f;
-    real32 ao_static = -1.0f;
-    bool32 should_use_normal_map = false;
+    v4 albedo_static;
+    real32 metallic_static;
+    real32 roughness_static;
+    real32 ao_static;
+    bool32 should_use_normal_map;
   };
 
   struct MaterialsState {
