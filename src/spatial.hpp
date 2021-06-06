@@ -23,9 +23,9 @@ namespace spatial {
 
   struct SpatialComponent {
     EntityHandle entity_handle;
-    v3 position = v3(0.0f);
-    quat rotation = glm::angleAxis(0.0f, v3(0.0f));
-    v3 scale = v3(0.0f);
+    v3 position;
+    quat rotation;
+    v3 scale;
     EntityHandle parent_entity_handle;
   };
 
