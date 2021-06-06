@@ -1213,6 +1213,11 @@ void renderer::render(
   glfwSwapBuffers(window);
   END_TIMER_MIN(swap_buffers, 10);
 
+  // Block until the frame is actually drawn.
+  // This prevents issues where we have multiple frames queued up for drawing on the GPU,
+  // in which case we will get all sorts of unpleasant stutter.
+  glFinish();
+
   // Do any needed post-render cleanup
   debugdraw::clear(debugdraw::g_dds);
   gui::clear(gui_state);
