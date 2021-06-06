@@ -17,7 +17,7 @@ namespace gui {
   constexpr real32 LINE_SPACING_FACTOR = 1.8f;
   constexpr real32 CONSOLE_LINE_SPACING_FACTOR = 1.2f;
 
-  constexpr uint32 MAX_N_VERTICES = 16384;
+  constexpr uint32 MAX_N_VERTICES = 65536;
   constexpr uint32 VERTEX_LENGTH = 8;
   constexpr size_t VERTEX_SIZE = sizeof(real32) * VERTEX_LENGTH;
 

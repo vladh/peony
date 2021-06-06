@@ -544,7 +544,7 @@ void materials::init(
   materials_state->materials = Array<Material>(
     memory_pool, MAX_N_MATERIALS, "materials"
   );
-  init_texture_name_pool(&materials_state->texture_name_pool, memory_pool, 64, 4);
+  init_texture_name_pool(&materials_state->texture_name_pool, memory_pool, 256, 4);
   init_persistent_pbo(&materials_state->persistent_pbo, 25, 2048, 2048, 4);
 }
 
