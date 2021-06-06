@@ -823,7 +823,14 @@ void renderer::render(
   // In the future, we might want to remove this, because it does block our CPU time
   // until the GPU is done. However, for now, we don't have that much in our scene,
   // and the stuttering is more of a problem.
-  glFinish();
+  // If we're using vsync, this is not really a problem, so we don't need to glFinish().
+  // There is an issue that can arise: it might be the case that we think we're using
+  // vsync, but actually a graphics driver has forced it off, in which case we won't be
+  // using glFinish(), but we should be...probably not going to be a real problem,
+  // though.
+  #if !USE_VSYNC
+    glFinish();
+  #endif
 
   copy_scene_data_to_ubo(
     renderer_state,
