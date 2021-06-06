@@ -65,16 +65,16 @@ namespace materials {
     GLenum target;
     TextureType type;
     char path[MAX_PATH];
-    uint32 texture_name = 0;
-    int32 width = 0;
-    int32 height = 0;
-    int32 n_components = 0;
+    uint32 texture_name;
+    int32 width;
+    int32 height;
+    int32 n_components;
     uint16 pbo_idx_for_copy;
-    bool32 is_screensize_dependent = false;
-    // ASSUMPTION: A builtin texture can belong to multiple materials,
+    bool32 is_screensize_dependent;
+    // NOTE: We assume a builtin texture can belong to multiple materials,
     // but a non-builtin texture can belong to only one material.
     // If we delete a material, we delete all its non-builtin textures.
-    bool32 is_builtin = false;
+    bool32 is_builtin;
   };
 
   enum class MaterialState {

@@ -145,11 +145,11 @@ void peony_parser_utils::create_material_from_peony_file_entry(
 
     if (pstr_starts_with(prop->name, TEXTURE_PREFIX)) {
       // Handle a texture
-      Texture texture;
+      Texture texture = {};
       // The uniform name is the prop name without the prefix
       // The first value is the type, and the second the path
       // e.g. textures.foam_texture = [other, water_foam.png]
-      char const *texture_name = &prop->name[TEXTURE_PREFIX_LENGTH];
+      char const *uniform_name = &prop->name[TEXTURE_PREFIX_LENGTH];
       init_texture(
         &texture,
         materials::texture_type_from_string(prop->values[0].string_value),
@@ -158,31 +158,31 @@ void peony_parser_utils::create_material_from_peony_file_entry(
       materials::add_texture_to_material(
         material,
         texture,
-        texture_name
+        uniform_name
       );
     } else if (pstr_starts_with(prop->name, BUILTIN_TEXTURE_PREFIX)) {
       // Handle a builtin texture
-      char const *builtin_texture_name = &prop->name[BUILTIN_TEXTURE_PREFIX_LENGTH];
-      if (pstr_eq(builtin_texture_name, "g_position_texture")) {
+      char const *builtin_uniform_name = &prop->name[BUILTIN_TEXTURE_PREFIX_LENGTH];
+      if (pstr_eq(builtin_uniform_name, "g_position_texture")) {
         materials::add_texture_to_material(
-          material, *builtin_textures->g_position_texture, builtin_texture_name
+          material, *builtin_textures->g_position_texture, builtin_uniform_name
         );
-      } else if (pstr_eq(builtin_texture_name, "g_albedo_texture")) {
+      } else if (pstr_eq(builtin_uniform_name, "g_albedo_texture")) {
         materials::add_texture_to_material(
-          material, *builtin_textures->g_albedo_texture, builtin_texture_name
+          material, *builtin_textures->g_albedo_texture, builtin_uniform_name
         );
-      } else if (pstr_eq(builtin_texture_name, "shadowmaps_3d")) {
+      } else if (pstr_eq(builtin_uniform_name, "shadowmaps_3d")) {
         materials::add_texture_to_material(
-          material, *builtin_textures->shadowmaps_3d_texture, builtin_texture_name
+          material, *builtin_textures->shadowmaps_3d_texture, builtin_uniform_name
         );
-      } else if (pstr_eq(builtin_texture_name, "shadowmaps_2d")) {
+      } else if (pstr_eq(builtin_uniform_name, "shadowmaps_2d")) {
         materials::add_texture_to_material(
-          material, *builtin_textures->shadowmaps_2d_texture, builtin_texture_name
+          material, *builtin_textures->shadowmaps_2d_texture, builtin_uniform_name
         );
       } else {
         logs::fatal(
           "Attempted to use unsupported built-in texture %s",
-          builtin_texture_name
+          builtin_uniform_name
         );
       }
     }
