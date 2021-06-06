@@ -216,7 +216,9 @@ namespace core {
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glLineWidth(2.0f);
+    #if !defined(PLATFORM_MACOS)
+      glLineWidth(2.0f);
+    #endif
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Get the framebuffer size. This is the actual window size in pixels.
