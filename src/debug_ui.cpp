@@ -11,8 +11,6 @@ namespace debug_ui {
     Entity *entity,
     uint8 depth
   ) {
-    char number[128];
-
     EntityHandle handle = entity->handle;
     SpatialComponent *spatial_component =
       engine_state->spatial_component_set.components[handle];
@@ -123,10 +121,10 @@ namespace debug_ui {
   ) {
     text[0] = '\0';
 
-    constexpr uint32 const MAX_N_ENTITIES = 35;
+    constexpr uint32 const MAX_N_SHOWN_ENTITIES = 35;
     uint32 idx_entity = 0;
     each (entity, engine_state->entity_set.entities) {
-      if (idx_entity > MAX_N_ENTITIES) {
+      if (idx_entity > MAX_N_SHOWN_ENTITIES) {
         sprintf(
           text + strlen(text),
           "...and %d more\n",
