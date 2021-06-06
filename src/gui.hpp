@@ -106,6 +106,7 @@ namespace gui {
   void update_mouse_button(GuiState *gui_state);
   void update_mouse(GuiState *gui_state);
   void start_drawing(GuiState *gui_state);
+  void clear(GuiState *gui_state);
   void render(GuiState *gui_state);
   GuiContainer* make_container(
     GuiState *gui_state, const char *title, v2 position

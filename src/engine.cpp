@@ -9,6 +9,7 @@ namespace chrono = std::chrono;
 #include "peony_parser.hpp"
 #include "peony_parser_utils.hpp"
 #include "models.hpp"
+#include "constants.hpp"
 #include "internals.hpp"
 #include "renderer.hpp"
 #include "intrinsics.hpp"
@@ -652,6 +653,10 @@ void engine::run_main_loop(
       if (engine_state->should_limit_fps) {
         std::this_thread::sleep_until(timing.time_frame_should_end);
       }
+
+      #if USE_PRINT_FPS
+        logs::info("%u fps", engine_state->perf_counters.last_fps);
+      #endif
     }
 
 

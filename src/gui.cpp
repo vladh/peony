@@ -23,6 +23,12 @@ namespace gui {
 
   pny_internal void push_vertices(GuiState *gui_state, real32 *vertices, uint32 n_vertices) {
     // VAO/VBO must have been bound by start_drawing()
+    if(gui_state->n_vertices_pushed + n_vertices > MAX_N_VERTICES) {
+      logs::error(
+        "Pushed too many Gui vertices, did you forget to call gui::clear()?"
+      );
+      return;
+    }
     glBufferSubData(
       GL_ARRAY_BUFFER,
       VERTEX_SIZE * gui_state->n_vertices_pushed,
@@ -416,6 +422,11 @@ void gui::start_drawing(GuiState *gui_state) {
 }
 
 
+void gui::clear(GuiState *gui_state) {
+  gui_state->n_vertices_pushed = 0;
+}
+
+
 void gui::render(GuiState *gui_state) {
   glUseProgram(gui_state->shader_asset.program);
 
@@ -428,7 +439,6 @@ void gui::render(GuiState *gui_state) {
   }
 
   glDrawArrays(GL_TRIANGLES, 0, gui_state->n_vertices_pushed);
-  gui_state->n_vertices_pushed = 0;
 
   set_cursor(gui_state);
 }

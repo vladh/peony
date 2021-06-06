@@ -132,7 +132,7 @@ void internals::create_internal_materials(
     #endif
 
     #if USE_FOG
-      materials::add_texture_to-material(
+      materials::add_texture_to_material(
         material,
         *renderer_state->l_depth_texture, "l_depth_texture"
       );
@@ -172,9 +172,9 @@ void internals::create_internal_materials(
     );
 
     #if USE_FOG
-    materials::add_texture_to_material(
-      material, *renderer_state->builtin_textures.l_depth_texture, "l_depth_texture"
-    );
+      materials::add_texture_to_material(
+        material, *renderer_state->builtin_textures.l_depth_texture, "l_depth_texture"
+      );
     #endif
 
     #if USE_BLOOM

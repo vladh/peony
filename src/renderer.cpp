@@ -840,6 +840,7 @@ void renderer::render(
   }
 
   // Render shadow map
+  #if USE_SHADOW_RENDERING
   {
     // Point lights
     {
@@ -984,6 +985,7 @@ void renderer::render(
       }
     }
   }
+  #endif
 
   glViewport(0, 0, window_size->width, window_size->height);
 
@@ -1191,8 +1193,8 @@ void renderer::render(
 
   // UI pass
   {
-    glEnable(GL_BLEND);
     if (!renderer_state->should_hide_ui) {
+      glEnable(GL_BLEND);
       debug_ui::render_debug_ui(
         engine_state,
         renderer_state,
@@ -1201,18 +1203,19 @@ void renderer::render(
         input_state,
         window_size
       );
+      glDisable(GL_BLEND);
     }
-    glDisable(GL_BLEND);
   }
 
   glEnable(GL_DEPTH_TEST);
 
   START_TIMER(swap_buffers);
   glfwSwapBuffers(window);
-  END_TIMER_MIN(swap_buffers, 16);
+  END_TIMER_MIN(swap_buffers, 10);
 
   // Do any needed post-render cleanup
   debugdraw::clear(debugdraw::g_dds);
+  gui::clear(gui_state);
 }
 
 
@@ -1225,10 +1228,17 @@ void renderer::init(
 ) {
   BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
   *builtin_textures = {
-    .shadowmap_3d_width = min((uint32)width, (uint32)2000),
-    .shadowmap_3d_height = min((uint32)width, (uint32)2000),
-    .shadowmap_2d_width = 2560 * 2,
-    .shadowmap_2d_height = 1440 * 2,
+    #if defined(GRAPHICS_LOW)
+      .shadowmap_3d_width = 500,
+      .shadowmap_3d_height = 500,
+      .shadowmap_2d_width = 800,
+      .shadowmap_2d_height = 600,
+    #elif defined(GRAPHICS_HIGH)
+      .shadowmap_3d_width = min((uint32)width, (uint32)2000),
+      .shadowmap_3d_height = min((uint32)width, (uint32)2000),
+      .shadowmap_2d_width = 2560 * 2,
+      .shadowmap_2d_height = 1440 * 2,
+    #endif
     .shadowmap_near_clip_dist = 0.05f,
     .shadowmap_far_clip_dist = 200.0f,
   };
