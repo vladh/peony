@@ -815,6 +815,16 @@ void renderer::render(
   GLFWwindow *window,
   WindowSize *window_size
 ) {
+  // Block rendering until all previous OpenGL operations have been completed.
+  // This prevents issues where we have multiple frames queued up for drawing on the GPU,
+  // in which case we will get all sorts of unpleasant stutter. This problem will only
+  // realistically happen when the CPU has way less to do than the GPU and so is issuing
+  // a lot of frames.
+  // In the future, we might want to remove this, because it does block our CPU time
+  // until the GPU is done. However, for now, we don't have that much in our scene,
+  // and the stuttering is more of a problem.
+  glFinish();
+
   copy_scene_data_to_ubo(
     renderer_state,
     cameras_state,
@@ -1212,11 +1222,6 @@ void renderer::render(
   START_TIMER(swap_buffers);
   glfwSwapBuffers(window);
   END_TIMER_MIN(swap_buffers, 10);
-
-  // Block until the frame is actually drawn.
-  // This prevents issues where we have multiple frames queued up for drawing on the GPU,
-  // in which case we will get all sorts of unpleasant stutter.
-  glFinish();
 
   // Do any needed post-render cleanup
   debugdraw::clear(debugdraw::g_dds);
