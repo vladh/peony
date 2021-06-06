@@ -141,7 +141,7 @@ void peony_parser_utils::create_material_from_peony_file_entry(
 
   // Iterate through all props to get textures, since those could have any name
   range (0, entry->n_props) {
-    PeonyFileProp *prop = &entry->props[idx];
+    prop = &entry->props[idx];
 
     if (pstr_starts_with(prop->name, TEXTURE_PREFIX)) {
       // Handle a texture
