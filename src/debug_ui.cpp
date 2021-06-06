@@ -123,8 +123,19 @@ namespace debug_ui {
   ) {
     text[0] = '\0';
 
+    constexpr uint32 const MAX_N_ENTITIES = 35;
+    uint32 idx_entity = 0;
     each (entity, engine_state->entity_set.entities) {
+      if (idx_entity > MAX_N_ENTITIES) {
+        sprintf(
+          text + strlen(text),
+          "...and %d more\n",
+          engine_state->entity_set.entities.length - idx_entity
+        );
+        break;;
+      }
       get_entity_text_representation(text, engine_state, entity, 0);
+      idx_entity++;
     }
 
     if (text[strlen(text) - 1] == '\n') {
