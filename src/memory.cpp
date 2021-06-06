@@ -43,13 +43,12 @@ void* memory::push(
       );
     #endif
 
-    pool->memory = (uint8*)malloc(pool->size);
+    pool->memory = (uint8*)calloc(1, pool->size);
     if (!pool->memory) {
       logs::fatal("Could not allocate memory. Buy more RAM!");
       assert(false); // A little hint for the compiler
     }
 
-    memset(pool->memory, 0, pool->size);
     assert(pool->memory);
   }
   assert(pool->used + item_size <= pool->size);
