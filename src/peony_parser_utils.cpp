@@ -58,7 +58,6 @@ void peony_parser_utils::get_unique_string_values_for_prop_name(
   Array<char[MAX_COMMON_NAME_LENGTH]> *unique_values,
   char const *prop_name
 ) {
-  uint32 n_unique_values = 0;
   range_named (idx_entry, 0, pf->n_entries) {
     PeonyFileEntry *entry = &pf->entries[idx_entry];
     PeonyFileProp *prop = find_prop(entry, prop_name);
@@ -68,8 +67,8 @@ void peony_parser_utils::get_unique_string_values_for_prop_name(
     range_named (idx_value, 0, prop->n_values) {
       PeonyFilePropValue *value = &prop->values[idx_value];
       bool32 does_material_already_exist = false;
-      range_named (idx_used_material, 0, n_unique_values) {
-        if (pstr_eq(value->string_value, (*(*unique_values)[idx_used_material]))) {
+      each (unique_value, *unique_values) {
+        if (pstr_eq(value->string_value, *unique_value)) {
           does_material_already_exist = true;
           break;
         }
