@@ -11,24 +11,24 @@
 
 namespace materials {
   struct TextureNamePool {
-    uint32 mipmap_max_level = 0;
-    uint32 n_textures = 0;
-    uint32 n_sizes = 0;
-    uint32 sizes[MAX_N_TEXTURE_POOL_SIZES] = {0};
-    uint32 idx_next[MAX_N_TEXTURE_POOL_SIZES] = {0};
-    uint32 *texture_names = nullptr;
+    uint32 mipmap_max_level;
+    uint32 n_textures;
+    uint32 n_sizes;
+    uint32 sizes[MAX_N_TEXTURE_POOL_SIZES];
+    uint32 idx_next[MAX_N_TEXTURE_POOL_SIZES];
+    uint32 *texture_names;
   };
 
   struct PersistentPbo {
-    uint32 pbo = 0;
-    void *memory = nullptr;
-    int32 width = 0;
-    int32 height = 0;
-    int32 n_components = 0;
-    uint16 texture_count = 0;
-    uint32 texture_size = 0;
-    uint32 total_size = 0;
-    uint16 next_idx = 0;
+    uint32 pbo;
+    void *memory;
+    int32 width;
+    int32 height;
+    int32 n_components;
+    uint16 texture_count;
+    uint32 texture_size;
+    uint32 total_size;
+    uint16 next_idx;
   };
 
   struct TextureAtlas {
@@ -88,8 +88,8 @@ namespace materials {
   struct Material {
     char name[MAX_COMMON_NAME_LENGTH];
     MaterialState state;
-    bool32 have_textures_been_generated = false;
-    bool32 is_screensize_dependent = false;
+    bool32 have_textures_been_generated;
+    bool32 is_screensize_dependent;
     ShaderAsset shader_asset;
     ShaderAsset depth_shader_asset;
     uint32 n_textures;
