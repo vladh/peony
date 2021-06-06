@@ -15,10 +15,10 @@ namespace lights {
 
   struct LightComponent {
     EntityHandle entity_handle;
-    LightType type = LightType::none;
-    v3 direction = v3(0.0f);
-    v4 color = v4(0.0f);
-    v4 attenuation = v4(0.0f);
+    LightType type;
+    v3 direction;
+    v4 color;
+    v4 attenuation;
   };
 
   struct LightComponentSet {
