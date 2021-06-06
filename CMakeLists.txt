@@ -57,7 +57,7 @@ if (MSVC)
   )
 else()
   add_compile_options(
-    -g3 -D_FORTIFY_SOURCE=2 -O2 -Wall -Werror -Wno-deprecated-volatile -pedantic
+    -ggdb3 -D_FORTIFY_SOURCE=2 -Og -Wall -Werror -Wno-deprecated-volatile -pedantic
   )
   # TODO
 endif()
