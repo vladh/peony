@@ -46,7 +46,6 @@ void behavior_functions::char_movement_test(
   Obb *obb = &physics_component->transformed_obb;
 
   // Update position
-  #if 1
   spatial_component->position.x =
     (real32)sin((*engine::g_t) * 1.0f) * 4.0f +
     (real32)sin((*engine::g_t) * 2.0f) * 0.1f +
@@ -65,7 +64,6 @@ void behavior_functions::char_movement_test(
     glm::angleAxis((real32)cos((*engine::g_t) * 2.0f), v3(1.0f, 0.0f, 0.0f)) *
     glm::angleAxis((real32)sin((*engine::g_t) * 1.5f) / 2.0f, v3(1.0f, 0.0f, 0.0f)) *
     glm::angleAxis((real32)sin((*engine::g_t) * 2.5f) / 1.5f, v3(0.5f, 0.5f, 0.2f));
-  #endif
   #if 0
   spatial_component->position.x = -5.0f;
   spatial_component->position.z = -5.0f;
@@ -75,7 +73,6 @@ void behavior_functions::char_movement_test(
   #endif
 
   // Check collision with other entities
-  #if 1
   {
     CollisionManifold manifold = physics::find_physics_component_collision(
       physics_component,
@@ -121,7 +118,6 @@ void behavior_functions::char_movement_test(
       );
     }
   }
-  #endif
 
   // Check ray collision
   #if 0

@@ -8,6 +8,7 @@
 #include "engine.hpp"
 #include "state.hpp"
 #include "peony_parser.hpp"
+#include "constants.hpp"
 #include "core.hpp"
 #include "intrinsics.hpp"
 
@@ -163,7 +164,9 @@ namespace core {
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+    #if !USE_VSYNC
+      glfwSwapInterval(0);
+    #endif
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
       logs::fatal("Failed to initialize GLAD");

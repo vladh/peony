@@ -2,22 +2,11 @@
 
 #include "types.hpp"
 
-// Options
-#define USE_TIMERS true
-#define USE_MEMORY_DEBUG_LOGS false
-#define USE_MEMORYPOOL_ITEM_DEBUG false
-#define USE_FULLSCREEN true
-#define USE_WINDOWED_FULLSCREEN true
-#define USE_ANIMATION_DEBUG false
-#define USE_SHADER_DEBUG false
-#define USE_BLOOM false
-#define USE_FOG false
-#define TARGET_MONITOR 0
-#define USE_OPENGL_DEBUG false
-
+// Math things
 constexpr real32 PI32 = 3.14159265359f;
 constexpr real64 PI = 3.14159265358979323846;
 
+// Platform things
 #if !defined(MAX_PATH)
   #if defined(PATH_MAX)
     #define MAX_PATH PATH_MAX
@@ -42,6 +31,33 @@ constexpr real64 PI = 3.14159265358979323846;
   #error "Unknown platform"
 #endif
 
+// General options
+#define USE_PRINT_FPS false
+#define USE_TIMERS true
+#define USE_MEMORY_DEBUG_LOGS false
+#define USE_MEMORYPOOL_ITEM_DEBUG false
+
+// Graphics options
+#define TARGET_MONITOR 0
+#define USE_FULLSCREEN true
+#define USE_WINDOWED_FULLSCREEN true
+
+#define USE_ANIMATION_DEBUG false
+#define USE_SHADER_DEBUG false
+#define USE_OPENGL_DEBUG false
+
+#define USE_SHADOW_RENDERING true
+#define USE_BLOOM false
+#define USE_FOG false
+#define USE_VSYNC false
+
+#if defined(PLATFORM_MACOS)
+  #define GRAPHICS_LOW
+#else
+  #define GRAPHICS_HIGH
+#endif
+
+// Constants
 constexpr char WINDOW_TITLE[] = "peony";
 constexpr char TEXTURE_DIR[] = "resources/textures/";
 constexpr char MODEL_DIR[] = "resources/models/";

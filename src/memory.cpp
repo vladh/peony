@@ -1,5 +1,6 @@
 #include "logs.hpp"
 #include "util.hpp"
+#include "constants.hpp"
 #include "memory.hpp"
 #include "intrinsics.hpp"
 
