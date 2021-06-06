@@ -1,6 +1,7 @@
 bin/
 resources
 *.ctm # ctime
+*.trace # apitrace
 
 # Prerequisites
 *.d
