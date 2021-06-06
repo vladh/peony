@@ -2,6 +2,7 @@
 
 #include <chrono>
 namespace chrono = std::chrono;
+#include "constants.hpp"
 #include "types.hpp"
 
 chrono::steady_clock::time_point debug_start_timer();
@@ -20,9 +21,7 @@ real64 debug_end_timer(chrono::steady_clock::time_point t0);
     }
 
   #define END_TIMER(name) END_TIMER_MIN(name, 0)
-
-  #else
-
+#else
   #define START_TIMER(name)
   #define END_TIMER_MIN(name, min_duration_ms)
   #define END_TIMER(name)
