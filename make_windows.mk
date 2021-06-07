@@ -16,9 +16,9 @@ LINKER_FLAGS = \
 .PHONY: unity run
 
 unity:
-ifndef DevEnvDir
-	vcvarsall x64
-endif
+	@echo "################################################################################"
+	@echo "### Building"
+	@echo "################################################################################"
 	ctime -begin bin/peony.ctm
 	cl $(COMPILER_FLAGS) src/_unity.cpp -link $(LINKER_FLAGS) -out:bin/peony.exe
 	ctime -end bin/peony.ctm %LastError%
