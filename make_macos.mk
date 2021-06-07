@@ -9,9 +9,9 @@ COMPILER_FLAGS = \
 	-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX
 
 LINKER_FLAGS = \
-	-I/usr/local/opt/glfw/lib \
-	-I/usr/local/opt/assimp/lib \
-	-I/usr/local/opt/freetype/lib \
+	-L/usr/local/opt/glfw/lib \
+	-L/usr/local/opt/assimp/lib \
+	-L/usr/local/opt/freetype/lib \
 	-lfreetype -lglfw -lassimp -lm
 
 .PHONY: unity unity-bundle run
