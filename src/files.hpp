@@ -13,4 +13,4 @@ namespace files {
   uint32 get_file_size(const char *path);
   const char* load_file(MemoryPool *memory_pool, const char *path);
   const char* load_file(char *string, const char *path);
-};
+}

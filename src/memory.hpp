@@ -28,6 +28,6 @@ namespace memory {
   );
   void print_memory_pool(MemoryPool *pool);
   void destroy_memory_pool(MemoryPool *memory_pool);
-};
+}
 
 using memory::MemoryPool;

@@ -429,7 +429,7 @@ Material* materials::init_material(
   pstr_copy(material->name, MAX_COMMON_NAME_LENGTH, name);
   material->state = MaterialState::initialized;
   return material;
-};
+}
 
 
 void materials::destroy_material(Material *material) {
