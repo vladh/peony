@@ -1,8 +1,8 @@
 ifeq ($(OS),Windows_NT)
-	include Makefile.windows
+	include make_windows.mk
 else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
-		include Makefile.macos
+		include make_macos.mk
 	endif
 endif
