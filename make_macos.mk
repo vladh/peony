@@ -22,6 +22,9 @@ unity-bundle: unity
 	cp extra/Info.plist bin/peony.app/Contents/
 
 unity:
+	@echo "################################################################################"
+	@echo "### Building"
+	@echo "################################################################################"
 	time g++ $(COMPILER_FLAGS) $(LINKER_FLAGS) src/_unity.cpp -o bin/peony
 
 run:

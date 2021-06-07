@@ -39,7 +39,7 @@ constexpr real64 PI = 3.14159265358979323846;
 
 // Graphics options
 #define TARGET_MONITOR 0
-#define USE_FULLSCREEN true
+#define USE_FULLSCREEN false
 #define USE_WINDOWED_FULLSCREEN true
 
 #define USE_ANIMATION_DEBUG false
