@@ -1,15 +1,29 @@
-COMPILER_FLAGS =\
-	-ggdb3 -D_FORTIFY_SOURCE=2 -Og -Wall -Werror -Wno-deprecated-volatile -pedantic\
-	-Wno-unused-function -Wno-unknown-pragmas -Wno-comment\
+COMPILER_FLAGS = \
+	-I/usr/local/opt/glm/include \
+	-I/usr/local/opt/glfw/include \
+	-I/usr/local/opt/assimp/include \
+	-I/usr/local/opt/freetype/include/freetype2 \
+	-std=c++2a \
+	-ggdb3 -D_FORTIFY_SOURCE=2 -Og -Wall -Werror -Wno-deprecated-volatile -pedantic \
+	-Wno-unused-function -Wno-unknown-pragmas -Wno-comment \
 	-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX
 
-LINKER_FLAGS =\
-	-lcrt -lc
+LINKER_FLAGS = \
+	-I/usr/local/opt/glfw/lib \
+	-I/usr/local/opt/assimp/lib \
+	-I/usr/local/opt/freetype/lib \
+	-lfreetype -lglfw -lassimp -lm
 
-.PHONY: unity run
+.PHONY: unity unity-bundle run
+
+unity-bundle: unity
+	mkdir -p bin/peony.app/Contents/MacOS
+	cp bin/peony bin/peony.app/Contents/MacOS/
+	cp extra/Info.plist bin/peony.app/Contents/
 
 unity:
 	time g++ $(COMPILER_FLAGS) $(LINKER_FLAGS) src/_unity.cpp -o bin/peony
 
 run:
-	./bin/peony
+	# ./bin/peony
+	./bin/peony.app/Contents/MacOS/peony
