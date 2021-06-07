@@ -32,13 +32,12 @@ you therefore don't need to install:
 * [stb-image.h](https://github.com/nothings/stb/blob/master/stb_image.h)
 * [Glad](https://glad.dav1d.de/)
 
-## Building
+## Building and running
+
+You'll need `make` installed, including on Windows. Once you have that, you only need
+to do:
 
 ```
-mkdir bin
-cd bin
-cmake ..
-cd ..
-./build
-./run
+make
+make run
 ```

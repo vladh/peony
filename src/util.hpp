@@ -29,4 +29,4 @@ namespace util {
   real32 b_to_mb(uint32 value);
   real32 b_to_gb(uint32 value);
   real32 b_to_tb(uint32 value);
-};
+}

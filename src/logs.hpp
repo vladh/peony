@@ -15,4 +15,4 @@ namespace logs {
   void print_v2(v2 *t);
   void print_v3(v3 *t);
   void print_v4(v4 *t);
-};
+}

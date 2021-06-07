@@ -49,7 +49,8 @@ if (MSVC)
 elseif(APPLE OR UNIX)
   add_compile_options(
     -ggdb3 -D_FORTIFY_SOURCE=2 -Og -Wall -Werror -Wno-deprecated-volatile -pedantic
-    -Wno-unused-function -Wno-unknown-pragmas
+    -Wno-unused-function -Wno-unknown-pragmas -Wno-comment
+    -lcrt -lc
   )
   add_link_options(
     -lcrt -lc
