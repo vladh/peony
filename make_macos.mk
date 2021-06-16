@@ -9,9 +9,9 @@ COMPILER_FLAGS = \
 	-Wno-unused-parameter -Wno-sign-compare
 
 LINKER_FLAGS = \
-	-I/usr/local/opt/glfw/lib \
-	-I/usr/local/opt/assimp/lib \
-	-I/usr/local/opt/freetype/lib \
+	-L/usr/local/opt/glfw/lib \
+	-L/usr/local/opt/assimp/lib \
+	-L/usr/local/opt/freetype/lib \
 	-lfreetype -lglfw -lassimp -lm
 
 .PHONY: unity unity-bundle run
@@ -22,6 +22,9 @@ unity-bundle: unity
 	cp extra/Info.plist bin/peony.app/Contents/
 
 unity:
+	@echo "################################################################################"
+	@echo "### Building"
+	@echo "################################################################################"
 	time g++ $(COMPILER_FLAGS) $(LINKER_FLAGS) src/_unity.cpp -o bin/peony
 
 run:

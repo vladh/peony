@@ -106,32 +106,6 @@ namespace physics {
   }
 
 
-  pny_internal void update_best_for_face_axis(
-    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
-    real32 sep, uint32 axis, v3 normal
-  ) {
-    if (sep > *best_sep) {
-      *best_sep = sep;
-      *best_axis = axis;
-      *best_normal = normal;
-    }
-  }
-
-
-  pny_internal void update_best_for_edge_axis(
-    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
-    real32 sep, uint32 axis, v3 normal
-  ) {
-    real32 normal_len = length(normal);
-    sep /= normal_len;
-    if (sep > *best_sep) {
-      *best_sep = sep;
-      *best_axis = axis;
-      *best_normal = normal / normal_len;
-    }
-  }
-
-
   /*!
   This function gets the nearest contact point between two edges. It's used
   to determine a collision point for a box collision that has happened
@@ -276,6 +250,122 @@ namespace physics {
     }
 
     return face;
+  }
+
+
+  pny_internal void get_reference_face_edges_and_basis(
+    m3 *cob, // object change of base
+    v3 e, // object extents
+    v3 c, // object center
+    v3 n, // collision normal
+    uint32 axis, // axis of separation
+    uint32 clip_edges[4], // the indices of the reference face edges
+    m3 *reference_face_cob, // the change of basis of the reference face
+    v3 *reference_face_e // the extents of the reference face
+  ) {
+    n = transpose(*cob) * n;
+
+    if (axis >= 3) {
+      axis -= 3;
+    }
+
+    if (axis == 0) {
+      if (n.x > 0.0f) {
+        clip_edges[0] = 1;
+        clip_edges[1] = 8;
+        clip_edges[2] = 7;
+        clip_edges[3] = 9;
+        row(*reference_face_cob, 0, row(*cob, 1));
+        row(*reference_face_cob, 1, row(*cob, 2));
+        row(*reference_face_cob, 2, row(*cob, 0));
+        *reference_face_e = v3(e.y, e.z, e.x);
+      } else {
+        clip_edges[0] = 11;
+        clip_edges[1] = 3;
+        clip_edges[2] = 10;
+        clip_edges[3] = 5;
+        row(*reference_face_cob, 0,  row(*cob, 2));
+        row(*reference_face_cob, 1,  row(*cob, 1));
+        row(*reference_face_cob, 2, -row(*cob, 0));
+        *reference_face_e = v3(e.z, e.y, e.x);
+      }
+    } else if (axis == 1) {
+      if (n.y > 0.0f) {
+        clip_edges[0] = 0;
+        clip_edges[1] = 1;
+        clip_edges[2] = 2;
+        clip_edges[3] = 3;
+        row(*reference_face_cob, 0, row(*cob, 2));
+        row(*reference_face_cob, 1, row(*cob, 0));
+        row(*reference_face_cob, 2, row(*cob, 1));
+        *reference_face_e = v3(e.z, e.x, e.y);
+      } else {
+        clip_edges[0] = 4;
+        clip_edges[1] = 5;
+        clip_edges[2] = 6;
+        clip_edges[3] = 7;
+        row(*reference_face_cob, 0,  row(*cob, 2));
+        row(*reference_face_cob, 1, -row(*cob, 0));
+        row(*reference_face_cob, 2, -row(*cob, 1));
+        *reference_face_e = v3(e.z, e.x, e.y);
+      }
+    } else if (axis == 2) {
+      if (n.z > 0.0f) {
+        clip_edges[0] = 11;
+        clip_edges[1] = 4;
+        clip_edges[2] = 8;
+        clip_edges[3] = 0;
+        row(*reference_face_cob, 0, -row(*cob, 1));
+        row(*reference_face_cob, 1,  row(*cob, 0));
+        row(*reference_face_cob, 2,  row(*cob, 2));
+        *reference_face_e = v3(e.y, e.x, e.z);
+      } else {
+        clip_edges[0] = 6;
+        clip_edges[1] = 10;
+        clip_edges[2] = 2;
+        clip_edges[3] = 9;
+        row(*reference_face_cob, 0, -row(*cob, 1));
+        row(*reference_face_cob, 1, -row(*cob, 0));
+        row(*reference_face_cob, 2, -row(*cob, 2));
+        *reference_face_e = v3(e.y, e.x, e.z);
+      }
+    }
+	}
+
+
+  uint32 clip_faces(
+    v3 reference_center, v3 reference_face_extents,
+    uint32 clip_edges[4], m3 reference_face_cob,
+    Face incident_face,
+    v3 clip_vertices[8], real32 clip_depths[8]
+  ) {
+    return 0;
+  }
+
+
+  pny_internal void update_best_for_face_axis(
+    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
+    real32 sep, uint32 axis, v3 normal
+  ) {
+    if (sep > *best_sep) {
+      *best_sep = sep;
+      *best_axis = axis;
+      *best_normal = normal;
+    }
+  }
+
+
+  pny_internal void update_best_for_edge_axis(
+    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
+    real32 sep, uint32 axis, v3 normal
+  ) {
+    real32 normal_len = length(normal);
+    sep /= normal_len;
+    if (sep > *best_sep) {
+      *best_sep = sep;
+      *best_axis = axis;
+      *best_normal = normal / normal_len;
+    }
   }
 
 
@@ -536,7 +626,24 @@ namespace physics {
         &incident_cob, incident_extents, incident_center, manifold.normal
       );
 
-      // TODO: Clipping goes here.
+      uint32 clip_edges[4];
+      m3 reference_face_cob;
+      v3 reference_face_extents;
+      get_reference_face_edges_and_basis(
+        &reference_cob, reference_extents, reference_center, manifold.normal,
+        manifold.axis,
+        clip_edges, &reference_face_cob, &reference_face_extents
+      );
+
+      uint32 n_clip_vertices;
+      v3 clip_vertices[8];
+      real32 clip_depths[8];
+      n_clip_vertices = clip_faces(
+        reference_center, reference_face_extents,
+        clip_edges, reference_face_cob,
+        incident_face,
+        clip_vertices, clip_depths
+      );
 
       debugdraw::draw_quad(
         debugdraw::g_dds,
