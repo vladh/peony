@@ -369,13 +369,12 @@ namespace engine {
       renderer_state->should_hide_ui = !renderer_state->should_hide_ui;
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_ENTER)) {
+    if (input::is_key_down(input_state, GLFW_KEY_N)) {
       engine_state->should_manually_advance_to_next_frame = true;
     }
 
     if (input::is_key_now_down(input_state, GLFW_KEY_0)) {
-      destroy_scene(engine_state, materials_state);
-      gui::set_heading(gui_state, "Scene destroyed", 1.0f, 1.0f, 1.0f);
+      *((unsigned int*)0) = 0xDEAD;
     }
   }
 

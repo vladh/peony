@@ -3,6 +3,9 @@ resources
 *.ctm
 *.trace
 
+# Visual Studio stuff
+.vs
+
 # Prerequisites
 *.d
 
