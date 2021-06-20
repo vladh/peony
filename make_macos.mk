@@ -7,10 +7,10 @@ COMPILER_FLAGS = \
 	-I/usr/local/opt/glfw/include \
 	-I/usr/local/opt/assimp/include \
 	-I/usr/local/opt/freetype/include/freetype2 \
+	-D_FORTIFY_SOURCE=2 -ggdb3 -Og -Wall -Werror -Wextra -pedantic \
 	-std=c++2a \
-	-ggdb3 -D_FORTIFY_SOURCE=2 -Og -Wall -Werror -Wno-deprecated-volatile -pedantic \
-	-Wno-unused-function -Wno-unknown-pragmas -Wno-comment \
-	-D_CRT_SECURE_NO_WARNINGS -DNOMINMAX
+	-Wno-deprecated-volatile -Wno-unused-function -Wno-unknown-pragmas -Wno-comment \
+	-Wno-unused-parameter -Wno-sign-compare
 
 LINKER_FLAGS = \
 	-L/usr/local/opt/glfw/lib \
