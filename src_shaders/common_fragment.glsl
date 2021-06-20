@@ -1,3 +1,9 @@
+/*
+  Peony Game Engine
+  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+  All rights reserved.
+*/
+
 #define GAMMA 2.2
 #define WATER_F0 0.02037
 #define N_SHADOW_SAMPLES 20

@@ -1,3 +1,9 @@
+/*
+  Peony Game Engine
+  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+  All rights reserved.
+*/
+
 constexpr v3 CUBEMAP_OFFSETS[6] = {
   v3(1.0f, 0.0f, 0.0f),
   v3(-1.0f, 0.0f, 0.0f),

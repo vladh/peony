@@ -1,3 +1,9 @@
+/*
+  Peony Game Engine
+  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+  All rights reserved.
+*/
+
 #version 410 core
 
 #define M_PI 3.14159265358979323846

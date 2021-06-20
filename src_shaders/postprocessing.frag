@@ -1,3 +1,9 @@
+/*
+  Peony Game Engine
+  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+  All rights reserved.
+*/
+
 uniform sampler2D l_color_texture;
 uniform sampler2D bloom_texture;
 #if USE_FOG

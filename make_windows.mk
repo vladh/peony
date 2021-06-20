@@ -1,3 +1,7 @@
+# Peony Game Engine
+# Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+# All rights reserved.
+
 COMPILER_FLAGS = \
 	-I "C:/local/include/"  \
 	-FC -GS -MTd -MP18 -W4 -WL -WX -Z7 -Zo -diagnostics:column -fp:fast -nologo \
