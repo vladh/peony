@@ -1,3 +1,7 @@
+# Peony Game Engine
+# Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+# All rights reserved.
+
 ifeq ($(OS),Windows_NT)
 	include make_windows.mk
 else

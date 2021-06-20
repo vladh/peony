@@ -1,3 +1,9 @@
+/*
+  Peony Game Engine
+  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
+  All rights reserved.
+*/
+
 #define N_UNDERWATER_POSITION_SAMPLES 1
 
 #define ARE_NORMAL_MAPS_ENABLED true
