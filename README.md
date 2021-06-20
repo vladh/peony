@@ -5,7 +5,7 @@
 Peony is a 3D game engine written from scratch in C++. It's currently a work
 in progress.
 
-**Why build a 3D game engine from scratch?**
+## Why build a 3D game engine from scratch?
 
 I remember being so impressed by many video games as a kid — it was so
 incomprehensible to me how anyone could build something like Pokémon Blue,
@@ -25,7 +25,7 @@ dependencies are GLFW (for platform-specific things) and Freetype
 (for loading fonts). I am currently using assimp to load the models,
 but it will get kicked out soon enough.
 
-**A list of features**
+## A list of features
 
 Here's a quick summary of some of the features I've built so far:
 
@@ -46,13 +46,13 @@ Here's a quick summary of some of the features I've built so far:
 * Custom entity system (no, not quite ECS)
 * Shader hot-loading
 
-**Why open source?**
+## Why open source?
 
 While building this engine, I found it quite helpful to look at existing resources on
 game engines, including existing open-source game engines. If publishing Peony can help
 someone learn, I'd be happy about that.
 
-**Practical details**
+## Practical details
 
 If you'd like to read the code, you can start at `src/main.cpp`.
 
