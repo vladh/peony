@@ -7,13 +7,26 @@ in progress.
 
 ## Why build a 3D game engine from scratch?
 
-I've been in love with the technology behind video games my entire life. As a kid, it was incomprehensible to me how anyone could build something like Pokémon Blue, let alone Half-Life 2. Despite that, I'd never built anything resembling a game engine myself.
+I've been in love with the technology behind video games my entire life. As a kid, it was
+incomprehensible to me how anyone could build something like Pokémon Blue, let alone
+Half-Life 2. Despite that, I'd never built anything resembling a game engine myself.
 
-That's why in 2020, I decided to build my own 3D game engine from scratch in C++. My objective is to create something that, while being an indie engine, has many features that you would find in production game engines, such as nice lighting and shadows, basic physics and collision, water and atmospheric effects and so on.
+That's why in 2020, I decided to build my own 3D game engine from scratch in C++. My
+objective is to create something that, while being an indie engine, has many features
+that you would find in production game engines, such as nice lighting and shadows, basic
+physics and collision, water and atmospheric effects and so on.
 
-Aside from furthering my own education, I have two aims in building Peony. First of all, I'd like to see how compelling of a player experience can be created with a relatively minimal amount of code and small budget. To this end, I am aiming to eventually build a game using this engine. Secondly, there is a dearth of practical game engine development resources on the internet, and I hope to make a small contribution to this community by publishing Peony's source code.
+Aside from furthering my own education, I have two aims in building Peony. First of all,
+I'd like to see how compelling of a player experience can be created with a relatively
+minimal amount of code and small budget. To this end, I am aiming to eventually build a
+game using this engine. Secondly, there is a dearth of practical game engine development
+resources on the internet, and I hope to make a small contribution to this community by
+publishing Peony's source code.
 
-After a little over a year of working on this engine, I've found the “from scratch” approach even more fun and rewarding than I could have hoped. Aside from a couple of dependencies such as GLFW and Freetype (and the soon-to-be-removed assimp), I've created all features of this engine myself, with no dependencies.
+After a little over a year of working on this engine, I've found the “from scratch”
+approach even more fun and rewarding than I could have hoped. Aside from a couple of
+dependencies such as GLFW and Freetype (and the soon-to-be-removed assimp), I've created
+all features of this engine myself, with no dependencies.
 
 ## A list of features
 
@@ -38,7 +51,8 @@ Here's a quick summary of some of the features I've built so far:
 
 ## Roadmap
 
-Here are some features that I'm currently working on or planning to add soon, in order of descending priority:
+Here are some features that I'm currently working on or planning to add soon, in order of
+descending priority:
 
 * Simple rigidbody physics
 * Cascading shadow maps
