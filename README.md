@@ -41,9 +41,9 @@ Here's a quick summary of some of the features I've built so far:
 * Simple rigidbody physics
 * Custom GUI system
 * Development tools such as a game console
+* Skeletal animation
 * Dynamic scene and asset loading from files
 * Custom scene and material file format
-* Custom entity system (no, not quite ECS)
 * Shader hot-loading
 
 ## Why open source?
