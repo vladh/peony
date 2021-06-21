@@ -1,0 +1,55 @@
+> sun
+model_path = cube.obj
+materials = [light]
+render_passes = [forward_nodepth]
+spatial_component.position = vec3(0.0, 0.0, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(0.3, 0.3, 0.3)
+light_component.type = directional
+light_component.direction = vec3(0.70, -0.70, 0.0)
+light_component.color = vec4(4.0, 4.0, 4.0, 1.0)
+light_component.attenuation = vec4(1.0, 0.0, 0.0, 0.0)
+
+> rocks
+model_path = Stones_AssetKit.fbx
+materials = [rocks]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(2.0, -3.5, 2.0)
+spatial_component.rotation = vec4(45.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(0.05, 0.05, 0.05)
+
+> archer
+model_path = archer.dae
+materials = [archer]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-10.0, 1.7, 5.0)
+spatial_component.rotation = vec4(-90.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> platform
+model_path = platform/platform.obj
+materials = [platform]
+render_passes = [deferred, shadowcaster]
+spatial_component.position = vec3(-10.0, 0.0, 5.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)
+
+> pointlight
+model_path = cube.obj
+materials = [light]
+render_passes = [forward_nodepth]
+spatial_component.position = vec3(7.0, 3.0, 7.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(0.3, 0.3, 0.3)
+light_component.type = point
+light_component.direction = vec3(0.0, 0.0, 0.0)
+light_component.color = vec4(150.0, 0.0, 0.0, 1.0)
+light_component.attenuation = vec4(2.0, 0.18, 0.064, 0.0)
+
+> ocean
+model_path = builtin:ocean
+materials = [ocean]
+render_passes = [forward_depth, shadowcaster]
+spatial_component.position = vec3(0.0, 0.0, 0.0)
+spatial_component.rotation = vec4(0.0, 0.0, 1.0, 0.0)
+spatial_component.scale = vec3(1.0, 1.0, 1.0)

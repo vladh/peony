@@ -171,10 +171,12 @@ void internals::create_internal_materials(
     );
 
     materials::add_texture_to_material(
-      material, *renderer_state->builtin_textures.g_position_texture, "l_color_texture"
+      material, *renderer_state->builtin_textures.l_color_texture, "l_color_texture"
     );
     materials::add_texture_to_material(
-      material, *renderer_state->builtin_textures.l_color_texture, "l_bright_color_texture"
+      material,
+      *renderer_state->builtin_textures.l_bright_color_texture,
+      "l_bright_color_texture"
     );
 
     #if USE_FOG
@@ -262,9 +264,9 @@ void internals::create_internal_entities(
         &engine_state->entity_set, "screenquad_preblur"
       );
       ModelLoader *model_loader = engine_state->model_loaders.push();
-      EntityLoader *entity_loader = 
+      EntityLoader *entity_loader =
         engine_state->entity_loader_set.loaders[entity->handle];
-      models::init_model_loader(model_loader "builtin:screenquad_preblur");
+      models::init_model_loader(model_loader, "builtin:screenquad_preblur");
       models::init_entity_loader(
         entity_loader,
         "screenquad_preblur",

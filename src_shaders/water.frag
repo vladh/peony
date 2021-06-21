@@ -25,7 +25,7 @@ float WATER_MIN_HEIGHT = -0.5;
 float WATER_MAX_PASSTHROUGH_DISTANCE = 1.5;
 float WATER_FOAM_DIST = 1.5;
 float WATER_FOAM_SKIRT_DIST = 0.5;
-float WATER_SHADOW_FACTOR = 0.5;
+float WATER_SHADOW_FACTOR = 0.3;
 
 uniform sampler2D g_position_texture;
 uniform sampler2D g_albedo_texture;
