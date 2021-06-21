@@ -1,3 +1,3 @@
 > light
 shader_asset.vert_path = base.vert
-shader_asset.frag_path = simple.frag
+shader_asset.frag_path = discard.frag

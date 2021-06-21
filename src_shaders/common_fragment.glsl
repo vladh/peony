@@ -35,7 +35,7 @@ vec3 GROUND_ALBEDO = mix(
 vec3 SKY_REFLECTION_ALBEDO = mix(
   SKY_ALBEDO,
   GROUND_ALBEDO,
-  SUNSET_FACTOR
+  clamp(SUNSET_FACTOR, 0.0, 0.5)
 );
 vec3 SUN_ALBEDO = mix(
   vec3(1.00, 1.00, 1.00),

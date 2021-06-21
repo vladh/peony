@@ -53,7 +53,7 @@ constexpr real64 PI = 3.14159265358979323846;
 #define USE_OPENGL_DEBUG false
 
 #define USE_SHADOW_RENDERING true
-#define USE_BLOOM false
+#define USE_BLOOM true
 #define USE_FOG false
 #define USE_VSYNC false
 

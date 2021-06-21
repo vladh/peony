@@ -313,6 +313,10 @@ namespace renderer {
       (*blur1_texture)->texture_name, 0
     );
 
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+      logs::fatal("Framebuffer not complete!");
+    }
+
     glGenFramebuffers(1, blur2_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *blur2_buffer);
     uint32 blur2_texture_name;
@@ -1122,7 +1126,9 @@ void renderer::render(
   #if USE_BLOOM
     // Blur pass
     {
-      glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur1_buffer);
+      glBindFramebuffer(
+        GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer
+      );
       copy_scene_data_to_ubo(
         renderer_state,
         cameras_state,
@@ -1138,7 +1144,9 @@ void renderer::render(
         RenderMode::regular
       );
 
-      glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur2_buffer);
+      glBindFramebuffer(
+        GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer
+      );
       copy_scene_data_to_ubo(
         renderer_state,
         cameras_state,
@@ -1155,7 +1163,9 @@ void renderer::render(
       );
 
       for (uint32 idx = 0; idx < 3; idx++) {
-        glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur1_buffer);
+        glBindFramebuffer(
+          GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer
+        );
         copy_scene_data_to_ubo(
           renderer_state,
           cameras_state,
@@ -1171,7 +1181,9 @@ void renderer::render(
           RenderMode::regular
         );
 
-        glBindFramebuffer(GL_FRAMEBUFFER, materials_state->blur2_buffer);
+        glBindFramebuffer(
+          GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer
+        );
         copy_scene_data_to_ubo(
           renderer_state,
           cameras_state,
@@ -1183,7 +1195,7 @@ void renderer::render(
           engine_state,
           materials_state,
           renderer_state,
-          RenderPass::blur1,
+          RenderPass::blur2,
           RenderMode::regular
         );
       }
