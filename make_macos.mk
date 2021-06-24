@@ -32,5 +32,4 @@ unity:
 	time g++ $(COMPILER_FLAGS) $(LINKER_FLAGS) src/_unity.cpp -o bin/peony
 
 run:
-	# ./bin/peony
-	./bin/peony.app/Contents/MacOS/peony
+	@./bin/peony.app/Contents/MacOS/peony
