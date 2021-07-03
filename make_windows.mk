@@ -28,4 +28,4 @@ unity:
 	ctime -end bin/peony.ctm %LastError%
 
 run:
-	bin/peony.exe
+	@bin/peony.exe

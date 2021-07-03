@@ -380,7 +380,7 @@ namespace engine {
     }
 
     if (input::is_key_now_down(input_state, GLFW_KEY_0)) {
-      *((unsigned int*)0) = 0xDEAD;
+      *((volatile unsigned int*)0) = 0xDEAD;
     }
   }
 
