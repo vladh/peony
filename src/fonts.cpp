@@ -41,7 +41,7 @@ namespace fonts {
     for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
       if (
         // Unicode C0 controls
-        (c >= 0x00 && c <= 0x1F) ||
+        (c <= 0x1F) ||
         // DEL
         (c == 0x7F) ||
         // Unicode C1 controls
