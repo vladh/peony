@@ -57,10 +57,10 @@ constexpr real64 PI = 3.14159265358979323846;
 #define USE_FOG false
 #define USE_VSYNC false
 
-#if defined(PLATFORM_MACOS)
-  #define GRAPHICS_LOW
-#else
+#if defined(PLATFORM_WINDOWS)
   #define GRAPHICS_HIGH
+#else
+  #define GRAPHICS_LOW
 #endif
 
 // Constants

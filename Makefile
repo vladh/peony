@@ -8,5 +8,7 @@ else
 	UNAME_S := $(shell uname -s)
 	ifeq ($(UNAME_S),Darwin)
 		include make_macos.mk
+	else
+		include make_linux.mk
 	endif
 endif
