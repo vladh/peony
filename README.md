@@ -110,14 +110,8 @@ make run
 Peony should compile and run fine on Windows, macOS and Linux. However, macOS support
 might be a bit flaky.
 
-## Peony Game Engine License
+## License
 
-All of the source code in the Peony Game Engine is Copyright 2020 by Vlad-Stefan Harbuz,
-unless otherwise specified. All rights are reserved. You are granted a personal,
-non-assignable, non-transferable, non-commercial license to use the source code for your
-own personal educational purposes. Any other use, including any redistribution in whole
-or in part, requires explicit, written permission from Vlad-Stefan Harbuz.
-
-The Peony Game Engine is provided "as is" without warranty of any kind, either express or
-implied, including without limitation any implied warranties of condition, uninterrupted
-use, merchantability, fitness for a particular purpose, or non-infringement.
+This project is licensed under a restrictive license. You are free to use the
+source code only for personal, educational, non-commercial purposes. The full
+license is included.
