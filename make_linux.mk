@@ -14,7 +14,7 @@ COMPILER_FLAGS = \
 	-Wno-unused-result -Wno-class-memaccess -Wno-unused-but-set-variable
 
 LINKER_FLAGS = \
-  -L/usr/lib/x86_64-linux-gnu \
+	-L/usr/lib/x86_64-linux-gnu \
 	-lfreetype -lglfw -lassimp -lm -ldl -pthread
 
 .PHONY: unity run
