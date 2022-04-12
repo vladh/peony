@@ -91,6 +91,12 @@ be able to find them. If you've installed them in a place you think is a commonl
 used path and it's not finding them, you might want to add some paths to the files
 in `cmake/`.
 
+Doing the following is often enough:
+
+```
+sudo apt install libglfw3-dev libglm-dev libfreetype-dev libassimp-dev
+```
+
 Peony also depends on the following packages which are included in the source, and
 you therefore don't need to install:
 
