@@ -21,7 +21,7 @@ namespace debugdraw {
   };
 
   struct DebugDrawState {
-    ShaderAsset shader_asset;
+    shaders::Asset shader_asset;
     uint32 vao;
     uint32 vbo;
     DebugDrawVertex vertices[MAX_N_VERTICES];

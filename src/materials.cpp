@@ -485,9 +485,9 @@ void materials::add_texture_to_material(
 
 
 void materials::bind_texture_uniforms(Material *material) {
-  ShaderAsset *shader_asset = &material->shader_asset;
+  shaders::Asset *shader_asset = &material->shader_asset;
 
-  if (shader_asset->type != ShaderType::depth) {
+  if (shader_asset->type != shaders::Type::depth) {
     glUseProgram(shader_asset->program);
 
     for (

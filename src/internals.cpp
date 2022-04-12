@@ -27,7 +27,7 @@ void internals::create_internal_materials(
     shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
-      "unknown", ShaderType::standard,
+      "unknown", shaders::Type::standard,
       "base.vert", "unknown.frag", ""
     );
   }
@@ -40,7 +40,7 @@ void internals::create_internal_materials(
     shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
-      "lighting", ShaderType::standard,
+      "lighting", shaders::Type::standard,
       "screenquad.vert", "lighting.frag", ""
     );
     materials::add_texture_to_material(
@@ -72,7 +72,7 @@ void internals::create_internal_materials(
       shaders::init_shader_asset(
         &material->shader_asset,
         &temp_memory_pool,
-        "blur", ShaderType::standard,
+        "blur", shaders::Type::standard,
         "screenquad.vert", "blur.frag", ""
       );
       materials::add_texture_to_material(
@@ -89,7 +89,7 @@ void internals::create_internal_materials(
       shaders::init_shader_asset(
         &material->shader_asset,
         &temp_memory_pool,
-        "blur", ShaderType::standard,
+        "blur", shaders::Type::standard,
         "screenquad.vert", "blur.frag", ""
       );
       materials::add_texture_to_material(
@@ -106,7 +106,7 @@ void internals::create_internal_materials(
       shaders::init_shader_asset(
         &material->shader_asset,
         &temp_memory_pool,
-        "blur", ShaderType::standard,
+        "blur", shaders::Type::standard,
         "screenquad.vert", "blur.frag", ""
       );
       materials::add_texture_to_material(
@@ -124,7 +124,7 @@ void internals::create_internal_materials(
     shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
-      "postprocessing", ShaderType::standard,
+      "postprocessing", shaders::Type::standard,
       "screenquad.vert", "postprocessing.frag", ""
     );
     materials::add_texture_to_material(
@@ -153,7 +153,7 @@ void internals::create_internal_materials(
     shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
-      "renderdebug", ShaderType::standard,
+      "renderdebug", shaders::Type::standard,
       "screenquad.vert", "renderdebug.frag", ""
     );
 
@@ -210,7 +210,7 @@ void internals::create_internal_materials(
     shaders::init_shader_asset(
       &material->shader_asset,
       &temp_memory_pool,
-      "skysphere", ShaderType::standard,
+      "skysphere", shaders::Type::standard,
       "skysphere.vert", "skysphere.frag", ""
     );
   }
@@ -233,7 +233,7 @@ void internals::create_internal_entities(
   shaders::init_shader_asset(
     &renderer_state->standard_depth_shader_asset,
     &temp_memory_pool,
-    "standard_depth", ShaderType::depth,
+    "standard_depth", shaders::Type::depth,
     "standard_depth.vert", "standard_depth.frag",
     "standard_depth.geom"
   );

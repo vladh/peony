@@ -123,7 +123,7 @@ void peony_parser_utils::create_material_from_peony_file_entry(
         &material->shader_asset,
         memory_pool,
         entry->name,
-        ShaderType::standard,
+        shaders::Type::standard,
         get_string(find_prop(entry, "shader_asset.vert_path")),
         get_string(find_prop(entry, "shader_asset.frag_path")),
         get_string(find_prop(entry, "shader_asset.geom_path"))
@@ -137,7 +137,7 @@ void peony_parser_utils::create_material_from_peony_file_entry(
         &material->depth_shader_asset,
         memory_pool,
         entry->name,
-        ShaderType::depth,
+        shaders::Type::depth,
         get_string(find_prop(entry, "depth_shader_asset.vert_path")),
         get_string(find_prop(entry, "depth_shader_asset.frag_path")),
         get_string(find_prop(entry, "depth_shader_asset.geom_path"))

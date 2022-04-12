@@ -80,7 +80,7 @@ namespace gui {
     // NOTE: We're holding a pointer to another state here. What does this mean?
     InputState *input_state;
 
-    ShaderAsset shader_asset;
+    shaders::Asset shader_asset;
     GLFWcursor *requested_cursor;
     Array<FontAsset> font_assets;
     TextureAtlas texture_atlas;

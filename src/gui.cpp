@@ -860,7 +860,7 @@ void gui::init(
      shaders::init_shader_asset(
       &gui_state->shader_asset,
       &temp_memory_pool,
-      "gui_generic", ShaderType::standard,
+      "gui_generic", shaders::Type::standard,
       "gui_generic.vert", "gui_generic.frag", ""
     );
   }

@@ -554,9 +554,9 @@ namespace renderer {
     m4 *model_matrix,
     m3 *model_normal_matrix,
     m4 *bone_matrices,
-    ShaderAsset *standard_depth_shader_asset
+    shaders::Asset *standard_depth_shader_asset
   ) {
-    ShaderAsset *shader_asset = nullptr;
+    shaders::Asset *shader_asset = nullptr;
 
     if (render_mode == RenderMode::regular) {
       shader_asset = &material->shader_asset;
@@ -626,7 +626,7 @@ namespace renderer {
     Array<Material> *materials,
     RenderPass render_pass,
     RenderMode render_mode,
-    ShaderAsset *standard_depth_shader_asset
+    shaders::Asset *standard_depth_shader_asset
   ) {
     ModelMatrixCache cache = {m4(1.0f), nullptr};
 

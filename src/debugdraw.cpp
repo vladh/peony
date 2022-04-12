@@ -181,7 +181,7 @@ void debugdraw::init(
      shaders::init_shader_asset(
       &debug_draw_state->shader_asset,
       &temp_memory_pool,
-      "debugdraw", ShaderType::standard,
+      "debugdraw", shaders::Type::standard,
       "debugdraw.vert", "debugdraw.frag", ""
     );
     debug_draw_state->shader_asset.did_set_texture_uniforms = true;
