@@ -95,7 +95,7 @@ namespace renderer {
     bool32 should_hide_ui;
     bool32 should_use_wireframe;
     TextureType renderdebug_displayed_texture_type;
-    ShaderAsset standard_depth_shader_asset;
+    shaders::Asset standard_depth_shader_asset;
     uint32 ubo_shader_common;
     ShaderCommon shader_common;
     m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];

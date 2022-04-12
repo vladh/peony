@@ -96,8 +96,8 @@ namespace materials {
     MaterialState state;
     bool32 have_textures_been_generated;
     bool32 is_screensize_dependent;
-    ShaderAsset shader_asset;
-    ShaderAsset depth_shader_asset;
+    shaders::Asset shader_asset;
+    shaders::Asset depth_shader_asset;
     uint32 n_textures;
     Texture textures[MAX_N_TEXTURES_PER_MATERIAL];
     char texture_uniform_names[MAX_N_UNIFORMS][MAX_UNIFORM_LENGTH];
