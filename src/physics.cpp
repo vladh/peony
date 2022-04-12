@@ -336,7 +336,7 @@ namespace physics {
         *reference_face_e = v3(e.y, e.x, e.z);
       }
     }
-	}
+  }
 
 
   uint32 clip_faces(
