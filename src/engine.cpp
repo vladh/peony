@@ -522,7 +522,7 @@ namespace engine {
       &anim_state->bone_matrix_pool
     );
 
-    physics::update_physics_components(
+    physics::update_components(
       &engine_state->physics_component_set,
       &engine_state->spatial_component_set
     );

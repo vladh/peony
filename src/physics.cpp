@@ -19,7 +19,7 @@ physics::find_ray_collision(
     physics::ComponentSet *physics_component_set
 ) {
     each (candidate, physics_component_set->components) {
-        if (!is_physics_component_valid(candidate)) {
+        if (!is_component_valid(candidate)) {
             continue;
         }
 
@@ -42,14 +42,14 @@ physics::find_ray_collision(
 
 
 physics::CollisionManifold
-physics::find_physics_component_collision(
+physics::find_collision(
     physics::Component *self_physics,
     SpatialComponent *self_spatial,
     physics::ComponentSet *physics_component_set,
     SpatialComponentSet *spatial_component_set
 ) {
     each (candidate_physics, physics_component_set->components) {
-        if (!is_physics_component_valid(candidate_physics)) {
+        if (!is_component_valid(candidate_physics)) {
             continue;
         }
         SpatialComponent *candidate_spatial = spatial_component_set->components[candidate_physics->entity_handle];
@@ -75,12 +75,12 @@ physics::find_physics_component_collision(
 
 
 void
-physics::update_physics_components(
+physics::update_components(
     physics::ComponentSet *physics_component_set,
     SpatialComponentSet *spatial_component_set
 ) {
     each (physics_component, physics_component_set->components) {
-        if (!is_physics_component_valid(physics_component)) {
+        if (!is_component_valid(physics_component)) {
             continue;
         }
 
@@ -184,7 +184,7 @@ physics::intersect_obb_ray(Obb *obb, Ray *ray)
 
 
 bool
-physics::is_physics_component_valid(physics::Component *physics_component) {
+physics::is_component_valid(physics::Component *physics_component) {
     return physics_component->obb.extents.x > 0;
 }
 
