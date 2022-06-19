@@ -779,7 +779,7 @@ bool32 models::prepare_entity_loader_and_check_if_done(
   LightComponentSet *light_component_set,
   BehaviorComponentSet *behavior_component_set,
   AnimationComponentSet *animation_component_set,
-  PhysicsComponentSet *physics_component_set
+  physics::ComponentSet *physics_component_set
 ) {
   if (entity_loader->state == EntityLoaderState::initialized) {
     // Before we can create entities, we need this entity's models to have
@@ -808,7 +808,7 @@ bool32 models::prepare_entity_loader_and_check_if_done(
     *animation_component = model_loader->animation_component;
     animation_component->entity_handle = entity_loader->entity_handle;
 
-    PhysicsComponent *physics_component =
+    physics::Component *physics_component =
       physics_component_set->components[entity_loader->entity_handle];
     *physics_component = entity_loader->physics_component;
     physics_component->entity_handle = entity_loader->entity_handle;

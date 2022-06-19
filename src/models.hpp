@@ -100,7 +100,7 @@ namespace models {
     SpatialComponent spatial_component;
     LightComponent light_component;
     BehaviorComponent behavior_component;
-    PhysicsComponent physics_component;
+    physics::Component physics_component;
   };
 
   struct EntityLoaderSet {
@@ -138,7 +138,7 @@ namespace models {
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set,
     AnimationComponentSet *animation_component_set,
-    PhysicsComponentSet *physics_component_set
+    physics::ComponentSet *physics_component_set
   );
   bool32 is_model_loader_valid(ModelLoader *model_loader);
   bool32 is_entity_loader_valid(EntityLoader *entity_loader);
