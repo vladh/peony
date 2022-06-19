@@ -111,7 +111,7 @@ core::mouse_callback(GLFWwindow *window, real64 x, real64 y)
     v2 mouse_pos = v2(x, y);
     input::update_mouse(&state->input_state, mouse_pos);
 
-    if (state->renderer_state.is_cursor_enabled) {
+    if (state->input_state.is_cursor_enabled) {
         gui::update_mouse(&state->gui_state);
     } else {
         cameras::update_mouse(state->cameras_state.camera_active, state->input_state.mouse_3d_offset);
@@ -285,7 +285,7 @@ core::init_state(State *state, MemoryPool *asset_memory_pool)
     engine::init(&state->engine_state, asset_memory_pool);
     materials::init(&state->materials_state, asset_memory_pool);
     renderer::init(
-        &state->renderer_state, asset_memory_pool,
+        &state->renderer_state, &state->input_state, asset_memory_pool,
         state->window_size.width, state->window_size.height, state->window);
     internals::init(&state->engine_state, &state->renderer_state, &state->materials_state);
     gui::init(asset_memory_pool, &state->gui_state, &state->input_state,

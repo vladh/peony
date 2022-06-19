@@ -17,6 +17,7 @@ namespace input {
 
   struct InputState {
     GLFWwindow *window;
+    bool is_cursor_enabled;
     v2 mouse_pos;
     v2 mouse_offset;
     v2 mouse_3d_offset;

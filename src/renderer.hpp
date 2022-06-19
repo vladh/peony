@@ -91,7 +91,6 @@ namespace renderer {
   };
 
   struct RendererState {
-    bool32 is_cursor_enabled;
     bool32 should_hide_ui;
     bool32 should_use_wireframe;
     TextureType renderdebug_displayed_texture_type;
@@ -112,6 +111,7 @@ namespace renderer {
   );
   void update_drawing_options(
     RendererState *renderer_state,
+    InputState *input_state,
     GLFWwindow *window
   );
   void render(
@@ -126,6 +126,7 @@ namespace renderer {
   );
   void init(
     RendererState *renderer_state,
+    InputState *input_state,
     MemoryPool *memory_pool,
     uint32 width,
     uint32 height,
