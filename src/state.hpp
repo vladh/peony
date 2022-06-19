@@ -24,7 +24,7 @@
 
 struct State {
   GLFWwindow *window;
-  WindowSize window_size;
+  core::WindowSize window_size;
   EngineState engine_state;
   RendererState renderer_state;
   CamerasState cameras_state;

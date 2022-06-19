@@ -122,7 +122,7 @@ namespace renderer {
     GuiState *gui_state,
     InputState *input_state,
     GLFWwindow *window,
-    WindowSize *window_size
+    core::WindowSize *window_size
   );
   void init(
     RendererState *renderer_state,

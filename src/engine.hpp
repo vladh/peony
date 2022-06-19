@@ -84,7 +84,7 @@ namespace engine {
     AnimState *anim_state,
     BehaviorState *behavior_state,
     GLFWwindow *window,
-    WindowSize *window_size
+    core::WindowSize *window_size
   );
   void init(EngineState *engine_state, MemoryPool *asset_memory_pool);
 }
