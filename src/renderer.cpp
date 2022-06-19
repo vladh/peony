@@ -454,7 +454,7 @@ namespace renderer {
     RendererState *renderer_state,
     CamerasState *cameras_state,
     EngineState *engine_state,
-    WindowSize *window_size,
+    core::WindowSize *window_size,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
     bool32 is_blur_horizontal
@@ -823,7 +823,7 @@ void renderer::render(
   GuiState *gui_state,
   InputState *input_state,
   GLFWwindow *window,
-  WindowSize *window_size
+  core::WindowSize *window_size
 ) {
   // Block rendering until all previous OpenGL operations have been completed.
   // This prevents issues where we have multiple frames queued up for drawing on the GPU,

@@ -484,7 +484,7 @@ namespace engine {
     AnimState *anim_state,
     LightsState *lights_state,
     BehaviorState *behavior_state,
-    WindowSize *window_size
+    core::WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
       load_scene(DEFAULT_SCENE, engine_state, renderer_state, materials_state);
@@ -598,7 +598,7 @@ void engine::run_main_loop(
   AnimState *anim_state,
   BehaviorState *behavior_state,
   GLFWwindow *window,
-  WindowSize *window_size
+  core::WindowSize *window_size
 ) {
   TimingInfo timing = init_timing_info(165);
 

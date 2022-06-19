@@ -181,7 +181,7 @@ void debug_ui::render_debug_ui(
   GuiState *gui_state,
   MaterialsState *materials_state,
   InputState *input_state,
-  WindowSize *window_size
+  core::WindowSize *window_size
 ) {
   char debug_text[1 << 14];
   size_t dt_size = sizeof(debug_text);
