@@ -9,7 +9,7 @@
 #include "types.hpp"
 
 namespace cameras {
-  enum class CameraType {perspective, ortho};
+  enum class CameraType { perspective, ortho };
 
   struct Camera {
     m4 view;

@@ -423,8 +423,8 @@ namespace physics {
     // We need to keep track of the normal on the edge axes
     v3 normal;
 
-    v3 a_axes[3] = {a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis)};
-    v3 b_axes[3] = {b->x_axis, b->y_axis, cross(b->x_axis, b->y_axis)};
+    v3 a_axes[3] = { a->x_axis, a->y_axis, cross(a->x_axis, a->y_axis) };
+    v3 b_axes[3] = { b->x_axis, b->y_axis, cross(b->x_axis, b->y_axis) };
 
     // Change basis into world space (cob = change of base)
     m3 a_cob = m3(a_axes[0], a_axes[1], a_axes[2]);

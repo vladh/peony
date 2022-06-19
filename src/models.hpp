@@ -23,7 +23,7 @@ namespace models {
   // NOTE: Should be at least peony_parser::MAX_N_ARRAY_VALUES
   constexpr uint32 const MAX_N_COMMON_ARRAY_VALUES = 8;
 
-  enum class RenderMode {regular, depth};
+  enum class RenderMode { regular, depth };
 
   enum class RenderPass : uint32 {
     none = 0,

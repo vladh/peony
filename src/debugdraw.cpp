@@ -43,8 +43,8 @@ void debugdraw::draw_line(
   v4 color
 ) {
   DebugDrawVertex vertices[2];
-  vertices[0] = {start_pos, color};
-  vertices[1] = {end_pos, color};
+  vertices[0] = { start_pos, color };
+  vertices[1] = { end_pos, color };
   push_vertices(debug_draw_state, vertices, 2);
 }
 
