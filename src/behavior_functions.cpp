@@ -80,7 +80,7 @@ void behavior_functions::char_movement_test(
 
   // Check collision with other entities
   {
-    physics::CollisionManifold manifold = physics::find_physics_component_collision(
+    physics::CollisionManifold manifold = physics::find_collision(
       physics_component,
       spatial_component,
       &engine_state->physics_component_set,

@@ -50,13 +50,13 @@ public:
         Component *physics_component_to_ignore_or_nullptr,
         ComponentSet *physics_component_set
     );
-    static CollisionManifold find_physics_component_collision(
+    static CollisionManifold find_collision(
         Component *self_physics,
         SpatialComponent *self_spatial,
         ComponentSet *physics_component_set,
         SpatialComponentSet *spatial_component_set
     );
-    static void update_physics_components(
+    static void update_components(
         ComponentSet *physics_component_set,
         SpatialComponentSet *spatial_component_set
     );
@@ -64,7 +64,7 @@ public:
 private:
     static Obb transform_obb(Obb obb, SpatialComponent *spatial);
     static RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
-    static bool is_physics_component_valid(Component *physics_component);
+    static bool is_component_valid(Component *physics_component);
     static v3 get_edge_contact_point(
         v3 a_edge_point,
         v3 a_axis,
