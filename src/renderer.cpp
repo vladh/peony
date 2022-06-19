@@ -799,9 +799,10 @@ void renderer::resize_renderer_buffers(
 
 void renderer::update_drawing_options(
   RendererState *renderer_state,
+  InputState *input_state,
   GLFWwindow *window
 ) {
-  if (renderer_state->is_cursor_enabled) {
+  if (input_state->is_cursor_enabled) {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
   } else {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -1256,6 +1257,7 @@ void renderer::render(
 
 void renderer::init(
   RendererState *renderer_state,
+  InputState *input_state,
   MemoryPool *memory_pool,
   uint32 width,
   uint32 height,
@@ -1319,5 +1321,5 @@ void renderer::init(
     builtin_textures->shadowmap_2d_height
   );
   init_ubo(&renderer_state->ubo_shader_common);
-  update_drawing_options(renderer_state, window);
+  update_drawing_options(renderer_state, input_state, window);
 }

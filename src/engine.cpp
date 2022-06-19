@@ -346,8 +346,8 @@ namespace engine {
     }
 
     if (input::is_key_now_down(input_state, GLFW_KEY_C)) {
-      renderer_state->is_cursor_enabled = !renderer_state->is_cursor_enabled;
-      renderer::update_drawing_options(renderer_state, window);
+      input_state->is_cursor_enabled = !input_state->is_cursor_enabled;
+      renderer::update_drawing_options(renderer_state, input_state, window);
     }
 
     if (input::is_key_now_down(input_state, GLFW_KEY_R)) {
