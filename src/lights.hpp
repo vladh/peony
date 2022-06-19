@@ -17,7 +17,7 @@ namespace lights {
   // possible area.
   constexpr v3 DIRECTIONAL_LIGHT_DISTANCE = v3(75.0f, 15.0f, 75.0f);
 
-  enum class LightType {none, point, directional};
+  enum class LightType { none, point, directional };
 
   struct LightComponent {
     EntityHandle entity_handle;

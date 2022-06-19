@@ -427,7 +427,7 @@ namespace renderer {
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    real32 border_color[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    real32 border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, border_color);
     glBindFramebuffer(GL_FRAMEBUFFER, *shadowmaps_2d_framebuffer);
     glFramebufferTexture(
@@ -628,7 +628,7 @@ namespace renderer {
     RenderMode render_mode,
     shaders::Asset *standard_depth_shader_asset
   ) {
-    ModelMatrixCache cache = {m4(1.0f), nullptr};
+    ModelMatrixCache cache = { m4(1.0f), nullptr };
 
     each (drawable_component, drawable_component_set->components) {
       if (!models::is_drawable_component_valid(drawable_component)) {

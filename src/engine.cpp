@@ -222,8 +222,8 @@ namespace engine {
   ) {
     gui::log("%s%s", gui::CONSOLE_SYMBOL, input_state->text_input);
 
-    char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {0};
-    char arguments[input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {0};
+    char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {};
+    char arguments[input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {};
 
     pstr_split_on_first_occurrence(
       input_state->text_input,

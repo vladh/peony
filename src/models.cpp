@@ -46,9 +46,9 @@ namespace models {
         real32 z_pos = z_segment * z_size - (z_size / 2);
 
         (*vertex_data)[(*n_vertices)++] = {
-          .position = {x_pos, y_pos, z_pos},
-          .normal = {0.0f, 1.0f, 0.0f},
-          .tex_coords = {x_segment, z_segment},
+          .position = { x_pos, y_pos, z_pos },
+          .normal = { 0.0f, 1.0f, 0.0f },
+          .tex_coords = { x_segment, z_segment },
         };
       }
     }

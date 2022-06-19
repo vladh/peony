@@ -299,7 +299,7 @@ int core::run() {
   // Allocate memory
   State *state = (State*)calloc(1, sizeof(State));
   defer { free(state); };
-  MemoryPool asset_memory_pool = {.size = util::mb_to_b(1024)};
+  MemoryPool asset_memory_pool = { .size = util::mb_to_b(1024) };
   defer { memory::destroy_memory_pool(&asset_memory_pool); };
 
   // Make state
