@@ -712,7 +712,7 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
   engine_state->physics_component_set = {
-    .components = Array<PhysicsComponent>(
+    .components = Array<physics::Component>(
       asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1
     )
   };

@@ -65,7 +65,7 @@ struct EngineState {
   SpatialComponentSet spatial_component_set;
   BehaviorComponentSet behavior_component_set;
   AnimationComponentSet animation_component_set;
-  PhysicsComponentSet physics_component_set;
+  physics::ComponentSet physics_component_set;
 };
 
 namespace engine {

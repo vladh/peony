@@ -43,10 +43,10 @@ void behavior_functions::char_movement_test(
     return;
   }
 
-  PhysicsComponent *physics_component =
+  physics::Component *physics_component =
     engine_state->physics_component_set.components[entity_handle];
   if (!physics_component) {
-    logs::error("Could not get PhysicsComponent for BehaviorComponent");
+    logs::error("Could not get physics::Component for BehaviorComponent");
     return;
   }
   Obb *obb = &physics_component->transformed_obb;
@@ -80,7 +80,7 @@ void behavior_functions::char_movement_test(
 
   // Check collision with other entities
   {
-    CollisionManifold manifold = physics::find_physics_component_collision(
+    physics::CollisionManifold manifold = physics::find_physics_component_collision(
       physics_component,
       spatial_component,
       &engine_state->physics_component_set,
