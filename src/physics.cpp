@@ -190,22 +190,22 @@ physics::is_physics_component_valid(physics::Component *physics_component) {
 
 
 /*!
-  This function gets the nearest contact point between two edges. It's used
-  to determine a collision point for a box collision that has happened
-  edge-to-edge.
+    This function gets the nearest contact point between two edges. It's used
+    to determine a collision point for a box collision that has happened
+    edge-to-edge.
 
-  should_use_a_midpoint
-  ---------------------
-  If this is true, and the contact point is outside the edge (in the case of
-  an edge-face contact) then we use a's midpoint, otherwise we use b's.
+    should_use_a_midpoint
+    ---------------------
+    If this is true, and the contact point is outside the edge (in the case of
+    an edge-face contact) then we use a's midpoint, otherwise we use b's.
 
-  Resources
-  ---------
-  This function is heavily based on code from Ian Millington's Cyclone Physics
-  engine.
+    Resources
+    ---------
+    This function is heavily based on code from Ian Millington's Cyclone Physics
+    engine.
 
-  idmillington/cyclone-physics/blob/master/src/collide_fine.cpp#contactPoint()
-  */
+    idmillington/cyclone-physics/blob/master/src/collide_fine.cpp#contactPoint()
+*/
 v3
 physics::get_edge_contact_point(
     v3 a_edge_point,
@@ -450,34 +450,33 @@ physics::update_best_for_edge_axis(
 
 
 /*!
-  This function implements collision detection between two OBBs.
+    This function implements collision detection between two OBBs.
 
-  We're using the separating axis test (SAT) to check which axes, if any,
-  separates the two.
+    We're using the separating axis test (SAT) to check which axes, if any,
+    separates the two.
 
-  For manifold generation, we're using the methods described by Dirk Gregorius,
-  namely Sutherland-Hodgman clipping for face-something, and "just find the
-  closes two points on the edges" for edge-edge.
+    For manifold generation, we're using the methods described by Dirk Gregorius,
+    namely Sutherland-Hodgman clipping for face-something, and "just find the
+    closes two points on the edges" for edge-edge.
 
-  A note about normal calculation for the cross axes
-  --------------------------------------------------
-  Normally, we would calculate the normal as the axis we're using,
-  so the cross product between the a axis and the b axis. We're not
-  actually calculating this directly for SAT, because we're using the r
-  matrix as a way around this. However, we do need this axis for the normal.
-  Randy Gaul calculates a normal from the r matrix, which I have included
-  as a comment. However, this is not orthogonal to both a's axis and b's axis.
-  This might still be fine but I've left the cross product in, to be safe.
-  We might look into using the r matrix method as an optimisation.
+    A note about normal calculation for the cross axes
+    --------------------------------------------------
+    Normally, we would calculate the normal as the axis we're using,
+    so the cross product between the a axis and the b axis. We're not
+    actually calculating this directly for SAT, because we're using the r
+    matrix as a way around this. However, we do need this axis for the normal.
+    Randy Gaul calculates a normal from the r matrix, which I have included
+    as a comment. However, this is not orthogonal to both a's axis and b's axis.
+    This might still be fine but I've left the cross product in, to be safe.
+    We might look into using the r matrix method as an optimisation.
 
-  Resources
-  ---------
- * Christer Ericson, Real-Time Collision Detection, 4.4
- * Dirk Gregorius's GDC 2013 and GDC 2015 talks
- * Randy Gaul's blog post
- "Deriving OBB to OBB Intersection and Manifold Generation"
- * Ian Millington's Cyclone Physics engine (but not for face-something!)
- */
+    Resources
+    ---------
+    * Christer Ericson, Real-Time Collision Detection, 4.4
+    * Dirk Gregorius's GDC 2013 and GDC 2015 talks
+    * Randy Gaul's blog post "Deriving OBB to OBB Intersection and Manifold Generation"
+    * Ian Millington's Cyclone Physics engine (but not for face-something!)
+*/
 physics::CollisionManifold
 physics::intersect_obb_obb(
     Obb *a,
