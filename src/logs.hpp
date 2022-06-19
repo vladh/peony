@@ -10,15 +10,16 @@
 #include <assimp/cimport.h>
 #include "types.hpp"
 
-namespace logs {
-  void fatal(const char *format, ...);
-  void error(const char *format, ...);
-  void warning(const char *format, ...);
-  void info(const char *format, ...);
-  void print_newline();
-  void print_aimatrix4x4(aiMatrix4x4 *t);
-  void print_m4(m4 *t);
-  void print_v2(v2 *t);
-  void print_v3(v3 *t);
-  void print_v4(v4 *t);
-}
+class logs {
+public:
+    static void fatal(const char *format, ...);
+    static void error(const char *format, ...);
+    static void warning(const char *format, ...);
+    static void info(const char *format, ...);
+    static void print_newline();
+    static void print_aimatrix4x4(aiMatrix4x4 *t);
+    static void print_m4(m4 *t);
+    static void print_v2(v2 *t);
+    static void print_v3(v3 *t);
+    static void print_v4(v4 *t);
+};
