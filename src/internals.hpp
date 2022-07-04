@@ -14,17 +14,17 @@
 namespace internals {
   void create_internal_materials(
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state
   );
   void create_internal_entities(
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state
   );
   void init(
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state
   );
 }

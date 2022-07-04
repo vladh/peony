@@ -110,7 +110,7 @@ namespace engine {
   pny_internal bool32 load_scene(
     const char *scene_name,
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state
   ) {
     // If the current scene has not finished loading, we can neither
@@ -216,7 +216,7 @@ namespace engine {
 
   pny_internal void handle_console_command(
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state,
     InputState *input_state
   ) {
@@ -271,7 +271,7 @@ namespace engine {
   pny_internal void process_input(
     GLFWwindow *window,
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state,
     InputState *input_state,
     GuiState *gui_state,
@@ -477,7 +477,7 @@ namespace engine {
 
   pny_internal void update(
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state,
     CamerasState *cameras_state,
     TasksState *tasks_state,
@@ -588,7 +588,7 @@ namespace engine {
 
 void engine::run_main_loop(
   EngineState *engine_state,
-  RendererState *renderer_state,
+  renderer::State *renderer_state,
   MaterialsState *materials_state,
   CamerasState *cameras_state,
   GuiState *gui_state,

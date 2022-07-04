@@ -74,7 +74,7 @@ namespace engine {
 
   void run_main_loop(
     EngineState *engine_state,
-    RendererState *renderer_state,
+    renderer::State *renderer_state,
     MaterialsState *materials_state,
     CamerasState *cameras_state,
     GuiState *gui_state,

@@ -13,11 +13,11 @@
 
 void internals::create_internal_materials(
   EngineState *engine_state,
-  RendererState *renderer_state,
+  renderer::State *renderer_state,
   MaterialsState *materials_state
 ) {
   MemoryPool temp_memory_pool = {};
-  BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
+  renderer::BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
 
   // unknown
   {
@@ -225,7 +225,7 @@ void internals::create_internal_materials(
 
 void internals::create_internal_entities(
   EngineState *engine_state,
-  RendererState *renderer_state,
+  renderer::State *renderer_state,
   MaterialsState *materials_state
 ) {
   MemoryPool temp_memory_pool = {};
@@ -391,7 +391,7 @@ void internals::create_internal_entities(
 
 void internals::init(
   EngineState *engine_state,
-  RendererState *renderer_state,
+  renderer::State *renderer_state,
   MaterialsState *materials_state
 ) {
   create_internal_materials(
