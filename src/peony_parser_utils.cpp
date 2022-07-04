@@ -94,7 +94,7 @@ void peony_parser_utils::get_unique_string_values_for_prop_name(
 void peony_parser_utils::create_material_from_peony_file_entry(
   Material *material,
   PeonyFileEntry *entry,
-  BuiltinTextures *builtin_textures,
+  renderer::BuiltinTextures *builtin_textures,
   MemoryPool *memory_pool
 ) {
   materials::init_material(material, entry->name);

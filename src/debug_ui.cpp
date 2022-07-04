@@ -177,7 +177,7 @@ namespace debug_ui {
 
 void debug_ui::render_debug_ui(
   EngineState *engine_state,
-  RendererState *renderer_state,
+  renderer::State *renderer_state,
   GuiState *gui_state,
   MaterialsState *materials_state,
   InputState *input_state,
