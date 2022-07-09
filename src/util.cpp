@@ -1,8 +1,4 @@
-/*
-  Peony Game Engine
-  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
-  All rights reserved.
-*/
+// (c) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
 
 #include "logs.hpp"
 #include "util.hpp"

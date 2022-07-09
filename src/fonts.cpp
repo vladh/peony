@@ -1,8 +1,4 @@
-/*
-  Peony Game Engine
-  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
-  All rights reserved.
-*/
+// (c) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
 
 #include "../src_external/glad/glad.h"
 #include "../src_external/pstr.h"
