@@ -12,6 +12,146 @@
 #include "intrinsics.hpp"
 
 
+GLFWwindow *
+renderer::init_window(WindowSize *window_size)
+{
+    glfwInit();
+
+    logs::info("Using OpenGL 4.1");
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+#if defined(PLATFORM_MACOS)
+    // macOS requires a forward compatible context
+    // This means the highest OpenGL version will be used that is at least the version
+    // we specified, and that contains no breaking changes from the version we specified
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+
+#if USE_OPENGL_DEBUG
+    logs::info("Using OpenGL debug context");
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+#endif
+
+    // Remove window decorations (border etc.)
+    glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+
+    // For fullscreen windows, do not discard our video mode when minimised
+    glfwWindowHint(GLFW_AUTO_ICONIFY, GLFW_FALSE);
+
+    // Create the window. Right now we're working with screencoord sizes,
+    // not pixels!
+
+#if USE_FULLSCREEN
+    int32 n_monitors;
+    GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+    GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
+    const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+    glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+    glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+    glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+    glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+
+    window_size->screencoord_width = video_mode->width;
+    window_size->screencoord_height = video_mode->height;
+
+    GLFWwindow *window = glfwCreateWindow(
+        window_size->screencoord_width, window_size->screencoord_height,
+        WINDOW_TITLE,
+#if USE_WINDOWED_FULLSCREEN
+        nullptr, nullptr
+#else
+        target_monitor, nullptr
+#endif
+    );
+#else
+    window_size->screencoord_width = 1920;
+    window_size->screencoord_height = 1080;
+
+    GLFWwindow *window = glfwCreateWindow(
+        window_size->screencoord_width, window_size->screencoord_height, WINDOW_TITLE, nullptr, nullptr);
+
+    glfwSetWindowPos(window, 200, 200);
+#endif
+
+    if (!window) {
+        logs::fatal("Failed to create GLFW window");
+        return nullptr;
+    }
+
+    glfwMakeContextCurrent(window);
+#if !USE_VSYNC
+    glfwSwapInterval(0);
+#endif
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+        logs::fatal("Failed to initialize GLAD");
+        return nullptr;
+    }
+
+    if (!GLAD_GL_ARB_texture_cube_map_array) {
+        logs::fatal("No support for GLAD_GL_ARB_texture_cube_map_array");
+    }
+    if (!GLAD_GL_ARB_texture_storage) {
+        logs::fatal("No support for GLAD_GL_ARB_texture_storage");
+    }
+    if (!GLAD_GL_ARB_buffer_storage) {
+        logs::warning("No support for GLAD_GL_ARB_buffer_storage");
+    }
+
+    // TODO: Remove GL_EXT_debug_marker from GLAD
+    // TODO: Remove GL_EXT_debug_label from GLAD
+    // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
+
+#if USE_OPENGL_DEBUG
+    if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
+        GLint flags;
+        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+
+        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+            glEnable(GL_DEBUG_OUTPUT);
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+            glDebugMessageCallback(util::debug_message_callback, nullptr);
+            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+        } else {
+            logs::fatal("Tried to initialise OpenGL debug output but couldn't");
+        }
+    } else {
+        logs::warning(
+            "Tried to initialise OpenGL debug output but none of "
+            "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
+            "are supported on this system. Skipping.");
+    }
+#endif
+
+    // Enable multisampling
+    glEnable(GL_MULTISAMPLE);
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+#if !defined(PLATFORM_MACOS)
+    glLineWidth(2.0f);
+#endif
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Get the framebuffer size. This is the actual window size in pixels.
+    glfwGetFramebufferSize(window, &window_size->width, &window_size->height);
+    glViewport(0, 0, window_size->width, window_size->height);
+
+    glfwSetFramebufferSizeCallback(window, core::framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, core::mouse_callback);
+    glfwSetMouseButtonCallback(window, core::mouse_button_callback);
+    glfwSetKeyCallback(window, core::key_callback);
+    glfwSetCharCallback(window, core::char_callback);
+
+    return window;
+}
+
+
 void
 renderer::resize_renderer_buffers(
     MemoryPool *memory_pool,
@@ -104,7 +244,7 @@ renderer::render(
     GuiState *gui_state,
     InputState *input_state,
     GLFWwindow *window,
-    core::WindowSize *window_size
+    WindowSize *window_size
 ) {
     // Block rendering until all previous OpenGL operations have been completed.
     // This prevents issues where we have multiple frames queued up for drawing on the GPU,
@@ -842,7 +982,7 @@ renderer::copy_scene_data_to_ubo(
     renderer::State *renderer_state,
     CamerasState *cameras_state,
     EngineState *engine_state,
-    core::WindowSize *window_size,
+    WindowSize *window_size,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
     bool32 is_blur_horizontal

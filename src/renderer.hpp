@@ -15,6 +15,12 @@ struct EngineState;
 
 class renderer {
 public:
+    struct WindowSize {
+        int32 width; // in pixels (size of framebuffer)
+        int32 height; // in pixels (size of framebuffer)
+        uint32 screencoord_width; // in screen coordinates
+        uint32 screencoord_height; // in screen coordinates
+    };
 
     struct ShaderCommon {
         m4 view;
@@ -101,6 +107,7 @@ public:
         BuiltinTextures builtin_textures;
     };
 
+    static GLFWwindow * init_window(WindowSize *window_size);
     bool32 is_drawable_component_valid(drawable::Component *drawable_component);
     void destroy_drawable_component(drawable::Component *drawable_component);
     static void resize_renderer_buffers(
@@ -123,7 +130,7 @@ public:
         GuiState *gui_state,
         InputState *input_state,
         GLFWwindow *window,
-        core::WindowSize *window_size
+        WindowSize *window_size
     );
     static void init(
         renderer::State *renderer_state,
@@ -184,7 +191,7 @@ private:
         renderer::State *renderer_state,
         CamerasState *cameras_state,
         EngineState *engine_state,
-        core::WindowSize *window_size,
+        WindowSize *window_size,
         uint32 current_shadow_light_idx,
         uint32 current_shadow_light_type,
         bool32 is_blur_horizontal
