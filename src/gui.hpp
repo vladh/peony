@@ -185,4 +185,4 @@ private:
     );
 };
 
-extern gui::GameConsole *g_gui_console;
+extern gui::GameConsole *g_guicon;

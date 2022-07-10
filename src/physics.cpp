@@ -709,29 +709,29 @@ physics::intersect_obb_obb(
             clip_vertices, clip_depths);
 
         debugdraw::draw_quad(
-            debugdraw::g_dds,
+            g_dds,
             incident_face.vertices[0],
             incident_face.vertices[1],
             incident_face.vertices[2],
             incident_face.vertices[3],
             v4(0.0f, 1.0f, 0.0f, 1.0f));
         debugdraw::draw_point(
-            debugdraw::g_dds,
+            g_dds,
             incident_face.vertices[0],
             0.1f,
             v4(0.0f, 1.0f, 0.0f, 1.0f));
         debugdraw::draw_point(
-            debugdraw::g_dds,
+            g_dds,
             incident_face.vertices[1],
             0.1f,
             v4(0.0f, 1.0f, 0.0f, 1.0f));
         debugdraw::draw_point(
-            debugdraw::g_dds,
+            g_dds,
             incident_face.vertices[2],
             0.1f,
             v4(0.0f, 1.0f, 0.0f, 1.0f));
         debugdraw::draw_point(
-            debugdraw::g_dds,
+            g_dds,
             incident_face.vertices[3],
             0.1f,
             v4(0.0f, 1.0f, 0.0f, 1.0f));
@@ -769,7 +769,7 @@ physics::intersect_obb_obb(
             b->extents[b_axis],
             face_best_axis >= 3);
         debugdraw::draw_point(
-            debugdraw::g_dds,
+            g_dds,
             contact_point,
             0.1f,
             v4(0.0f, 1.0f, 0.0f, 1.0f));
