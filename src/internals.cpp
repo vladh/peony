@@ -239,15 +239,15 @@ void internals::create_internal_entities(
     Entity *entity = entities::add_entity_to_set(
       &engine_state->entity_set, "screenquad_lighting"
     );
-    ModelLoader *model_loader = engine_state->model_loaders.push();
-    EntityLoader *entity_loader =
+    models::ModelLoader *model_loader = engine_state->model_loaders.push();
+    models::EntityLoader *entity_loader =
       engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_lighting");
     models::init_entity_loader(
       entity_loader,
       "screenquad_lighting",
       "builtin:screenquad_lighting",
-      RenderPass::lighting,
+      models::RenderPass::lighting,
       entity->handle
     );
     models::add_material_to_model_loader(model_loader, "lighting");
@@ -259,15 +259,15 @@ void internals::create_internal_entities(
       Entity *entity = entities::add_entity_to_set(
         &engine_state->entity_set, "screenquad_preblur"
       );
-      ModelLoader *model_loader = engine_state->model_loaders.push();
-      EntityLoader *entity_loader =
+      models::ModelLoader *model_loader = engine_state->model_loaders.push();
+      models::EntityLoader *entity_loader =
         engine_state->entity_loader_set.loaders[entity->handle];
       models::init_model_loader(model_loader, "builtin:screenquad_preblur");
       models::init_entity_loader(
         entity_loader,
         "screenquad_preblur",
         "builtin:screenquad_preblur",
-        RenderPass::preblur,
+        models::RenderPass::preblur,
         entity->handle
       );
       models::add_material_to_model_loader(model_loader, "preblur");
@@ -278,15 +278,15 @@ void internals::create_internal_entities(
       Entity *entity = entities::add_entity_to_set(
         &engine_state->entity_set, "screenquad_blur1"
       );
-      ModelLoader *model_loader = engine_state->model_loaders.push();
-      EntityLoader *entity_loader =
+      models::ModelLoader *model_loader = engine_state->model_loaders.push();
+      models::EntityLoader *entity_loader =
         engine_state->entity_loader_set.loaders[entity->handle];
       models::init_model_loader(model_loader, "builtin:screenquad_blur1");
       models::init_entity_loader(
         entity_loader,
         "screenquad_blur1",
         "builtin:screenquad_blur1",
-        RenderPass::blur1,
+        models::RenderPass::blur1,
         entity->handle
       );
       models::add_material_to_model_loader(model_loader, "blur1");
@@ -297,15 +297,15 @@ void internals::create_internal_entities(
       Entity *entity = entities::add_entity_to_set(
         &engine_state->entity_set, "screenquad_blur2"
       );
-      ModelLoader *model_loader = engine_state->model_loaders.push();
-      EntityLoader *entity_loader =
+      models::ModelLoader *model_loader = engine_state->model_loaders.push();
+      models::EntityLoader *entity_loader =
         engine_state->entity_loader_set.loaders[entity->handle];
       models::init_model_loader(model_loader, "builtin:screenquad_blur2");
       models::init_entity_loader(
         entity_loader,
         "screenquad_blur2",
         "builtin:screenquad_blur2",
-        RenderPass::blur2,
+        models::RenderPass::blur2,
         entity->handle
       );
       models::add_material_to_model_loader(model_loader, "blur2");
@@ -317,15 +317,15 @@ void internals::create_internal_entities(
     Entity *entity = entities::add_entity_to_set(
       &engine_state->entity_set, "screenquad_postprocessing"
     );
-    ModelLoader *model_loader = engine_state->model_loaders.push();
-    EntityLoader *entity_loader = 
+    models::ModelLoader *model_loader = engine_state->model_loaders.push();
+    models::EntityLoader *entity_loader = 
       engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_postprocessing");
     models::init_entity_loader(
       entity_loader,
       "screenquad_postprocessing",
       "builtin:screenquad_postprocessing",
-      RenderPass::postprocessing,
+      models::RenderPass::postprocessing,
       entity->handle
     );
     models::add_material_to_model_loader(model_loader, "postprocessing");
@@ -336,15 +336,15 @@ void internals::create_internal_entities(
     Entity *entity = entities::add_entity_to_set(
       &engine_state->entity_set, "screenquad_renderdebug"
     );
-    ModelLoader *model_loader = engine_state->model_loaders.push();
-    EntityLoader *entity_loader = 
+    models::ModelLoader *model_loader = engine_state->model_loaders.push();
+    models::EntityLoader *entity_loader = 
       engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_renderdebug");
     models::init_entity_loader(
       entity_loader,
       "screenquad_renderdebug",
       "builtin:screenquad_renderdebug",
-      RenderPass::renderdebug,
+      models::RenderPass::renderdebug,
       entity->handle
     );
     models::add_material_to_model_loader(model_loader, "renderdebug");
@@ -355,15 +355,15 @@ void internals::create_internal_entities(
     Entity *entity = entities::add_entity_to_set(
       &engine_state->entity_set, "skysphere"
     );
-    ModelLoader *model_loader = engine_state->model_loaders.push();
-    EntityLoader *entity_loader =
+    models::ModelLoader *model_loader = engine_state->model_loaders.push();
+    models::EntityLoader *entity_loader =
       engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:skysphere");
     models::init_entity_loader(
       entity_loader,
       "skysphere",
       "builtin:skysphere",
-      RenderPass::forward_skybox,
+      models::RenderPass::forward_skybox,
       entity->handle
     );
     entity_loader->spatial_component = {

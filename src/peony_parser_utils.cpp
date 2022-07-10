@@ -195,7 +195,7 @@ void peony_parser_utils::create_material_from_peony_file_entry(
 void peony_parser_utils::create_model_loader_from_peony_file_entry(
   PeonyFileEntry *entry,
   EntityHandle entity_handle,
-  ModelLoader *model_loader
+  models::ModelLoader *model_loader
 ) {
   PeonyFileProp *model_path_prop = find_prop(entry, "model_path");
   assert(model_path_prop);
@@ -218,18 +218,18 @@ void peony_parser_utils::create_model_loader_from_peony_file_entry(
 void peony_parser_utils::create_entity_loader_from_peony_file_entry(
   PeonyFileEntry *entry,
   EntityHandle entity_handle,
-  EntityLoader *entity_loader
+  models::EntityLoader *entity_loader
 ) {
   PeonyFileProp *model_path_prop = find_prop(entry, "model_path");
   assert(model_path_prop);
   char const *model_path = get_string(model_path_prop);
 
   // Get render pass
-  RenderPass render_pass = RenderPass::none;
+  auto render_pass = models::RenderPass::none;
   PeonyFileProp *render_passes_prop = find_prop(entry, "render_passes");
   if (render_passes_prop) {
     range (0, render_passes_prop->n_values) {
-      render_pass = (RenderPass)(
+      render_pass = (models::RenderPass)(
         (uint32)render_pass |
         (uint32)models::render_pass_from_string(
           render_passes_prop->values[idx].string_value

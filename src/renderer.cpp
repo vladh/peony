@@ -194,7 +194,7 @@ renderer::render(
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
                 render_scene(engine_state, materials_state, renderer_state,
-                    RenderPass::shadowcaster, RenderMode::depth);
+                    models::RenderPass::shadowcaster, models::RenderMode::depth);
 
                 idx_light++;
             }
@@ -248,8 +248,8 @@ renderer::render(
                     false);
                 render_scene(
                     engine_state, materials_state, renderer_state,
-                    RenderPass::shadowcaster,
-                    RenderMode::depth
+                    models::RenderPass::shadowcaster,
+                    models::RenderMode::depth
                 );
 
                 idx_light++;
@@ -267,7 +267,7 @@ renderer::render(
         }
         glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer);
         render_scene(engine_state, materials_state, renderer_state,
-            RenderPass::deferred, RenderMode::regular);
+            models::RenderPass::deferred, models::RenderMode::regular);
         if (renderer_state->should_use_wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
@@ -288,7 +288,7 @@ renderer::render(
     {
         glDisable(GL_DEPTH_TEST);
         render_scene(engine_state, materials_state, renderer_state,
-            RenderPass::lighting, RenderMode::regular);
+            models::RenderPass::lighting, models::RenderMode::regular);
         glEnable(GL_DEPTH_TEST);
     }
 
@@ -305,7 +305,7 @@ renderer::render(
             glDepthRange(0.9999f, 1.0f);
 
             render_scene(engine_state, materials_state, renderer_state,
-                RenderPass::forward_skybox, RenderMode::regular);
+                models::RenderPass::forward_skybox, models::RenderMode::regular);
 
             glDepthRange(0.0f, 1.0f);
             glDepthMask(GL_TRUE);
@@ -318,10 +318,10 @@ renderer::render(
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
             render_scene(engine_state, materials_state, renderer_state,
-                RenderPass::forward_depth, RenderMode::regular);
+                models::RenderPass::forward_depth, models::RenderMode::regular);
             glDisable(GL_DEPTH_TEST);
             render_scene(engine_state, materials_state, renderer_state,
-                RenderPass::forward_nodepth, RenderMode::regular);
+                models::RenderPass::forward_nodepth, models::RenderMode::regular);
             glEnable(GL_DEPTH_TEST);
             if (renderer_state->should_use_wireframe) {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -343,26 +343,26 @@ renderer::render(
         copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
             window_size, 0, 0, true);
         render_scene(engine_state, materials_state, renderer_state,
-            RenderPass::preblur, RenderMode::regular);
+            models::RenderPass::preblur, models::RenderMode::regular);
 
         glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer);
         copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
             window_size, 0, 0, false);
         render_scene(engine_state, materials_state, renderer_state,
-            RenderPass::blur2, RenderMode::regular);
+            models::RenderPass::blur2, models::RenderMode::regular);
 
         for (uint32 idx = 0; idx < 3; idx++) {
             glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer);
             copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
                 window_size, 0, 0, true);
             render_scene(engine_state, materials_state, renderer_state,
-                RenderPass::blur1, RenderMode::regular);
+                models::RenderPass::blur1, models::RenderMode::regular);
 
             glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer);
             copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
                 window_size, 0, 0, false);
             render_scene(engine_state, materials_state, renderer_state,
-                RenderPass::blur2, RenderMode::regular);
+                models::RenderPass::blur2, models::RenderMode::regular);
         }
     }
     #endif
@@ -372,13 +372,13 @@ renderer::render(
     // Postprocessing pass
     {
         render_scene(engine_state, materials_state, renderer_state,
-            RenderPass::postprocessing, RenderMode::regular);
+            models::RenderPass::postprocessing, models::RenderMode::regular);
     }
 
     // Render debug pass
     {
         render_scene(engine_state, materials_state, renderer_state,
-            RenderPass::renderdebug, RenderMode::regular);
+            models::RenderPass::renderdebug, models::RenderMode::regular);
     }
 
     // UI pass
@@ -932,9 +932,9 @@ renderer::copy_scene_data_to_ubo(
 
 void
 renderer::draw(
-    RenderMode render_mode,
-    DrawableComponentSet *drawable_component_set,
-    DrawableComponent *drawable_component,
+    models::RenderMode render_mode,
+    models::ComponentSet *drawable_component_set,
+    models::Component *drawable_component,
     mats::Material *material,
     m4 *model_matrix,
     m3 *model_normal_matrix,
@@ -943,9 +943,9 @@ renderer::draw(
 ) {
     shaders::Asset *shader_asset = nullptr;
 
-    if (render_mode == RenderMode::regular) {
+    if (render_mode == models::RenderMode::regular) {
         shader_asset = &material->shader_asset;
-    } else if (render_mode == RenderMode::depth) {
+    } else if (render_mode == models::RenderMode::depth) {
         if (shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
             shader_asset = &material->depth_shader_asset;
         } else {
@@ -960,7 +960,7 @@ renderer::draw(
         glUseProgram(shader_asset->program);
         drawable_component_set->last_drawn_shader_program = shader_asset->program;
 
-        if (render_mode == RenderMode::regular) {
+        if (render_mode == models::RenderMode::regular) {
             for (
                 uint32 texture_idx = 1;
                 texture_idx < shader_asset->n_texture_units + 1; texture_idx++
@@ -990,7 +990,7 @@ renderer::draw(
         }
     }
 
-    Mesh *mesh = &drawable_component->mesh;
+    models::Mesh *mesh = &drawable_component->mesh;
     glBindVertexArray(mesh->vao);
     if (mesh->n_indices > 0) {
         glDrawElements(mesh->mode, mesh->n_indices, GL_UNSIGNED_INT, 0);
@@ -1003,12 +1003,12 @@ renderer::draw(
 void
 renderer::draw_all(
     EntitySet *entity_set,
-    DrawableComponentSet *drawable_component_set,
+    models::ComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     AnimationComponentSet *animation_component_set,
     Array<mats::Material> *materials,
-    RenderPass render_pass,
-    RenderMode render_mode,
+    models::RenderPass render_pass,
+    models::RenderMode render_mode,
     shaders::Asset *standard_depth_shader_asset
 ) {
     ModelMatrixCache cache = { m4(1.0f), nullptr };
@@ -1081,11 +1081,11 @@ renderer::render_scene(
     EngineState *engine_state,
     mats::State *materials_state,
     renderer::State *renderer_state,
-    RenderPass render_pass,
-    RenderMode render_mode
+    models::RenderPass render_pass,
+    models::RenderMode render_mode
 ) {
 #if 0
-    logs::info("RenderPass: %s", render_pass_to_string(render_pass));
+    logs::info("models::RenderPass: %s", render_pass_to_string(render_pass));
 #endif
     draw_all(&engine_state->entity_set,
         &engine_state->drawable_component_set,

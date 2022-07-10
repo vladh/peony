@@ -34,11 +34,11 @@ namespace peony_parser_utils {
   void create_model_loader_from_peony_file_entry(
     PeonyFileEntry *entry,
     EntityHandle entity_handle,
-    ModelLoader *model_loader
+    models::ModelLoader *model_loader
   );
   void create_entity_loader_from_peony_file_entry(
     PeonyFileEntry *entry,
     EntityHandle entity_handle,
-    EntityLoader *entity_loader
+    models::EntityLoader *entity_loader
   );
 }

@@ -173,15 +173,15 @@ namespace engine {
         &engine_state->entity_set, entry->name
       );
 
-      // Create ModelLoader
+      // Create models::ModelLoader
       char const *model_path = peony_parser_utils::get_string(
         peony_parser_utils::find_prop(entry, "model_path")
       );
-      // NOTE: We only want to make a ModelLoader from this PeonyFileEntry if we haven't
+      // NOTE: We only want to make a models::ModelLoader from this PeonyFileEntry if we haven't
       // already encountered this model in a previous entry. If two entities
       // have the same `model_path`, we just make one model and use it in both.
-      ModelLoader *found_model_loader = engine_state->model_loaders.find(
-        [model_path](ModelLoader *candidate_model_loader) -> bool32 {
+      models::ModelLoader *found_model_loader = engine_state->model_loaders.find(
+        [model_path](models::ModelLoader *candidate_model_loader) -> bool32 {
           return pstr_eq(
             model_path,
             candidate_model_loader->model_path
@@ -198,7 +198,7 @@ namespace engine {
         );
       }
 
-      // Create EntityLoader
+      // Create models::EntityLoader
       peony_parser_utils::create_entity_loader_from_peony_file_entry(
         entry,
         entity->handle,
@@ -403,7 +403,7 @@ namespace engine {
 
     uint32 new_n_valid_model_loaders = 0;
     each (model_loader, engine_state->model_loaders) {
-      if (!is_model_loader_valid(model_loader)) {
+      if (!models::is_model_loader_valid(model_loader)) {
         continue;
       }
       new_n_valid_model_loaders++;
@@ -422,19 +422,19 @@ namespace engine {
 
     uint32 new_n_valid_entity_loaders = 0;
     each (entity_loader, engine_state->entity_loader_set.loaders) {
-      if (!is_entity_loader_valid(entity_loader)) {
+      if (!models::is_entity_loader_valid(entity_loader)) {
         continue;
       }
       new_n_valid_entity_loaders++;
 
-      ModelLoader *model_loader = engine_state->model_loaders.find(
-        [entity_loader](ModelLoader *candidate_model_loader) -> bool32 {
+      models::ModelLoader *model_loader = engine_state->model_loaders.find(
+        [entity_loader](models::ModelLoader *candidate_model_loader) -> bool32 {
           return pstr_eq(entity_loader->model_path, candidate_model_loader->model_path);
         }
       );
       if (!model_loader) {
         logs::fatal(
-          "Encountered an EntityLoader %d for which we cannot find the ModelLoader.",
+          "Encountered an models::EntityLoader %d for which we cannot find the models::ModelLoader.",
           entity_loader->entity_handle
         );
       }
@@ -451,14 +451,14 @@ namespace engine {
         &engine_state->physics_component_set
       );
 
-      // NOTE: If a certain EntityLoader is complete, it's done everything it
+      // NOTE: If a certain models::EntityLoader is complete, it's done everything it
       // needed to and we don't need it anymore.
       if (is_done_loading) {
         // TODO: We need to do this in a better way. We should somehow let the
         // Array know when we delete one of these. Even though it's sparse,
         // it should have length 0 if we know there's nothing in it. That way
         // we don't have to iterate over it over and over.
-        memset(entity_loader, 0, sizeof(EntityLoader));
+        memset(entity_loader, 0, sizeof(models::EntityLoader));
       }
 
       if (!is_done_loading) {
@@ -669,11 +669,11 @@ void engine::run_main_loop(
 
 
 void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
-  engine_state->model_loaders = Array<ModelLoader>(
+  engine_state->model_loaders = Array<models::ModelLoader>(
     asset_memory_pool, MAX_N_MODELS, "model_loaders"
   );
   engine_state->entity_loader_set = {
-    .loaders = Array<EntityLoader>(
+    .loaders = Array<models::EntityLoader>(
       asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1
     )
   };
@@ -683,7 +683,7 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
   engine_state->drawable_component_set = {
-    .components = Array<DrawableComponent>(
+    .components = Array<models::Component>(
       asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1
     )
   };
