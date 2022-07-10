@@ -43,7 +43,7 @@ namespace gui {
 
 
   pny_internal v2 get_text_dimensions(
-    FontAsset *font_asset, const char *str
+    fonts::FontAsset *font_asset, const char *str
   ) {
     // NOTE: This returns the dimensions around the main body of the text.
     // This does not include descenders.
@@ -70,7 +70,7 @@ namespace gui {
         continue;
       }
 
-      Character *character = font_asset->characters[c];
+      fonts::Character *character = font_asset->characters[c];
 
       if (!character) {
         logs::warning("Could not get character: %c", c);
@@ -183,7 +183,7 @@ namespace gui {
     v2 position,
     v4 color
   ) {
-    FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, font_name);
+    fonts::FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, font_name);
 
     real32 line_height = fonts::font_unit_to_px(font_asset->height);
     real32 line_spacing = line_height * LINE_SPACING_FACTOR;
@@ -208,7 +208,7 @@ namespace gui {
         continue;
       }
 
-      Character *character = font_asset->characters[c];
+      fonts::Character *character = font_asset->characters[c];
 
       if (!character) {
         logs::warning("Could not get character: %c", c);
@@ -730,7 +730,7 @@ void gui::draw_console(
     return;
   }
 
-  FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, "body");
+  fonts::FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, "body");
   real32 line_height = fonts::font_unit_to_px(font_asset->height);
   real32 line_spacing = floor(
     line_height * CONSOLE_LINE_SPACING_FACTOR
@@ -841,7 +841,7 @@ void gui::init(
 ) {
   MemoryPool temp_memory_pool = {};
 
-  gui_state->font_assets = Array<FontAsset>(
+  gui_state->font_assets = Array<fonts::FontAsset>(
     memory_pool, 8, "font_assets"
   );
   gui_state->containers = Array<GuiContainer>(

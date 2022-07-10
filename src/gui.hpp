@@ -78,7 +78,7 @@ namespace gui {
 
     shaders::Asset shader_asset;
     GLFWcursor *requested_cursor;
-    Array<FontAsset> font_assets;
+    Array<fonts::FontAsset> font_assets;
     mats::TextureAtlas texture_atlas;
     uint32 vao;
     uint32 vbo;
