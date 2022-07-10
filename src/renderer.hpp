@@ -9,11 +9,13 @@
 #include "cameras.hpp"
 #include "gui.hpp"
 #include "core.hpp"
+#include "drawable.hpp"
 
 struct EngineState;
 
 class renderer {
 public:
+
     struct ShaderCommon {
         m4 view;
         m4 projection;
@@ -99,6 +101,8 @@ public:
         BuiltinTextures builtin_textures;
     };
 
+    bool32 is_drawable_component_valid(drawable::Component *drawable_component);
+    void destroy_drawable_component(drawable::Component *drawable_component);
     static void resize_renderer_buffers(
         MemoryPool *memory_pool,
         Array<mats::Material> *materials,
@@ -186,9 +190,9 @@ private:
         bool32 is_blur_horizontal
     );
     static void draw(
-        models::RenderMode render_mode,
-        models::ComponentSet *drawable_component_set,
-        models::Component *drawable_component,
+        drawable::Mode render_mode,
+        drawable::ComponentSet *drawable_component_set,
+        drawable::Component *drawable_component,
         mats::Material *material,
         m4 *model_matrix,
         m3 *model_normal_matrix,
@@ -197,19 +201,19 @@ private:
     );
     static void draw_all(
         EntitySet *entity_set,
-        models::ComponentSet *drawable_component_set,
+        drawable::ComponentSet *drawable_component_set,
         SpatialComponentSet *spatial_component_set,
         AnimationComponentSet *animation_component_set,
         Array<mats::Material> *materials,
-        models::RenderPass render_pass,
-        models::RenderMode render_mode,
+        drawable::Pass render_pass,
+        drawable::Mode render_mode,
         shaders::Asset *standard_depth_shader_asset
     );
     static void render_scene(
         EngineState *engine_state,
         mats::State *materials_state,
         renderer::State *renderer_state,
-        models::RenderPass render_pass,
-        models::RenderMode render_mode
+        drawable::Pass render_pass,
+        drawable::Mode render_mode
     );
 };

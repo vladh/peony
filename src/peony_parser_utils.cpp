@@ -225,11 +225,11 @@ void peony_parser_utils::create_entity_loader_from_peony_file_entry(
   char const *model_path = get_string(model_path_prop);
 
   // Get render pass
-  auto render_pass = models::RenderPass::none;
+  auto render_pass = drawable::Pass::none;
   PeonyFileProp *render_passes_prop = find_prop(entry, "render_passes");
   if (render_passes_prop) {
     range (0, render_passes_prop->n_values) {
-      render_pass = (models::RenderPass)(
+      render_pass = (drawable::Pass)(
         (uint32)render_pass |
         (uint32)models::render_pass_from_string(
           render_passes_prop->values[idx].string_value

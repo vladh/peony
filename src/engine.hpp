@@ -56,7 +56,7 @@ struct EngineState {
   Array<models::ModelLoader> model_loaders;
   models::EntityLoaderSet entity_loader_set;
   EntitySet entity_set;
-  models::ComponentSet drawable_component_set;
+  drawable::ComponentSet drawable_component_set;
   LightComponentSet light_component_set;
   SpatialComponentSet spatial_component_set;
   BehaviorComponentSet behavior_component_set;
