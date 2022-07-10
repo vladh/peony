@@ -15,6 +15,6 @@ namespace debug_ui {
     GuiState *gui_state,
     mats::State *materials_state,
     InputState *input_state,
-    core::WindowSize *window_size
+    renderer::WindowSize *window_size
   );
 }
