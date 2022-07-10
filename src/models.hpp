@@ -69,8 +69,6 @@ public:
 
 #include "models_data.hpp"
 
-    static char const * render_pass_to_string(drawable::Pass render_pass);
-    static drawable::Pass render_pass_from_string(const char* str);
     static bool32 prepare_model_loader_and_check_if_done(
         ModelLoader *model_loader,
         mats::PersistentPbo *persistent_pbo,
