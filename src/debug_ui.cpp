@@ -182,7 +182,7 @@ void debug_ui::render_debug_ui(
   char debug_text[1 << 14];
   size_t dt_size = sizeof(debug_text);
 
-  gui::start_drawing(gui_state);
+  renderer::start_drawing_gui(renderer_state);
 
   if (gui_state->heading_opacity > 0.0f) {
     gui::draw_heading(
@@ -342,5 +342,6 @@ void debug_ui::render_debug_ui(
   }
 
   gui::draw_console(gui_state, input_state->text_input);
-  gui::render(gui_state);
+  renderer::render_gui(renderer_state);
+  gui::update(gui_state);
 }

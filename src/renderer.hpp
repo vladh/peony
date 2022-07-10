@@ -15,6 +15,9 @@ struct EngineState;
 
 class renderer {
 public:
+    static constexpr uint32 GUI_MAX_N_VERTICES = 65536;
+    static constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * gui::VERTEX_LENGTH;
+
     struct WindowSize {
         int32 width; // in pixels (size of framebuffer)
         int32 height; // in pixels (size of framebuffer)
@@ -105,6 +108,12 @@ public:
         m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
         m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
         BuiltinTextures builtin_textures;
+        uint32 gui_vao;
+        uint32 gui_vbo;
+        mats::TextureAtlas gui_texture_atlas;
+        shaders::Asset gui_shader_asset;
+        Array<fonts::FontAsset> gui_font_assets;
+        uint32 gui_n_vertices_pushed;
     };
 
     static GLFWwindow * init_window(WindowSize *window_size);
@@ -140,6 +149,10 @@ public:
         uint32 height,
         GLFWwindow *window
     );
+    static void start_drawing_gui(renderer::State *renderer_state);
+    static void render_gui(renderer::State *renderer_state);
+    static void push_gui_vertices(void *renderer_state_vp, f32 *vertices, u32 n_vertices);
+    static void clear_gui_vertices(renderer::State *renderer_state);
 
 private:
     static void init_g_buffer(
@@ -187,6 +200,7 @@ private:
         uint32 shadowmap_2d_width,
         uint32 shadowmap_2d_height
     );
+    static void init_gui(MemoryPool *memory_pool, renderer::State *renderer_state);
     static void copy_scene_data_to_ubo(
         renderer::State *renderer_state,
         CamerasState *cameras_state,

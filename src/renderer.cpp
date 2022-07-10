@@ -539,7 +539,7 @@ renderer::render(
 
     // Do any needed post-render cleanup
     debugdraw::clear(debugdraw::g_dds);
-    gui::clear(gui_state);
+    clear_gui_vertices(renderer_state);
 }
 
 
@@ -601,6 +601,56 @@ renderer::init(
         builtin_textures->shadowmap_2d_height);
     init_ubo(&renderer_state->ubo_shader_common);
     update_drawing_options(renderer_state, input_state, window);
+    init_gui(memory_pool, renderer_state);
+}
+
+
+void
+renderer::start_drawing_gui(renderer::State *renderer_state)
+{
+    glBindVertexArray(renderer_state->gui_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer_state->gui_vbo);
+}
+
+
+void
+renderer::push_gui_vertices(void *renderer_state_vp, f32 *vertices, u32 n_vertices)
+{
+    renderer::State *renderer_state = (renderer::State *)renderer_state_vp;
+    // VAO/VBO must have been bound by start_drawing()
+    if (renderer_state->gui_n_vertices_pushed + n_vertices > GUI_MAX_N_VERTICES) {
+        logs::error("Pushed too many GUI vertices, did you forget to call renderer::clear_gui_vertices()?");
+        return;
+    }
+    glBufferSubData(GL_ARRAY_BUFFER,
+        GUI_VERTEX_SIZE * renderer_state->gui_n_vertices_pushed,
+        GUI_VERTEX_SIZE * n_vertices, vertices);
+
+    renderer_state->gui_n_vertices_pushed += n_vertices;
+}
+
+
+void
+renderer::clear_gui_vertices(renderer::State *renderer_state)
+{
+    renderer_state->gui_n_vertices_pushed = 0;
+}
+
+
+void
+renderer::render_gui(renderer::State *renderer_state)
+{
+    glUseProgram(renderer_state->gui_shader_asset.program);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderer_state->gui_texture_atlas.texture_name);
+
+    if (!renderer_state->gui_shader_asset.did_set_texture_uniforms) {
+        shaders::set_int(&renderer_state->gui_shader_asset, "atlas_texture", 0);
+        renderer_state->gui_shader_asset.did_set_texture_uniforms = true;
+    }
+
+    glDrawArrays(GL_TRIANGLES, 0, renderer_state->gui_n_vertices_pushed);
 }
 
 
@@ -974,6 +1024,59 @@ renderer::init_2d_shadowmaps(
         shadowmap_2d_width,
         shadowmap_2d_height, 1);
     (*shadowmaps_2d_texture)->is_builtin = true;
+}
+
+
+void
+renderer::init_gui(MemoryPool *memory_pool, renderer::State *renderer_state)
+{
+    MemoryPool temp_memory_pool = {};
+
+    glGenVertexArrays(1, &renderer_state->gui_vao);
+    glGenBuffers(1, &renderer_state->gui_vbo);
+    glBindVertexArray(renderer_state->gui_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer_state->gui_vbo);
+    glBufferData(GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * GUI_MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
+    uint32 location;
+    // position (vec2)
+    location = 0;
+    glEnableVertexAttribArray(location);
+    glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(0));
+    // tex_coords (vec2)
+    location = 1;
+    glEnableVertexAttribArray(location);
+    glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(2 * sizeof(real32)));
+    // color (vec4)
+    location = 2;
+    glEnableVertexAttribArray(location);
+    glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(4 * sizeof(real32)));
+
+    shaders::init_shader_asset(&renderer_state->gui_shader_asset, &temp_memory_pool,
+        "gui_generic", shaders::Type::standard, "gui_generic.vert", "gui_generic.frag", "");
+
+    mats::init_texture_atlas(&renderer_state->gui_texture_atlas, iv2(2000, 2000));
+
+    renderer_state->gui_font_assets = Array<fonts::FontAsset>(memory_pool, 8, "gui_font_assets");
+    FT_Library ft_library;
+    if (FT_Init_FreeType(&ft_library)) {
+        logs::error("Could not init FreeType");
+        return;
+    }
+    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+        memory_pool, &renderer_state->gui_texture_atlas,
+        &ft_library, "body", gui::MAIN_FONT_REGULAR, 18);
+    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+        memory_pool, &renderer_state->gui_texture_atlas,
+        &ft_library, "body-bold", gui::MAIN_FONT_BOLD, 18);
+    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+        memory_pool, &renderer_state->gui_texture_atlas,
+        &ft_library, "heading", gui::MAIN_FONT_REGULAR, 42);
+    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+        memory_pool, &renderer_state->gui_texture_atlas,
+        &ft_library, "title", gui::MAIN_FONT_REGULAR, 64);
+    FT_Done_FreeType(ft_library);
+
+    memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
