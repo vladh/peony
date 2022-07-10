@@ -26,7 +26,7 @@ namespace peony_parser_utils {
     char const *prop_name
   );
   void create_material_from_peony_file_entry(
-    Material *material,
+    mats::Material *material,
     PeonyFileEntry *entry,
     renderer::BuiltinTextures *builtin_textures,
     MemoryPool *memory_pool

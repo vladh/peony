@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "input.hpp"
 #include "fonts.hpp"
 #include "array.hpp"
@@ -79,7 +79,7 @@ namespace gui {
     shaders::Asset shader_asset;
     GLFWcursor *requested_cursor;
     Array<FontAsset> font_assets;
-    TextureAtlas texture_atlas;
+    mats::TextureAtlas texture_atlas;
     uint32 vao;
     uint32 vbo;
     v2 window_dimensions;

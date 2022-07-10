@@ -146,7 +146,7 @@ namespace debug_ui {
 
   pny_internal void get_materials_text_representation(
     char *text,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     EngineState *engine_state
   ) {
     text[0] = '\0';
@@ -175,7 +175,7 @@ void debug_ui::render_debug_ui(
   EngineState *engine_state,
   renderer::State *renderer_state,
   GuiState *gui_state,
-  MaterialsState *materials_state,
+  mats::State *materials_state,
   InputState *input_state,
   core::WindowSize *window_size
 ) {
@@ -313,14 +313,14 @@ void debug_ui::render_debug_ui(
     if (gui::draw_button(
       gui_state, container, "Reload shaders"
     )) {
-      materials::reload_shaders(&materials_state->materials);
+      mats::reload_shaders(&materials_state->materials);
       gui::set_heading(gui_state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (gui::draw_button(
       gui_state, container, "Delete PBO"
     )) {
-      materials::delete_persistent_pbo(&materials_state->persistent_pbo);
+      mats::delete_persistent_pbo(&materials_state->persistent_pbo);
       gui::set_heading(gui_state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }

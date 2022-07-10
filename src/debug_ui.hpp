@@ -5,7 +5,7 @@
 #include "engine.hpp"
 #include "renderer.hpp"
 #include "gui.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "input.hpp"
 
 namespace debug_ui {
@@ -13,7 +13,7 @@ namespace debug_ui {
     EngineState *engine_state,
     renderer::State *renderer_state,
     GuiState *gui_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     InputState *input_state,
     core::WindowSize *window_size
   );

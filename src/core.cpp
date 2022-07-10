@@ -279,7 +279,7 @@ core::init_state(State *state, MemoryPool *asset_memory_pool)
     if (!state->window) { return false; }
 
     engine::init(&state->engine_state, asset_memory_pool);
-    materials::init(&state->materials_state, asset_memory_pool);
+    mats::init(&state->materials_state, asset_memory_pool);
     renderer::init(
         &state->renderer_state, &state->input_state, asset_memory_pool,
         state->window_size.width, state->window_size.height, state->window);

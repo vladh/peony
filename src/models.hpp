@@ -4,7 +4,7 @@
 
 #include "types.hpp"
 #include "stackarray.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "entities.hpp"
 #include "spatial.hpp"
 #include "anim.hpp"
@@ -120,8 +120,8 @@ namespace models {
   RenderPass render_pass_from_string(const char* str);
   bool32 prepare_model_loader_and_check_if_done(
     ModelLoader *model_loader,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
+    mats::PersistentPbo *persistent_pbo,
+    mats::TextureNamePool *texture_name_pool,
     Queue<Task> *task_queue,
     BoneMatrixPool *bone_matrix_pool
   );

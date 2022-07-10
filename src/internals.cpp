@@ -2,7 +2,7 @@
 
 #include "engine.hpp"
 #include "renderer.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "shaders.hpp"
 #include "internals.hpp"
 
@@ -10,14 +10,14 @@
 void internals::create_internal_materials(
   EngineState *engine_state,
   renderer::State *renderer_state,
-  MaterialsState *materials_state
+  mats::State *materials_state
 ) {
   MemoryPool temp_memory_pool = {};
   renderer::BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
 
   // unknown
   {
-    Material *material = materials::init_material(
+    mats::Material *material = mats::init_material(
       materials_state->materials.push(), "unknown"
     );
     shaders::init_shader_asset(
@@ -30,7 +30,7 @@ void internals::create_internal_materials(
 
   // lighting
   {
-    Material *material = materials::init_material(
+    mats::Material *material = mats::init_material(
       materials_state->materials.push(), "lighting"
     );
     shaders::init_shader_asset(
@@ -39,22 +39,22 @@ void internals::create_internal_materials(
       "lighting", shaders::Type::standard,
       "screenquad.vert", "lighting.frag", ""
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->g_position_texture, "g_position_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->g_normal_texture, "g_normal_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->g_albedo_texture, "g_albedo_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->g_pbr_texture, "g_pbr_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->shadowmaps_3d_texture, "shadowmaps_3d"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
@@ -62,7 +62,7 @@ void internals::create_internal_materials(
   #if USE_BLOOM
     // preblur
     {
-      Material *material = materials::init_material(
+      mats::Material *material = mats::init_material(
         materials_state->materials.push(), "preblur"
       );
       shaders::init_shader_asset(
@@ -71,7 +71,7 @@ void internals::create_internal_materials(
         "blur", shaders::Type::standard,
         "screenquad.vert", "blur.frag", ""
       );
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material,
         *builtin_textures->l_bright_color_texture, "source_texture"
       );
@@ -79,7 +79,7 @@ void internals::create_internal_materials(
 
     // blur1
     {
-      Material *material = materials::init_material(
+      mats::Material *material = mats::init_material(
         materials_state->materials.push(), "blur1"
       );
       shaders::init_shader_asset(
@@ -88,7 +88,7 @@ void internals::create_internal_materials(
         "blur", shaders::Type::standard,
         "screenquad.vert", "blur.frag", ""
       );
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material,
         *builtin_textures->blur2_texture, "source_texture"
       );
@@ -96,7 +96,7 @@ void internals::create_internal_materials(
 
     // blur2
     {
-      Material *material = materials::init_material(
+      mats::Material *material = mats::init_material(
         materials_state->materials.push(), "blur2"
       );
       shaders::init_shader_asset(
@@ -105,7 +105,7 @@ void internals::create_internal_materials(
         "blur", shaders::Type::standard,
         "screenquad.vert", "blur.frag", ""
       );
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material,
         *builtin_textures->blur1_texture, "source_texture"
       );
@@ -114,7 +114,7 @@ void internals::create_internal_materials(
 
   // postprocessing
   {
-    Material *material = materials::init_material(
+    mats::Material *material = mats::init_material(
       materials_state->materials.push(), "postprocessing"
     );
     shaders::init_shader_asset(
@@ -123,18 +123,18 @@ void internals::create_internal_materials(
       "postprocessing", shaders::Type::standard,
       "screenquad.vert", "postprocessing.frag", ""
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *builtin_textures->l_color_texture, "l_color_texture"
     );
 
     #if USE_BLOOM
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material, *builtin_textures->blur2_texture, "bloom_texture"
       );
     #endif
 
     #if USE_FOG
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material,
         *renderer_state->l_depth_texture, "l_depth_texture"
       );
@@ -143,7 +143,7 @@ void internals::create_internal_materials(
 
   // renderdebug
   {
-    Material *material = materials::init_material(
+    mats::Material *material = mats::init_material(
       materials_state->materials.push(), "renderdebug"
     );
     shaders::init_shader_asset(
@@ -153,54 +153,54 @@ void internals::create_internal_materials(
       "screenquad.vert", "renderdebug.frag", ""
     );
 
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.g_position_texture, "g_position_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.g_normal_texture, "g_normal_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.g_albedo_texture, "g_albedo_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.g_pbr_texture, "g_pbr_texture"
     );
 
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.l_color_texture, "l_color_texture"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material,
       *renderer_state->builtin_textures.l_bright_color_texture,
       "l_bright_color_texture"
     );
 
     #if USE_FOG
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material, *renderer_state->builtin_textures.l_depth_texture, "l_depth_texture"
       );
     #endif
 
     #if USE_BLOOM
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material, *renderer_state->builtin_textures.blur1_texture, "blur1_texture"
       );
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material, *renderer_state->builtin_textures.blur2_texture, "blur2_texture"
       );
     #endif
 
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
     );
-    materials::add_texture_to_material(
+    mats::add_texture_to_material(
       material, *renderer_state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
 
   // skysphere
   {
-    Material *material = materials::init_material(
+    mats::Material *material = mats::init_material(
       materials_state->materials.push(), "skysphere"
     );
     shaders::init_shader_asset(
@@ -222,7 +222,7 @@ void internals::create_internal_materials(
 void internals::create_internal_entities(
   EngineState *engine_state,
   renderer::State *renderer_state,
-  MaterialsState *materials_state
+  mats::State *materials_state
 ) {
   MemoryPool temp_memory_pool = {};
 
@@ -388,7 +388,7 @@ void internals::create_internal_entities(
 void internals::init(
   EngineState *engine_state,
   renderer::State *renderer_state,
-  MaterialsState *materials_state
+  mats::State *materials_state
 ) {
   create_internal_materials(
     engine_state,
