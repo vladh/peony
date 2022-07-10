@@ -51,7 +51,7 @@ namespace engine {
       idx < engine_state->entity_set.entities.length;
       idx++
     ) {
-      models::destroy_drawable_component(
+      drawable::destroy_component(
         engine_state->drawable_component_set.components[idx]
       );
     }
@@ -683,7 +683,7 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
   engine_state->drawable_component_set = {
-    .components = Array<models::Component>(
+    .components = Array<drawable::Component>(
       asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1
     )
   };

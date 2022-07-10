@@ -247,7 +247,7 @@ void internals::create_internal_entities(
       entity_loader,
       "screenquad_lighting",
       "builtin:screenquad_lighting",
-      models::RenderPass::lighting,
+      drawable::Pass::lighting,
       entity->handle
     );
     models::add_material_to_model_loader(model_loader, "lighting");
@@ -267,7 +267,7 @@ void internals::create_internal_entities(
         entity_loader,
         "screenquad_preblur",
         "builtin:screenquad_preblur",
-        models::RenderPass::preblur,
+        drawable::Pass::preblur,
         entity->handle
       );
       models::add_material_to_model_loader(model_loader, "preblur");
@@ -286,7 +286,7 @@ void internals::create_internal_entities(
         entity_loader,
         "screenquad_blur1",
         "builtin:screenquad_blur1",
-        models::RenderPass::blur1,
+        drawable::Pass::blur1,
         entity->handle
       );
       models::add_material_to_model_loader(model_loader, "blur1");
@@ -305,7 +305,7 @@ void internals::create_internal_entities(
         entity_loader,
         "screenquad_blur2",
         "builtin:screenquad_blur2",
-        models::RenderPass::blur2,
+        drawable::Pass::blur2,
         entity->handle
       );
       models::add_material_to_model_loader(model_loader, "blur2");
@@ -325,7 +325,7 @@ void internals::create_internal_entities(
       entity_loader,
       "screenquad_postprocessing",
       "builtin:screenquad_postprocessing",
-      models::RenderPass::postprocessing,
+      drawable::Pass::postprocessing,
       entity->handle
     );
     models::add_material_to_model_loader(model_loader, "postprocessing");
@@ -344,7 +344,7 @@ void internals::create_internal_entities(
       entity_loader,
       "screenquad_renderdebug",
       "builtin:screenquad_renderdebug",
-      models::RenderPass::renderdebug,
+      drawable::Pass::renderdebug,
       entity->handle
     );
     models::add_material_to_model_loader(model_loader, "renderdebug");
@@ -363,7 +363,7 @@ void internals::create_internal_entities(
       entity_loader,
       "skysphere",
       "builtin:skysphere",
-      models::RenderPass::forward_skybox,
+      drawable::Pass::forward_skybox,
       entity->handle
     );
     entity_loader->spatial_component = {

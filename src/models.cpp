@@ -13,69 +13,69 @@
 
 
 char const *
-models::render_pass_to_string(RenderPass render_pass)
+models::render_pass_to_string(drawable::Pass render_pass)
 {
-    if (render_pass == RenderPass::none) {
+    if (render_pass == drawable::Pass::none) {
         return "none";
-    } else if (render_pass == RenderPass::shadowcaster) {
+    } else if (render_pass == drawable::Pass::shadowcaster) {
         return "shadowcaster";
-    } else if (render_pass == RenderPass::deferred) {
+    } else if (render_pass == drawable::Pass::deferred) {
         return "deferred";
-    } else if (render_pass == RenderPass::forward_depth) {
+    } else if (render_pass == drawable::Pass::forward_depth) {
         return "forward_depth";
-    } else if (render_pass == RenderPass::forward_nodepth) {
+    } else if (render_pass == drawable::Pass::forward_nodepth) {
         return "forward_nodepth";
-    } else if (render_pass == RenderPass::forward_skybox) {
+    } else if (render_pass == drawable::Pass::forward_skybox) {
         return "forward_skybox";
-    } else if (render_pass == RenderPass::lighting) {
+    } else if (render_pass == drawable::Pass::lighting) {
         return "lighting";
-    } else if (render_pass == RenderPass::postprocessing) {
+    } else if (render_pass == drawable::Pass::postprocessing) {
         return "postprocessing";
-    } else if (render_pass == RenderPass::preblur) {
+    } else if (render_pass == drawable::Pass::preblur) {
         return "preblur";
-    } else if (render_pass == RenderPass::blur1) {
+    } else if (render_pass == drawable::Pass::blur1) {
         return "blur1";
-    } else if (render_pass == RenderPass::blur2) {
+    } else if (render_pass == drawable::Pass::blur2) {
         return "blur2";
-    } else if (render_pass == RenderPass::renderdebug) {
+    } else if (render_pass == drawable::Pass::renderdebug) {
         return "renderdebug";
     } else {
-        logs::error("Don't know how to convert RenderPass to string: %d", render_pass);
+        logs::error("Don't know how to convert drawable::Pass to string: %d", render_pass);
         return "<unknown>";
     }
 }
 
 
-models::RenderPass
+drawable::Pass
 models::render_pass_from_string(const char* str)
 {
     if (pstr_eq(str, "none")) {
-        return RenderPass::none;
+        return drawable::Pass::none;
     } else if (pstr_eq(str, "shadowcaster")) {
-        return RenderPass::shadowcaster;
+        return drawable::Pass::shadowcaster;
     } else if (pstr_eq(str, "deferred")) {
-        return RenderPass::deferred;
+        return drawable::Pass::deferred;
     } else if (pstr_eq(str, "forward_depth")) {
-        return RenderPass::forward_depth;
+        return drawable::Pass::forward_depth;
     } else if (pstr_eq(str, "forward_nodepth")) {
-        return RenderPass::forward_nodepth;
+        return drawable::Pass::forward_nodepth;
     } else if (pstr_eq(str, "forward_skybox")) {
-        return RenderPass::forward_skybox;
+        return drawable::Pass::forward_skybox;
     } else if (pstr_eq(str, "lighting")) {
-        return RenderPass::lighting;
+        return drawable::Pass::lighting;
     } else if (pstr_eq(str, "postprocessing")) {
-        return RenderPass::postprocessing;
+        return drawable::Pass::postprocessing;
     } else if (pstr_eq(str, "preblur")) {
-        return RenderPass::preblur;
+        return drawable::Pass::preblur;
     } else if (pstr_eq(str, "blur1")) {
-        return RenderPass::blur1;
+        return drawable::Pass::blur1;
     } else if (pstr_eq(str, "blur2")) {
-        return RenderPass::blur2;
+        return drawable::Pass::blur2;
     } else if (pstr_eq(str, "renderdebug")) {
-        return RenderPass::renderdebug;
+        return drawable::Pass::renderdebug;
     } else {
-        logs::fatal("Could not parse RenderPass: %s", str);
-        return RenderPass::none;
+        logs::fatal("Could not parse drawable::Pass: %s", str);
+        return drawable::Pass::none;
     }
 }
 
@@ -107,7 +107,7 @@ models::prepare_model_loader_and_check_if_done(
 
     if (model_loader->state == ModelLoaderState::mesh_data_loaded) {
         for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
-            Mesh *mesh = &model_loader->meshes[idx];
+            geom::Mesh *mesh = &model_loader->meshes[idx];
             setup_mesh_vertex_buffers(mesh, mesh->vertices, mesh->n_vertices, mesh->indices, mesh->n_indices);
             memory::destroy_memory_pool(&mesh->temp_memory_pool);
         }
@@ -118,7 +118,7 @@ models::prepare_model_loader_and_check_if_done(
         // Set material names for each mesh
         range_named (idx_material, 0, model_loader->n_material_names) {
             range_named (idx_mesh, 0, model_loader->n_meshes) {
-                Mesh *mesh = &model_loader->meshes[idx_mesh];
+                geom::Mesh *mesh = &model_loader->meshes[idx_mesh];
                 uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
                 // For our model's mesh number `mesh_number`, we want to choose
                 // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
@@ -150,7 +150,7 @@ models::prepare_entity_loader_and_check_if_done(
     EntityLoader *entity_loader,
     EntitySet *entity_set,
     ModelLoader *model_loader,
-    models::ComponentSet *drawable_component_set,
+    drawable::ComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     LightComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set,
@@ -184,9 +184,9 @@ models::prepare_entity_loader_and_check_if_done(
         *physics_component = entity_loader->physics_component;
         physics_component->entity_handle = entity_loader->entity_handle;
 
-        // models::Component
+        // drawable::Component
         if (model_loader->n_meshes == 1) {
-            models::Component *drawable_component = drawable_component_set->components[entity_loader->entity_handle];
+            drawable::Component *drawable_component = drawable_component_set->components[entity_loader->entity_handle];
             assert(drawable_component);
             *drawable_component = {
                 .entity_handle = entity_loader->entity_handle,
@@ -195,7 +195,7 @@ models::prepare_entity_loader_and_check_if_done(
             };
         } else if (model_loader->n_meshes > 1) {
             for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
-                Mesh *mesh = &model_loader->meshes[idx];
+                geom::Mesh *mesh = &model_loader->meshes[idx];
 
                 Entity *child_entity = entities::add_entity_to_set(entity_set, entity_loader->name);
 
@@ -211,7 +211,7 @@ models::prepare_entity_loader_and_check_if_done(
                     };
                 }
 
-                models::Component *drawable_component = drawable_component_set->components[child_entity->handle];
+                drawable::Component *drawable_component = drawable_component_set->components[child_entity->handle];
                 assert(drawable_component);
                 *drawable_component = {
                     .entity_handle = child_entity->handle,
@@ -282,7 +282,7 @@ models::init_entity_loader(
     EntityLoader *entity_loader,
     const char *name,
     const char *model_path,
-    RenderPass render_pass,
+    drawable::Pass render_pass,
     EntityHandle entity_handle
 ) {
     assert(entity_loader);
@@ -298,19 +298,18 @@ models::init_entity_loader(
 
 
 bool32
-models::is_drawable_component_valid(models::Component *drawable_component)
+models::is_mesh_valid(geom::Mesh *mesh)
 {
-    return is_mesh_valid(&drawable_component->mesh);
+    return mesh->vao > 0;
 }
 
 
 void
-models::destroy_drawable_component(models::Component *drawable_component)
+models::destroy_mesh(geom::Mesh *mesh)
 {
-    if (!is_drawable_component_valid(drawable_component)) {
-        return;
-    }
-    destroy_mesh(&drawable_component->mesh);
+    glDeleteVertexArrays(1, &mesh->vao);
+    glDeleteBuffers(1, &mesh->vbo);
+    glDeleteBuffers(1, &mesh->ebo);
 }
 
 
@@ -320,7 +319,7 @@ models::make_plane(
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    Vertex **vertex_data, uint32 **index_data
+    geom::Vertex **vertex_data, uint32 **index_data
 ) {
     *n_vertices = 0;
     *n_indices = 0;
@@ -328,7 +327,7 @@ models::make_plane(
     uint32 n_total_vertices = (n_x_segments + 1) * (n_z_segments + 1);
     uint32 index_data_length = (n_x_segments) * (n_z_segments) * 6;
 
-    *vertex_data = (Vertex*)memory::push(memory_pool, sizeof(Vertex) * n_total_vertices, "plane_vertex_data");
+    *vertex_data = (geom::Vertex*)memory::push(memory_pool, sizeof(geom::Vertex) * n_total_vertices, "plane_vertex_data");
     *index_data = (uint32*)memory::push(memory_pool, sizeof(uint32) * index_data_length, "plane_index_data");
 
     for (uint32 idx_x = 0; idx_x <= n_x_segments; idx_x++) {
@@ -374,7 +373,7 @@ models::make_sphere(
     MemoryPool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
-    Vertex **vertex_data, uint32 **index_data
+    geom::Vertex **vertex_data, uint32 **index_data
 ) {
     *n_vertices = 0;
     *n_indices = 0;
@@ -382,7 +381,7 @@ models::make_sphere(
     uint32 total_n_vertices = (n_x_segments + 1) * (n_y_segments + 1);
     uint32 index_data_length = (n_x_segments + 1) * (n_y_segments) * 2;
 
-    *vertex_data = (Vertex*)memory::push(memory_pool, sizeof(Vertex) * total_n_vertices, "sphere_vertex_data");
+    *vertex_data = (geom::Vertex*)memory::push(memory_pool, sizeof(geom::Vertex) * total_n_vertices, "sphere_vertex_data");
     *index_data = (uint32*)memory::push(memory_pool, sizeof(uint32) * index_data_length, "sphere_index_data");
 
     for (uint32 y = 0; y <= n_y_segments; y++) {
@@ -419,13 +418,13 @@ models::make_sphere(
 
 void
 models::setup_mesh_vertex_buffers(
-    Mesh *mesh,
-    Vertex *vertex_data, uint32 n_vertices,
+    geom::Mesh *mesh,
+    geom::Vertex *vertex_data, uint32 n_vertices,
     uint32 *index_data, uint32 n_indices
 ) {
     assert(vertex_data && n_vertices > 0);
 
-    uint32 vertex_size = sizeof(Vertex);
+    uint32 vertex_size = sizeof(geom::Vertex);
     uint32 index_size = sizeof(uint32);
 
     glGenVertexArrays(1, &mesh->vao);
@@ -444,24 +443,24 @@ models::setup_mesh_vertex_buffers(
 
     location = 0;
     glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(Vertex, position));
+    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(geom::Vertex, position));
 
     location = 1;
     glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(Vertex, normal));
+    glVertexAttribPointer(location, 3, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(geom::Vertex, normal));
 
     location = 2;
     glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(Vertex, tex_coords));
+    glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, vertex_size, (void*)offsetof(geom::Vertex, tex_coords));
 
     location = 3;
     glEnableVertexAttribArray(location);
-    glVertexAttribIPointer(location, MAX_N_BONES_PER_VERTEX, GL_INT, vertex_size, (void*)offsetof(Vertex, bone_idxs));
+    glVertexAttribIPointer(location, MAX_N_BONES_PER_VERTEX, GL_INT, vertex_size, (void*)offsetof(geom::Vertex, bone_idxs));
 
     location = 4;
     glEnableVertexAttribArray(location);
     glVertexAttribPointer(location, MAX_N_BONES_PER_VERTEX, GL_FLOAT, GL_FALSE, vertex_size,
-        (void*)offsetof(Vertex, bone_weights));
+        (void*)offsetof(geom::Vertex, bone_weights));
 }
 
 
@@ -612,7 +611,7 @@ models::load_animations(
 
 void
 models::load_mesh(
-    Mesh *mesh,
+    geom::Mesh *mesh,
     aiMesh *ai_mesh,
     const aiScene *scene,
     ModelLoader *model_loader,
@@ -631,11 +630,11 @@ models::load_mesh(
     }
 
     mesh->n_vertices = ai_mesh->mNumVertices;
-    mesh->vertices = (Vertex*)memory::push(&mesh->temp_memory_pool,
-        mesh->n_vertices * sizeof(Vertex), "mesh_vertices");
+    mesh->vertices = (geom::Vertex*)memory::push(&mesh->temp_memory_pool,
+        mesh->n_vertices * sizeof(geom::Vertex), "mesh_vertices");
 
     for (uint32 idx = 0; idx < ai_mesh->mNumVertices; idx++) {
-        Vertex *vertex = &mesh->vertices[idx];
+        geom::Vertex *vertex = &mesh->vertices[idx];
         *vertex = {};
 
         v4 raw_vertex_pos = v4(
@@ -724,15 +723,6 @@ models::load_mesh(
 
 
 void
-models::destroy_mesh(Mesh *mesh)
-{
-    glDeleteVertexArrays(1, &mesh->vao);
-    glDeleteBuffers(1, &mesh->vbo);
-    glDeleteBuffers(1, &mesh->ebo);
-}
-
-
-void
 models::load_node(
     ModelLoader *model_loader,
     aiNode *node, const aiScene *scene,
@@ -743,7 +733,7 @@ models::load_node(
 
     range (0, node->mNumMeshes) {
         aiMesh *ai_mesh = scene->mMeshes[node->mMeshes[idx]];
-        Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
+        geom::Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
         *mesh = {};
         load_mesh(mesh, ai_mesh, scene, model_loader, transform, indices_pack);
     }
@@ -805,14 +795,14 @@ models::load_model_from_data(ModelLoader *model_loader)
     // intended to be called from the main OpenGL thread.
     MemoryPool temp_memory_pool = {};
 
-    Vertex *vertex_data = nullptr;
+    geom::Vertex *vertex_data = nullptr;
     uint32 n_vertices = 0;
     uint32 *index_data = nullptr;
     uint32 n_indices = 0;
     GLenum mode = 0;
 
     if (pstr_eq(model_loader->model_path, "builtin:axes")) {
-        vertex_data = (Vertex*)AXES_VERTICES;
+        vertex_data = (geom::Vertex*)AXES_VERTICES;
         n_vertices = 6;
         index_data = nullptr;
         n_indices = 0;
@@ -828,7 +818,7 @@ models::load_model_from_data(ModelLoader *model_loader)
     } else if (
         pstr_starts_with(model_loader->model_path, "builtin:screenquad")
     ) {
-        vertex_data = (Vertex*)SCREENQUAD_VERTICES;
+        vertex_data = (geom::Vertex*)SCREENQUAD_VERTICES;
         n_vertices = 6;
         index_data = nullptr;
         n_indices = 0;
@@ -837,7 +827,7 @@ models::load_model_from_data(ModelLoader *model_loader)
         logs::fatal("Could not find builtin model: %s", model_loader->model_path);
     }
 
-    Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
+    geom::Mesh *mesh = &model_loader->meshes[model_loader->n_meshes++];
     *mesh = {};
     mesh->transform = m4(1.0f);
     mesh->mode = mode;
@@ -849,11 +839,4 @@ models::load_model_from_data(ModelLoader *model_loader)
     model_loader->state = ModelLoaderState::vertex_buffers_set_up;
 
     memory::destroy_memory_pool(&temp_memory_pool);
-}
-
-
-bool32
-models::is_mesh_valid(Mesh *mesh)
-{
-    return mesh->vao > 0;
 }

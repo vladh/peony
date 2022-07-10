@@ -29,7 +29,7 @@ namespace debug_ui {
     bool32 has_spatial_component = spatial::is_spatial_component_valid(
       spatial_component
     );
-    bool32 has_drawable_component = models::is_drawable_component_valid(
+    bool32 has_drawable_component = drawable::is_component_valid(
       engine_state->drawable_component_set.components[handle]
     );
     bool32 has_light_component = lights::is_light_component_valid(
