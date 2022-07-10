@@ -29,14 +29,14 @@ namespace engine {
 
   pny_internal void destroy_non_internal_materials(
     EngineState *engine_state,
-    MaterialsState *materials_state
+    mats::State *materials_state
   ) {
     for (
       uint32 idx = engine_state->first_non_internal_material_idx;
       idx < materials_state->materials.length;
       idx++
     ) {
-      materials::destroy_material(materials_state->materials[idx]);
+      mats::destroy_material(materials_state->materials[idx]);
     }
 
     materials_state->materials.delete_elements_after_index(
@@ -84,7 +84,7 @@ namespace engine {
 
   pny_internal void destroy_scene(
     EngineState *engine_state,
-    MaterialsState *materials_state
+    mats::State *materials_state
   ) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
@@ -107,7 +107,7 @@ namespace engine {
     const char *scene_name,
     EngineState *engine_state,
     renderer::State *renderer_state,
-    MaterialsState *materials_state
+    mats::State *materials_state
   ) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
@@ -213,7 +213,7 @@ namespace engine {
   pny_internal void handle_console_command(
     EngineState *engine_state,
     renderer::State *renderer_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     InputState *input_state
   ) {
     gui::log("%s%s", gui::CONSOLE_SYMBOL, input_state->text_input);
@@ -241,7 +241,7 @@ namespace engine {
       load_scene(arguments, engine_state, renderer_state, materials_state);
     } else if (pstr_eq(command, "renderdebug")) {
       renderer_state->renderdebug_displayed_texture_type =
-        materials::texture_type_from_string(arguments);
+        mats::texture_type_from_string(arguments);
     } else {
       gui::log("Unknown command: %s", command);
     }
@@ -268,7 +268,7 @@ namespace engine {
     GLFWwindow *window,
     EngineState *engine_state,
     renderer::State *renderer_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     InputState *input_state,
     GuiState *gui_state,
     CamerasState *cameras_state,
@@ -383,14 +383,14 @@ namespace engine {
 
   pny_internal bool32 check_all_entities_loaded(
     EngineState *engine_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     TasksState *tasks_state,
     AnimState *anim_state
   ) {
     bool are_all_done_loading = true;
 
     each (material, materials_state->materials) {
-      bool is_done_loading = materials::prepare_material_and_check_if_done(
+      bool is_done_loading = mats::prepare_material_and_check_if_done(
         material,
         &materials_state->persistent_pbo,
         &materials_state->texture_name_pool,
@@ -474,7 +474,7 @@ namespace engine {
   pny_internal void update(
     EngineState *engine_state,
     renderer::State *renderer_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     CamerasState *cameras_state,
     TasksState *tasks_state,
     AnimState *anim_state,
@@ -585,7 +585,7 @@ namespace engine {
 void engine::run_main_loop(
   EngineState *engine_state,
   renderer::State *renderer_state,
-  MaterialsState *materials_state,
+  mats::State *materials_state,
   CamerasState *cameras_state,
   GuiState *gui_state,
   InputState *input_state,

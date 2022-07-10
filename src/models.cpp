@@ -694,8 +694,8 @@ RenderPass models::render_pass_from_string(const char* str) {
 
 bool32 models::prepare_model_loader_and_check_if_done(
   ModelLoader *model_loader,
-  PersistentPbo *persistent_pbo,
-  TextureNamePool *texture_name_pool,
+  mats::PersistentPbo *persistent_pbo,
+  mats::TextureNamePool *texture_name_pool,
   Queue<Task> *task_queue,
   BoneMatrixPool *bone_matrix_pool
 ) {

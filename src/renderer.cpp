@@ -3,7 +3,7 @@
 #include "../src_external/pstr.h"
 #include "renderer.hpp"
 #include "engine.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "debug.hpp"
 #include "util.hpp"
 #include "logs.hpp"
@@ -15,7 +15,7 @@
 void
 renderer::resize_renderer_buffers(
     MemoryPool *memory_pool,
-    Array<Material> *materials,
+    Array<mats::Material> *materials,
     BuiltinTextures *builtin_textures,
     uint32 width,
     uint32 height
@@ -48,28 +48,28 @@ renderer::resize_renderer_buffers(
     each (material, *materials) {
         if (material->n_textures > 0 && material->is_screensize_dependent) {
             for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
-                Texture *texture = &material->textures[idx_texture];
-                if (texture->type == TextureType::g_position) {
+                mats::Texture *texture = &material->textures[idx_texture];
+                if (texture->type == mats::TextureType::g_position) {
                     material->textures[idx_texture] = *builtin_textures->g_position_texture;
-                } else if (texture->type == TextureType::g_normal) {
+                } else if (texture->type == mats::TextureType::g_normal) {
                     material->textures[idx_texture] = *builtin_textures->g_normal_texture;
-                } else if (texture->type == TextureType::g_albedo) {
+                } else if (texture->type == mats::TextureType::g_albedo) {
                     material->textures[idx_texture] = *builtin_textures->g_albedo_texture;
-                } else if (texture->type == TextureType::g_pbr) {
+                } else if (texture->type == mats::TextureType::g_pbr) {
                     material->textures[idx_texture] = *builtin_textures->g_pbr_texture;
-                } else if (texture->type == TextureType::l_color) {
+                } else if (texture->type == mats::TextureType::l_color) {
                     material->textures[idx_texture] = *builtin_textures->l_color_texture;
-                } else if (texture->type == TextureType::l_bright_color) {
+                } else if (texture->type == mats::TextureType::l_bright_color) {
                     material->textures[idx_texture] = *builtin_textures->l_bright_color_texture;
-                } else if (texture->type == TextureType::l_depth) {
+                } else if (texture->type == mats::TextureType::l_depth) {
                     material->textures[idx_texture] = *builtin_textures->l_depth_texture;
-                } else if (texture->type == TextureType::blur1) {
+                } else if (texture->type == mats::TextureType::blur1) {
                     material->textures[idx_texture] = *builtin_textures->blur1_texture;
-                } else if (texture->type == TextureType::blur2) {
+                } else if (texture->type == mats::TextureType::blur2) {
                     material->textures[idx_texture] = *builtin_textures->blur2_texture;
                 }
             }
-            materials::bind_texture_uniforms(material);
+            mats::bind_texture_uniforms(material);
         }
     }
 }
@@ -99,7 +99,7 @@ void
 renderer::render(
     renderer::State *renderer_state,
     EngineState *engine_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     CamerasState *cameras_state,
     GuiState *gui_state,
     InputState *input_state,
@@ -468,10 +468,10 @@ void
 renderer::init_g_buffer(
     MemoryPool *memory_pool,
     uint32 *g_buffer,
-    Texture **g_position_texture,
-    Texture **g_normal_texture,
-    Texture **g_albedo_texture,
-    Texture **g_pbr_texture,
+    mats::Texture **g_position_texture,
+    mats::Texture **g_normal_texture,
+    mats::Texture **g_albedo_texture,
+    mats::Texture **g_pbr_texture,
     uint32 width,
     uint32 height
 ) {
@@ -488,24 +488,24 @@ renderer::init_g_buffer(
     glGenTextures(1, &g_albedo_texture_name);
     glGenTextures(1, &g_pbr_texture_name);
 
-    *g_position_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "g_position_texture"),
-        GL_TEXTURE_2D, TextureType::g_position, g_position_texture_name, width, height, 4);
+    *g_position_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "g_position_texture"),
+        GL_TEXTURE_2D, mats::TextureType::g_position, g_position_texture_name, width, height, 4);
     (*g_position_texture)->is_builtin = true;
 
-    *g_normal_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "g_normal_texture"),
-        GL_TEXTURE_2D, TextureType::g_normal, g_normal_texture_name, width, height, 4);
+    *g_normal_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "g_normal_texture"),
+        GL_TEXTURE_2D, mats::TextureType::g_normal, g_normal_texture_name, width, height, 4);
     (*g_normal_texture)->is_builtin = true;
 
-    *g_albedo_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "g_albedo_texture"),
-        GL_TEXTURE_2D, TextureType::g_albedo, g_albedo_texture_name, width, height, 4);
+    *g_albedo_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "g_albedo_texture"),
+        GL_TEXTURE_2D, mats::TextureType::g_albedo, g_albedo_texture_name, width, height, 4);
     (*g_albedo_texture)->is_builtin = true;
 
-    *g_pbr_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "g_pbr_texture"),
-        GL_TEXTURE_2D, TextureType::g_pbr, g_pbr_texture_name, width, height, 4);
+    *g_pbr_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "g_pbr_texture"),
+        GL_TEXTURE_2D, mats::TextureType::g_pbr, g_pbr_texture_name, width, height, 4);
     (*g_pbr_texture)->is_builtin = true;
 
     glBindTexture(GL_TEXTURE_2D, (*g_position_texture)->texture_name);
@@ -567,9 +567,9 @@ void
 renderer::init_l_buffer(
     MemoryPool *memory_pool,
     uint32 *l_buffer,
-    Texture **l_color_texture,
-    Texture **l_bright_color_texture,
-    Texture **l_depth_texture,
+    mats::Texture **l_color_texture,
+    mats::Texture **l_bright_color_texture,
+    mats::Texture **l_depth_texture,
     uint32 width,
     uint32 height
 ) {
@@ -581,9 +581,9 @@ renderer::init_l_buffer(
         uint32 l_color_texture_name;
         glGenTextures(1, &l_color_texture_name);
 
-        *l_color_texture = materials::init_texture(
-            MEMORY_PUSH(memory_pool, Texture, "l_color_texture"),
-            GL_TEXTURE_2D, TextureType::l_color, l_color_texture_name,
+        *l_color_texture = mats::init_texture(
+            MEMORY_PUSH(memory_pool, mats::Texture, "l_color_texture"),
+            GL_TEXTURE_2D, mats::TextureType::l_color, l_color_texture_name,
             width, height, 4);
         (*l_color_texture)->is_builtin = true;
 
@@ -604,9 +604,9 @@ renderer::init_l_buffer(
         uint32 l_bright_color_texture_name;
         glGenTextures(1, &l_bright_color_texture_name);
 
-        *l_bright_color_texture = materials::init_texture(
-            MEMORY_PUSH(memory_pool, Texture, "l_bright_color_texture"),
-            GL_TEXTURE_2D, TextureType::l_bright_color, l_bright_color_texture_name,
+        *l_bright_color_texture = mats::init_texture(
+            MEMORY_PUSH(memory_pool, mats::Texture, "l_bright_color_texture"),
+            GL_TEXTURE_2D, mats::TextureType::l_bright_color, l_bright_color_texture_name,
             width, height, 4);
         (*l_bright_color_texture)->is_builtin = true;
 
@@ -644,9 +644,9 @@ renderer::init_l_buffer(
         uint32 l_depth_texture_name;
         glGenTextures(1, &l_depth_texture_name);
 
-        *l_depth_texture = materials::init_texture(
-            MEMORY_PUSH(memory_pool, Texture, "l_depth_texture"),
-            GL_TEXTURE_2D, TextureType::l_depth, l_depth_texture_name,
+        *l_depth_texture = mats::init_texture(
+            MEMORY_PUSH(memory_pool, mats::Texture, "l_depth_texture"),
+            GL_TEXTURE_2D, mats::TextureType::l_depth, l_depth_texture_name,
             width, height, 1);
         (*l_depth_texture)->is_builtin = true;
 
@@ -685,8 +685,8 @@ renderer::init_blur_buffers(
     MemoryPool *memory_pool,
     uint32 *blur1_buffer,
     uint32 *blur2_buffer,
-    Texture **blur1_texture,
-    Texture **blur2_texture,
+    mats::Texture **blur1_texture,
+    mats::Texture **blur2_texture,
     uint32 width,
     uint32 height
 ) {
@@ -698,9 +698,9 @@ renderer::init_blur_buffers(
     uint32 blur1_texture_name;
     glGenTextures(1, &blur1_texture_name);
 
-    *blur1_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "blur1_texture"),
-        GL_TEXTURE_2D, TextureType::blur1, blur1_texture_name,
+    *blur1_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "blur1_texture"),
+        GL_TEXTURE_2D, mats::TextureType::blur1, blur1_texture_name,
         width, height, 4);
     (*blur1_texture)->is_builtin = true;
 
@@ -724,9 +724,9 @@ renderer::init_blur_buffers(
     uint32 blur2_texture_name;
     glGenTextures(1, &blur2_texture_name);
 
-    *blur2_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "blur2_texture"),
-        GL_TEXTURE_2D, TextureType::blur2, blur2_texture_name,
+    *blur2_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "blur2_texture"),
+        GL_TEXTURE_2D, mats::TextureType::blur2, blur2_texture_name,
         width, height, 4);
     (*blur2_texture)->is_builtin = true;
 
@@ -763,7 +763,7 @@ renderer::init_3d_shadowmaps(
     MemoryPool *memory_pool,
     uint32 *shadowmaps_3d_framebuffer,
     uint32 *shadowmaps_3d,
-    Texture **shadowmaps_3d_texture,
+    mats::Texture **shadowmaps_3d_texture,
     uint32 shadowmap_3d_width,
     uint32 shadowmap_3d_height
 ) {
@@ -788,10 +788,10 @@ renderer::init_3d_shadowmaps(
         logs::fatal("Framebuffer not complete!");
     }
 
-    *shadowmaps_3d_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "shadowmaps_3d_texture"),
+    *shadowmaps_3d_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "shadowmaps_3d_texture"),
         GL_TEXTURE_CUBE_MAP_ARRAY,
-        TextureType::shadowmaps_3d, *shadowmaps_3d,
+        mats::TextureType::shadowmaps_3d, *shadowmaps_3d,
         shadowmap_3d_width, shadowmap_3d_height, 1);
     (*shadowmaps_3d_texture)->is_builtin = true;
 }
@@ -802,7 +802,7 @@ renderer::init_2d_shadowmaps(
     MemoryPool *memory_pool,
     uint32 *shadowmaps_2d_framebuffer,
     uint32 *shadowmaps_2d,
-    Texture **shadowmaps_2d_texture,
+    mats::Texture **shadowmaps_2d_texture,
     uint32 shadowmap_2d_width,
     uint32 shadowmap_2d_height
 ) {
@@ -827,10 +827,10 @@ renderer::init_2d_shadowmaps(
         logs::fatal("Framebuffer not complete!");
     }
 
-    *shadowmaps_2d_texture = materials::init_texture(
-        MEMORY_PUSH(memory_pool, Texture, "shadowmaps_2d_texture"),
+    *shadowmaps_2d_texture = mats::init_texture(
+        MEMORY_PUSH(memory_pool, mats::Texture, "shadowmaps_2d_texture"),
         GL_TEXTURE_2D_ARRAY,
-        TextureType::shadowmaps_2d, *shadowmaps_2d,
+        mats::TextureType::shadowmaps_2d, *shadowmaps_2d,
         shadowmap_2d_width,
         shadowmap_2d_height, 1);
     (*shadowmaps_2d_texture)->is_builtin = true;
@@ -935,7 +935,7 @@ renderer::draw(
     RenderMode render_mode,
     DrawableComponentSet *drawable_component_set,
     DrawableComponent *drawable_component,
-    Material *material,
+    mats::Material *material,
     m4 *model_matrix,
     m3 *model_normal_matrix,
     m4 *bone_matrices,
@@ -1006,7 +1006,7 @@ renderer::draw_all(
     DrawableComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
     AnimationComponentSet *animation_component_set,
-    Array<Material> *materials,
+    Array<mats::Material> *materials,
     RenderPass render_pass,
     RenderMode render_mode,
     shaders::Asset *standard_depth_shader_asset
@@ -1027,11 +1027,11 @@ renderer::draw_all(
             entity_set->entities[drawable_component->entity_handle]->debug_name);
 #endif
 
-        Material *material = materials::get_material_by_name(
+        mats::Material *material = mats::get_material_by_name(
             materials, drawable_component->mesh.material_name);
 
-        if (!material || material->state != MaterialState::complete) {
-            material = materials::get_material_by_name(materials, "unknown");
+        if (!material || material->state != mats::MaterialState::complete) {
+            material = mats::get_material_by_name(materials, "unknown");
         }
 
         SpatialComponent *spatial_component =
@@ -1079,7 +1079,7 @@ renderer::draw_all(
 void
 renderer::render_scene(
     EngineState *engine_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     renderer::State *renderer_state,
     RenderPass render_pass,
     RenderMode render_mode

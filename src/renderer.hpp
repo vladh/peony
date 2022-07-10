@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "lights.hpp"
 #include "memory.hpp"
 #include "cameras.hpp"
@@ -36,7 +36,7 @@ public:
 
         float shadow_far_clip_dist;
         bool is_blur_horizontal;
-        TextureType renderdebug_displayed_texture_type;
+        mats::TextureType renderdebug_displayed_texture_type;
         int unused_pad;
 
         float exposure;
@@ -56,30 +56,30 @@ public:
 
     struct BuiltinTextures {
         uint32 g_buffer;
-        Texture *g_position_texture;
-        Texture *g_normal_texture;
-        Texture *g_albedo_texture;
-        Texture *g_pbr_texture;
+        mats::Texture *g_position_texture;
+        mats::Texture *g_normal_texture;
+        mats::Texture *g_albedo_texture;
+        mats::Texture *g_pbr_texture;
 
         uint32 l_buffer;
-        Texture *l_color_texture;
-        Texture *l_bright_color_texture;
-        Texture *l_depth_texture;
+        mats::Texture *l_color_texture;
+        mats::Texture *l_bright_color_texture;
+        mats::Texture *l_depth_texture;
 
         uint32 blur1_buffer;
         uint32 blur2_buffer;
-        Texture *blur1_texture;
-        Texture *blur2_texture;
+        mats::Texture *blur1_texture;
+        mats::Texture *blur2_texture;
 
         uint32 shadowmaps_3d_framebuffer;
         uint32 shadowmaps_3d;
-        Texture *shadowmaps_3d_texture;
+        mats::Texture *shadowmaps_3d_texture;
         uint32 shadowmap_3d_width;
         uint32 shadowmap_3d_height;
 
         uint32 shadowmaps_2d_framebuffer;
         uint32 shadowmaps_2d;
-        Texture *shadowmaps_2d_texture;
+        mats::Texture *shadowmaps_2d_texture;
         uint32 shadowmap_2d_width;
         uint32 shadowmap_2d_height;
 
@@ -90,7 +90,7 @@ public:
     struct State {
         bool32 should_hide_ui;
         bool32 should_use_wireframe;
-        TextureType renderdebug_displayed_texture_type;
+        mats::TextureType renderdebug_displayed_texture_type;
         shaders::Asset standard_depth_shader_asset;
         uint32 ubo_shader_common;
         ShaderCommon shader_common;
@@ -101,7 +101,7 @@ public:
 
     static void resize_renderer_buffers(
         MemoryPool *memory_pool,
-        Array<Material> *materials,
+        Array<mats::Material> *materials,
         BuiltinTextures *builtin_textures,
         uint32 width,
         uint32 height
@@ -114,7 +114,7 @@ public:
     static void render(
         renderer::State *renderer_state,
         EngineState *engine_state,
-        MaterialsState *materials_state,
+        mats::State *materials_state,
         CamerasState *cameras_state,
         GuiState *gui_state,
         InputState *input_state,
@@ -134,19 +134,19 @@ private:
     static void init_g_buffer(
         MemoryPool *memory_pool,
         uint32 *g_buffer,
-        Texture **g_position_texture,
-        Texture **g_normal_texture,
-        Texture **g_albedo_texture,
-        Texture **g_pbr_texture,
+        mats::Texture **g_position_texture,
+        mats::Texture **g_normal_texture,
+        mats::Texture **g_albedo_texture,
+        mats::Texture **g_pbr_texture,
         uint32 width,
         uint32 height
     );
     static void init_l_buffer(
         MemoryPool *memory_pool,
         uint32 *l_buffer,
-        Texture **l_color_texture,
-        Texture **l_bright_color_texture,
-        Texture **l_depth_texture,
+        mats::Texture **l_color_texture,
+        mats::Texture **l_bright_color_texture,
+        mats::Texture **l_depth_texture,
         uint32 width,
         uint32 height
     );
@@ -154,8 +154,8 @@ private:
         MemoryPool *memory_pool,
         uint32 *blur1_buffer,
         uint32 *blur2_buffer,
-        Texture **blur1_texture,
-        Texture **blur2_texture,
+        mats::Texture **blur1_texture,
+        mats::Texture **blur2_texture,
         uint32 width,
         uint32 height
     );
@@ -164,7 +164,7 @@ private:
         MemoryPool *memory_pool,
         uint32 *shadowmaps_3d_framebuffer,
         uint32 *shadowmaps_3d,
-        Texture **shadowmaps_3d_texture,
+        mats::Texture **shadowmaps_3d_texture,
         uint32 shadowmap_3d_width,
         uint32 shadowmap_3d_height
     );
@@ -172,7 +172,7 @@ private:
         MemoryPool *memory_pool,
         uint32 *shadowmaps_2d_framebuffer,
         uint32 *shadowmaps_2d,
-        Texture **shadowmaps_2d_texture,
+        mats::Texture **shadowmaps_2d_texture,
         uint32 shadowmap_2d_width,
         uint32 shadowmap_2d_height
     );
@@ -189,7 +189,7 @@ private:
         RenderMode render_mode,
         DrawableComponentSet *drawable_component_set,
         DrawableComponent *drawable_component,
-        Material *material,
+        mats::Material *material,
         m4 *model_matrix,
         m3 *model_normal_matrix,
         m4 *bone_matrices,
@@ -200,14 +200,14 @@ private:
         DrawableComponentSet *drawable_component_set,
         SpatialComponentSet *spatial_component_set,
         AnimationComponentSet *animation_component_set,
-        Array<Material> *materials,
+        Array<mats::Material> *materials,
         RenderPass render_pass,
         RenderMode render_mode,
         shaders::Asset *standard_depth_shader_asset
     );
     static void render_scene(
         EngineState *engine_state,
-        MaterialsState *materials_state,
+        mats::State *materials_state,
         renderer::State *renderer_state,
         RenderPass render_pass,
         RenderMode render_mode

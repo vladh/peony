@@ -12,7 +12,7 @@ namespace chrono = std::chrono;
 #include "physics.hpp"
 #include "models.hpp"
 #include "renderer.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "core.hpp"
 #include "cameras.hpp"
 
@@ -71,7 +71,7 @@ namespace engine {
   void run_main_loop(
     EngineState *engine_state,
     renderer::State *renderer_state,
-    MaterialsState *materials_state,
+    mats::State *materials_state,
     CamerasState *cameras_state,
     GuiState *gui_state,
     InputState *input_state,

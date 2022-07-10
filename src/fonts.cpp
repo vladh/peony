@@ -4,7 +4,7 @@
 #include "../src_external/pstr.h"
 #include "logs.hpp"
 #include "array.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include "fonts.hpp"
 #include "intrinsics.hpp"
 
@@ -13,7 +13,7 @@ namespace fonts {
   pny_internal void load_glyphs(
     FontAsset *font_asset,
     FT_Face face,
-    TextureAtlas *texture_atlas
+    mats::TextureAtlas *texture_atlas
   ) {
     FT_GlyphSlot glyph = face->glyph;
 
@@ -48,7 +48,7 @@ namespace fonts {
 
       Character *character = font_asset->characters[c];
 
-      iv2 tex_coords = materials::push_space_to_texture_atlas(
+      iv2 tex_coords = mats::push_space_to_texture_atlas(
         texture_atlas, character->size
       );
 
@@ -100,7 +100,7 @@ FontAsset* fonts::get_by_name(Array<FontAsset> *assets, const char *name) {
 FontAsset* fonts::init_font_asset(
   FontAsset *font_asset,
   MemoryPool *memory_pool,
-  TextureAtlas *texture_atlas,
+  mats::TextureAtlas *texture_atlas,
   FT_Library *ft_library,
   const char *name,
   const char *filename,

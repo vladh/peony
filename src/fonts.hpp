@@ -4,7 +4,7 @@
 
 #include "types.hpp"
 #include "array.hpp"
-#include "materials.hpp"
+#include "mats.hpp"
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -37,7 +37,7 @@ namespace fonts {
   FontAsset* init_font_asset(
     FontAsset *font_asset,
     MemoryPool *memory_pool,
-    TextureAtlas *texture_atlas,
+    mats::TextureAtlas *texture_atlas,
     FT_Library *ft_library,
     const char *name,
     const char *filename,

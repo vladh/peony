@@ -88,12 +88,12 @@ void peony_parser_utils::get_unique_string_values_for_prop_name(
 
 
 void peony_parser_utils::create_material_from_peony_file_entry(
-  Material *material,
+  mats::Material *material,
   PeonyFileEntry *entry,
   renderer::BuiltinTextures *builtin_textures,
   MemoryPool *memory_pool
 ) {
-  materials::init_material(material, entry->name);
+  mats::init_material(material, entry->name);
 
   // We're calling `find_prop()` a lot here, which goes through the full
   // list of props every time, and so this is kind of #slow. Not a huge deal, but
@@ -147,17 +147,17 @@ void peony_parser_utils::create_material_from_peony_file_entry(
 
     if (pstr_starts_with(prop->name, TEXTURE_PREFIX)) {
       // Handle a texture
-      Texture texture = {};
+      mats::Texture texture = {};
       // The uniform name is the prop name without the prefix
       // The first value is the type, and the second the path
       // e.g. textures.foam_texture = [other, water_foam.png]
       char const *uniform_name = &prop->name[TEXTURE_PREFIX_LENGTH];
-      init_texture(
+      mats::init_texture(
         &texture,
-        materials::texture_type_from_string(prop->values[0].string_value),
+        mats::texture_type_from_string(prop->values[0].string_value),
         prop->values[1].string_value
       );
-      materials::add_texture_to_material(
+      mats::add_texture_to_material(
         material,
         texture,
         uniform_name
@@ -166,19 +166,19 @@ void peony_parser_utils::create_material_from_peony_file_entry(
       // Handle a builtin texture
       char const *builtin_uniform_name = &prop->name[BUILTIN_TEXTURE_PREFIX_LENGTH];
       if (pstr_eq(builtin_uniform_name, "g_position_texture")) {
-        materials::add_texture_to_material(
+        mats::add_texture_to_material(
           material, *builtin_textures->g_position_texture, builtin_uniform_name
         );
       } else if (pstr_eq(builtin_uniform_name, "g_albedo_texture")) {
-        materials::add_texture_to_material(
+        mats::add_texture_to_material(
           material, *builtin_textures->g_albedo_texture, builtin_uniform_name
         );
       } else if (pstr_eq(builtin_uniform_name, "shadowmaps_3d")) {
-        materials::add_texture_to_material(
+        mats::add_texture_to_material(
           material, *builtin_textures->shadowmaps_3d_texture, builtin_uniform_name
         );
       } else if (pstr_eq(builtin_uniform_name, "shadowmaps_2d")) {
-        materials::add_texture_to_material(
+        mats::add_texture_to_material(
           material, *builtin_textures->shadowmaps_2d_texture, builtin_uniform_name
         );
       } else {

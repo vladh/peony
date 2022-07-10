@@ -849,7 +849,7 @@ void gui::init(
   );
   gui_state->input_state = input_state;
   gui_state->window_dimensions = v2(window_width, window_height);
-  materials::init_texture_atlas(&gui_state->texture_atlas, iv2(2000, 2000));
+  mats::init_texture_atlas(&gui_state->texture_atlas, iv2(2000, 2000));
 
   // Shaders
   {
