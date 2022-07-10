@@ -1032,49 +1032,63 @@ renderer::init_gui(MemoryPool *memory_pool, renderer::State *renderer_state)
 {
     MemoryPool temp_memory_pool = {};
 
-    glGenVertexArrays(1, &renderer_state->gui_vao);
-    glGenBuffers(1, &renderer_state->gui_vbo);
-    glBindVertexArray(renderer_state->gui_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer_state->gui_vbo);
-    glBufferData(GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * GUI_MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
-    uint32 location;
-    // position (vec2)
-    location = 0;
-    glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(0));
-    // tex_coords (vec2)
-    location = 1;
-    glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(2 * sizeof(real32)));
-    // color (vec4)
-    location = 2;
-    glEnableVertexAttribArray(location);
-    glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE, (void*)(4 * sizeof(real32)));
+    // VAO
+    {
+        glGenVertexArrays(1, &renderer_state->gui_vao);
+        glGenBuffers(1, &renderer_state->gui_vbo);
+        glBindVertexArray(renderer_state->gui_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, renderer_state->gui_vbo);
+        glBufferData(GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * GUI_MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
+        uint32 location;
 
+        // position (vec2)
+        location = 0;
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE,
+            (void*)(0));
+
+        // tex_coords (vec2)
+        location = 1;
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE,
+            (void*)(2 * sizeof(real32)));
+
+        // color (vec4)
+        location = 2;
+        glEnableVertexAttribArray(location);
+        glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE,
+            (void*)(4 * sizeof(real32)));
+    }
+
+    // Shaders
     shaders::init_shader_asset(&renderer_state->gui_shader_asset, &temp_memory_pool,
         "gui_generic", shaders::Type::standard, "gui_generic.vert", "gui_generic.frag", "");
 
+    // Materials
     mats::init_texture_atlas(&renderer_state->gui_texture_atlas, iv2(2000, 2000));
 
-    renderer_state->gui_font_assets = Array<fonts::FontAsset>(memory_pool, 8, "gui_font_assets");
-    FT_Library ft_library;
-    if (FT_Init_FreeType(&ft_library)) {
-        logs::error("Could not init FreeType");
-        return;
+    // Fonts
+    {
+        renderer_state->gui_font_assets = Array<fonts::FontAsset>(memory_pool, 8, "gui_font_assets");
+        FT_Library ft_library;
+        if (FT_Init_FreeType(&ft_library)) {
+            logs::error("Could not init FreeType");
+            return;
+        }
+        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+            memory_pool, &renderer_state->gui_texture_atlas,
+            &ft_library, "body", gui::MAIN_FONT_REGULAR, 18);
+        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+            memory_pool, &renderer_state->gui_texture_atlas,
+            &ft_library, "body-bold", gui::MAIN_FONT_BOLD, 18);
+        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+            memory_pool, &renderer_state->gui_texture_atlas,
+            &ft_library, "heading", gui::MAIN_FONT_REGULAR, 42);
+        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
+            memory_pool, &renderer_state->gui_texture_atlas,
+            &ft_library, "title", gui::MAIN_FONT_REGULAR, 64);
+        FT_Done_FreeType(ft_library);
     }
-    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-        memory_pool, &renderer_state->gui_texture_atlas,
-        &ft_library, "body", gui::MAIN_FONT_REGULAR, 18);
-    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-        memory_pool, &renderer_state->gui_texture_atlas,
-        &ft_library, "body-bold", gui::MAIN_FONT_BOLD, 18);
-    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-        memory_pool, &renderer_state->gui_texture_atlas,
-        &ft_library, "heading", gui::MAIN_FONT_REGULAR, 42);
-    fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-        memory_pool, &renderer_state->gui_texture_atlas,
-        &ft_library, "title", gui::MAIN_FONT_REGULAR, 64);
-    FT_Done_FreeType(ft_library);
 
     memory::destroy_memory_pool(&temp_memory_pool);
 }
