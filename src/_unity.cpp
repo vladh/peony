@@ -21,6 +21,7 @@
 #include "input.cpp"
 #include "gui.cpp"
 #include "physics.cpp"
+#include "geom.cpp"
 #include "drawable.cpp"
 #include "models.cpp"
 #include "peony_parser.cpp"

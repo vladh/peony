@@ -77,7 +77,7 @@ drawable::render_pass_from_string(const char* str)
 bool32
 drawable::is_component_valid(drawable::Component *drawable_component)
 {
-    return models::is_mesh_valid(&drawable_component->mesh);
+    return geom::is_mesh_valid(&drawable_component->mesh);
 }
 
 
@@ -87,6 +87,6 @@ drawable::destroy_component(drawable::Component *drawable_component)
     if (!is_component_valid(drawable_component)) {
         return;
     }
-    models::destroy_mesh(&drawable_component->mesh);
+    geom::destroy_mesh(&drawable_component->mesh);
 }
 
