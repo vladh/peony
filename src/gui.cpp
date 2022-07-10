@@ -8,7 +8,7 @@
 #include "intrinsics.hpp"
 
 
-gui::GameConsole *g_gui_console = nullptr;
+gui::GameConsole *g_guicon = nullptr;
 
 
 void
@@ -231,7 +231,7 @@ gui::draw_button(gui::State *gui_state, Container *container, const char *text)
 void
 gui::draw_console(gui::State *gui_state, char *console_input_text)
 {
-    if (!g_gui_console->is_enabled) {
+    if (!g_guicon->is_enabled) {
         return;
     }
 
@@ -247,11 +247,11 @@ gui::draw_console(gui::State *gui_state, char *console_input_text)
             v2(gui_state->window_dimensions.x, MAX_CONSOLE_LOG_HEIGHT),
             CONSOLE_BG_COLOR);
 
-        uint32 idx_line = g_gui_console->idx_log_start;
-        while (idx_line != g_gui_console->idx_log_end) {
-            v2 text_dimensions = get_text_dimensions(font_asset, g_gui_console->log[idx_line]);
+        uint32 idx_line = g_guicon->idx_log_start;
+        while (idx_line != g_guicon->idx_log_end) {
+            v2 text_dimensions = get_text_dimensions(font_asset, g_guicon->log[idx_line]);
             next_element_position.y -= text_dimensions.y + line_spacing;
-            draw_text(gui_state, "body", g_gui_console->log[idx_line], next_element_position, LIGHT_TEXT_COLOR);
+            draw_text(gui_state, "body", g_guicon->log[idx_line], next_element_position, LIGHT_TEXT_COLOR);
 
             idx_line++;
             if (idx_line == MAX_N_CONSOLE_LINES) {
@@ -285,19 +285,19 @@ gui::log(const char *format, ...)
     va_end(vargs);
 
     // Fill array in back-to-front.
-    if (g_gui_console->idx_log_start == 0) {
-        g_gui_console->idx_log_start = MAX_N_CONSOLE_LINES - 1;
+    if (g_guicon->idx_log_start == 0) {
+        g_guicon->idx_log_start = MAX_N_CONSOLE_LINES - 1;
     } else {
-        g_gui_console->idx_log_start--;
+        g_guicon->idx_log_start--;
     }
-    if (g_gui_console->idx_log_start == g_gui_console->idx_log_end) {
-        if (g_gui_console->idx_log_end == 0) {
-            g_gui_console->idx_log_end = MAX_N_CONSOLE_LINES - 1;
+    if (g_guicon->idx_log_start == g_guicon->idx_log_end) {
+        if (g_guicon->idx_log_end == 0) {
+            g_guicon->idx_log_end = MAX_N_CONSOLE_LINES - 1;
         } else {
-            g_gui_console->idx_log_end--;
+            g_guicon->idx_log_end--;
         }
     }
-    strcpy(g_gui_console->log[g_gui_console->idx_log_start], text);
+    strcpy(g_guicon->log[g_guicon->idx_log_start], text);
 }
 
 
@@ -330,7 +330,7 @@ gui::init(
     gui_state->texture_atlas_size = texture_atlas_size;
     gui_state->font_assets = font_assets;
     gui_state->window_dimensions = v2(window_width, window_height);
-    g_gui_console = &gui_state->game_console;
+    g_guicon = &gui_state->game_console;
     log("Hello world!");
 }
 

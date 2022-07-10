@@ -470,7 +470,7 @@ renderer::render(
 
         // Debug draw pass
         {
-            debugdraw::render(debugdraw::g_dds);
+            debugdraw::render(g_dds);
         }
     }
 
@@ -538,7 +538,7 @@ renderer::render(
     END_TIMER_MIN(swap_buffers, 10);
 
     // Do any needed post-render cleanup
-    debugdraw::clear(debugdraw::g_dds);
+    debugdraw::clear(g_dds);
     clear_gui_vertices(renderer_state);
 }
 

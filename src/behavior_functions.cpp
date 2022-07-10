@@ -90,14 +90,14 @@ void behavior_functions::char_movement_test(
       } else {
         color = v4(1.0f, 1.0f, 0.0f, 1.0f);
       }
-      debugdraw::draw_obb(debugdraw::g_dds, obb, color);
+      debugdraw::draw_obb(g_dds, obb, color);
       debugdraw::draw_obb(
-        debugdraw::g_dds,
+        g_dds,
         &manifold.collidee->transformed_obb,
         color
       );
       debugdraw::draw_line(
-        debugdraw::g_dds,
+        g_dds,
         obb->center,
         obb->center + manifold.normal * 100.0f,
         color
@@ -114,7 +114,7 @@ void behavior_functions::char_movement_test(
       gui::log("---");
     } else {
       debugdraw::draw_obb(
-        debugdraw::g_dds,
+        g_dds,
         obb,
         v4(1.0f, 1.0f, 1.0f, 1.0f)
       );
@@ -136,19 +136,19 @@ void behavior_functions::char_movement_test(
 
     if (ray_collision_result.did_intersect) {
       debugdraw::draw_ray(
-        debugdraw::g_dds,
+        g_dds,
         &ray,
         ray_collision_result.distance,
         v4(1.0f, 0.0f, 0.0f, 0.0f)
       );
       debugdraw::draw_obb(
-        debugdraw::g_dds,
+        g_dds,
         &ray_collision_result.collidee->transformed_obb,
         v4(1.0f, 0.0f, 0.0f, 1.0f)
       );
     } else {
       debugdraw::draw_ray(
-        debugdraw::g_dds,
+        g_dds,
         &ray,
         500.0f,
         v4(1.0f, 1.0f, 1.0f, 0.0f)
