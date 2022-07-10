@@ -231,7 +231,7 @@ void peony_parser_utils::create_entity_loader_from_peony_file_entry(
     range (0, render_passes_prop->n_values) {
       render_pass = (drawable::Pass)(
         (uint32)render_pass |
-        (uint32)models::render_pass_from_string(
+        (uint32)drawable::render_pass_from_string(
           render_passes_prop->values[idx].string_value
         )
       );
