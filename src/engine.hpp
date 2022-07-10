@@ -53,10 +53,10 @@ struct EngineState {
   bool32 is_world_loaded;
   bool32 was_world_ever_loaded;
   uint32 first_non_internal_material_idx;
-  Array<ModelLoader> model_loaders;
-  EntityLoaderSet entity_loader_set;
+  Array<models::ModelLoader> model_loaders;
+  models::EntityLoaderSet entity_loader_set;
   EntitySet entity_set;
-  DrawableComponentSet drawable_component_set;
+  models::ComponentSet drawable_component_set;
   LightComponentSet light_component_set;
   SpatialComponentSet spatial_component_set;
   BehaviorComponentSet behavior_component_set;

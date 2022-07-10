@@ -186,9 +186,9 @@ private:
         bool32 is_blur_horizontal
     );
     static void draw(
-        RenderMode render_mode,
-        DrawableComponentSet *drawable_component_set,
-        DrawableComponent *drawable_component,
+        models::RenderMode render_mode,
+        models::ComponentSet *drawable_component_set,
+        models::Component *drawable_component,
         mats::Material *material,
         m4 *model_matrix,
         m3 *model_normal_matrix,
@@ -197,19 +197,19 @@ private:
     );
     static void draw_all(
         EntitySet *entity_set,
-        DrawableComponentSet *drawable_component_set,
+        models::ComponentSet *drawable_component_set,
         SpatialComponentSet *spatial_component_set,
         AnimationComponentSet *animation_component_set,
         Array<mats::Material> *materials,
-        RenderPass render_pass,
-        RenderMode render_mode,
+        models::RenderPass render_pass,
+        models::RenderMode render_mode,
         shaders::Asset *standard_depth_shader_asset
     );
     static void render_scene(
         EngineState *engine_state,
         mats::State *materials_state,
         renderer::State *renderer_state,
-        RenderPass render_pass,
-        RenderMode render_mode
+        models::RenderPass render_pass,
+        models::RenderMode render_mode
     );
 };
