@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "pack.hpp"
 #include "constants.hpp"
 
 class geom {
