@@ -174,7 +174,7 @@ namespace debug_ui {
 void debug_ui::render_debug_ui(
   EngineState *engine_state,
   renderer::State *renderer_state,
-  GuiState *gui_state,
+  gui::State *gui_state,
   mats::State *materials_state,
   InputState *input_state,
   renderer::WindowSize *window_size
@@ -201,7 +201,7 @@ void debug_ui::render_debug_ui(
   {
     strcpy(debug_text, "Peony debug info: ");
     strcat(debug_text, engine_state->current_scene_name);
-    GuiContainer *container = gui::make_container(
+    gui::Container *container = gui::make_container(
       gui_state, debug_text, v2(25.0f, 25.0f)
     );
 
@@ -326,7 +326,7 @@ void debug_ui::render_debug_ui(
   }
 
   {
-    GuiContainer *container = gui::make_container(
+    gui::Container *container = gui::make_container(
       gui_state, "Entities", v2(window_size->width - 400.0f, 25.0f)
     );
     get_scene_text_representation(debug_text, engine_state);
@@ -334,7 +334,7 @@ void debug_ui::render_debug_ui(
   }
 
   {
-    GuiContainer *container = gui::make_container(
+    gui::Container *container = gui::make_container(
       gui_state, "Materials", v2(window_size->width - 600.0f, 25.0f)
     );
     get_materials_text_representation(debug_text, materials_state, engine_state);

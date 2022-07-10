@@ -270,7 +270,7 @@ namespace engine {
     renderer::State *renderer_state,
     mats::State *materials_state,
     InputState *input_state,
-    GuiState *gui_state,
+    gui::State *gui_state,
     CamerasState *cameras_state,
     LightsState *lights_state
   ) {
@@ -587,7 +587,7 @@ void engine::run_main_loop(
   renderer::State *renderer_state,
   mats::State *materials_state,
   CamerasState *cameras_state,
-  GuiState *gui_state,
+  gui::State *gui_state,
   InputState *input_state,
   LightsState *lights_state,
   TasksState *tasks_state,

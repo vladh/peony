@@ -127,7 +127,7 @@ public:
         EngineState *engine_state,
         mats::State *materials_state,
         CamerasState *cameras_state,
-        GuiState *gui_state,
+        gui::State *gui_state,
         InputState *input_state,
         GLFWwindow *window,
         WindowSize *window_size
