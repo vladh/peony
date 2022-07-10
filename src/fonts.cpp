@@ -103,8 +103,7 @@ fonts::load_glyphs(
         character->advance = iv2(glyph->advance.x, glyph->advance.y);
     }
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture_atlas->texture_name);
+    mats::activate_font_texture(texture_atlas->texture_name);
 
     for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
         if (
@@ -127,12 +126,8 @@ fonts::load_glyphs(
             continue;
         }
 
-        glTexSubImage2D(GL_TEXTURE_2D, 0, tex_coords.x, tex_coords.y,
-            character->size.x, character->size.y,
-            GL_RED, GL_UNSIGNED_BYTE, glyph->bitmap.buffer);
+        mats::push_font_texture(tex_coords, character->size, glyph->bitmap.buffer);
 
         character->tex_coords = tex_coords;
     }
-
-    glBindTexture(GL_TEXTURE_2D, 0);
 }

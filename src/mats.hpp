@@ -115,6 +115,8 @@ public:
 
     static char const * texture_type_to_string(TextureType texture_type);
     static TextureType texture_type_from_string(char const *str);
+    static void activate_font_texture(u32 texture_name);
+    static void push_font_texture(iv2 tex_coords, iv2 char_size, void const *data);
     static Texture * init_texture(
         Texture *texture,
         TextureType type,

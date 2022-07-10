@@ -101,6 +101,23 @@ mats::texture_type_from_string(char const *str)
 }
 
 
+void
+mats::activate_font_texture(u32 texture_name)
+{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, texture_name);
+}
+
+
+void
+mats::push_font_texture(iv2 tex_coords, iv2 char_size, void const *data)
+{
+    glTexSubImage2D(GL_TEXTURE_2D, 0, tex_coords.x, tex_coords.y,
+        char_size.x, char_size.y,
+        GL_RED, GL_UNSIGNED_BYTE, data);
+}
+
+
 mats::Texture *
 mats::init_texture(
     Texture *texture,
