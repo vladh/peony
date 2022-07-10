@@ -144,7 +144,12 @@ core::init_state(State *state, MemoryPool *asset_memory_pool)
         &state->renderer_state, &state->input_state, asset_memory_pool,
         state->window_size.width, state->window_size.height, state->window);
     internals::init(&state->engine_state, &state->renderer_state, &state->materials_state);
-    gui::init(asset_memory_pool, &state->gui_state, &state->input_state,
+    gui::init(asset_memory_pool,
+        &state->gui_state,
+        &state->input_state,
+        (void *)&state->renderer_state,
+        state->renderer_state.gui_texture_atlas.size,
+        &state->renderer_state.gui_font_assets,
         state->window_size.width, state->window_size.height);
     debugdraw::init(&state->debug_draw_state, asset_memory_pool);
     input::init(&state->input_state, state->window);

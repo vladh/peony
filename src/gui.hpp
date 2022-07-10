@@ -3,7 +3,6 @@
 #pragma once
 
 #include "types.hpp"
-#include "mats.hpp"
 #include "input.hpp"
 #include "fonts.hpp"
 #include "array.hpp"
@@ -20,9 +19,7 @@ public:
     static constexpr real32 LINE_SPACING_FACTOR = 1.8f;
     static constexpr real32 CONSOLE_LINE_SPACING_FACTOR = 1.2f;
 
-    static constexpr uint32 MAX_N_VERTICES = 65536;
     static constexpr uint32 VERTEX_LENGTH = 8;
-    static constexpr size_t VERTEX_SIZE = sizeof(real32) * VERTEX_LENGTH;
 
     static constexpr v2 TEXT_SHADOW_OFFSET = v2(1.0f);
 
@@ -76,15 +73,12 @@ public:
     struct State {
         // NOTE: We're holding a pointer to another state here. What does this mean?
         InputState *input_state;
+        void *renderer_state; // renderer::State *
+        Array<fonts::FontAsset> *font_assets;
+        iv2 texture_atlas_size;
 
-        shaders::Asset shader_asset;
         GLFWcursor *requested_cursor;
-        Array<fonts::FontAsset> font_assets;
-        mats::TextureAtlas texture_atlas;
-        uint32 vao;
-        uint32 vbo;
         v2 window_dimensions;
-        uint32 n_vertices_pushed;
 
         // Console
         GameConsole game_console;
@@ -106,9 +100,8 @@ public:
     );
     static void update_mouse_button(gui::State *gui_state);
     static void update_mouse(gui::State *gui_state);
-    static void start_drawing(gui::State *gui_state);
     static void clear(gui::State *gui_state);
-    static void render(gui::State *gui_state);
+    static void update(gui::State *gui_state);
     static Container * make_container(
         gui::State *gui_state, const char *title, v2 position
     );
@@ -153,6 +146,9 @@ public:
         MemoryPool *memory_pool,
         gui::State* gui_state,
         InputState *input_state,
+        void *renderer_state,
+        iv2 texture_atlas_size,
+        Array<fonts::FontAsset> *font_assets,
         uint32 window_width, uint32 window_height
     );
 

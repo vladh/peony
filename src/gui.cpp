@@ -37,35 +37,8 @@ gui::update_mouse(gui::State *gui_state)
 
 
 void
-gui::start_drawing(gui::State *gui_state)
+gui::update(gui::State *gui_state)
 {
-    glBindVertexArray(gui_state->vao);
-    glBindBuffer(GL_ARRAY_BUFFER, gui_state->vbo);
-}
-
-
-void
-gui::clear(gui::State *gui_state)
-{
-    gui_state->n_vertices_pushed = 0;
-}
-
-
-void
-gui::render(gui::State *gui_state)
-{
-    glUseProgram(gui_state->shader_asset.program);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gui_state->texture_atlas.texture_name);
-
-    if (!gui_state->shader_asset.did_set_texture_uniforms) {
-        shaders::set_int(&gui_state->shader_asset, "atlas_texture", 0);
-        gui_state->shader_asset.did_set_texture_uniforms = true;
-    }
-
-    glDrawArrays(GL_TRIANGLES, 0, gui_state->n_vertices_pushed);
-
     set_cursor(gui_state);
 }
 
@@ -124,7 +97,7 @@ gui::draw_heading(gui::State *gui_state, const char *str, v4 color)
 {
     auto bb = center_bb(v2(0.0f, 0.0f),
         gui_state->window_dimensions,
-        get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "heading"), str));
+        get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "heading"), str));
     v2 position = v2(bb.x, 90.0f);
     draw_text_shadow(gui_state, "heading", str, position, color);
     draw_text(gui_state, "heading", str, position, color);
@@ -136,7 +109,7 @@ gui::draw_toggle(gui::State *gui_state, Container *container, const char *text, 
 {
     bool32 is_pressed = false;
 
-    v2 text_dimensions = get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "body"), text);
+    v2 text_dimensions = get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "body"), text);
     v2 button_dimensions = TOGGLE_BUTTON_SIZE + BUTTON_DEFAULT_BORDER * 2.0f;
     v2 dimensions = v2(button_dimensions.x + TOGGLE_SPACING + text_dimensions.x,
         max(button_dimensions.y, text_dimensions.y));
@@ -188,9 +161,9 @@ gui::draw_toggle(gui::State *gui_state, Container *container, const char *text, 
 void
 gui::draw_named_value(gui::State *gui_state, Container *container, const char *name_text, const char *value_text)
 {
-    v2 name_text_dimensions = get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "body-bold"),
+    v2 name_text_dimensions = get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "body-bold"),
         name_text);
-    v2 value_text_dimensions = get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "body"),
+    v2 value_text_dimensions = get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "body"),
         value_text);
     // Sometimes we draw a value which is a rapidly changing number.
     // We don't want to container to wobble in size back and forth, so we round
@@ -211,7 +184,7 @@ gui::draw_named_value(gui::State *gui_state, Container *container, const char *n
 void
 gui::draw_body_text(gui::State *gui_state, Container *container, const char *text)
 {
-    v2 dimensions = get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "body"),
+    v2 dimensions = get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "body"),
         text);
     v2 position = add_element_to_container(container, dimensions);
     draw_text(gui_state, "body", text, position, LIGHT_TEXT_COLOR);
@@ -223,7 +196,7 @@ gui::draw_button(gui::State *gui_state, Container *container, const char *text)
 {
     bool32 is_pressed = false;
 
-    v2 text_dimensions = get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "body"), text);
+    v2 text_dimensions = get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "body"), text);
     v2 button_dimensions = text_dimensions + BUTTON_AUTOSIZE_PADDING + BUTTON_DEFAULT_BORDER * 2.0f;
 
     v2 position = add_element_to_container(container, button_dimensions);
@@ -262,7 +235,7 @@ gui::draw_console(gui::State *gui_state, char *console_input_text)
         return;
     }
 
-    fonts::FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, "body");
+    fonts::FontAsset *font_asset = fonts::get_by_name(gui_state->font_assets, "body");
     real32 line_height = fonts::font_unit_to_px(font_asset->height);
     real32 line_spacing = floor(line_height * CONSOLE_LINE_SPACING_FACTOR);
 
@@ -346,76 +319,18 @@ gui::init(
     MemoryPool *memory_pool,
     gui::State* gui_state,
     InputState *input_state,
+    void *renderer_state,
+    iv2 texture_atlas_size,
+    Array<fonts::FontAsset> *font_assets,
     uint32 window_width, uint32 window_height
 ) {
-    MemoryPool temp_memory_pool = {};
-
-    gui_state->font_assets = Array<fonts::FontAsset>(memory_pool, 8, "font_assets");
     gui_state->containers = Array<Container>(memory_pool, 32, "gui_containers");
     gui_state->input_state = input_state;
+    gui_state->renderer_state = renderer_state;
+    gui_state->texture_atlas_size = texture_atlas_size;
+    gui_state->font_assets = font_assets;
     gui_state->window_dimensions = v2(window_width, window_height);
-    mats::init_texture_atlas(&gui_state->texture_atlas, iv2(2000, 2000));
-
-    // Shaders
-    {
-        shaders::init_shader_asset(&gui_state->shader_asset, &temp_memory_pool,
-            "gui_generic", shaders::Type::standard, "gui_generic.vert", "gui_generic.frag", "");
-    }
-
-    // Fonts
-    {
-        FT_Library ft_library;
-
-        if (FT_Init_FreeType(&ft_library)) {
-            logs::error("Could not init FreeType");
-            return;
-        }
-
-        fonts::init_font_asset(gui_state->font_assets.push(), memory_pool, &gui_state->texture_atlas,
-            &ft_library, "body", MAIN_FONT_REGULAR, 18);
-
-        fonts::init_font_asset(gui_state->font_assets.push(), memory_pool, &gui_state->texture_atlas,
-            &ft_library, "body-bold", MAIN_FONT_BOLD, 18);
-
-        fonts::init_font_asset(gui_state->font_assets.push(), memory_pool, &gui_state->texture_atlas,
-            &ft_library, "heading", MAIN_FONT_REGULAR, 42);
-
-        fonts::init_font_asset(gui_state->font_assets.push(), memory_pool, &gui_state->texture_atlas,
-            &ft_library, "title", MAIN_FONT_REGULAR, 64);
-
-        FT_Done_FreeType(ft_library);
-    }
-
-    // VAO
-    {
-        glGenVertexArrays(1, &gui_state->vao);
-        glGenBuffers(1, &gui_state->vbo);
-        glBindVertexArray(gui_state->vao);
-        glBindBuffer(GL_ARRAY_BUFFER, gui_state->vbo);
-        glBufferData(GL_ARRAY_BUFFER, VERTEX_SIZE * MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
-
-        uint32 location;
-
-        // position (vec2)
-        location = 0;
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*)(0));
-
-        // tex_coords (vec2)
-        location = 1;
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*)(2 * sizeof(real32)));
-
-        // color (vec4)
-        location = 2;
-        glEnableVertexAttribArray(location);
-        glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, VERTEX_SIZE, (void*)(4 * sizeof(real32)));
-    }
-
-    memory::destroy_memory_pool(&temp_memory_pool);
-
     g_gui_console = &gui_state->game_console;
-
     log("Hello world!");
 }
 
@@ -438,16 +353,7 @@ gui::set_cursor(gui::State *gui_state)
 void
 gui::push_vertices(gui::State *gui_state, real32 *vertices, uint32 n_vertices)
 {
-    // VAO/VBO must have been bound by start_drawing()
-    if (gui_state->n_vertices_pushed + n_vertices > MAX_N_VERTICES) {
-        logs::error("Pushed too many GUI vertices, did you forget to call gui::clear()?");
-        return;
-    }
-    glBufferSubData(GL_ARRAY_BUFFER,
-        VERTEX_SIZE * gui_state->n_vertices_pushed,
-        VERTEX_SIZE * n_vertices, vertices);
-
-    gui_state->n_vertices_pushed += n_vertices;
+    renderer::push_gui_vertices(gui_state->renderer_state, vertices, n_vertices);
 }
 
 
@@ -576,7 +482,7 @@ gui::draw_text(
     v2 position,
     v4 color
 ) {
-    fonts::FontAsset *font_asset = fonts::get_by_name(&gui_state->font_assets, font_name);
+    fonts::FontAsset *font_asset = fonts::get_by_name(gui_state->font_assets, font_name);
 
     real32 line_height = fonts::font_unit_to_px(font_asset->height);
     real32 line_spacing = line_height * LINE_SPACING_FACTOR;
@@ -611,10 +517,10 @@ gui::draw_text(
         real32 char_x = curr_x + character->bearing.x;
         real32 char_y = curr_y + fonts::font_unit_to_px(font_asset->height) - character->bearing.y;
 
-        real32 tex_x = (real32)character->tex_coords.x / gui_state->texture_atlas.size.x;
-        real32 tex_y = (real32)character->tex_coords.y / gui_state->texture_atlas.size.y;
-        real32 tex_w = (real32)character->size.x / gui_state->texture_atlas.size.x;
-        real32 tex_h = (real32)character->size.y / gui_state->texture_atlas.size.y;
+        real32 tex_x = (real32)character->tex_coords.x / gui_state->texture_atlas_size.x;
+        real32 tex_y = (real32)character->tex_coords.y / gui_state->texture_atlas_size.y;
+        real32 tex_w = (real32)character->size.x / gui_state->texture_atlas_size.x;
+        real32 tex_h = (real32)character->size.y / gui_state->texture_atlas_size.y;
 
         real32 w = (real32)character->size.x;
         real32 h = (real32)character->size.y;
@@ -634,9 +540,9 @@ gui::draw_text(
         real32 y0 = (real32)gui_state->window_dimensions.y - char_y;
         real32 y1 = y0 - h;
 
-        real32 tex_x0 = (real32)tex_x;
+        real32 tex_x0 = tex_x;
         real32 tex_x1 = tex_x0 + tex_w;
-        real32 tex_y0 = (real32)tex_y;
+        real32 tex_y0 = tex_y;
         real32 tex_y1 = tex_y0 + tex_h;
 
         real32 vertices[VERTEX_LENGTH * 6] = {
@@ -672,7 +578,7 @@ gui::draw_container(gui::State *gui_state, Container *container)
         v2(container->dimensions.x, container->title_bar_height),
         MAIN_DARKEN_COLOR);
 
-    v2 text_dimensions = get_text_dimensions(fonts::get_by_name(&gui_state->font_assets, "body"),
+    v2 text_dimensions = get_text_dimensions(fonts::get_by_name(gui_state->font_assets, "body"),
         container->title);
     v2 centered_text_position = center_bb(container->position,
         v2(container->dimensions.x, container->title_bar_height),
