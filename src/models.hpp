@@ -104,28 +104,8 @@ public:
         drawable::Pass render_pass,
         EntityHandle entity_handle
     );
-    static bool32 is_mesh_valid(geom::Mesh *mesh);
-    static void destroy_mesh(geom::Mesh *mesh);
 
 private:
-    static void make_plane(
-        MemoryPool *memory_pool,
-        uint32 x_size, uint32 z_size,
-        uint32 n_x_segments, uint32 n_z_segments,
-        uint32 *n_vertices, uint32 *n_indices,
-        geom::Vertex **vertex_data, uint32 **index_data
-    );
-    static void make_sphere(
-        MemoryPool *memory_pool,
-        uint32 n_x_segments, uint32 n_y_segments,
-        uint32 *n_vertices, uint32 *n_indices,
-        geom::Vertex **vertex_data, uint32 **index_data
-    );
-    static void setup_mesh_vertex_buffers(
-        geom::Mesh *mesh,
-        geom::Vertex *vertex_data, uint32 n_vertices,
-        uint32 *index_data, uint32 n_indices
-    );
     static bool32 is_bone_only_node(aiNode *node);
     static aiNode * find_root_bone(const aiScene *scene);
     static void add_bone_tree_to_animation_component(

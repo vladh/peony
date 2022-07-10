@@ -30,4 +30,25 @@ public:
         uint32 n_vertices;
         uint32 n_indices;
     };
+
+    static void setup_mesh_vertex_buffers(
+        Mesh *mesh,
+        Vertex *vertex_data, uint32 n_vertices,
+        uint32 *index_data, uint32 n_indices
+    );
+    static bool32 is_mesh_valid(Mesh *mesh);
+    static void destroy_mesh(Mesh *mesh);
+    static void make_plane(
+        MemoryPool *memory_pool,
+        uint32 x_size, uint32 z_size,
+        uint32 n_x_segments, uint32 n_z_segments,
+        uint32 *n_vertices, uint32 *n_indices,
+        Vertex **vertex_data, uint32 **index_data
+    );
+    static void make_sphere(
+        MemoryPool *memory_pool,
+        uint32 n_x_segments, uint32 n_y_segments,
+        uint32 *n_vertices, uint32 *n_indices,
+        Vertex **vertex_data, uint32 **index_data
+    );
 };
