@@ -49,10 +49,10 @@ public:
     static void draw_point(v3 position, real32 size, v4 color);
     static void clear();
     static void render();
-    static void init(MemoryPool *memory_pool);
+    static void init(debugdraw::State *debug_draw_state, MemoryPool *memory_pool);
 
 private:
     static void push_vertices(DebugDrawVertex vertices[], uint32 n_vertices);
 
-    static debugdraw::State state;
+    static debugdraw::State *state;
 };

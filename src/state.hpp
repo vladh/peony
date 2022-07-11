@@ -30,6 +30,7 @@ struct State {
   AnimState anim_state;
   mats::State materials_state;
   TasksState tasks_state;
+  debugdraw::State debug_draw_state;
   BehaviorState behavior_state;
 };
 
