@@ -173,7 +173,6 @@ namespace debug_ui {
 
 void debug_ui::render_debug_ui(
   EngineState *engine_state,
-  renderer::State *renderer_state,
   mats::State *materials_state,
   InputState *input_state,
   renderer::WindowSize *window_size
@@ -247,11 +246,10 @@ void debug_ui::render_debug_ui(
 
     if (gui::draw_toggle(
       container, "Wireframe mode",
-      &renderer_state->should_use_wireframe
+      renderer::should_use_wireframe()
     )) {
-      renderer_state->should_use_wireframe =
-        !renderer_state->should_use_wireframe;
-      if (renderer_state->should_use_wireframe) {
+      renderer::set_should_use_wireframe(!renderer::should_use_wireframe());
+      if (renderer::should_use_wireframe()) {
         gui::set_heading("Wireframe mode on.", 1.0f, 1.0f, 1.0f);
       } else {
         gui::set_heading("Wireframe mode off.", 1.0f, 1.0f, 1.0f);
@@ -259,7 +257,7 @@ void debug_ui::render_debug_ui(
     }
 
     if (gui::draw_toggle(
-      container, "FPS limit", &engine_state->should_limit_fps
+      container, "FPS limit", engine_state->should_limit_fps
     )) {
       engine_state->should_limit_fps = !engine_state->should_limit_fps;
       if (engine_state->should_limit_fps) {
@@ -271,7 +269,7 @@ void debug_ui::render_debug_ui(
 
     if (gui::draw_toggle(
       container, "Manual frame advance",
-      &engine_state->is_manual_frame_advance_enabled
+      engine_state->is_manual_frame_advance_enabled
     )) {
       engine_state->is_manual_frame_advance_enabled =
         !engine_state->is_manual_frame_advance_enabled;
@@ -287,7 +285,7 @@ void debug_ui::render_debug_ui(
     }
 
     if (gui::draw_toggle(
-      container, "Pause", &engine_state->should_pause
+      container, "Pause", engine_state->should_pause
     )) {
       engine_state->should_pause = !engine_state->should_pause;
       if (engine_state->should_pause) {

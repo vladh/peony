@@ -106,7 +106,6 @@ namespace engine {
   pny_internal bool32 load_scene(
     const char *scene_name,
     EngineState *engine_state,
-    renderer::State *renderer_state,
     mats::State *materials_state
   ) {
     // If the current scene has not finished loading, we can neither
@@ -160,7 +159,6 @@ namespace engine {
       peony_parser_utils::create_material_from_peony_file_entry(
         materials_state->materials.push(),
         &material_file->entries[0],
-        &renderer_state->builtin_textures,
         &temp_memory_pool
       );
     }
@@ -212,7 +210,6 @@ namespace engine {
 
   pny_internal void handle_console_command(
     EngineState *engine_state,
-    renderer::State *renderer_state,
     mats::State *materials_state,
     InputState *input_state
   ) {
@@ -238,10 +235,9 @@ namespace engine {
         "help: show help"
       );
     } else if (pstr_eq(command, "loadscene")) {
-      load_scene(arguments, engine_state, renderer_state, materials_state);
+      load_scene(arguments, engine_state, materials_state);
     } else if (pstr_eq(command, "renderdebug")) {
-      renderer_state->renderdebug_displayed_texture_type =
-        mats::texture_type_from_string(arguments);
+      renderer::set_renderdebug_displayed_texture_type(mats::texture_type_from_string(arguments));
     } else {
       gui::log("Unknown command: %s", command);
     }
@@ -267,7 +263,6 @@ namespace engine {
   pny_internal void process_input(
     GLFWwindow *window,
     EngineState *engine_state,
-    renderer::State *renderer_state,
     mats::State *materials_state,
     InputState *input_state,
     CamerasState *cameras_state,
@@ -285,7 +280,7 @@ namespace engine {
 
     if (input::is_key_now_down(input_state, GLFW_KEY_ENTER)) {
       handle_console_command(
-        engine_state, renderer_state, materials_state, input_state
+        engine_state, materials_state, input_state
       );
     }
 
@@ -349,7 +344,6 @@ namespace engine {
       load_scene(
         engine_state->current_scene_name,
         engine_state,
-        renderer_state,
         materials_state
       );
     }
@@ -367,7 +361,7 @@ namespace engine {
     }
 
     if (input::is_key_now_down(input_state, GLFW_KEY_BACKSPACE)) {
-      renderer_state->should_hide_ui = !renderer_state->should_hide_ui;
+      renderer::set_should_hide_ui(!renderer::should_hide_ui());
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_N)) {
@@ -472,7 +466,6 @@ namespace engine {
 
   pny_internal void update(
     EngineState *engine_state,
-    renderer::State *renderer_state,
     mats::State *materials_state,
     CamerasState *cameras_state,
     TasksState *tasks_state,
@@ -482,7 +475,7 @@ namespace engine {
     renderer::WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
-      load_scene(DEFAULT_SCENE, engine_state, renderer_state, materials_state);
+      load_scene(DEFAULT_SCENE, engine_state, materials_state);
       engine_state->was_world_ever_loaded = true;
     }
 
@@ -583,7 +576,6 @@ namespace engine {
 
 void engine::run_main_loop(
   EngineState *engine_state,
-  renderer::State *renderer_state,
   mats::State *materials_state,
   CamerasState *cameras_state,
   InputState *input_state,
@@ -601,7 +593,6 @@ void engine::run_main_loop(
     process_input(
       window,
       engine_state,
-      renderer_state,
       materials_state,
       input_state,
       cameras_state,
@@ -621,7 +612,6 @@ void engine::run_main_loop(
 
       update(
         engine_state,
-        renderer_state,
         materials_state,
         cameras_state,
         tasks_state,

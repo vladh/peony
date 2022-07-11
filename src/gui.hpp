@@ -104,7 +104,7 @@ public:
     static bool32 draw_toggle(
         Container *container,
         const char *text,
-        bool32 *toggle_state
+        bool32 toggle_state
     );
     static void draw_named_value(
         Container *container,

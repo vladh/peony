@@ -11,7 +11,6 @@
 namespace debug_ui {
   void render_debug_ui(
     EngineState *engine_state,
-    renderer::State *renderer_state,
     mats::State *materials_state,
     InputState *input_state,
     renderer::WindowSize *window_size

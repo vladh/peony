@@ -500,8 +500,8 @@ renderer::render(
     {
         if (!renderer::state->should_hide_ui) {
             glEnable(GL_BLEND);
-            debug_ui::render_debug_ui(engine_state, renderer::state,
-                materials_state, input_state, window_size);
+            debug_ui::render_debug_ui(engine_state, materials_state,
+                input_state, window_size);
             glDisable(GL_BLEND);
         }
     }
@@ -626,6 +626,69 @@ renderer::render_gui()
     }
 
     glDrawArrays(GL_TRIANGLES, 0, renderer::state->gui_n_vertices_pushed);
+}
+
+
+bool
+renderer::should_use_wireframe()
+{
+    return renderer::state->should_use_wireframe;
+}
+
+
+void
+renderer::set_should_use_wireframe(bool val)
+{
+    renderer::state->should_use_wireframe = val;
+}
+
+
+renderer::BuiltinTextures *
+renderer::get_builtin_textures()
+{
+    return &renderer::state->builtin_textures;
+}
+
+
+shaders::Asset *
+renderer::get_standard_depth_shader_asset()
+{
+    return &renderer::state->standard_depth_shader_asset;
+}
+
+
+iv2
+renderer::get_gui_texture_atlas_size()
+{
+    return renderer::state->gui_texture_atlas.size;
+}
+
+
+Array<fonts::FontAsset> *
+renderer::get_gui_font_assets()
+{
+    return &renderer::state->gui_font_assets;
+}
+
+
+void
+renderer::set_renderdebug_displayed_texture_type(mats::TextureType val)
+{
+    renderer::state->renderdebug_displayed_texture_type = val;
+}
+
+
+bool
+renderer::should_hide_ui()
+{
+    return renderer::state->should_hide_ui;
+}
+
+
+void
+renderer::set_should_hide_ui(bool val)
+{
+    renderer::state->should_hide_ui = val;
 }
 
 

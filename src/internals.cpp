@@ -9,11 +9,10 @@
 
 void internals::create_internal_materials(
   EngineState *engine_state,
-  renderer::State *renderer_state,
   mats::State *materials_state
 ) {
   MemoryPool temp_memory_pool = {};
-  renderer::BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
+  auto *builtin_textures = renderer::get_builtin_textures();
 
   // unknown
   {
@@ -136,7 +135,7 @@ void internals::create_internal_materials(
     #if USE_FOG
       mats::add_texture_to_material(
         material,
-        *renderer_state->l_depth_texture, "l_depth_texture"
+        *builtin_textures->l_depth_texture, "l_depth_texture"
       );
     #endif
   }
@@ -154,47 +153,47 @@ void internals::create_internal_materials(
     );
 
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.g_position_texture, "g_position_texture"
+      material, *builtin_textures->g_position_texture, "g_position_texture"
     );
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.g_normal_texture, "g_normal_texture"
+      material, *builtin_textures->g_normal_texture, "g_normal_texture"
     );
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.g_albedo_texture, "g_albedo_texture"
+      material, *builtin_textures->g_albedo_texture, "g_albedo_texture"
     );
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.g_pbr_texture, "g_pbr_texture"
+      material, *builtin_textures->g_pbr_texture, "g_pbr_texture"
     );
 
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.l_color_texture, "l_color_texture"
+      material, *builtin_textures->l_color_texture, "l_color_texture"
     );
     mats::add_texture_to_material(
       material,
-      *renderer_state->builtin_textures.l_bright_color_texture,
+      *builtin_textures->l_bright_color_texture,
       "l_bright_color_texture"
     );
 
     #if USE_FOG
       mats::add_texture_to_material(
-        material, *renderer_state->builtin_textures.l_depth_texture, "l_depth_texture"
+        material, *builtin_textures->l_depth_texture, "l_depth_texture"
       );
     #endif
 
     #if USE_BLOOM
       mats::add_texture_to_material(
-        material, *renderer_state->builtin_textures.blur1_texture, "blur1_texture"
+        material, *builtin_textures->blur1_texture, "blur1_texture"
       );
       mats::add_texture_to_material(
-        material, *renderer_state->builtin_textures.blur2_texture, "blur2_texture"
+        material, *builtin_textures->blur2_texture, "blur2_texture"
       );
     #endif
 
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.shadowmaps_3d_texture, "shadowmaps_3d"
+      material, *builtin_textures->shadowmaps_3d_texture, "shadowmaps_3d"
     );
     mats::add_texture_to_material(
-      material, *renderer_state->builtin_textures.shadowmaps_2d_texture, "shadowmaps_2d"
+      material, *builtin_textures->shadowmaps_2d_texture, "shadowmaps_2d"
     );
   }
 
@@ -221,13 +220,12 @@ void internals::create_internal_materials(
 
 void internals::create_internal_entities(
   EngineState *engine_state,
-  renderer::State *renderer_state,
   mats::State *materials_state
 ) {
   MemoryPool temp_memory_pool = {};
 
   shaders::init_shader_asset(
-    &renderer_state->standard_depth_shader_asset,
+    renderer::get_standard_depth_shader_asset(),
     &temp_memory_pool,
     "standard_depth", shaders::Type::depth,
     "standard_depth.vert", "standard_depth.frag",
@@ -318,7 +316,7 @@ void internals::create_internal_entities(
       &engine_state->entity_set, "screenquad_postprocessing"
     );
     models::ModelLoader *model_loader = engine_state->model_loaders.push();
-    models::EntityLoader *entity_loader = 
+    models::EntityLoader *entity_loader =
       engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_postprocessing");
     models::init_entity_loader(
@@ -337,7 +335,7 @@ void internals::create_internal_entities(
       &engine_state->entity_set, "screenquad_renderdebug"
     );
     models::ModelLoader *model_loader = engine_state->model_loaders.push();
-    models::EntityLoader *entity_loader = 
+    models::EntityLoader *entity_loader =
       engine_state->entity_loader_set.loaders[entity->handle];
     models::init_model_loader(model_loader, "builtin:screenquad_renderdebug");
     models::init_entity_loader(
@@ -387,17 +385,14 @@ void internals::create_internal_entities(
 
 void internals::init(
   EngineState *engine_state,
-  renderer::State *renderer_state,
   mats::State *materials_state
 ) {
   create_internal_materials(
     engine_state,
-    renderer_state,
     materials_state
   );
   create_internal_entities(
     engine_state,
-    renderer_state,
     materials_state
   );
 }
