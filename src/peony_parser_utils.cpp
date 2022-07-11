@@ -90,7 +90,6 @@ void peony_parser_utils::get_unique_string_values_for_prop_name(
 void peony_parser_utils::create_material_from_peony_file_entry(
   mats::Material *material,
   PeonyFileEntry *entry,
-  renderer::BuiltinTextures *builtin_textures,
   MemoryPool *memory_pool
 ) {
   mats::init_material(material, entry->name);
@@ -140,6 +139,8 @@ void peony_parser_utils::create_material_from_peony_file_entry(
       );
     }
   }
+
+  auto *builtin_textures = renderer::get_builtin_textures();
 
   // Iterate through all props to get textures, since those could have any name
   range (0, entry->n_props) {

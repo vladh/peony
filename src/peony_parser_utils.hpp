@@ -28,7 +28,6 @@ namespace peony_parser_utils {
   void create_material_from_peony_file_entry(
     mats::Material *material,
     PeonyFileEntry *entry,
-    renderer::BuiltinTextures *builtin_textures,
     MemoryPool *memory_pool
   );
   void create_model_loader_from_peony_file_entry(

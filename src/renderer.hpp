@@ -144,9 +144,18 @@ public:
         GLFWwindow *window
     );
     static void start_drawing_gui();
-    static void render_gui();
     static void push_gui_vertices(f32 *vertices, u32 n_vertices);
     static void clear_gui_vertices();
+    static void render_gui();
+    static bool should_use_wireframe();
+    static void set_should_use_wireframe(bool val);
+    static renderer::BuiltinTextures * get_builtin_textures();
+    static shaders::Asset * get_standard_depth_shader_asset();
+    static iv2 get_gui_texture_atlas_size();
+    static Array<fonts::FontAsset> * get_gui_font_assets();
+    static void set_renderdebug_displayed_texture_type(mats::TextureType val);
+    static bool should_hide_ui();
+    static void set_should_hide_ui(bool val);
 
 private:
     static void init_g_buffer(

@@ -121,7 +121,7 @@ gui::tick_heading()
 
 
 bool32
-gui::draw_toggle(Container *container, const char *text, bool32 *toggle_state)
+gui::draw_toggle(Container *container, const char *text, bool32 toggle_state)
 {
     bool32 is_pressed = false;
 
@@ -138,7 +138,7 @@ gui::draw_toggle(Container *container, const char *text, bool32 *toggle_state)
         text_centered_position.y);
 
     v4 button_color;
-    if (*toggle_state) {
+    if (toggle_state) {
         button_color = MAIN_COLOR;
     } else {
         button_color = LIGHT_COLOR;
@@ -146,7 +146,7 @@ gui::draw_toggle(Container *container, const char *text, bool32 *toggle_state)
 
     if (input::is_mouse_in_bb(gui::state->input_state, position, button_bottomright)) {
         request_cursor(gui::state->input_state->hand_cursor);
-        if (*toggle_state) {
+        if (toggle_state) {
             button_color = MAIN_HOVER_COLOR;
         } else {
             button_color = LIGHT_HOVER_COLOR;
@@ -157,7 +157,7 @@ gui::draw_toggle(Container *container, const char *text, bool32 *toggle_state)
         }
 
         if (input::is_mouse_button_down(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
-            if (*toggle_state) {
+            if (toggle_state) {
                 button_color = MAIN_ACTIVE_COLOR;
             } else {
                 button_color = LIGHT_ACTIVE_COLOR;
