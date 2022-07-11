@@ -174,7 +174,6 @@ namespace debug_ui {
 void debug_ui::render_debug_ui(
   EngineState *engine_state,
   renderer::State *renderer_state,
-  gui::State *gui_state,
   mats::State *materials_state,
   InputState *input_state,
   renderer::WindowSize *window_size
@@ -184,164 +183,152 @@ void debug_ui::render_debug_ui(
 
   renderer::start_drawing_gui();
 
-  if (gui_state->heading_opacity > 0.0f) {
-    gui::draw_heading(
-      gui_state,
-      gui_state->heading_text,
-      v4(0.0f, 0.33f, 0.93f, gui_state->heading_opacity)
-    );
-    if (gui_state->heading_fadeout_delay > 0.0f) {
-      gui_state->heading_fadeout_delay -= (real32)(*engine::g_dt);
-    } else {
-      gui_state->heading_opacity -=
-        gui_state->heading_fadeout_duration * (real32)(*engine::g_dt);
-    }
-  }
+  gui::tick_heading();
 
   {
     strcpy(debug_text, "Peony debug info: ");
     strcat(debug_text, engine_state->current_scene_name);
     gui::Container *container = gui::make_container(
-      gui_state, debug_text, v2(25.0f, 25.0f)
+      debug_text, v2(25.0f, 25.0f)
     );
 
     snprintf(
       debug_text, dt_size, "%ux%u", window_size->width, window_size->height
     );
-    gui::draw_named_value(gui_state, container, "screen size", debug_text);
+    gui::draw_named_value(container, "screen size", debug_text);
 
     snprintf(
       debug_text, dt_size, "%ux%u",
       window_size->screencoord_width, window_size->screencoord_height
     );
-    gui::draw_named_value(gui_state, container, "window size", debug_text);
+    gui::draw_named_value(container, "window size", debug_text);
 
     snprintf(debug_text, dt_size, "%u fps", engine_state->perf_counters.last_fps);
-    gui::draw_named_value(gui_state, container, "fps", debug_text);
+    gui::draw_named_value(container, "fps", debug_text);
 
     snprintf(
       debug_text, dt_size, "%.2f ms", engine_state->perf_counters.dt_average * 1000.0f
     );
-    gui::draw_named_value(gui_state, container, "dt", debug_text);
+    gui::draw_named_value(container, "dt", debug_text);
 
     snprintf(debug_text, dt_size, "%.2f", 1.0f + engine_state->timescale_diff);
-    gui::draw_named_value(gui_state, container, "ts", debug_text);
+    gui::draw_named_value(container, "ts", debug_text);
 
     snprintf(debug_text, dt_size, engine_state->is_world_loaded ? "yes" : "no");
-    gui::draw_named_value(gui_state, container, "is_world_loaded", debug_text);
+    gui::draw_named_value(container, "is_world_loaded", debug_text);
 
     snprintf(debug_text, dt_size, "%u", materials_state->materials.length);
     gui::draw_named_value(
-      gui_state, container, "materials.length", debug_text
+      container, "materials.length", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", engine_state->entity_set.entities.length);
-    gui::draw_named_value(gui_state, container, "entities.length", debug_text);
+    gui::draw_named_value(container, "entities.length", debug_text);
 
     snprintf(debug_text, dt_size, "%u", engine_state->model_loaders.length);
     gui::draw_named_value(
-      gui_state, container, "model_loaders.length", debug_text
+      container, "model_loaders.length", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", engine_state->n_valid_model_loaders);
     gui::draw_named_value(
-      gui_state, container, "n_valid_model_loaders", debug_text
+      container, "n_valid_model_loaders", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", engine_state->entity_loader_set.loaders.length);
     gui::draw_named_value(
-      gui_state, container, "entity_loader_set.length", debug_text
+      container, "entity_loader_set.length", debug_text
     );
 
     snprintf(debug_text, dt_size, "%u", engine_state->n_valid_entity_loaders);
     gui::draw_named_value(
-      gui_state, container, "n_valid_entity_loaders", debug_text
+      container, "n_valid_entity_loaders", debug_text
     );
 
     if (gui::draw_toggle(
-      gui_state, container, "Wireframe mode",
+      container, "Wireframe mode",
       &renderer_state->should_use_wireframe
     )) {
       renderer_state->should_use_wireframe =
         !renderer_state->should_use_wireframe;
       if (renderer_state->should_use_wireframe) {
-        gui::set_heading(gui_state, "Wireframe mode on.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading("Wireframe mode on.", 1.0f, 1.0f, 1.0f);
       } else {
-        gui::set_heading(gui_state, "Wireframe mode off.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading("Wireframe mode off.", 1.0f, 1.0f, 1.0f);
       }
     }
 
     if (gui::draw_toggle(
-      gui_state, container, "FPS limit", &engine_state->should_limit_fps
+      container, "FPS limit", &engine_state->should_limit_fps
     )) {
       engine_state->should_limit_fps = !engine_state->should_limit_fps;
       if (engine_state->should_limit_fps) {
-        gui::set_heading(gui_state, "FPS limit enabled.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading("FPS limit enabled.", 1.0f, 1.0f, 1.0f);
       } else {
-        gui::set_heading(gui_state, "FPS limit disabled.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading("FPS limit disabled.", 1.0f, 1.0f, 1.0f);
       }
     }
 
     if (gui::draw_toggle(
-      gui_state, container, "Manual frame advance",
+      container, "Manual frame advance",
       &engine_state->is_manual_frame_advance_enabled
     )) {
       engine_state->is_manual_frame_advance_enabled =
         !engine_state->is_manual_frame_advance_enabled;
       if (engine_state->is_manual_frame_advance_enabled) {
         gui::set_heading(
-          gui_state, "Manual frame advance enabled.", 1.0f, 1.0f, 1.0f
+          "Manual frame advance enabled.", 1.0f, 1.0f, 1.0f
         );
       } else {
         gui::set_heading(
-          gui_state, "Manual frame advance disabled.", 1.0f, 1.0f, 1.0f
+          "Manual frame advance disabled.", 1.0f, 1.0f, 1.0f
         );
       }
     }
 
     if (gui::draw_toggle(
-      gui_state, container, "Pause", &engine_state->should_pause
+      container, "Pause", &engine_state->should_pause
     )) {
       engine_state->should_pause = !engine_state->should_pause;
       if (engine_state->should_pause) {
-        gui::set_heading(gui_state, "Pause enabled.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading("Pause enabled.", 1.0f, 1.0f, 1.0f);
       } else {
-        gui::set_heading(gui_state, "Pause disabled.", 1.0f, 1.0f, 1.0f);
+        gui::set_heading("Pause disabled.", 1.0f, 1.0f, 1.0f);
       }
     }
 
     if (gui::draw_button(
-      gui_state, container, "Reload shaders"
+      container, "Reload shaders"
     )) {
       mats::reload_shaders(&materials_state->materials);
-      gui::set_heading(gui_state, "Shaders reloaded.", 1.0f, 1.0f, 1.0f);
+      gui::set_heading("Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (gui::draw_button(
-      gui_state, container, "Delete PBO"
+      container, "Delete PBO"
     )) {
       mats::delete_persistent_pbo(&materials_state->persistent_pbo);
-      gui::set_heading(gui_state, "PBO deleted.", 1.0f, 1.0f, 1.0f);
+      gui::set_heading("PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }
 
   {
     gui::Container *container = gui::make_container(
-      gui_state, "Entities", v2(window_size->width - 400.0f, 25.0f)
+      "Entities", v2(window_size->width - 400.0f, 25.0f)
     );
     get_scene_text_representation(debug_text, engine_state);
-    gui::draw_body_text(gui_state, container, debug_text);
+    gui::draw_body_text(container, debug_text);
   }
 
   {
     gui::Container *container = gui::make_container(
-      gui_state, "Materials", v2(window_size->width - 600.0f, 25.0f)
+      "Materials", v2(window_size->width - 600.0f, 25.0f)
     );
     get_materials_text_representation(debug_text, materials_state, engine_state);
-    gui::draw_body_text(gui_state, container, debug_text);
+    gui::draw_body_text(container, debug_text);
   }
 
-  gui::draw_console(gui_state, input_state->text_input);
+  gui::draw_console(input_state->text_input);
   renderer::render_gui();
-  gui::update(gui_state);
+  gui::update();
 }

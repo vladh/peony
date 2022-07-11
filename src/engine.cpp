@@ -270,7 +270,6 @@ namespace engine {
     renderer::State *renderer_state,
     mats::State *materials_state,
     InputState *input_state,
-    gui::State *gui_state,
     CamerasState *cameras_state,
     LightsState *lights_state
   ) {
@@ -587,7 +586,6 @@ void engine::run_main_loop(
   renderer::State *renderer_state,
   mats::State *materials_state,
   CamerasState *cameras_state,
-  gui::State *gui_state,
   InputState *input_state,
   LightsState *lights_state,
   TasksState *tasks_state,
@@ -606,7 +604,6 @@ void engine::run_main_loop(
       renderer_state,
       materials_state,
       input_state,
-      gui_state,
       cameras_state,
       lights_state
     );
@@ -637,7 +634,6 @@ void engine::run_main_loop(
         engine_state,
         materials_state,
         cameras_state,
-        gui_state,
         input_state,
         window,
         window_size

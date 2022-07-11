@@ -240,7 +240,6 @@ renderer::render(
     EngineState *engine_state,
     mats::State *materials_state,
     CamerasState *cameras_state,
-    gui::State *gui_state,
     InputState *input_state,
     GLFWwindow *window,
     WindowSize *window_size
@@ -501,7 +500,7 @@ renderer::render(
     {
         if (!renderer::state->should_hide_ui) {
             glEnable(GL_BLEND);
-            debug_ui::render_debug_ui(engine_state, renderer::state, gui_state,
+            debug_ui::render_debug_ui(engine_state, renderer::state,
                 materials_state, input_state, window_size);
             glDisable(GL_BLEND);
         }

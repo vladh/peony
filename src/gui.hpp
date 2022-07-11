@@ -75,6 +75,7 @@ public:
         InputState *input_state;
         Array<fonts::FontAsset> *font_assets;
         iv2 texture_atlas_size;
+        GameConsole console;
 
         GLFWcursor *requested_cursor;
         v2 window_dimensions;
@@ -91,52 +92,32 @@ public:
     };
 
     static void update_screen_dimensions(
-        gui::State *gui_state,
         uint32 new_window_width, uint32 new_window_height
     );
-    static void update_mouse_button(gui::State *gui_state);
-    static void update_mouse(gui::State *gui_state);
-    static void clear(gui::State *gui_state);
-    static void update(gui::State *gui_state);
-    static Container * make_container(
-        gui::State *gui_state, const char *title, v2 position
-    );
-    static void draw_heading(
-        gui::State *gui_state,
-        const char *str,
-        v4 color
-    );
+    static void update_mouse_button();
+    static void update_mouse();
+    static void clear();
+    static void update();
+    static Container * make_container(const char *title, v2 position);
+    static void draw_heading(const char *str, v4 color);
+    static void tick_heading();
     static bool32 draw_toggle(
-        gui::State *gui_state,
         Container *container,
         const char *text,
         bool32 *toggle_state
     );
     static void draw_named_value(
-        gui::State *gui_state,
         Container *container,
         const char *name_text,
         const char *value_text
     );
-    static void draw_body_text(
-        gui::State *gui_state,
-        Container *container,
-        const char *text
-    );
-    static bool32 draw_button(
-        gui::State *gui_state,
-        Container *container,
-        const char *text
-    );
-    static void draw_console(
-        gui::State *gui_state,
-        char *console_input_text
-    );
+    static void draw_body_text(Container *container, const char *text);
+    static bool32 draw_button(Container *container, const char *text);
+    static void draw_console(char *console_input_text);
     static bool is_console_enabled();
     static void set_console_enabled(bool val);
     static void log(const char *format, ...);
     static void set_heading(
-        gui::State *gui_state,
         const char *text, real32 opacity,
         real32 fadeout_duration, real32 fadeout_delay
     );
@@ -150,37 +131,27 @@ public:
     );
 
 private:
-    static void request_cursor(gui::State *gui_state, GLFWcursor *cursor);
-    static void set_cursor(gui::State *gui_state);
-    static void push_vertices(gui::State *gui_state, real32 *vertices, uint32 n_vertices);
+    static void request_cursor(GLFWcursor *cursor);
+    static void set_cursor();
+    static void push_vertices(real32 *vertices, uint32 n_vertices);
     static v2 get_text_dimensions(fonts::FontAsset *font_asset, char const *str);
     static v2 center_bb(v2 container_position, v2 container_dimensions, v2 element_dimensions);
     static v2 add_element_to_container(Container *container, v2 element_dimensions);
-    static void draw_rect(gui::State *gui_state, v2 position, v2 dimensions, v4 color);
+    static void draw_rect(v2 position, v2 dimensions, v4 color);
     static void draw_text(
-        gui::State *gui_state,
         char const *font_name, char const *str,
         v2 position,
         v4 color
     );
     static void draw_text_shadow(
-        gui::State *gui_state,
         char const *font_name, char const *str,
         v2 position,
         v4 color
     );
-    static void draw_container(gui::State *gui_state, Container *container);
-    static void draw_line(
-        gui::State *gui_state,
-        v2 start, v2 end,
-        real32 thickness, v4 color
-    );
-    static void draw_frame(
-        gui::State *gui_state,
-        v2 position, v2 bottomright,
-        v2 thickness, v4 color
-    );
+    static void draw_container(Container *container);
+    static void draw_line(v2 start, v2 end, real32 thickness, v4 color);
+    static void draw_frame(v2 position, v2 bottomright, v2 thickness, v4 color);
 
-    static gui::GameConsole con;
+    static gui::State *state;
 };
 
