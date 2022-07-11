@@ -275,11 +275,11 @@ namespace engine {
     LightsState *lights_state
   ) {
     if (input::is_key_now_down(input_state, GLFW_KEY_GRAVE_ACCENT)) {
-      if (gui::con.is_enabled) {
-        gui::con.is_enabled = false;
+      if (gui::is_console_enabled()) {
+        gui::set_console_enabled(false);
         input::disable_text_input(input_state);
       } else {
-        gui::con.is_enabled = true;
+        gui::set_console_enabled(true);
         input::enable_text_input(input_state);
       }
     }
@@ -343,7 +343,7 @@ namespace engine {
 
     if (input::is_key_now_down(input_state, GLFW_KEY_C)) {
       input_state->is_cursor_enabled = !input_state->is_cursor_enabled;
-      renderer::update_drawing_options(renderer_state, input_state, window);
+      renderer::update_drawing_options(input_state, window);
     }
 
     if (input::is_key_now_down(input_state, GLFW_KEY_R)) {
@@ -634,7 +634,6 @@ void engine::run_main_loop(
         window_size
       );
       renderer::render(
-        renderer_state,
         engine_state,
         materials_state,
         cameras_state,

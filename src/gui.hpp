@@ -132,6 +132,8 @@ public:
         gui::State *gui_state,
         char *console_input_text
     );
+    static bool is_console_enabled();
+    static void set_console_enabled(bool val);
     static void log(const char *format, ...);
     static void set_heading(
         gui::State *gui_state,
@@ -179,7 +181,6 @@ private:
         v2 thickness, v4 color
     );
 
-public:
     static gui::GameConsole con;
 };
 
