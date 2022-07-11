@@ -54,7 +54,6 @@ core::run()
         &state->renderer_state,
         &state->materials_state,
         &state->cameras_state,
-        &state->gui_state,
         &state->input_state,
         &state->lights_state,
         &state->tasks_state,
@@ -80,7 +79,7 @@ core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
         state->cameras_state.camera_active, state->window_size.width, state->window_size.height);
     cameras::update_ui_matrices(
         state->cameras_state.camera_active, state->window_size.width, state->window_size.height);
-    gui::update_screen_dimensions(&state->gui_state, state->window_size.width, state->window_size.height);
+    gui::update_screen_dimensions(state->window_size.width, state->window_size.height);
     renderer::resize_renderer_buffers(
         asset_memory_pool, &state->materials_state.materials, &state->renderer_state.builtin_textures,
         width, height);
@@ -94,7 +93,7 @@ core::mouse_button_callback(GLFWwindow *window, int button, int action, int mods
     State *state = memory_and_state->state;
 
     input::update_mouse_button(&state->input_state, button, action, mods);
-    gui::update_mouse_button(&state->gui_state);
+    gui::update_mouse_button();
 }
 
 
@@ -108,7 +107,7 @@ core::mouse_callback(GLFWwindow *window, real64 x, real64 y)
     input::update_mouse(&state->input_state, mouse_pos);
 
     if (state->input_state.is_cursor_enabled) {
-        gui::update_mouse(&state->gui_state);
+        gui::update_mouse();
     } else {
         cameras::update_mouse(state->cameras_state.camera_active, state->input_state.mouse_3d_offset);
     }
