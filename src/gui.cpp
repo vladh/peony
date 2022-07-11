@@ -8,7 +8,7 @@
 #include "intrinsics.hpp"
 
 
-gui::GameConsole *g_guicon = nullptr;
+gui::GameConsole gui::con = {};
 
 
 void
@@ -231,7 +231,7 @@ gui::draw_button(gui::State *gui_state, Container *container, const char *text)
 void
 gui::draw_console(gui::State *gui_state, char *console_input_text)
 {
-    if (!g_guicon->is_enabled) {
+    if (!gui::con.is_enabled) {
         return;
     }
 
@@ -247,11 +247,11 @@ gui::draw_console(gui::State *gui_state, char *console_input_text)
             v2(gui_state->window_dimensions.x, MAX_CONSOLE_LOG_HEIGHT),
             CONSOLE_BG_COLOR);
 
-        uint32 idx_line = g_guicon->idx_log_start;
-        while (idx_line != g_guicon->idx_log_end) {
-            v2 text_dimensions = get_text_dimensions(font_asset, g_guicon->log[idx_line]);
+        uint32 idx_line = gui::con.idx_log_start;
+        while (idx_line != gui::con.idx_log_end) {
+            v2 text_dimensions = get_text_dimensions(font_asset, gui::con.log[idx_line]);
             next_element_position.y -= text_dimensions.y + line_spacing;
-            draw_text(gui_state, "body", g_guicon->log[idx_line], next_element_position, LIGHT_TEXT_COLOR);
+            draw_text(gui_state, "body", gui::con.log[idx_line], next_element_position, LIGHT_TEXT_COLOR);
 
             idx_line++;
             if (idx_line == MAX_N_CONSOLE_LINES) {
@@ -285,19 +285,19 @@ gui::log(const char *format, ...)
     va_end(vargs);
 
     // Fill array in back-to-front.
-    if (g_guicon->idx_log_start == 0) {
-        g_guicon->idx_log_start = MAX_N_CONSOLE_LINES - 1;
+    if (gui::con.idx_log_start == 0) {
+        gui::con.idx_log_start = MAX_N_CONSOLE_LINES - 1;
     } else {
-        g_guicon->idx_log_start--;
+        gui::con.idx_log_start--;
     }
-    if (g_guicon->idx_log_start == g_guicon->idx_log_end) {
-        if (g_guicon->idx_log_end == 0) {
-            g_guicon->idx_log_end = MAX_N_CONSOLE_LINES - 1;
+    if (gui::con.idx_log_start == gui::con.idx_log_end) {
+        if (gui::con.idx_log_end == 0) {
+            gui::con.idx_log_end = MAX_N_CONSOLE_LINES - 1;
         } else {
-            g_guicon->idx_log_end--;
+            gui::con.idx_log_end--;
         }
     }
-    strcpy(g_guicon->log[g_guicon->idx_log_start], text);
+    strcpy(gui::con.log[gui::con.idx_log_start], text);
 }
 
 
@@ -319,18 +319,15 @@ gui::init(
     MemoryPool *memory_pool,
     gui::State* gui_state,
     InputState *input_state,
-    void *renderer_state,
     iv2 texture_atlas_size,
     Array<fonts::FontAsset> *font_assets,
     uint32 window_width, uint32 window_height
 ) {
     gui_state->containers = Array<Container>(memory_pool, 32, "gui_containers");
     gui_state->input_state = input_state;
-    gui_state->renderer_state = renderer_state;
     gui_state->texture_atlas_size = texture_atlas_size;
     gui_state->font_assets = font_assets;
     gui_state->window_dimensions = v2(window_width, window_height);
-    g_guicon = &gui_state->game_console;
     log("Hello world!");
 }
 
@@ -353,7 +350,7 @@ gui::set_cursor(gui::State *gui_state)
 void
 gui::push_vertices(gui::State *gui_state, real32 *vertices, uint32 n_vertices)
 {
-    renderer::push_gui_vertices(gui_state->renderer_state, vertices, n_vertices);
+    renderer::push_gui_vertices(vertices, n_vertices);
 }
 
 

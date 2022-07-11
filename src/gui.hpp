@@ -73,15 +73,11 @@ public:
     struct State {
         // NOTE: We're holding a pointer to another state here. What does this mean?
         InputState *input_state;
-        void *renderer_state; // renderer::State *
         Array<fonts::FontAsset> *font_assets;
         iv2 texture_atlas_size;
 
         GLFWcursor *requested_cursor;
         v2 window_dimensions;
-
-        // Console
-        GameConsole game_console;
 
         // Containers
         Array<Container> containers;
@@ -146,7 +142,6 @@ public:
         MemoryPool *memory_pool,
         gui::State* gui_state,
         InputState *input_state,
-        void *renderer_state,
         iv2 texture_atlas_size,
         Array<fonts::FontAsset> *font_assets,
         uint32 window_width, uint32 window_height
@@ -183,6 +178,8 @@ private:
         v2 position, v2 bottomright,
         v2 thickness, v4 color
     );
+
+public:
+    static gui::GameConsole con;
 };
 
-extern gui::GameConsole *g_guicon;
