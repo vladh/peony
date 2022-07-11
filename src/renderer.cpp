@@ -12,7 +12,7 @@
 #include "intrinsics.hpp"
 
 
-renderer::GuiRenderingState renderer::gui_rendering_state = {};
+renderer::State *renderer::state = nullptr;
 
 
 GLFWwindow *
@@ -219,18 +219,15 @@ renderer::resize_renderer_buffers(
 
 
 void
-renderer::update_drawing_options(
-    renderer::State *renderer_state,
-    InputState *input_state,
-    GLFWwindow *window
-) {
+renderer::update_drawing_options(InputState *input_state, GLFWwindow *window)
+{
     if (input_state->is_cursor_enabled) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } else {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
-    if (renderer_state->should_use_wireframe) {
+    if (renderer::state->should_use_wireframe) {
         // This will be handled in the rendering loop.
     } else {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -240,7 +237,6 @@ renderer::update_drawing_options(
 
 void
 renderer::render(
-    renderer::State *renderer_state,
     EngineState *engine_state,
     mats::State *materials_state,
     CamerasState *cameras_state,
@@ -262,40 +258,39 @@ renderer::render(
     // vsync, but actually a graphics driver has forced it off, in which case we won't be
     // using glFinish(), but we should be...probably not going to be a real problem,
     // though.
-    #if !USE_VSYNC
+#if !USE_VSYNC
     glFinish();
-    #endif
+#endif
 
-    copy_scene_data_to_ubo(
-        renderer_state, cameras_state, engine_state, window_size, 0, 0, false);
+    copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, false);
 
     // Clear framebuffers
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.g_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.l_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        #if USE_BLOOM
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer);
+#if USE_BLOOM
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer);
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        #endif
+#endif
     }
 
     // Render shadow map
-    #if USE_SHADOW_RENDERING
+#if USE_SHADOW_RENDERING
     {
         // Point lights
         {
-            real32 ratio = (real32)renderer_state->builtin_textures.shadowmap_3d_width /
-                (real32)renderer_state->builtin_textures.shadowmap_3d_height;
+            real32 ratio = (real32)renderer::state->builtin_textures.shadowmap_3d_width /
+                (real32)renderer::state->builtin_textures.shadowmap_3d_height;
             m4 perspective_projection = glm::perspective(
                 radians(90.0f), ratio,
-                renderer_state->builtin_textures.shadowmap_near_clip_dist,
-                renderer_state->builtin_textures.shadowmap_far_clip_dist);
+                renderer::state->builtin_textures.shadowmap_near_clip_dist,
+                renderer::state->builtin_textures.shadowmap_far_clip_dist);
 
             uint32 idx_light = 0;
 
@@ -318,7 +313,7 @@ renderer::render(
                 v3 position = spatial_component->position;
 
                 for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
-                    renderer_state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
+                    renderer::state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
                         perspective_projection * glm::lookAt(
                             position,
                             position + models::CUBEMAP_OFFSETS[idx_face],
@@ -326,18 +321,16 @@ renderer::render(
                 }
 
                 glViewport(0, 0,
-                    renderer_state->builtin_textures.shadowmap_3d_width,
-                    renderer_state->builtin_textures.shadowmap_3d_height);
+                    renderer::state->builtin_textures.shadowmap_3d_width,
+                    renderer::state->builtin_textures.shadowmap_3d_height);
                 glBindFramebuffer(GL_FRAMEBUFFER,
-                    renderer_state->builtin_textures.shadowmaps_3d_framebuffer);
+                    renderer::state->builtin_textures.shadowmaps_3d_framebuffer);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                copy_scene_data_to_ubo(
-                    renderer_state, cameras_state, engine_state, window_size,
+                copy_scene_data_to_ubo(cameras_state, engine_state, window_size,
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
-                render_scene(engine_state, materials_state, renderer_state,
-                    drawable::Pass::shadowcaster, drawable::Mode::depth);
+                render_scene(engine_state, materials_state, drawable::Pass::shadowcaster, drawable::Mode::depth);
 
                 idx_light++;
             }
@@ -346,14 +339,14 @@ renderer::render(
         // Directional lights
         {
             real32 ortho_ratio = (
-                (real32)renderer_state->builtin_textures.shadowmap_2d_width /
-                (real32)renderer_state->builtin_textures.shadowmap_2d_height);
+                (real32)renderer::state->builtin_textures.shadowmap_2d_width /
+                (real32)renderer::state->builtin_textures.shadowmap_2d_height);
             real32 ortho_width = 100.0f;
             real32 ortho_height = ortho_width / ortho_ratio;
             m4 ortho_projection = glm::ortho(
                 -ortho_width, ortho_width, -ortho_height, ortho_height,
-                renderer_state->builtin_textures.shadowmap_near_clip_dist,
-                renderer_state->builtin_textures.shadowmap_far_clip_dist);
+                renderer::state->builtin_textures.shadowmap_near_clip_dist,
+                renderer::state->builtin_textures.shadowmap_far_clip_dist);
 
             uint32 idx_light = 0;
 
@@ -373,65 +366,58 @@ renderer::render(
                     continue;
                 }
 
-                renderer_state->shadowmap_2d_transforms[idx_light] = ortho_projection *
+                renderer::state->shadowmap_2d_transforms[idx_light] = ortho_projection *
                     glm::lookAt(spatial_component->position,
                         spatial_component->position + light_component->direction,
                         v3(0.0f, -1.0f, 0.0f));
 
                 glViewport(0, 0,
-                    renderer_state->builtin_textures.shadowmap_2d_width,
-                    renderer_state->builtin_textures.shadowmap_2d_height);
+                    renderer::state->builtin_textures.shadowmap_2d_width,
+                    renderer::state->builtin_textures.shadowmap_2d_height);
                 glBindFramebuffer(GL_FRAMEBUFFER,
-                    renderer_state->builtin_textures.shadowmaps_2d_framebuffer);
+                    renderer::state->builtin_textures.shadowmaps_2d_framebuffer);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                copy_scene_data_to_ubo(
-                    renderer_state, cameras_state, engine_state, window_size,
+                copy_scene_data_to_ubo(cameras_state, engine_state, window_size,
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
-                render_scene(
-                    engine_state, materials_state, renderer_state,
-                    drawable::Pass::shadowcaster,
-                    drawable::Mode::depth
-                );
+                render_scene(engine_state, materials_state, drawable::Pass::shadowcaster, drawable::Mode::depth);
 
                 idx_light++;
             }
         }
     }
-    #endif
+#endif
 
     glViewport(0, 0, window_size->width, window_size->height);
 
     // Geometry pass
     {
-        if (renderer_state->should_use_wireframe) {
+        if (renderer::state->should_use_wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer);
-        render_scene(engine_state, materials_state, renderer_state,
-            drawable::Pass::deferred, drawable::Mode::regular);
-        if (renderer_state->should_use_wireframe) {
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.g_buffer);
+        render_scene(engine_state, materials_state, drawable::Pass::deferred, drawable::Mode::regular);
+        if (renderer::state->should_use_wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
     }
 
     // Copy depth from geometry pass to lighting pass
     {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, renderer_state->builtin_textures.g_buffer);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, renderer::state->builtin_textures.g_buffer);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderer::state->builtin_textures.l_buffer);
         glBlitFramebuffer(0, 0, window_size->width, window_size->height,
             0, 0, window_size->width, window_size->height,
             GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.l_buffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.l_buffer);
 
     // Lighting pass
     {
         glDisable(GL_DEPTH_TEST);
-        render_scene(engine_state, materials_state, renderer_state,
-            drawable::Pass::lighting, drawable::Mode::regular);
+        render_scene(engine_state, materials_state, drawable::Pass::lighting, drawable::Mode::regular);
         glEnable(GL_DEPTH_TEST);
     }
 
@@ -447,8 +433,7 @@ renderer::render(
             // Draw at the very back of our depth range, so as to be behind everything.
             glDepthRange(0.9999f, 1.0f);
 
-            render_scene(engine_state, materials_state, renderer_state,
-                drawable::Pass::forward_skybox, drawable::Mode::regular);
+            render_scene(engine_state, materials_state, drawable::Pass::forward_skybox, drawable::Mode::regular);
 
             glDepthRange(0.0f, 1.0f);
             glDepthMask(GL_TRUE);
@@ -457,16 +442,14 @@ renderer::render(
 
         // Forward
         {
-            if (renderer_state->should_use_wireframe) {
+            if (renderer::state->should_use_wireframe) {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
-            render_scene(engine_state, materials_state, renderer_state,
-                drawable::Pass::forward_depth, drawable::Mode::regular);
+            render_scene(engine_state, materials_state, drawable::Pass::forward_depth, drawable::Mode::regular);
             glDisable(GL_DEPTH_TEST);
-            render_scene(engine_state, materials_state, renderer_state,
-                drawable::Pass::forward_nodepth, drawable::Mode::regular);
+            render_scene(engine_state, materials_state, drawable::Pass::forward_nodepth, drawable::Mode::regular);
             glEnable(GL_DEPTH_TEST);
-            if (renderer_state->should_use_wireframe) {
+            if (renderer::state->should_use_wireframe) {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             }
         }
@@ -479,56 +462,46 @@ renderer::render(
 
     glDisable(GL_DEPTH_TEST);
 
-    #if USE_BLOOM
+#if USE_BLOOM
     // Blur pass
     {
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer);
-        copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
-            window_size, 0, 0, true);
-        render_scene(engine_state, materials_state, renderer_state,
-            drawable::Pass::preblur, drawable::Mode::regular);
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
+        copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, true);
+        render_scene(engine_state, materials_state, drawable::Pass::preblur, drawable::Mode::regular);
 
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer);
-        copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
-            window_size, 0, 0, false);
-        render_scene(engine_state, materials_state, renderer_state,
-            drawable::Pass::blur2, drawable::Mode::regular);
+        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
+        copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, false);
+        render_scene(engine_state, materials_state, drawable::Pass::blur2, drawable::Mode::regular);
 
         for (uint32 idx = 0; idx < 3; idx++) {
-            glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur1_buffer);
-            copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
-                window_size, 0, 0, true);
-            render_scene(engine_state, materials_state, renderer_state,
-                drawable::Pass::blur1, drawable::Mode::regular);
+            glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
+            copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, true);
+            render_scene(engine_state, materials_state, drawable::Pass::blur1, drawable::Mode::regular);
 
-            glBindFramebuffer(GL_FRAMEBUFFER, renderer_state->builtin_textures.blur2_buffer);
-            copy_scene_data_to_ubo(renderer_state, cameras_state, engine_state,
-                window_size, 0, 0, false);
-            render_scene(engine_state, materials_state, renderer_state,
-                drawable::Pass::blur2, drawable::Mode::regular);
+            glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
+            copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, false);
+            render_scene(engine_state, materials_state, drawable::Pass::blur2, drawable::Mode::regular);
         }
     }
-    #endif
+#endif
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Postprocessing pass
     {
-        render_scene(engine_state, materials_state, renderer_state,
-            drawable::Pass::postprocessing, drawable::Mode::regular);
+        render_scene(engine_state, materials_state, drawable::Pass::postprocessing, drawable::Mode::regular);
     }
 
     // Render debug pass
     {
-        render_scene(engine_state, materials_state, renderer_state,
-            drawable::Pass::renderdebug, drawable::Mode::regular);
+        render_scene(engine_state, materials_state, drawable::Pass::renderdebug, drawable::Mode::regular);
     }
 
     // UI pass
     {
-        if (!renderer_state->should_hide_ui) {
+        if (!renderer::state->should_hide_ui) {
             glEnable(GL_BLEND);
-            debug_ui::render_debug_ui(engine_state, renderer_state, gui_state,
+            debug_ui::render_debug_ui(engine_state, renderer::state, gui_state,
                 materials_state, input_state, window_size);
             glDisable(GL_BLEND);
         }
@@ -542,7 +515,7 @@ renderer::render(
 
     // Do any needed post-render cleanup
     debugdraw::clear();
-    clear_gui_vertices(renderer_state);
+    clear_gui_vertices();
 }
 
 
@@ -555,19 +528,20 @@ renderer::init(
     uint32 height,
     GLFWwindow *window
 ) {
-    BuiltinTextures *builtin_textures = &renderer_state->builtin_textures;
+    renderer::state = renderer_state;
+    BuiltinTextures *builtin_textures = &renderer::state->builtin_textures;
     *builtin_textures = {
-        #if defined(GRAPHICS_LOW)
+#if defined(GRAPHICS_LOW)
         .shadowmap_3d_width = 500,
         .shadowmap_3d_height = 500,
         .shadowmap_2d_width = 800,
         .shadowmap_2d_height = 600,
-        #elif defined(GRAPHICS_HIGH)
+#elif defined(GRAPHICS_HIGH)
         .shadowmap_3d_width = min((uint32)width, (uint32)2000),
         .shadowmap_3d_height = min((uint32)width, (uint32)2000),
         .shadowmap_2d_width = 2560 * 2,
         .shadowmap_2d_height = 1440 * 2,
-        #endif
+#endif
         .shadowmap_near_clip_dist = 0.05f,
         .shadowmap_far_clip_dist = 200.0f,
     };
@@ -602,17 +576,17 @@ renderer::init(
         &builtin_textures->shadowmaps_2d_texture,
         builtin_textures->shadowmap_2d_width,
         builtin_textures->shadowmap_2d_height);
-    init_ubo(&renderer_state->ubo_shader_common);
-    update_drawing_options(renderer_state, input_state, window);
-    init_gui(memory_pool, renderer_state);
+    init_ubo(&renderer::state->ubo_shader_common);
+    update_drawing_options(input_state, window);
+    init_gui(memory_pool);
 }
 
 
 void
-renderer::start_drawing_gui(renderer::State *renderer_state)
+renderer::start_drawing_gui()
 {
-    glBindVertexArray(renderer_state->gui_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, renderer_state->gui_vbo);
+    glBindVertexArray(renderer::state->gui_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, renderer::state->gui_vbo);
 }
 
 
@@ -620,39 +594,39 @@ void
 renderer::push_gui_vertices(f32 *vertices, u32 n_vertices)
 {
     // VAO/VBO must have been bound by start_drawing()
-    if (renderer::gui_rendering_state.n_vertices_pushed + n_vertices > GUI_MAX_N_VERTICES) {
+    if (renderer::state->gui_n_vertices_pushed + n_vertices > GUI_MAX_N_VERTICES) {
         logs::error("Pushed too many GUI vertices, did you forget to call renderer::clear_gui_vertices()?");
         return;
     }
     glBufferSubData(GL_ARRAY_BUFFER,
-        GUI_VERTEX_SIZE * renderer::gui_rendering_state.n_vertices_pushed,
+        GUI_VERTEX_SIZE * renderer::state->gui_n_vertices_pushed,
         GUI_VERTEX_SIZE * n_vertices, vertices);
 
-    renderer::gui_rendering_state.n_vertices_pushed += n_vertices;
+    renderer::state->gui_n_vertices_pushed += n_vertices;
 }
 
 
 void
-renderer::clear_gui_vertices(renderer::State *renderer_state)
+renderer::clear_gui_vertices()
 {
-    renderer::gui_rendering_state.n_vertices_pushed = 0;
+    renderer::state->gui_n_vertices_pushed = 0;
 }
 
 
 void
-renderer::render_gui(renderer::State *renderer_state)
+renderer::render_gui()
 {
-    glUseProgram(renderer_state->gui_shader_asset.program);
+    glUseProgram(renderer::state->gui_shader_asset.program);
 
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderer_state->gui_texture_atlas.texture_name);
+    glBindTexture(GL_TEXTURE_2D, renderer::state->gui_texture_atlas.texture_name);
 
-    if (!renderer_state->gui_shader_asset.did_set_texture_uniforms) {
-        shaders::set_int(&renderer_state->gui_shader_asset, "atlas_texture", 0);
-        renderer_state->gui_shader_asset.did_set_texture_uniforms = true;
+    if (!renderer::state->gui_shader_asset.did_set_texture_uniforms) {
+        shaders::set_int(&renderer::state->gui_shader_asset, "atlas_texture", 0);
+        renderer::state->gui_shader_asset.did_set_texture_uniforms = true;
     }
 
-    glDrawArrays(GL_TRIANGLES, 0, renderer::gui_rendering_state.n_vertices_pushed);
+    glDrawArrays(GL_TRIANGLES, 0, renderer::state->gui_n_vertices_pushed);
 }
 
 
@@ -1030,16 +1004,16 @@ renderer::init_2d_shadowmaps(
 
 
 void
-renderer::init_gui(MemoryPool *memory_pool, renderer::State *renderer_state)
+renderer::init_gui(MemoryPool *memory_pool)
 {
     MemoryPool temp_memory_pool = {};
 
     // VAO
     {
-        glGenVertexArrays(1, &renderer_state->gui_vao);
-        glGenBuffers(1, &renderer_state->gui_vbo);
-        glBindVertexArray(renderer_state->gui_vao);
-        glBindBuffer(GL_ARRAY_BUFFER, renderer_state->gui_vbo);
+        glGenVertexArrays(1, &renderer::state->gui_vao);
+        glGenBuffers(1, &renderer::state->gui_vbo);
+        glBindVertexArray(renderer::state->gui_vao);
+        glBindBuffer(GL_ARRAY_BUFFER, renderer::state->gui_vbo);
         glBufferData(GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * GUI_MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
         uint32 location;
 
@@ -1063,31 +1037,31 @@ renderer::init_gui(MemoryPool *memory_pool, renderer::State *renderer_state)
     }
 
     // Shaders
-    shaders::init_shader_asset(&renderer_state->gui_shader_asset, &temp_memory_pool,
+    shaders::init_shader_asset(&renderer::state->gui_shader_asset, &temp_memory_pool,
         "gui_generic", shaders::Type::standard, "gui_generic.vert", "gui_generic.frag", "");
 
     // Materials
-    mats::init_texture_atlas(&renderer_state->gui_texture_atlas, iv2(2000, 2000));
+    mats::init_texture_atlas(&renderer::state->gui_texture_atlas, iv2(2000, 2000));
 
     // Fonts
     {
-        renderer_state->gui_font_assets = Array<fonts::FontAsset>(memory_pool, 8, "gui_font_assets");
+        renderer::state->gui_font_assets = Array<fonts::FontAsset>(memory_pool, 8, "gui_font_assets");
         FT_Library ft_library;
         if (FT_Init_FreeType(&ft_library)) {
             logs::error("Could not init FreeType");
             return;
         }
-        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-            memory_pool, &renderer_state->gui_texture_atlas,
+        fonts::init_font_asset(renderer::state->gui_font_assets.push(),
+            memory_pool, &renderer::state->gui_texture_atlas,
             &ft_library, "body", gui::MAIN_FONT_REGULAR, 18);
-        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-            memory_pool, &renderer_state->gui_texture_atlas,
+        fonts::init_font_asset(renderer::state->gui_font_assets.push(),
+            memory_pool, &renderer::state->gui_texture_atlas,
             &ft_library, "body-bold", gui::MAIN_FONT_BOLD, 18);
-        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-            memory_pool, &renderer_state->gui_texture_atlas,
+        fonts::init_font_asset(renderer::state->gui_font_assets.push(),
+            memory_pool, &renderer::state->gui_texture_atlas,
             &ft_library, "heading", gui::MAIN_FONT_REGULAR, 42);
-        fonts::init_font_asset(renderer_state->gui_font_assets.push(),
-            memory_pool, &renderer_state->gui_texture_atlas,
+        fonts::init_font_asset(renderer::state->gui_font_assets.push(),
+            memory_pool, &renderer::state->gui_texture_atlas,
             &ft_library, "title", gui::MAIN_FONT_REGULAR, 64);
         FT_Done_FreeType(ft_library);
     }
@@ -1098,7 +1072,6 @@ renderer::init_gui(MemoryPool *memory_pool, renderer::State *renderer_state)
 
 void
 renderer::copy_scene_data_to_ubo(
-    renderer::State *renderer_state,
     CamerasState *cameras_state,
     EngineState *engine_state,
     WindowSize *window_size,
@@ -1106,18 +1079,18 @@ renderer::copy_scene_data_to_ubo(
     uint32 current_shadow_light_type,
     bool32 is_blur_horizontal
 ) {
-    ShaderCommon *shader_common = &renderer_state->shader_common;
+    ShaderCommon *shader_common = &renderer::state->shader_common;
     Camera *camera = cameras_state->camera_active;
 
     shader_common->view = camera->view;
     shader_common->projection = camera->projection;
     shader_common->ui_projection = camera->ui_projection;
     memcpy(shader_common->shadowmap_3d_transforms,
-        renderer_state->shadowmap_3d_transforms,
-        sizeof(renderer_state->shadowmap_3d_transforms));
+        renderer::state->shadowmap_3d_transforms,
+        sizeof(renderer::state->shadowmap_3d_transforms));
     memcpy(shader_common->shadowmap_2d_transforms,
-        renderer_state->shadowmap_2d_transforms,
-        sizeof(renderer_state->shadowmap_2d_transforms));
+        renderer::state->shadowmap_2d_transforms,
+        sizeof(renderer::state->shadowmap_2d_transforms));
 
     shader_common->camera_position = v4(camera->position, 1.0f);
     shader_common->camera_pitch = (float)camera->pitch;
@@ -1131,10 +1104,10 @@ renderer::copy_scene_data_to_ubo(
     shader_common->current_shadow_light_type = current_shadow_light_type;
 
     shader_common->shadow_far_clip_dist =
-        renderer_state->builtin_textures.shadowmap_far_clip_dist;
+        renderer::state->builtin_textures.shadowmap_far_clip_dist;
     shader_common->is_blur_horizontal = is_blur_horizontal;
     shader_common->renderdebug_displayed_texture_type =
-        renderer_state->renderdebug_displayed_texture_type;
+        renderer::state->renderdebug_displayed_texture_type;
     shader_common->unused_pad = 0;
 
     shader_common->exposure = camera->exposure;
@@ -1339,7 +1312,6 @@ void
 renderer::render_scene(
     EngineState *engine_state,
     mats::State *materials_state,
-    renderer::State *renderer_state,
     drawable::Pass render_pass,
     drawable::Mode render_mode
 ) {
@@ -1353,5 +1325,5 @@ renderer::render_scene(
         &materials_state->materials,
         render_pass,
         render_mode,
-        &renderer_state->standard_depth_shader_asset);
+        &renderer::state->standard_depth_shader_asset);
 }

@@ -275,6 +275,20 @@ gui::draw_console(gui::State *gui_state, char *console_input_text)
 }
 
 
+bool
+gui::is_console_enabled()
+{
+    return gui::con.is_enabled;
+}
+
+
+void
+gui::set_console_enabled(bool val)
+{
+    gui::con.is_enabled = val;
+}
+
+
 void
 gui::log(const char *format, ...)
 {

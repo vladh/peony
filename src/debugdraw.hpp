@@ -54,6 +54,5 @@ public:
 private:
     static void push_vertices(DebugDrawVertex vertices[], uint32 n_vertices);
 
-public:
     static debugdraw::State state;
 };

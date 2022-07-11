@@ -98,10 +98,6 @@ public:
         real32 shadowmap_far_clip_dist;
     };
 
-    struct GuiRenderingState {
-        uint32 n_vertices_pushed;
-    };
-
     struct State {
         bool32 should_hide_ui;
         bool32 should_use_wireframe;
@@ -117,6 +113,7 @@ public:
         mats::TextureAtlas gui_texture_atlas;
         shaders::Asset gui_shader_asset;
         Array<fonts::FontAsset> gui_font_assets;
+        uint32 gui_n_vertices_pushed;
     };
 
     static GLFWwindow * init_window(WindowSize *window_size);
@@ -129,13 +126,8 @@ public:
         uint32 width,
         uint32 height
     );
-    static void update_drawing_options(
-        renderer::State *renderer_state,
-        InputState *input_state,
-        GLFWwindow *window
-    );
+    static void update_drawing_options(InputState *input_state, GLFWwindow *window);
     static void render(
-        renderer::State *renderer_state,
         EngineState *engine_state,
         mats::State *materials_state,
         CamerasState *cameras_state,
@@ -152,10 +144,10 @@ public:
         uint32 height,
         GLFWwindow *window
     );
-    static void start_drawing_gui(renderer::State *renderer_state);
-    static void render_gui(renderer::State *renderer_state);
+    static void start_drawing_gui();
+    static void render_gui();
     static void push_gui_vertices(f32 *vertices, u32 n_vertices);
-    static void clear_gui_vertices(renderer::State *renderer_state);
+    static void clear_gui_vertices();
 
 private:
     static void init_g_buffer(
@@ -203,9 +195,8 @@ private:
         uint32 shadowmap_2d_width,
         uint32 shadowmap_2d_height
     );
-    static void init_gui(MemoryPool *memory_pool, renderer::State *renderer_state);
+    static void init_gui(MemoryPool *memory_pool);
     static void copy_scene_data_to_ubo(
-        renderer::State *renderer_state,
         CamerasState *cameras_state,
         EngineState *engine_state,
         WindowSize *window_size,
@@ -236,11 +227,9 @@ private:
     static void render_scene(
         EngineState *engine_state,
         mats::State *materials_state,
-        renderer::State *renderer_state,
         drawable::Pass render_pass,
         drawable::Mode render_mode
     );
 
-public:
-    static GuiRenderingState gui_rendering_state;
+    static renderer::State *state;
 };
