@@ -12,6 +12,9 @@
 #include "intrinsics.hpp"
 
 
+renderer::GuiRenderingState renderer::gui_rendering_state = {};
+
+
 GLFWwindow *
 renderer::init_window(WindowSize *window_size)
 {
@@ -470,7 +473,7 @@ renderer::render(
 
         // Debug draw pass
         {
-            debugdraw::render(g_dds);
+            debugdraw::render();
         }
     }
 
@@ -538,7 +541,7 @@ renderer::render(
     END_TIMER_MIN(swap_buffers, 10);
 
     // Do any needed post-render cleanup
-    debugdraw::clear(g_dds);
+    debugdraw::clear();
     clear_gui_vertices(renderer_state);
 }
 
@@ -614,26 +617,25 @@ renderer::start_drawing_gui(renderer::State *renderer_state)
 
 
 void
-renderer::push_gui_vertices(void *renderer_state_vp, f32 *vertices, u32 n_vertices)
+renderer::push_gui_vertices(f32 *vertices, u32 n_vertices)
 {
-    renderer::State *renderer_state = (renderer::State *)renderer_state_vp;
     // VAO/VBO must have been bound by start_drawing()
-    if (renderer_state->gui_n_vertices_pushed + n_vertices > GUI_MAX_N_VERTICES) {
+    if (renderer::gui_rendering_state.n_vertices_pushed + n_vertices > GUI_MAX_N_VERTICES) {
         logs::error("Pushed too many GUI vertices, did you forget to call renderer::clear_gui_vertices()?");
         return;
     }
     glBufferSubData(GL_ARRAY_BUFFER,
-        GUI_VERTEX_SIZE * renderer_state->gui_n_vertices_pushed,
+        GUI_VERTEX_SIZE * renderer::gui_rendering_state.n_vertices_pushed,
         GUI_VERTEX_SIZE * n_vertices, vertices);
 
-    renderer_state->gui_n_vertices_pushed += n_vertices;
+    renderer::gui_rendering_state.n_vertices_pushed += n_vertices;
 }
 
 
 void
 renderer::clear_gui_vertices(renderer::State *renderer_state)
 {
-    renderer_state->gui_n_vertices_pushed = 0;
+    renderer::gui_rendering_state.n_vertices_pushed = 0;
 }
 
 
@@ -650,7 +652,7 @@ renderer::render_gui(renderer::State *renderer_state)
         renderer_state->gui_shader_asset.did_set_texture_uniforms = true;
     }
 
-    glDrawArrays(GL_TRIANGLES, 0, renderer_state->gui_n_vertices_pushed);
+    glDrawArrays(GL_TRIANGLES, 0, renderer::gui_rendering_state.n_vertices_pushed);
 }
 
 

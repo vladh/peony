@@ -275,11 +275,11 @@ namespace engine {
     LightsState *lights_state
   ) {
     if (input::is_key_now_down(input_state, GLFW_KEY_GRAVE_ACCENT)) {
-      if (gui_state->game_console.is_enabled) {
-        gui_state->game_console.is_enabled = false;
+      if (gui::con.is_enabled) {
+        gui::con.is_enabled = false;
         input::disable_text_input(input_state);
       } else {
-        gui_state->game_console.is_enabled = true;
+        gui::con.is_enabled = true;
         input::enable_text_input(input_state);
       }
     }

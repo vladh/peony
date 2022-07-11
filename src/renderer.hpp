@@ -98,6 +98,10 @@ public:
         real32 shadowmap_far_clip_dist;
     };
 
+    struct GuiRenderingState {
+        uint32 n_vertices_pushed;
+    };
+
     struct State {
         bool32 should_hide_ui;
         bool32 should_use_wireframe;
@@ -113,7 +117,6 @@ public:
         mats::TextureAtlas gui_texture_atlas;
         shaders::Asset gui_shader_asset;
         Array<fonts::FontAsset> gui_font_assets;
-        uint32 gui_n_vertices_pushed;
     };
 
     static GLFWwindow * init_window(WindowSize *window_size);
@@ -151,7 +154,7 @@ public:
     );
     static void start_drawing_gui(renderer::State *renderer_state);
     static void render_gui(renderer::State *renderer_state);
-    static void push_gui_vertices(void *renderer_state_vp, f32 *vertices, u32 n_vertices);
+    static void push_gui_vertices(f32 *vertices, u32 n_vertices);
     static void clear_gui_vertices(renderer::State *renderer_state);
 
 private:
@@ -237,4 +240,7 @@ private:
         drawable::Pass render_pass,
         drawable::Mode render_mode
     );
+
+public:
+    static GuiRenderingState gui_rendering_state;
 };
