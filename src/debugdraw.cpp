@@ -8,7 +8,7 @@
 #include "intrinsics.hpp"
 
 
-debugdraw::State debugdraw::state = {};
+debugdraw::State *debugdraw::state = nullptr;
 
 
 void
@@ -116,44 +116,46 @@ debugdraw::draw_point(v3 position, real32 size, v4 color)
 void
 debugdraw::clear()
 {
-    debugdraw::state.n_vertices_pushed = 0;
+    debugdraw::state->n_vertices_pushed = 0;
 }
 
 
 void
 debugdraw::render()
 {
-    glBindVertexArray(debugdraw::state.vao);
-    glBindBuffer(GL_ARRAY_BUFFER, debugdraw::state.vbo);
+    glBindVertexArray(debugdraw::state->vao);
+    glBindBuffer(GL_ARRAY_BUFFER, debugdraw::state->vbo);
     glBufferData(GL_ARRAY_BUFFER,
-        VERTEX_SIZE * debugdraw::state.n_vertices_pushed,
-        debugdraw::state.vertices, GL_STATIC_DRAW);
+        VERTEX_SIZE * debugdraw::state->n_vertices_pushed,
+        debugdraw::state->vertices, GL_STATIC_DRAW);
 
-    glUseProgram(debugdraw::state.shader_asset.program);
+    glUseProgram(debugdraw::state->shader_asset.program);
 
-    glDrawArrays(GL_LINES, 0, debugdraw::state.n_vertices_pushed);
+    glDrawArrays(GL_LINES, 0, debugdraw::state->n_vertices_pushed);
 }
 
 
 void
-debugdraw::init(MemoryPool *memory_pool)
+debugdraw::init(debugdraw::State *debug_draw_state, MemoryPool *memory_pool)
 {
+    debugdraw::state = debug_draw_state;
+
     MemoryPool temp_memory_pool = {};
 
     // Shaders
     {
-        shaders::init_shader_asset(&debugdraw::state.shader_asset,
+        shaders::init_shader_asset(&debugdraw::state->shader_asset,
             &temp_memory_pool, "debugdraw", shaders::Type::standard,
             "debugdraw.vert", "debugdraw.frag", "");
-        debugdraw::state.shader_asset.did_set_texture_uniforms = true;
+        debugdraw::state->shader_asset.did_set_texture_uniforms = true;
     }
 
     // VAO
     {
-        glGenVertexArrays(1, &debugdraw::state.vao);
-        glGenBuffers(1, &debugdraw::state.vbo);
-        glBindVertexArray(debugdraw::state.vao);
-        glBindBuffer(GL_ARRAY_BUFFER, debugdraw::state.vbo);
+        glGenVertexArrays(1, &debugdraw::state->vao);
+        glGenBuffers(1, &debugdraw::state->vbo);
+        glBindVertexArray(debugdraw::state->vao);
+        glBindBuffer(GL_ARRAY_BUFFER, debugdraw::state->vbo);
         glBufferData(GL_ARRAY_BUFFER, VERTEX_SIZE * MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
 
         uint32 location;
@@ -178,12 +180,12 @@ debugdraw::init(MemoryPool *memory_pool)
 void
 debugdraw::push_vertices(DebugDrawVertex vertices[], uint32 n_vertices)
 {
-    if(debugdraw::state.n_vertices_pushed + n_vertices > MAX_N_VERTICES) {
+    if (debugdraw::state->n_vertices_pushed + n_vertices > MAX_N_VERTICES) {
         logs::error("Pushed too many DebugDraw vertices, did you forget to call debugdraw::clear()?");
         return;
     }
     range (0, n_vertices) {
-        debugdraw::state.vertices[debugdraw::state.n_vertices_pushed + idx] = vertices[idx];
+        debugdraw::state->vertices[debugdraw::state->n_vertices_pushed + idx] = vertices[idx];
     }
-    debugdraw::state.n_vertices_pushed += n_vertices;
+    debugdraw::state->n_vertices_pushed += n_vertices;
 }
