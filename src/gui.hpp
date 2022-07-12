@@ -120,7 +120,7 @@ public:
         real32 fadeout_duration, real32 fadeout_delay
     );
     static void init(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         gui::State* gui_state,
         iv2 texture_atlas_size,
         Array<fonts::FontAsset> *font_assets,

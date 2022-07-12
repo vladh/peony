@@ -157,7 +157,7 @@ renderer::init_window(WindowSize *window_size)
 
 void
 renderer::resize_renderer_buffers(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     BuiltinTextures *builtin_textures,
     uint32 width,
     uint32 height
@@ -513,7 +513,7 @@ renderer::render(GLFWwindow *window, WindowSize *window_size)
 void
 renderer::init(
     renderer::State *renderer_state,
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 width,
     uint32 height,
     GLFWwindow *window
@@ -685,7 +685,7 @@ renderer::set_should_hide_ui(bool val)
 
 void
 renderer::init_g_buffer(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 *g_buffer,
     mats::Texture **g_position_texture,
     mats::Texture **g_normal_texture,
@@ -784,7 +784,7 @@ renderer::init_g_buffer(
 
 void
 renderer::init_l_buffer(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 *l_buffer,
     mats::Texture **l_color_texture,
     mats::Texture **l_bright_color_texture,
@@ -901,7 +901,7 @@ renderer::init_l_buffer(
 
 void
 renderer::init_blur_buffers(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 *blur1_buffer,
     uint32 *blur2_buffer,
     mats::Texture **blur1_texture,
@@ -979,7 +979,7 @@ renderer::init_ubo(uint32 *ubo_shader_common)
 
 void
 renderer::init_3d_shadowmaps(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 *shadowmaps_3d_framebuffer,
     uint32 *shadowmaps_3d,
     mats::Texture **shadowmaps_3d_texture,
@@ -1018,7 +1018,7 @@ renderer::init_3d_shadowmaps(
 
 void
 renderer::init_2d_shadowmaps(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 *shadowmaps_2d_framebuffer,
     uint32 *shadowmaps_2d,
     mats::Texture **shadowmaps_2d_texture,
@@ -1057,9 +1057,9 @@ renderer::init_2d_shadowmaps(
 
 
 void
-renderer::init_gui(MemoryPool *memory_pool)
+renderer::init_gui(memory::Pool *memory_pool)
 {
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
 
     // VAO
     {

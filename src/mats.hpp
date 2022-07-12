@@ -160,7 +160,7 @@ public:
     static void delete_persistent_pbo();
     static void init(
         mats::State *materials_state,
-        MemoryPool *memory_pool
+        memory::Pool *memory_pool
     );
     static bool32 prepare_material_and_check_if_done(Material *material);
     static void reload_shaders();
@@ -178,7 +178,7 @@ private:
         uint16 texture_count, int32 width, int32 height, int32 n_components
     );
     static TextureNamePool * init_texture_name_pool(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 n_textures,
         uint32 mipmap_max_level
     );

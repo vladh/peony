@@ -69,7 +69,7 @@ geom::destroy_mesh(geom::Mesh *mesh)
 
 void
 geom::make_plane(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 x_size, uint32 z_size,
     uint32 n_x_segments, uint32 n_z_segments,
     uint32 *n_vertices, uint32 *n_indices,
@@ -124,7 +124,7 @@ geom::make_plane(
 
 void
 geom::make_sphere(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 n_x_segments, uint32 n_y_segments,
     uint32 *n_vertices, uint32 *n_indices,
     geom::Vertex **vertex_data, uint32 **index_data

@@ -136,11 +136,11 @@ debugdraw::render()
 
 
 void
-debugdraw::init(debugdraw::State *debug_draw_state, MemoryPool *memory_pool)
+debugdraw::init(debugdraw::State *debug_draw_state, memory::Pool *memory_pool)
 {
     debugdraw::state = debug_draw_state;
 
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
 
     // Shaders
     {

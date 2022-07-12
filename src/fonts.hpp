@@ -37,7 +37,7 @@ public:
     static FontAsset * get_by_name(Array<FontAsset> *assets, const char *name);
     static FontAsset * init_font_asset(
         FontAsset *font_asset,
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         mats::TextureAtlas *texture_atlas,
         FT_Library *ft_library,
         const char *name,

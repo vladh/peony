@@ -67,7 +67,7 @@ public:
         uint32 idx_bone
     );
     static Component * find_animation_component(spatial::Component *spatial_component);
-    static void init(anim::State *anim_state, MemoryPool *pool);
+    static void init(anim::State *anim_state, memory::Pool *pool);
 
 private:
     static real64 * get_bone_matrix_time(

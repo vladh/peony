@@ -25,7 +25,7 @@ core::get_window_size()
 }
 
 
-MemoryPool *
+memory::Pool *
 core::get_asset_memory_pool()
 {
     return core::state->asset_memory_pool;
@@ -38,7 +38,7 @@ core::run()
     // Allocate memory
     State *state = (State*)calloc(1, sizeof(State));
     defer { free(state); };
-    MemoryPool asset_memory_pool = { .size = util::mb_to_b(1024) };
+    memory::Pool asset_memory_pool = { .size = util::mb_to_b(1024) };
     defer { memory::destroy_memory_pool(&asset_memory_pool); };
 
     // Make state
@@ -70,7 +70,7 @@ core::run()
 void
 core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    MemoryPool *asset_memory_pool = get_asset_memory_pool();
+    memory::Pool *asset_memory_pool = get_asset_memory_pool();
     WindowSize *window_size = get_window_size();
     logs::info("Window is now: %d x %d", window_size->width, window_size->height);
     window_size->width = width;
@@ -125,7 +125,7 @@ core::char_callback(GLFWwindow* window, uint32 codepoint) {
 
 
 bool
-core::init_state(State *state, MemoryPool *asset_memory_pool)
+core::init_state(State *state, memory::Pool *asset_memory_pool)
 {
     core::state = state;
     state->window = renderer::init_window(&state->window_size);

@@ -58,10 +58,10 @@ public:
         uint32 new_texture_unit,
         GLenum new_texture_unit_type
     );
-    static void load_shader_asset(Asset *shader_asset, MemoryPool *memory_pool);
+    static void load_shader_asset(Asset *shader_asset, memory::Pool *memory_pool);
     static Asset* init_shader_asset(
         Asset *shader_asset,
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         const char *new_name, Type new_type,
         const char *vert_path, const char *frag_path, const char *geom_path
     );
@@ -75,8 +75,8 @@ private:
     static uint32 make_program(
         uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
     );
-    static const char* load_file(MemoryPool *memory_pool, const char *path);
-    static const char* load_frag_file(MemoryPool *memory_pool, const char *path);
+    static const char* load_file(memory::Pool *memory_pool, const char *path);
+    static const char* load_frag_file(memory::Pool *memory_pool, const char *path);
     static int32 get_uniform_location(
         Asset *shader_asset,
         const char *uniform_name

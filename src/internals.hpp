@@ -12,4 +12,4 @@ public:
     static void create_internal_materials();
     static void create_internal_entities();
     static void init();
-}
+};

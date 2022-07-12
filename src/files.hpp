@@ -14,6 +14,6 @@ public:
     );
     static void free_image(unsigned char *image_data);
     static uint32 get_file_size(char const *path);
-    static char const * load_file(MemoryPool *memory_pool, char const *path);
+    static char const * load_file(memory::Pool *memory_pool, char const *path);
     static char const * load_file(char *string, char const *path);
 };

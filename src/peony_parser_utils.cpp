@@ -90,7 +90,7 @@ void peony_parser_utils::get_unique_string_values_for_prop_name(
 void peony_parser_utils::create_material_from_peony_file_entry(
   mats::Material *material,
   PeonyFileEntry *entry,
-  MemoryPool *memory_pool
+  memory::Pool *memory_pool
 ) {
   mats::init_material(material, entry->name);
 

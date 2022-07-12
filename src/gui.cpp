@@ -344,7 +344,7 @@ gui::set_heading(
 
 void
 gui::init(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     gui::State* gui_state,
     iv2 texture_atlas_size,
     Array<fonts::FontAsset> *font_assets,

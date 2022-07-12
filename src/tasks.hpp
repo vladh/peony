@@ -23,7 +23,7 @@ public:
         bool32 *should_stop,
         uint32 idx_thread
     );
-    static void init(tasks::State *tasks_state, MemoryPool *pool);
+    static void init(tasks::State *tasks_state, memory::Pool *pool);
 
 private:
     static void run_task(Task *task);

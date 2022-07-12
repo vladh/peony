@@ -13,7 +13,7 @@ public:
     constexpr uint32 MAX_N_MEMORYPOOL_ITEMS = 1024;
 #endif
 
-    struct MemoryPool {
+    struct Pool {
         uint8 *memory;
         size_t size;
         size_t used;
@@ -25,14 +25,14 @@ public:
     };
 
     static void * push(
-        MemoryPool *pool,
+        Pool *pool,
         size_t item_size,
         const char *item_debug_name
     );
-    static void print_memory_pool(MemoryPool *pool);
-    static void destroy_memory_pool(MemoryPool *memory_pool);
+    static void print_memory_pool(Pool *pool);
+    static void destroy_memory_pool(Pool *memory_pool);
 
 private:
-    static void reset_memory_pool(MemoryPool *pool);
-    static void zero_out_memory_pool(MemoryPool *pool);
+    static void reset_memory_pool(Pool *pool);
+    static void zero_out_memory_pool(Pool *pool);
 };
