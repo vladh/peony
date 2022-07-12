@@ -15,27 +15,27 @@ cameras::get_main()
 
 
 void
-cameras::update_matrices(
-    Camera *camera, u32 window_width, u32 window_height
-) {
-    if (window_width == 0 || window_height == 0) {
+cameras::update_matrices(Camera *camera)
+{
+    WindowSize *window_size = core::get_window_size();
+    if (window_size->width == 0 || window_size->height == 0) {
         return;
     }
 
     if (camera->type == CameraType::perspective) {
-        update_matrices_perspective(camera, window_width, window_height);
+        update_matrices_perspective(camera, window_size->width, window_size->height);
     } else if (camera->type == CameraType::ortho) {
-        update_matrices_ortho(camera, window_width, window_height);
+        update_matrices_ortho(camera, window_size->width, window_size->height);
     }
 }
 
 
 void
-cameras::update_ui_matrices(
-    Camera *camera, u32 window_width, u32 window_height
-) {
-    camera->ui_projection = glm::ortho(0.0f, (f32)window_width,
-        0.0f, (f32)window_height);
+cameras::update_ui_matrices(Camera *camera)
+{
+    WindowSize *window_size = core::get_window_size();
+    camera->ui_projection = glm::ortho(0.0f, (f32)window_size->width,
+        0.0f, (f32)window_size->height);
 }
 
 
@@ -97,8 +97,8 @@ cameras::init(
     cameras::state->camera_main.far_clip_dist = 600.0f;
     cameras::state->camera_main.exposure = 1.0f;
 
-    update_matrices(&cameras::state->camera_main, window_width, window_height);
-    update_ui_matrices(&cameras::state->camera_main, window_width, window_height);
+    update_matrices(&cameras::state->camera_main);
+    update_ui_matrices(&cameras::state->camera_main);
 }
 
 

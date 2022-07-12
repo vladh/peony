@@ -31,12 +31,8 @@ public:
     };
 
     static Camera * get_main();
-    static void update_matrices(
-        Camera *camera, u32 window_width, u32 window_height
-    );
-    static void update_ui_matrices(
-        Camera *camera, u32 window_width, u32 window_height
-    );
+    static void update_matrices(Camera *camera);
+    static void update_ui_matrices(Camera *camera);
     static void move_front_back(Camera *camera, f32 sign, f64 dt);
     static void move_left_right(Camera *camera, f32 sign, f64 dt);
     static void move_up_down(Camera *camera, f32 sign, f64 dt);

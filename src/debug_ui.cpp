@@ -6,9 +6,11 @@
 #include "intrinsics.hpp"
 
 
-void debug_ui::render_debug_ui(WindowSize *window_size) {
+void debug_ui::render_debug_ui() {
     // TODO: fixme
     engine::State *engine_state = engine::todo_fixme_get_engine_state();
+
+    WindowSize *window_size = core::get_window_size();
 
     char debug_text[1 << 14];
     size_t dt_size = sizeof(debug_text);

@@ -55,8 +55,7 @@ core::run()
             tasks::run_loading_loop,
             &loading_thread_mutex,
             &state->engine_state.should_stop,
-            idx
-        );
+            idx);
     }
     defer { range (0, N_LOADING_THREADS) { loading_threads[idx].join(); } };
 
@@ -76,10 +75,8 @@ core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
     window_size->width = width;
     window_size->height = height;
     cameras::Camera *camera = cameras::get_main();
-    cameras::update_matrices(
-        camera, window_size->width, window_size->height);
-    cameras::update_ui_matrices(
-        camera, window_size->width, window_size->height);
+    cameras::update_matrices(camera);
+    cameras::update_ui_matrices(camera);
     gui::update_screen_dimensions(window_size->width, window_size->height);
 
     auto *builtin_textures = renderer::get_builtin_textures();

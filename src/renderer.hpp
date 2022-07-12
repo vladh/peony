@@ -119,7 +119,7 @@ public:
         u32 height
     );
     static void update_drawing_options(GLFWwindow *window);
-    static void render(GLFWwindow *window, WindowSize *window_size);
+    static void render(GLFWwindow *window);
     static void init(
         renderer::State *renderer_state,
         memory::Pool *memory_pool,
@@ -189,7 +189,6 @@ private:
     );
     static void init_gui(memory::Pool *memory_pool);
     static void copy_scene_data_to_ubo(
-        WindowSize *window_size,
         u32 current_shadow_light_idx,
         u32 current_shadow_light_type,
         bool is_blur_horizontal

@@ -103,7 +103,7 @@ private:
     static void update_light_position(f32 amount);
     static void process_input(GLFWwindow *window);
     static bool check_all_entities_loaded();
-    static void update(WindowSize *window_size);
+    static void update();
     static TimingInfo init_timing_info(u32 target_fps);
     static void update_timing_info(TimingInfo *timing, u32 *last_fps);
     static void update_dt_and_perf_counters(TimingInfo *timing);
