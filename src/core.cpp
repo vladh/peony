@@ -52,7 +52,6 @@ core::run()
     engine::run_main_loop(
         &state->engine_state,
         &state->input_state,
-        &state->lights_state,
         &state->tasks_state,
         &state->anim_state,
         &state->behavior_state,

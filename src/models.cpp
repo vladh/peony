@@ -82,7 +82,7 @@ models::prepare_entity_loader_and_check_if_done(
     ModelLoader *model_loader,
     drawable::ComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
-    LightComponentSet *light_component_set,
+    lights::ComponentSet *light_component_set,
     BehaviorComponentSet *behavior_component_set,
     AnimationComponentSet *animation_component_set,
     physics::ComponentSet *physics_component_set
@@ -98,7 +98,7 @@ models::prepare_entity_loader_and_check_if_done(
         *spatial_component = entity_loader->spatial_component;
         spatial_component->entity_handle = entity_loader->entity_handle;
 
-        LightComponent *light_component = light_component_set->components[entity_loader->entity_handle];
+        lights::Component *light_component = light_component_set->components[entity_loader->entity_handle];
         *light_component = entity_loader->light_component;
         light_component->entity_handle = entity_loader->entity_handle;
 

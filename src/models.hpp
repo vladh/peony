@@ -57,7 +57,7 @@ public:
         drawable::Pass render_pass;
         EntityLoaderState state;
         SpatialComponent spatial_component;
-        LightComponent light_component;
+        lights::Component light_component;
         BehaviorComponent behavior_component;
         physics::Component physics_component;
     };
@@ -80,7 +80,7 @@ public:
         ModelLoader *model_loader,
         drawable::ComponentSet *drawable_component_set,
         SpatialComponentSet *spatial_component_set,
-        LightComponentSet *light_component_set,
+        lights::ComponentSet *light_component_set,
         BehaviorComponentSet *behavior_component_set,
         AnimationComponentSet *animation_component_set,
         physics::ComponentSet *physics_component_set

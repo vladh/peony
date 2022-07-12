@@ -56,7 +56,7 @@ struct EngineState {
   models::EntityLoaderSet entity_loader_set;
   EntitySet entity_set;
   drawable::ComponentSet drawable_component_set;
-  LightComponentSet light_component_set;
+  lights::ComponentSet light_component_set;
   SpatialComponentSet spatial_component_set;
   BehaviorComponentSet behavior_component_set;
   AnimationComponentSet animation_component_set;
@@ -70,7 +70,6 @@ namespace engine {
   void run_main_loop(
     EngineState *engine_state,
     InputState *input_state,
-    LightsState *lights_state,
     TasksState *tasks_state,
     AnimState *anim_state,
     BehaviorState *behavior_state,

@@ -227,12 +227,11 @@ namespace engine {
 
   pny_internal void update_light_position(
     EngineState *engine_state,
-    LightsState *lights_state,
     real32 amount
   ) {
     each (light_component, engine_state->light_component_set.components) {
-      if (light_component->type == LightType::directional) {
-        lights_state->dir_light_angle += amount;
+      if (light_component->type == lights::LightType::directional) {
+        lights::adjust_dir_light_angle(amount);
         break;
       }
     }
@@ -242,8 +241,7 @@ namespace engine {
   pny_internal void process_input(
     GLFWwindow *window,
     EngineState *engine_state,
-    InputState *input_state,
-    LightsState *lights_state
+    InputState *input_state
   ) {
     if (input::is_key_now_down(input_state, GLFW_KEY_GRAVE_ACCENT)) {
       if (gui::is_console_enabled()) {
@@ -292,11 +290,11 @@ namespace engine {
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_Z)) {
-      update_light_position(engine_state, lights_state, 0.10f * (real32)(*engine::g_dt));
+      update_light_position(engine_state, 0.10f * (real32)(*engine::g_dt));
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_X)) {
-      update_light_position(engine_state, lights_state, -0.10f * (real32)(*engine::g_dt));
+      update_light_position(engine_state, -0.10f * (real32)(*engine::g_dt));
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_SPACE)) {
@@ -439,7 +437,6 @@ namespace engine {
     EngineState *engine_state,
     TasksState *tasks_state,
     AnimState *anim_state,
-    LightsState *lights_state,
     BehaviorState *behavior_state,
     renderer::WindowSize *window_size
   ) {
@@ -461,7 +458,6 @@ namespace engine {
     );
 
     lights::update_light_components(
-      lights_state,
       &engine_state->light_component_set,
       &engine_state->spatial_component_set,
       cameras::get_main()->position
@@ -545,7 +541,6 @@ namespace engine {
 void engine::run_main_loop(
   EngineState *engine_state,
   InputState *input_state,
-  LightsState *lights_state,
   TasksState *tasks_state,
   AnimState *anim_state,
   BehaviorState *behavior_state,
@@ -559,8 +554,7 @@ void engine::run_main_loop(
     process_input(
       window,
       engine_state,
-      input_state,
-      lights_state
+      input_state
     );
 
     if (
@@ -578,7 +572,6 @@ void engine::run_main_loop(
         engine_state,
         tasks_state,
         anim_state,
-        lights_state,
         behavior_state,
         window_size
       );
@@ -633,7 +626,7 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
   engine_state->light_component_set = {
-    .components = Array<LightComponent>(
+    .components = Array<lights::Component>(
       asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1
     )
   };
