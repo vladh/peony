@@ -162,10 +162,7 @@ public:
         mats::State *materials_state,
         MemoryPool *memory_pool
     );
-    static bool32 prepare_material_and_check_if_done(
-        Material *material,
-        Queue<Task> *task_queue
-    );
+    static bool32 prepare_material_and_check_if_done(Material *material);
     static void reload_shaders();
 
 private:

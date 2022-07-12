@@ -70,7 +70,6 @@ namespace engine {
   void run_main_loop(
     EngineState *engine_state,
     InputState *input_state,
-    TasksState *tasks_state,
     GLFWwindow *window,
     renderer::WindowSize *window_size
   );

@@ -69,10 +69,7 @@ public:
 
 #include "models_data.hpp"
 
-    static bool32 prepare_model_loader_and_check_if_done(
-        ModelLoader *model_loader,
-        Queue<Task> *task_queue
-    );
+    static bool32 prepare_model_loader_and_check_if_done(ModelLoader *model_loader);
     static bool32 prepare_entity_loader_and_check_if_done(
         EntityLoader *entity_loader,
         EntitySet *entity_set,

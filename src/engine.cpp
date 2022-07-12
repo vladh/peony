@@ -348,17 +348,11 @@ namespace engine {
   }
 
 
-  pny_internal bool32 check_all_entities_loaded(
-    EngineState *engine_state,
-    TasksState *tasks_state
-  ) {
+  pny_internal bool32 check_all_entities_loaded(EngineState *engine_state) {
     bool are_all_done_loading = true;
 
     each (material, *mats::get_materials()) {
-      bool is_done_loading = mats::prepare_material_and_check_if_done(
-        material,
-        &tasks_state->task_queue
-      );
+      bool is_done_loading = mats::prepare_material_and_check_if_done(material);
       if (!is_done_loading) {
         are_all_done_loading = false;
       }
@@ -370,10 +364,7 @@ namespace engine {
         continue;
       }
       new_n_valid_model_loaders++;
-      bool is_done_loading = models::prepare_model_loader_and_check_if_done(
-        model_loader,
-        &tasks_state->task_queue
-      );
+      bool is_done_loading = models::prepare_model_loader_and_check_if_done(model_loader);
       if (!is_done_loading) {
         are_all_done_loading = false;
       }
@@ -433,7 +424,6 @@ namespace engine {
 
   pny_internal void update(
     EngineState *engine_state,
-    TasksState *tasks_state,
     renderer::WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
@@ -447,10 +437,7 @@ namespace engine {
       window_size->height
     );
 
-    engine_state->is_world_loaded = check_all_entities_loaded(
-      engine_state,
-      tasks_state
-    );
+    engine_state->is_world_loaded = check_all_entities_loaded(engine_state);
 
     lights::update_light_components(
       &engine_state->light_component_set,
@@ -532,7 +519,6 @@ namespace engine {
 void engine::run_main_loop(
   EngineState *engine_state,
   InputState *input_state,
-  TasksState *tasks_state,
   GLFWwindow *window,
   renderer::WindowSize *window_size
 ) {
@@ -559,7 +545,6 @@ void engine::run_main_loop(
 
       update(
         engine_state,
-        tasks_state,
         window_size
       );
       renderer::render(
