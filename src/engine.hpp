@@ -90,7 +90,7 @@ public:
     static physics::Component * get_physics_component(entities::Handle entity_handle);
     static f64 get_t();
     static f64 get_dt();
-    static void run_main_loop(GLFWwindow *window, WindowSize *window_size);
+    static void run_main_loop(GLFWwindow *window);
     static void init(engine::State *engine_state, memory::Pool *asset_memory_pool);
 
 private:
