@@ -7,8 +7,9 @@
 #include "renderer.hpp"
 #include "mats.hpp"
 
-namespace internals {
-  void create_internal_materials();
-  void create_internal_entities();
-  void init();
+class internals {
+public:
+    static void create_internal_materials();
+    static void create_internal_entities();
+    static void init();
 }

@@ -10,27 +10,27 @@ constexpr real64 PI = 3.14159265358979323846;
 
 // Platform things
 #if !defined(MAX_PATH)
-  #if defined(PATH_MAX)
-    #define MAX_PATH PATH_MAX
-  #else
-    #define MAX_PATH 260
-  #endif
+#if defined(PATH_MAX)
+#define MAX_PATH PATH_MAX
+#else
+#define MAX_PATH 260
+#endif
 #endif
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || \
     defined(__NT__) || defined(__CYGWIN__) || defined(__MINGW32__)
-  #define PLATFORM_WINDOWS
+#define PLATFORM_WINDOWS
 #elif defined(__APPLE__)
-  #define PLATFORM_MACOS
-  #define PLATFORM_POSIX
+#define PLATFORM_MACOS
+#define PLATFORM_POSIX
 #elif defined(__linux__) || defined(__unix__)
-  #define PLATFORM_UNIX
-  #define PLATFORM_POSIX
+#define PLATFORM_UNIX
+#define PLATFORM_POSIX
 #elif defined(__FreeBSD)
-  #define PLATFORM_FREEBSD
-  #define PLATFORM_POSIX
+#define PLATFORM_FREEBSD
+#define PLATFORM_POSIX
 #else
-  #error "Unknown platform"
+#error "Unknown platform"
 #endif
 
 // General options
