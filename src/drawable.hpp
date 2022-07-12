@@ -25,7 +25,7 @@ public:
     };
 
     struct Component {
-        EntityHandle entity_handle;
+        entities::Handle entity_handle;
         geom::Mesh mesh;
         Pass target_render_pass = Pass::none;
     };

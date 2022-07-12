@@ -17,7 +17,7 @@ public:
     enum class LightType { none, point, directional };
 
     struct Component {
-        EntityHandle entity_handle;
+        entities::Handle entity_handle;
         LightType type;
         v3 direction;
         v4 color;

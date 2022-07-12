@@ -20,7 +20,7 @@ public:
     };
 
     struct Component {
-        EntityHandle entity_handle;
+        entities::Handle entity_handle;
         Behavior behavior = Behavior::none;
     };
 
@@ -32,7 +32,7 @@ public:
         ::State *state;
     };
 
-    typedef void (*Function) (EntityHandle entity_handle);
+    typedef void (*Function) (entities::Handle entity_handle);
 
     static Function function_map[(uint32)Behavior::length];
 

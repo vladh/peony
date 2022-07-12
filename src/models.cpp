@@ -115,7 +115,7 @@ models::prepare_entity_loader_and_check_if_done(
             for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
                 geom::Mesh *mesh = &model_loader->meshes[idx];
 
-                Entity *child_entity = entities::add_entity_to_set(entity_loader->name);
+                entities::Entity *child_entity = entities::add_entity_to_set(entity_loader->name);
 
                 if (spatial::is_spatial_component_valid(&entity_loader->spatial_component)) {
                     spatial::Component *child_spatial_component = engine::get_spatial_component(child_entity->handle);
@@ -201,7 +201,7 @@ models::init_entity_loader(
     const char *name,
     const char *model_path,
     drawable::Pass render_pass,
-    EntityHandle entity_handle
+    entities::Handle entity_handle
 ) {
     assert(entity_loader);
     pstr_copy(entity_loader->name, MAX_COMMON_NAME_LENGTH, name);

@@ -13,7 +13,7 @@ public:
     static constexpr real32 ABSOLUTE_TOLERANCE = 0.10f;
 
     struct Component {
-        EntityHandle entity_handle;
+        entities::Handle entity_handle;
         Obb obb;
         Obb transformed_obb;
     };

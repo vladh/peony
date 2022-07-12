@@ -53,7 +53,7 @@ public:
     struct EntityLoader {
         char name[MAX_DEBUG_NAME_LENGTH];
         char model_path[MAX_PATH];
-        EntityHandle entity_handle;
+        entities::Handle entity_handle;
         drawable::Pass render_pass;
         EntityLoaderState state;
         spatial::Component spatial_component;
@@ -89,7 +89,7 @@ public:
         const char *name,
         const char *model_path,
         drawable::Pass render_pass,
-        EntityHandle entity_handle
+        entities::Handle entity_handle
     );
 
 private:

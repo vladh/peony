@@ -28,7 +28,7 @@ engine::todo_fixme_get_engine_state()
 
 
 models::EntityLoader *
-engine::get_entity_loader(EntityHandle entity_handle)
+engine::get_entity_loader(entities::Handle entity_handle)
 {
     return engine::state->entity_loader_set.loaders[entity_handle];
 }
@@ -63,14 +63,14 @@ engine::mark_first_non_internal_handle()
 }
 
 
-EntitySet *
+entities::Set *
 engine::get_entity_set()
 {
     return &engine::state->entity_set;
 }
 
 
-Array<Entity> *
+Array<entities::Entity> *
 engine::get_entities()
 {
     return &engine::state->entity_set.entities;
@@ -119,50 +119,50 @@ engine::get_physics_components()
 }
 
 
-Entity *
-engine::get_entity(EntityHandle entity_handle)
+entities::Entity *
+engine::get_entity(entities::Handle entity_handle)
 {
     return engine::state->entity_set.entities[entity_handle];
 }
 
 
 drawable::Component *
-engine::get_drawable_component(EntityHandle entity_handle)
+engine::get_drawable_component(entities::Handle entity_handle)
 {
     return engine::state->drawable_component_set.components[entity_handle];
 }
 
 
 lights::Component *
-engine::get_light_component(EntityHandle entity_handle)
+engine::get_light_component(entities::Handle entity_handle)
 {
     return engine::state->light_component_set.components[entity_handle];
 }
 
 
 spatial::Component *
-engine::get_spatial_component(EntityHandle entity_handle)
+engine::get_spatial_component(entities::Handle entity_handle)
 {
     return engine::state->spatial_component_set.components[entity_handle];
 }
 
 
 behavior::Component *
-engine::get_behavior_component(EntityHandle entity_handle)
+engine::get_behavior_component(entities::Handle entity_handle)
 {
     return engine::state->behavior_component_set.components[entity_handle];
 }
 
 
 anim::Component *
-engine::get_animation_component(EntityHandle entity_handle)
+engine::get_animation_component(entities::Handle entity_handle)
 {
     return engine::state->animation_component_set.components[entity_handle];
 }
 
 
 physics::Component *
-engine::get_physics_component(EntityHandle entity_handle)
+engine::get_physics_component(entities::Handle entity_handle)
 {
     return engine::state->physics_component_set.components[entity_handle];
 }
@@ -240,7 +240,7 @@ void engine::init(engine::State *engine_state, MemoryPool *asset_memory_pool) {
         )
     };
     engine::state->entity_set = {
-        .entities = Array<Entity>(
+        .entities = Array<entities::Entity>(
             asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1
         )
     };
@@ -390,8 +390,8 @@ engine::load_scene(const char *scene_name)
     range (0, scene_file->n_entries) {
         PeonyFileEntry *entry = &scene_file->entries[idx];
 
-        // Create Entity
-        Entity *entity = entities::add_entity_to_set(entry->name);
+        // Create entities::Entity
+        entities::Entity *entity = entities::add_entity_to_set(entry->name);
 
         // Create models::ModelLoader
         char const *model_path = peony_parser_utils::get_string(

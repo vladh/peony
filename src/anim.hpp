@@ -33,7 +33,7 @@ public:
     };
 
     struct Component {
-        EntityHandle entity_handle;
+        entities::Handle entity_handle;
         Bone bones[MAX_N_BONES];
         m4 bone_matrices[MAX_N_BONES];
         uint32 n_bones;

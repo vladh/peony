@@ -6,7 +6,7 @@
 
 
 void
-behavior_functions::test(EntityHandle entity_handle)
+behavior_functions::test(entities::Handle entity_handle)
 {
     spatial::Component *spatial_component =
         engine::get_spatial_component(entity_handle);
@@ -22,7 +22,7 @@ behavior_functions::test(EntityHandle entity_handle)
 
 
 void
-behavior_functions::char_movement_test(EntityHandle entity_handle)
+behavior_functions::char_movement_test(entities::Handle entity_handle)
 {
     spatial::Component *spatial_component =
         engine::get_spatial_component(entity_handle);

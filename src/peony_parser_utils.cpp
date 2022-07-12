@@ -195,7 +195,7 @@ void peony_parser_utils::create_material_from_peony_file_entry(
 
 void peony_parser_utils::create_model_loader_from_peony_file_entry(
   PeonyFileEntry *entry,
-  EntityHandle entity_handle,
+  entities::Handle entity_handle,
   models::ModelLoader *model_loader
 ) {
   PeonyFileProp *model_path_prop = find_prop(entry, "model_path");
@@ -218,7 +218,7 @@ void peony_parser_utils::create_model_loader_from_peony_file_entry(
 
 void peony_parser_utils::create_entity_loader_from_peony_file_entry(
   PeonyFileEntry *entry,
-  EntityHandle entity_handle,
+  entities::Handle entity_handle,
   models::EntityLoader *entity_loader
 ) {
   PeonyFileProp *model_path_prop = find_prop(entry, "model_path");
