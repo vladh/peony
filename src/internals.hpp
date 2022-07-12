@@ -8,16 +8,7 @@
 #include "mats.hpp"
 
 namespace internals {
-  void create_internal_materials(
-    EngineState *engine_state,
-    mats::State *materials_state
-  );
-  void create_internal_entities(
-    EngineState *engine_state,
-    mats::State *materials_state
-  );
-  void init(
-    EngineState *engine_state,
-    mats::State *materials_state
-  );
+  void create_internal_materials(EngineState *engine_state);
+  void create_internal_entities(EngineState *engine_state);
+  void init(EngineState *engine_state);
 }

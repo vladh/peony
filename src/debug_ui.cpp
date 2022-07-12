@@ -146,19 +146,21 @@ namespace debug_ui {
 
   pny_internal void get_materials_text_representation(
     char *text,
-    mats::State *materials_state,
     EngineState *engine_state
   ) {
     text[0] = '\0';
 
     strcat(text, "Internal:\n");
 
+    bool have_seen_non_internal = false;
+
     uint32 idx = 0;
-    each (material, materials_state->materials) {
+    each (material, *mats::get_materials()) {
       strcat(text, "- ");
       strcat(text, material->name);
       strcat(text, "\n");
-      if (idx == engine_state->first_non_internal_material_idx - 1) {
+      if (mats::is_material_at_idx_internal(idx) && !have_seen_non_internal) {
+        have_seen_non_internal = true;
         strcat(text, "Non-internal: \n");
       }
       idx++;
@@ -173,7 +175,6 @@ namespace debug_ui {
 
 void debug_ui::render_debug_ui(
   EngineState *engine_state,
-  mats::State *materials_state,
   InputState *input_state,
   renderer::WindowSize *window_size
 ) {
@@ -216,7 +217,7 @@ void debug_ui::render_debug_ui(
     snprintf(debug_text, dt_size, engine_state->is_world_loaded ? "yes" : "no");
     gui::draw_named_value(container, "is_world_loaded", debug_text);
 
-    snprintf(debug_text, dt_size, "%u", materials_state->materials.length);
+    snprintf(debug_text, dt_size, "%u", mats::get_n_materials());
     gui::draw_named_value(
       container, "materials.length", debug_text
     );
@@ -298,14 +299,14 @@ void debug_ui::render_debug_ui(
     if (gui::draw_button(
       container, "Reload shaders"
     )) {
-      mats::reload_shaders(&materials_state->materials);
+      mats::reload_shaders();
       gui::set_heading("Shaders reloaded.", 1.0f, 1.0f, 1.0f);
     }
 
     if (gui::draw_button(
       container, "Delete PBO"
     )) {
-      mats::delete_persistent_pbo(&materials_state->persistent_pbo);
+      mats::delete_persistent_pbo();
       gui::set_heading("PBO deleted.", 1.0f, 1.0f, 1.0f);
     }
   }
@@ -322,7 +323,7 @@ void debug_ui::render_debug_ui(
     gui::Container *container = gui::make_container(
       "Materials", v2(window_size->width - 600.0f, 25.0f)
     );
-    get_materials_text_representation(debug_text, materials_state, engine_state);
+    get_materials_text_representation(debug_text, engine_state);
     gui::draw_body_text(container, debug_text);
   }
 

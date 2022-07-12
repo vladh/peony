@@ -27,24 +27,6 @@ namespace engine {
   }
 
 
-  pny_internal void destroy_non_internal_materials(
-    EngineState *engine_state,
-    mats::State *materials_state
-  ) {
-    for (
-      uint32 idx = engine_state->first_non_internal_material_idx;
-      idx < materials_state->materials.length;
-      idx++
-    ) {
-      mats::destroy_material(materials_state->materials[idx]);
-    }
-
-    materials_state->materials.delete_elements_after_index(
-      engine_state->first_non_internal_material_idx
-    );
-  }
-
-
   pny_internal void destroy_non_internal_entities(EngineState *engine_state) {
     for (
       uint32 idx = engine_state->entity_set.first_non_internal_handle;
@@ -83,8 +65,7 @@ namespace engine {
 
 
   pny_internal void destroy_scene(
-    EngineState *engine_state,
-    mats::State *materials_state
+    EngineState *engine_state
   ) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
@@ -98,15 +79,14 @@ namespace engine {
     // TODO: Also reclaim texture names from TextureNamePool, otherwise we'll
     // end up overflowing.
     destroy_model_loaders(engine_state);
-    destroy_non_internal_materials(engine_state, materials_state);
+    mats::destroy_non_internal_materials();
     destroy_non_internal_entities(engine_state);
   }
 
 
   pny_internal bool32 load_scene(
     const char *scene_name,
-    EngineState *engine_state,
-    mats::State *materials_state
+    EngineState *engine_state
   ) {
     // If the current scene has not finished loading, we can neither
     // unload it nor load a new one.
@@ -131,7 +111,7 @@ namespace engine {
     }
 
     // Destroy our current scene after we've confirmed we could load the new scene.
-    destroy_scene(engine_state, materials_state);
+    destroy_scene(engine_state);
     pstr_copy(engine_state->current_scene_name, MAX_COMMON_NAME_LENGTH, scene_name);
 
     // Get only the unique used materials
@@ -157,7 +137,7 @@ namespace engine {
       }
       assert(material_file->n_entries > 0);
       peony_parser_utils::create_material_from_peony_file_entry(
-        materials_state->materials.push(),
+        mats::push_material(),
         &material_file->entries[0],
         &temp_memory_pool
       );
@@ -210,7 +190,6 @@ namespace engine {
 
   pny_internal void handle_console_command(
     EngineState *engine_state,
-    mats::State *materials_state,
     InputState *input_state
   ) {
     gui::log("%s%s", gui::CONSOLE_SYMBOL, input_state->text_input);
@@ -235,7 +214,7 @@ namespace engine {
         "help: show help"
       );
     } else if (pstr_eq(command, "loadscene")) {
-      load_scene(arguments, engine_state, materials_state);
+      load_scene(arguments, engine_state);
     } else if (pstr_eq(command, "renderdebug")) {
       renderer::set_renderdebug_displayed_texture_type(mats::texture_type_from_string(arguments));
     } else {
@@ -263,7 +242,6 @@ namespace engine {
   pny_internal void process_input(
     GLFWwindow *window,
     EngineState *engine_state,
-    mats::State *materials_state,
     InputState *input_state,
     CamerasState *cameras_state,
     LightsState *lights_state
@@ -280,7 +258,7 @@ namespace engine {
 
     if (input::is_key_now_down(input_state, GLFW_KEY_ENTER)) {
       handle_console_command(
-        engine_state, materials_state, input_state
+        engine_state, input_state
       );
     }
 
@@ -343,8 +321,7 @@ namespace engine {
     if (input::is_key_now_down(input_state, GLFW_KEY_R)) {
       load_scene(
         engine_state->current_scene_name,
-        engine_state,
-        materials_state
+        engine_state
       );
     }
 
@@ -376,17 +353,14 @@ namespace engine {
 
   pny_internal bool32 check_all_entities_loaded(
     EngineState *engine_state,
-    mats::State *materials_state,
     TasksState *tasks_state,
     AnimState *anim_state
   ) {
     bool are_all_done_loading = true;
 
-    each (material, materials_state->materials) {
+    each (material, *mats::get_materials()) {
       bool is_done_loading = mats::prepare_material_and_check_if_done(
         material,
-        &materials_state->persistent_pbo,
-        &materials_state->texture_name_pool,
         &tasks_state->task_queue
       );
       if (!is_done_loading) {
@@ -402,8 +376,6 @@ namespace engine {
       new_n_valid_model_loaders++;
       bool is_done_loading = models::prepare_model_loader_and_check_if_done(
         model_loader,
-        &materials_state->persistent_pbo,
-        &materials_state->texture_name_pool,
         &tasks_state->task_queue,
         &anim_state->bone_matrix_pool
       );
@@ -466,7 +438,6 @@ namespace engine {
 
   pny_internal void update(
     EngineState *engine_state,
-    mats::State *materials_state,
     CamerasState *cameras_state,
     TasksState *tasks_state,
     AnimState *anim_state,
@@ -475,7 +446,7 @@ namespace engine {
     renderer::WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
-      load_scene(DEFAULT_SCENE, engine_state, materials_state);
+      load_scene(DEFAULT_SCENE, engine_state);
       engine_state->was_world_ever_loaded = true;
     }
 
@@ -487,7 +458,6 @@ namespace engine {
 
     engine_state->is_world_loaded = check_all_entities_loaded(
       engine_state,
-      materials_state,
       tasks_state,
       anim_state
     );
@@ -576,7 +546,6 @@ namespace engine {
 
 void engine::run_main_loop(
   EngineState *engine_state,
-  mats::State *materials_state,
   CamerasState *cameras_state,
   InputState *input_state,
   LightsState *lights_state,
@@ -593,7 +562,6 @@ void engine::run_main_loop(
     process_input(
       window,
       engine_state,
-      materials_state,
       input_state,
       cameras_state,
       lights_state
@@ -612,7 +580,6 @@ void engine::run_main_loop(
 
       update(
         engine_state,
-        materials_state,
         cameras_state,
         tasks_state,
         anim_state,
@@ -622,7 +589,6 @@ void engine::run_main_loop(
       );
       renderer::render(
         engine_state,
-        materials_state,
         cameras_state,
         input_state,
         window,

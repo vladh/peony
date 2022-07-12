@@ -51,7 +51,6 @@ core::run()
     // Run main loop
     engine::run_main_loop(
         &state->engine_state,
-        &state->materials_state,
         &state->cameras_state,
         &state->input_state,
         &state->lights_state,
@@ -81,8 +80,7 @@ core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
     gui::update_screen_dimensions(state->window_size.width, state->window_size.height);
 
     auto *builtin_textures = renderer::get_builtin_textures();
-    renderer::resize_renderer_buffers(
-        asset_memory_pool, &state->materials_state.materials, builtin_textures,
+    renderer::resize_renderer_buffers(asset_memory_pool, builtin_textures,
         width, height);
 }
 
@@ -143,7 +141,7 @@ core::init_state(State *state, MemoryPool *asset_memory_pool)
     renderer::init(
         &state->renderer_state, &state->input_state, asset_memory_pool,
         state->window_size.width, state->window_size.height, state->window);
-    internals::init(&state->engine_state, &state->materials_state);
+    internals::init(&state->engine_state);
     gui::init(asset_memory_pool,
         &state->gui_state,
         &state->input_state,

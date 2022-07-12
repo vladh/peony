@@ -71,8 +71,6 @@ public:
 
     static bool32 prepare_model_loader_and_check_if_done(
         ModelLoader *model_loader,
-        mats::PersistentPbo *persistent_pbo,
-        mats::TextureNamePool *texture_name_pool,
         Queue<Task> *task_queue,
         BoneMatrixPool *bone_matrix_pool
     );
