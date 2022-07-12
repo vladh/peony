@@ -121,7 +121,6 @@ public:
     void destroy_drawable_component(drawable::Component *drawable_component);
     static void resize_renderer_buffers(
         MemoryPool *memory_pool,
-        Array<mats::Material> *materials,
         BuiltinTextures *builtin_textures,
         uint32 width,
         uint32 height
@@ -129,7 +128,6 @@ public:
     static void update_drawing_options(InputState *input_state, GLFWwindow *window);
     static void render(
         EngineState *engine_state,
-        mats::State *materials_state,
         CamerasState *cameras_state,
         InputState *input_state,
         GLFWwindow *window,
@@ -227,14 +225,12 @@ private:
         drawable::ComponentSet *drawable_component_set,
         SpatialComponentSet *spatial_component_set,
         AnimationComponentSet *animation_component_set,
-        Array<mats::Material> *materials,
         drawable::Pass render_pass,
         drawable::Mode render_mode,
         shaders::Asset *standard_depth_shader_asset
     );
     static void render_scene(
         EngineState *engine_state,
-        mats::State *materials_state,
         drawable::Pass render_pass,
         drawable::Mode render_mode
     );

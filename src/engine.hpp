@@ -52,7 +52,6 @@ struct EngineState {
   uint32 n_valid_entity_loaders;
   bool32 is_world_loaded;
   bool32 was_world_ever_loaded;
-  uint32 first_non_internal_material_idx;
   Array<models::ModelLoader> model_loaders;
   models::EntityLoaderSet entity_loader_set;
   EntitySet entity_set;
@@ -70,7 +69,6 @@ namespace engine {
 
   void run_main_loop(
     EngineState *engine_state,
-    mats::State *materials_state,
     CamerasState *cameras_state,
     InputState *input_state,
     LightsState *lights_state,

@@ -10,6 +10,60 @@
 #include "intrinsics.hpp"
 
 
+mats::State *mats::state = nullptr;
+
+
+Array<mats::Material> *
+mats::get_materials()
+{
+    return &mats::state->materials;
+}
+
+
+u32
+mats::get_n_materials()
+{
+    return mats::state->materials.length;
+}
+
+
+mats::Material *
+mats::push_material()
+{
+    return mats::state->materials.push();
+}
+
+
+void
+mats::mark_start_of_non_internal_materials()
+{
+    mats::state->first_non_internal_material_idx = mats::state->materials.length;
+}
+
+
+void
+mats::destroy_non_internal_materials()
+{
+    for (
+        uint32 idx = mats::state->first_non_internal_material_idx;
+        idx < mats::state->materials.length;
+        idx++
+    ) {
+        destroy_material(mats::state->materials[idx]);
+    }
+
+    mats::state->materials.delete_elements_after_index(
+        mats::state->first_non_internal_material_idx);
+}
+
+
+bool
+mats::is_material_at_idx_internal(u32 idx)
+{
+    return idx < mats::state->first_non_internal_material_idx;
+}
+
+
 char const *
 mats::texture_type_to_string(TextureType texture_type) {
     if (texture_type == TextureType::none) {
@@ -249,9 +303,9 @@ mats::destroy_material(Material *material)
 
 
 mats::Material *
-mats::get_material_by_name(Array<Material> *materials, char const *name)
+mats::get_material_by_name(char const *name)
 {
-    each (material, *materials) {
+    each (material, mats::state->materials) {
         if (pstr_eq(material->name, name)) {
             return material;
         }
@@ -319,10 +373,10 @@ mats::bind_texture_uniforms(Material *material)
 
 
 void
-mats::delete_persistent_pbo(PersistentPbo *ppbo)
+mats::delete_persistent_pbo()
 {
     glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
-    glDeleteBuffers(1, &ppbo->pbo);
+    glDeleteBuffers(1, &mats::state->persistent_pbo.pbo);
 }
 
 
@@ -331,19 +385,16 @@ mats::init(
     mats::State *materials_state,
     MemoryPool *memory_pool
 ) {
-    materials_state->materials = Array<Material>(memory_pool, MAX_N_MATERIALS, "materials");
-    init_texture_name_pool(&materials_state->texture_name_pool, memory_pool, 256, 4);
-    init_persistent_pbo(&materials_state->persistent_pbo, 25, 2048, 2048, 4);
+    mats::state = materials_state;
+    mats::state->materials = Array<Material>(memory_pool, MAX_N_MATERIALS, "materials");
+    init_texture_name_pool(memory_pool, 256, 4);
+    init_persistent_pbo(25, 2048, 2048, 4);
 }
 
 
 bool32
-mats::prepare_material_and_check_if_done(
-    Material *material,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool,
-    Queue<Task> *task_queue
-) {
+mats::prepare_material_and_check_if_done(Material *material, Queue<Task> *task_queue)
+{
     if (material->state == MaterialState::empty) {
         logs::warning("Empty material '%s'. This should never happen.", material->name);
         return false;
@@ -365,7 +416,7 @@ mats::prepare_material_and_check_if_done(
             task_queue->push({
                 .fn = (TaskFn)copy_textures_to_pbo,
                 .argument_1 = (void*)material,
-                .argument_2 = (void*)persistent_pbo,
+                .argument_2 = (void*)&mats::state->persistent_pbo,
             });
         } else {
             material->state = MaterialState::textures_copied_to_pbo;
@@ -377,7 +428,7 @@ mats::prepare_material_and_check_if_done(
     }
 
     if (material->state == MaterialState::textures_copied_to_pbo) {
-        generate_textures_from_pbo(material, persistent_pbo, texture_name_pool);
+        generate_textures_from_pbo(material);
         material->state = MaterialState::complete;
     }
 
@@ -396,11 +447,11 @@ mats::prepare_material_and_check_if_done(
 
 
 void
-mats::reload_shaders(Array<Material> *materials)
+mats::reload_shaders()
 {
     MemoryPool temp_memory_pool = {};
 
-    each (material, *materials) {
+    each (material, mats::state->materials) {
         shaders::load_shader_asset(&material->shader_asset, &temp_memory_pool);
         if (shaders::is_shader_asset_valid(&material->depth_shader_asset)) {
             shaders::load_shader_asset(&material->depth_shader_asset, &temp_memory_pool);
@@ -432,8 +483,9 @@ mats::is_texture_type_screensize_dependent(TextureType type)
 
 
 uint16
-mats::get_new_persistent_pbo_idx(PersistentPbo *ppbo)
+mats::get_new_persistent_pbo_idx()
 {
+    auto *ppbo = &mats::state->persistent_pbo;
     uint16 current_idx = ppbo->next_idx;
     ppbo->next_idx++;
     if (ppbo->next_idx >= ppbo->texture_count) {
@@ -444,14 +496,16 @@ mats::get_new_persistent_pbo_idx(PersistentPbo *ppbo)
 
 
 void *
-mats::get_memory_for_persistent_pbo_idx(PersistentPbo *ppbo, uint16 idx)
+mats::get_memory_for_persistent_pbo_idx(uint16 idx)
 {
+    auto *ppbo = &mats::state->persistent_pbo;
     return (char*)ppbo->memory + ((uint64)idx * ppbo->texture_size);
 }
 
 
+// TODO: This argument is here so that it matches TaskFn, should fix.
 void
-mats::copy_textures_to_pbo(Material *material, PersistentPbo *persistent_pbo)
+mats::copy_textures_to_pbo(Material *material, void *ignored)
 {
     for (uint32 idx = 0; idx < material->n_textures; idx++) {
         Texture *texture = &material->textures[idx];
@@ -460,8 +514,8 @@ mats::copy_textures_to_pbo(Material *material, PersistentPbo *persistent_pbo)
         }
         unsigned char *image_data = files::load_image(texture->path, &texture->width, &texture->height,
             &texture->n_components, true);
-        texture->pbo_idx_for_copy = get_new_persistent_pbo_idx(persistent_pbo);
-        memcpy(get_memory_for_persistent_pbo_idx(persistent_pbo, texture->pbo_idx_for_copy),
+        texture->pbo_idx_for_copy = get_new_persistent_pbo_idx();
+        memcpy(get_memory_for_persistent_pbo_idx(texture->pbo_idx_for_copy),
             image_data, texture->width * texture->height * texture->n_components);
         files::free_image(image_data);
     }
@@ -470,8 +524,9 @@ mats::copy_textures_to_pbo(Material *material, PersistentPbo *persistent_pbo)
 
 
 uint32
-mats::get_new_texture_name(TextureNamePool *pool, uint32 target_size)
+mats::get_new_texture_name(uint32 target_size)
 {
+    auto *pool = &mats::state->texture_name_pool;
     for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
         if (pool->sizes[idx_size] == target_size) {
             assert(pool->idx_next[idx_size] < pool->n_textures);
@@ -487,34 +542,31 @@ mats::get_new_texture_name(TextureNamePool *pool, uint32 target_size)
 
 
 void *
-mats::get_offset_for_persistent_pbo_idx(PersistentPbo *ppbo, uint16 idx)
+mats::get_offset_for_persistent_pbo_idx(uint16 idx)
 {
-    return (void*)((uint64)idx * ppbo->texture_size);
+    return (void*)((uint64)idx * mats::state->persistent_pbo.texture_size);
 }
 
 
 void
-mats::generate_textures_from_pbo(
-    Material *material,
-    PersistentPbo *persistent_pbo,
-    TextureNamePool *texture_name_pool
-) {
+mats::generate_textures_from_pbo(Material *material)
+{
     if (material->have_textures_been_generated) {
         logs::warning("Tried to generate textures but they've already been generated.");
     }
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, persistent_pbo->pbo);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, mats::state->persistent_pbo.pbo);
 
     for (uint32 idx = 0; idx < material->n_textures; idx++) {
         Texture *texture = &material->textures[idx];
         if (texture->texture_name != 0) {
             continue;
         }
-        texture->texture_name = get_new_texture_name(texture_name_pool, texture->width);
+        texture->texture_name = get_new_texture_name(texture->width);
         glBindTexture(GL_TEXTURE_2D, texture->texture_name);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture->width, texture->height,
             util::get_texture_format_from_n_components(texture->n_components),
             GL_UNSIGNED_BYTE,
-            get_offset_for_persistent_pbo_idx(persistent_pbo, texture->pbo_idx_for_copy));
+            get_offset_for_persistent_pbo_idx(texture->pbo_idx_for_copy));
         glGenerateMipmap(GL_TEXTURE_2D);
 
         if (texture->type == TextureType::normal) {
@@ -548,9 +600,9 @@ mats::material_state_to_string(MaterialState material_state)
 
 mats::PersistentPbo *
 mats::init_persistent_pbo(
-    PersistentPbo *ppbo,
     uint16 texture_count, int32 width, int32 height, int32 n_components
 ) {
+    auto *ppbo = &mats::state->persistent_pbo;
     ppbo->texture_count = texture_count;
     ppbo->width = width;
     ppbo->height = height;
@@ -586,11 +638,11 @@ mats::init_persistent_pbo(
 
 mats::TextureNamePool *
 mats::init_texture_name_pool(
-    TextureNamePool *pool,
     MemoryPool *memory_pool,
     uint32 n_textures,
     uint32 mipmap_max_level
 ) {
+    auto *pool = &mats::state->texture_name_pool;
     pool->n_textures = n_textures;
     pool->mipmap_max_level = mipmap_max_level;
     pool->n_sizes = 0;
