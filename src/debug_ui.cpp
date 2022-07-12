@@ -7,8 +7,7 @@
 
 
 void debug_ui::render_debug_ui() {
-    // TODO: fixme
-    engine::State *engine_state = engine::todo_fixme_get_engine_state();
+    engine::State *engine_state = engine::debug_get_engine_state();
 
     WindowSize *window_size = core::get_window_size();
 
@@ -129,8 +128,7 @@ void debug_ui::render_debug_ui() {
 void
 debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u8 depth)
 {
-    // TODO: fixme
-    engine::State *engine_state = engine::todo_fixme_get_engine_state();
+    engine::State *engine_state = engine::debug_get_engine_state();
 
     entities::Handle handle = entity->handle;
     spatial::Component *spatial_component = engine_state->spatial_component_set.components[handle];
@@ -230,8 +228,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
 void
 debug_ui::get_scene_text_representation(char *text)
 {
-    // TODO: fixme
-    engine::State *engine_state = engine::todo_fixme_get_engine_state();
+    engine::State *engine_state = engine::debug_get_engine_state();
 
     text[0] = '\0';
 

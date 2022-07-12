@@ -67,7 +67,7 @@ public:
         physics::ComponentSet physics_component_set;
     };
 
-    static engine::State * todo_fixme_get_engine_state();
+    static engine::State * debug_get_engine_state();
     static models::EntityLoader * get_entity_loader(entities::Handle entity_handle);
     static models::ModelLoader * push_model_loader();
     static u32 get_last_drawn_shader_program();

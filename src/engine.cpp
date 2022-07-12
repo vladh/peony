@@ -20,8 +20,9 @@ namespace chrono = std::chrono;
 engine::State *engine::state = nullptr;
 
 
+// This should only be used for printing things out for debugging
 engine::State *
-engine::todo_fixme_get_engine_state()
+engine::debug_get_engine_state()
 {
     return engine::state;
 }
