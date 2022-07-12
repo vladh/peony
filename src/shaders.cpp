@@ -169,7 +169,7 @@ shaders::add_texture_unit(
 
 
 void
-shaders::load_shader_asset(shaders::Asset *shader_asset, MemoryPool *memory_pool)
+shaders::load_shader_asset(shaders::Asset *shader_asset, memory::Pool *memory_pool)
 {
     shader_asset->did_set_texture_uniforms = false;
 
@@ -196,7 +196,7 @@ shaders::load_shader_asset(shaders::Asset *shader_asset, MemoryPool *memory_pool
 shaders::Asset*
 shaders::init_shader_asset(
     shaders::Asset *shader_asset,
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     const char *new_name, shaders::Type new_type,
     const char *vert_path, const char *frag_path, const char *geom_path
 ) {
@@ -309,7 +309,7 @@ shaders::make_program(
 
 
 char const *
-shaders::load_file(MemoryPool *memory_pool, const char *path)
+shaders::load_file(memory::Pool *memory_pool, const char *path)
 {
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
@@ -324,7 +324,7 @@ shaders::load_file(MemoryPool *memory_pool, const char *path)
 
 
 char const *
-shaders::load_frag_file(MemoryPool *memory_pool, const char *path)
+shaders::load_frag_file(memory::Pool *memory_pool, const char *path)
 {
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?

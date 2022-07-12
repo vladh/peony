@@ -229,7 +229,7 @@ engine::run_main_loop(GLFWwindow *window, WindowSize *window_size)
 }
 
 
-void engine::init(engine::State *engine_state, MemoryPool *asset_memory_pool) {
+void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) {
     engine::state = engine_state;
     engine::state->model_loaders = Array<models::ModelLoader>(
         asset_memory_pool, MAX_N_MODELS, "model_loaders"
@@ -344,7 +344,7 @@ engine::load_scene(const char *scene_name)
     }
 
     // Get some memory for everything we need
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
     defer { memory::destroy_memory_pool(&temp_memory_pool); };
 
     // Load scene file

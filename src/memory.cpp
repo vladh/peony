@@ -9,7 +9,7 @@
 
 void *
 memory::push(
-    MemoryPool *pool,
+    Pool *pool,
     size_t item_size,
     const char *item_debug_name
 ) {
@@ -58,9 +58,9 @@ memory::push(
 
 
 void
-memory::print_memory_pool(MemoryPool *pool)
+memory::print_memory_pool(Pool *pool)
 {
-    logs::info("MemoryPool:");
+    logs::info("memory::Pool:");
     logs::info("  Used: %.2fMB (%dB)", util::b_to_mb((uint32)pool->used), pool->used);
     logs::info("  Size: %.2fMB (%dB)", util::b_to_mb((uint32)pool->size), pool->size);
     logs::info("  Items:");
@@ -80,7 +80,7 @@ memory::print_memory_pool(MemoryPool *pool)
 
 
 void
-memory::destroy_memory_pool(MemoryPool *memory_pool)
+memory::destroy_memory_pool(Pool *memory_pool)
 {
 #if USE_MEMORY_DEBUG_LOGS
     logs::info("destroy_memory_pool");
@@ -91,7 +91,7 @@ memory::destroy_memory_pool(MemoryPool *memory_pool)
 
 
 void
-memory::reset_memory_pool(MemoryPool *pool)
+memory::reset_memory_pool(Pool *pool)
 {
     #if USE_MEMORY_DEBUG_LOGS
     logs::info("Resetting memory pool");
@@ -102,7 +102,7 @@ memory::reset_memory_pool(MemoryPool *pool)
 
 
 void
-memory::zero_out_memory_pool(MemoryPool *pool)
+memory::zero_out_memory_pool(Pool *pool)
 {
     memset(pool->memory, 0, pool->size);
     pool->used = 0;

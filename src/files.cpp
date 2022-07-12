@@ -57,7 +57,7 @@ files::get_file_size(char const *path)
 
 
 char const *
-files::load_file(MemoryPool *memory_pool, const char *path)
+files::load_file(memory::Pool *memory_pool, const char *path)
 {
     FILE *f = fopen(path, "rb");
     if (!f) {

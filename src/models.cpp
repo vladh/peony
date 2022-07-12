@@ -366,7 +366,7 @@ models::load_mesh(
     const aiScene *scene,
     ModelLoader *model_loader,
     m4 transform,
-    Pack indices_pack
+    pack::Pack indices_pack
 ) {
     mesh->transform = transform;
     m3 normal_matrix = m3(transpose(inverse(transform)));
@@ -476,7 +476,7 @@ void
 models::load_node(
     ModelLoader *model_loader,
     aiNode *node, const aiScene *scene,
-    m4 accumulated_transform, Pack indices_pack
+    m4 accumulated_transform, pack::Pack indices_pack
 ) {
     m4 node_transform = util::aimatrix4x4_to_glm(&node->mTransformation);
     m4 transform = accumulated_transform * node_transform;
@@ -489,7 +489,7 @@ models::load_node(
     }
 
     range (0, node->mNumChildren) {
-        Pack new_indices_pack = indices_pack;
+        pack::Pack new_indices_pack = indices_pack;
         // NOTE: We can only store 4 bits per pack element. Our indices can be way
         // bigger than that, but that's fine. We don't need that much precision.
         // Just smash the number down to a uint8.
@@ -502,7 +502,7 @@ models::load_node(
 void
 models::load_model_from_file(ModelLoader *model_loader)
 {
-    // NOTE: This function stores its vertex data in the MemoryPool for each
+    // NOTE: This function stores its vertex data in the memory::Pool for each
     // mesh, and so is intended to be called from a separate thread.
     char full_path[MAX_PATH] = {};
     pstr_vcat(full_path, MAX_PATH, MODEL_DIR, model_loader->model_path, NULL);
@@ -543,7 +543,7 @@ models::load_model_from_data(ModelLoader *model_loader)
 {
     // NOTE: This function sets up mesh vertex buffers directly, and so is
     // intended to be called from the main OpenGL thread.
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
 
     geom::Vertex *vertex_data = nullptr;
     uint32 n_vertices = 0;

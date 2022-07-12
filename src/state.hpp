@@ -33,10 +33,10 @@ struct State {
     tasks::State tasks_state;
     debugdraw::State debug_draw_state;
     behavior::State behavior_state;
-    MemoryPool *asset_memory_pool;
+    memory::Pool *asset_memory_pool;
 };
 
 struct MemoryAndState {
-    MemoryPool *asset_memory_pool;
+    memory::Pool *asset_memory_pool;
     State *state;
 };

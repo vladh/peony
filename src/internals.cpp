@@ -10,7 +10,7 @@
 void
 internals::create_internal_materials()
 {
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
     auto *builtin_textures = renderer::get_builtin_textures();
 
     // unknown
@@ -159,7 +159,7 @@ internals::create_internal_materials()
 void
 internals::create_internal_entities()
 {
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
 
     shaders::init_shader_asset(renderer::get_standard_depth_shader_asset(),
         &temp_memory_pool, "standard_depth", shaders::Type::depth,

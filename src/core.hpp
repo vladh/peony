@@ -18,8 +18,8 @@ public:
     static void char_callback(GLFWwindow* window, uint32 codepoint);
 
 private:
-    static bool init_state(State *state, MemoryPool *asset_memory_pool);
-    static MemoryPool * get_asset_memory_pool();
+    static bool init_state(State *state, memory::Pool *asset_memory_pool);
+    static memory::Pool * get_asset_memory_pool();
     static void destroy_state(State *state);
 
     static State *state;

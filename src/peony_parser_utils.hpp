@@ -28,7 +28,7 @@ namespace peony_parser_utils {
   void create_material_from_peony_file_entry(
     mats::Material *material,
     PeonyFileEntry *entry,
-    MemoryPool *memory_pool
+    memory::Pool *memory_pool
   );
   void create_model_loader_from_peony_file_entry(
     PeonyFileEntry *entry,

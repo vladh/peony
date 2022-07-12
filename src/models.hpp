@@ -114,12 +114,12 @@ private:
         const aiScene *scene,
         ModelLoader *model_loader,
         m4 transform,
-        Pack indices_pack
+        pack::Pack indices_pack
     );
     static void load_node(
         ModelLoader *model_loader,
         aiNode *node, const aiScene *scene,
-        m4 accumulated_transform, Pack indices_pack
+        m4 accumulated_transform, pack::Pack indices_pack
     );
     static void load_model_from_file(ModelLoader *model_loader);
     static void load_model_from_data(ModelLoader *model_loader);

@@ -164,7 +164,7 @@ anim::find_animation_component(spatial::Component *spatial_component)
 
 
 void
-anim::init(anim::State *anim_state, MemoryPool *pool)
+anim::init(anim::State *anim_state, memory::Pool *pool)
 {
     anim::state = anim_state;
     anim::state->bone_matrix_pool.bone_matrices = Array<m4>(pool,

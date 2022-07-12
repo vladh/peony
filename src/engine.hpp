@@ -91,7 +91,7 @@ public:
     static real64 get_t();
     static real64 get_dt();
     static void run_main_loop(GLFWwindow *window, WindowSize *window_size);
-    static void init(engine::State *engine_state, MemoryPool *asset_memory_pool);
+    static void init(engine::State *engine_state, memory::Pool *asset_memory_pool);
 
 private:
     static engine::State *state;

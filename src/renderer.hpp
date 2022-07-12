@@ -113,7 +113,7 @@ public:
     bool32 is_drawable_component_valid(drawable::Component *drawable_component);
     void destroy_drawable_component(drawable::Component *drawable_component);
     static void resize_renderer_buffers(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         BuiltinTextures *builtin_textures,
         uint32 width,
         uint32 height
@@ -122,7 +122,7 @@ public:
     static void render(GLFWwindow *window, WindowSize *window_size);
     static void init(
         renderer::State *renderer_state,
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 width,
         uint32 height,
         GLFWwindow *window
@@ -143,7 +143,7 @@ public:
 
 private:
     static void init_g_buffer(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 *g_buffer,
         mats::Texture **g_position_texture,
         mats::Texture **g_normal_texture,
@@ -153,7 +153,7 @@ private:
         uint32 height
     );
     static void init_l_buffer(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 *l_buffer,
         mats::Texture **l_color_texture,
         mats::Texture **l_bright_color_texture,
@@ -162,7 +162,7 @@ private:
         uint32 height
     );
     static void init_blur_buffers(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 *blur1_buffer,
         uint32 *blur2_buffer,
         mats::Texture **blur1_texture,
@@ -172,7 +172,7 @@ private:
     );
     static void init_ubo(uint32 *ubo_shader_common);
     static void init_3d_shadowmaps(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 *shadowmaps_3d_framebuffer,
         uint32 *shadowmaps_3d,
         mats::Texture **shadowmaps_3d_texture,
@@ -180,14 +180,14 @@ private:
         uint32 shadowmap_3d_height
     );
     static void init_2d_shadowmaps(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 *shadowmaps_2d_framebuffer,
         uint32 *shadowmaps_2d,
         mats::Texture **shadowmaps_2d_texture,
         uint32 shadowmap_2d_width,
         uint32 shadowmap_2d_height
     );
-    static void init_gui(MemoryPool *memory_pool);
+    static void init_gui(memory::Pool *memory_pool);
     static void copy_scene_data_to_ubo(
         WindowSize *window_size,
         uint32 current_shadow_light_idx,

@@ -7,7 +7,7 @@
 template <typename T>
 class Array {
 public:
-    MemoryPool *memory_pool = nullptr;
+    memory::Pool *memory_pool = nullptr;
     const char *debug_name = nullptr;
     uint32 length = 0;
     uint32 capacity = 0;
@@ -81,7 +81,7 @@ public:
     }
 
     Array(
-        MemoryPool *memory_pool,
+        memory::Pool *memory_pool,
         uint32 capacity,
         const char *debug_name,
         bool32 is_sparse = false,

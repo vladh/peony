@@ -383,7 +383,7 @@ mats::delete_persistent_pbo()
 void
 mats::init(
     mats::State *materials_state,
-    MemoryPool *memory_pool
+    memory::Pool *memory_pool
 ) {
     mats::state = materials_state;
     mats::state->materials = Array<Material>(memory_pool, MAX_N_MATERIALS, "materials");
@@ -448,7 +448,7 @@ mats::prepare_material_and_check_if_done(Material *material)
 void
 mats::reload_shaders()
 {
-    MemoryPool temp_memory_pool = {};
+    memory::Pool temp_memory_pool = {};
 
     each (material, mats::state->materials) {
         shaders::load_shader_asset(&material->shader_asset, &temp_memory_pool);
@@ -636,7 +636,7 @@ mats::init_persistent_pbo(
 
 mats::TextureNamePool *
 mats::init_texture_name_pool(
-    MemoryPool *memory_pool,
+    memory::Pool *memory_pool,
     uint32 n_textures,
     uint32 mipmap_max_level
 ) {

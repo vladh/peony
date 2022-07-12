@@ -43,7 +43,7 @@ tasks::run_loading_loop(
 
 
 void
-tasks::init(tasks::State *tasks_state, MemoryPool *pool)
+tasks::init(tasks::State *tasks_state, memory::Pool *pool)
 {
     tasks::state = tasks_state;
     tasks::state->task_queue = Queue<Task>(pool, 128, "task_queue");
