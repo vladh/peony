@@ -189,16 +189,16 @@ namespace engine {
 
 
   pny_internal void handle_console_command(
-    EngineState *engine_state,
-    InputState *input_state
+    EngineState *engine_state
   ) {
-    gui::log("%s%s", gui::CONSOLE_SYMBOL, input_state->text_input);
+    char *text_input = input::get_text_input();
+    gui::log("%s%s", gui::CONSOLE_SYMBOL, text_input);
 
     char command[input::MAX_TEXT_INPUT_COMMAND_LENGTH] = {};
     char arguments[input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH] = {};
 
     pstr_split_on_first_occurrence(
-      input_state->text_input,
+      text_input,
       command, input::MAX_TEXT_INPUT_COMMAND_LENGTH,
       arguments, input::MAX_TEXT_INPUT_ARGUMENTS_LENGTH,
       ' '
@@ -221,7 +221,7 @@ namespace engine {
       gui::log("Unknown command: %s", command);
     }
 
-    pstr_clear(input_state->text_input);
+    pstr_clear(text_input);
   }
 
 
@@ -240,109 +240,106 @@ namespace engine {
 
   pny_internal void process_input(
     GLFWwindow *window,
-    EngineState *engine_state,
-    InputState *input_state
+    EngineState *engine_state
   ) {
-    if (input::is_key_now_down(input_state, GLFW_KEY_GRAVE_ACCENT)) {
+    if (input::is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
       if (gui::is_console_enabled()) {
         gui::set_console_enabled(false);
-        input::disable_text_input(input_state);
+        input::disable_text_input();
       } else {
         gui::set_console_enabled(true);
-        input::enable_text_input(input_state);
+        input::enable_text_input();
       }
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_ENTER)) {
-      handle_console_command(
-        engine_state, input_state
-      );
+    if (input::is_key_now_down(GLFW_KEY_ENTER)) {
+      handle_console_command(engine_state);
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_BACKSPACE)) {
-      input::do_text_input_backspace(input_state);
+    if (input::is_key_now_down(GLFW_KEY_BACKSPACE)) {
+      input::do_text_input_backspace();
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_ESCAPE)) {
-      input::clear_text_input(input_state);
+    if (input::is_key_now_down(GLFW_KEY_ESCAPE)) {
+      input::clear_text_input();
     }
 
-    if (input_state->is_text_input_enabled) {
+    if (input::is_text_input_enabled()) {
       // If we're typing text in, don't run any of the following stuff.
       return;
     }
 
     // Continuous
-    if (input::is_key_down(input_state, GLFW_KEY_W)) {
+    if (input::is_key_down(GLFW_KEY_W)) {
       cameras::move_front_back(cameras::get_main(), 1, *engine::g_dt);
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_S)) {
+    if (input::is_key_down(GLFW_KEY_S)) {
       cameras::move_front_back(cameras::get_main(), -1, *engine::g_dt);
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_A)) {
+    if (input::is_key_down(GLFW_KEY_A)) {
       cameras::move_left_right(cameras::get_main(), -1, *engine::g_dt);
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_D)) {
+    if (input::is_key_down(GLFW_KEY_D)) {
       cameras::move_left_right(cameras::get_main(), 1, *engine::g_dt);
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_Z)) {
+    if (input::is_key_down(GLFW_KEY_Z)) {
       update_light_position(engine_state, 0.10f * (real32)(*engine::g_dt));
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_X)) {
+    if (input::is_key_down(GLFW_KEY_X)) {
       update_light_position(engine_state, -0.10f * (real32)(*engine::g_dt));
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_SPACE)) {
+    if (input::is_key_down(GLFW_KEY_SPACE)) {
       cameras::move_up_down(cameras::get_main(), 1, *engine::g_dt);
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_LEFT_CONTROL)) {
+    if (input::is_key_down(GLFW_KEY_LEFT_CONTROL)) {
       cameras::move_up_down(cameras::get_main(), -1, *engine::g_dt);
     }
 
     // Transient
-    if (input::is_key_now_down(input_state, GLFW_KEY_ESCAPE)) {
+    if (input::is_key_now_down(GLFW_KEY_ESCAPE)) {
       glfwSetWindowShouldClose(window, true);
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_C)) {
-      input_state->is_cursor_enabled = !input_state->is_cursor_enabled;
-      renderer::update_drawing_options(input_state, window);
+    if (input::is_key_now_down(GLFW_KEY_C)) {
+      input::set_is_cursor_enabled(!input::is_cursor_enabled());
+      renderer::update_drawing_options(window);
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_R)) {
+    if (input::is_key_now_down(GLFW_KEY_R)) {
       load_scene(
         engine_state->current_scene_name,
         engine_state
       );
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_TAB)) {
+    if (input::is_key_now_down(GLFW_KEY_TAB)) {
       engine_state->should_pause = !engine_state->should_pause;
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_MINUS)) {
+    if (input::is_key_now_down(GLFW_KEY_MINUS)) {
       engine_state->timescale_diff -= 0.1f;
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_EQUAL)) {
+    if (input::is_key_now_down(GLFW_KEY_EQUAL)) {
       engine_state->timescale_diff += 0.1f;
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_BACKSPACE)) {
+    if (input::is_key_now_down(GLFW_KEY_BACKSPACE)) {
       renderer::set_should_hide_ui(!renderer::should_hide_ui());
     }
 
-    if (input::is_key_down(input_state, GLFW_KEY_N)) {
+    if (input::is_key_down(GLFW_KEY_N)) {
       engine_state->should_manually_advance_to_next_frame = true;
     }
 
-    if (input::is_key_now_down(input_state, GLFW_KEY_0)) {
+    if (input::is_key_now_down(GLFW_KEY_0)) {
       *((volatile unsigned int*)0) = 0xDEAD;
     }
   }
@@ -424,7 +421,7 @@ namespace engine {
 
   pny_internal void update(
     EngineState *engine_state,
-    renderer::WindowSize *window_size
+    WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
       load_scene(DEFAULT_SCENE, engine_state);
@@ -518,19 +515,14 @@ namespace engine {
 
 void engine::run_main_loop(
   EngineState *engine_state,
-  InputState *input_state,
   GLFWwindow *window,
-  renderer::WindowSize *window_size
+  WindowSize *window_size
 ) {
   TimingInfo timing = init_timing_info(165);
 
   while (!engine_state->should_stop) {
     glfwPollEvents();
-    process_input(
-      window,
-      engine_state,
-      input_state
-    );
+    process_input(window, engine_state);
 
     if (
       !engine_state->is_manual_frame_advance_enabled ||
@@ -549,7 +541,6 @@ void engine::run_main_loop(
       );
       renderer::render(
         engine_state,
-        input_state,
         window,
         window_size
       );
@@ -558,8 +549,8 @@ void engine::run_main_loop(
         engine_state->should_manually_advance_to_next_frame = false;
       }
 
-      input::reset_n_mouse_button_state_changes_this_frame(input_state);
-      input::reset_n_key_state_changes_this_frame(input_state);
+      input::reset_n_mouse_button_state_changes_this_frame();
+      input::reset_n_key_state_changes_this_frame();
 
       if (engine_state->should_limit_fps) {
         std::this_thread::sleep_until(timing.time_frame_should_end);

@@ -175,8 +175,7 @@ namespace debug_ui {
 
 void debug_ui::render_debug_ui(
   EngineState *engine_state,
-  InputState *input_state,
-  renderer::WindowSize *window_size
+  WindowSize *window_size
 ) {
   char debug_text[1 << 14];
   size_t dt_size = sizeof(debug_text);
@@ -327,7 +326,7 @@ void debug_ui::render_debug_ui(
     gui::draw_body_text(container, debug_text);
   }
 
-  gui::draw_console(input_state->text_input);
+  gui::draw_console(input::get_text_input());
   renderer::render_gui();
   gui::update();
 }

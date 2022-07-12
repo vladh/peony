@@ -218,9 +218,9 @@ renderer::resize_renderer_buffers(
 
 
 void
-renderer::update_drawing_options(InputState *input_state, GLFWwindow *window)
+renderer::update_drawing_options(GLFWwindow *window)
 {
-    if (input_state->is_cursor_enabled) {
+    if (input::is_cursor_enabled()) {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     } else {
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -237,7 +237,6 @@ renderer::update_drawing_options(InputState *input_state, GLFWwindow *window)
 void
 renderer::render(
     EngineState *engine_state,
-    InputState *input_state,
     GLFWwindow *window,
     WindowSize *window_size
 ) {
@@ -497,7 +496,7 @@ renderer::render(
     {
         if (!renderer::state->should_hide_ui) {
             glEnable(GL_BLEND);
-            debug_ui::render_debug_ui(engine_state, input_state, window_size);
+            debug_ui::render_debug_ui(engine_state, window_size);
             glDisable(GL_BLEND);
         }
     }
@@ -517,7 +516,6 @@ renderer::render(
 void
 renderer::init(
     renderer::State *renderer_state,
-    InputState *input_state,
     MemoryPool *memory_pool,
     uint32 width,
     uint32 height,
@@ -572,7 +570,7 @@ renderer::init(
         builtin_textures->shadowmap_2d_width,
         builtin_textures->shadowmap_2d_height);
     init_ubo(&renderer::state->ubo_shader_common);
-    update_drawing_options(input_state, window);
+    update_drawing_options(window);
     init_gui(memory_pool);
 }
 

@@ -18,13 +18,6 @@ public:
     static constexpr uint32 GUI_MAX_N_VERTICES = 65536;
     static constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * gui::VERTEX_LENGTH;
 
-    struct WindowSize {
-        int32 width; // in pixels (size of framebuffer)
-        int32 height; // in pixels (size of framebuffer)
-        uint32 screencoord_width; // in screen coordinates
-        uint32 screencoord_height; // in screen coordinates
-    };
-
     struct ShaderCommon {
         m4 view;
         m4 projection;
@@ -125,16 +118,14 @@ public:
         uint32 width,
         uint32 height
     );
-    static void update_drawing_options(InputState *input_state, GLFWwindow *window);
+    static void update_drawing_options(GLFWwindow *window);
     static void render(
         EngineState *engine_state,
-        InputState *input_state,
         GLFWwindow *window,
         WindowSize *window_size
     );
     static void init(
         renderer::State *renderer_state,
-        InputState *input_state,
         MemoryPool *memory_pool,
         uint32 width,
         uint32 height,
