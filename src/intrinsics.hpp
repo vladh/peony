@@ -15,20 +15,20 @@
 
 // Loops
 #define range_named(idx, start, end) \
-  for ( \
-    uint32 idx = (start); \
-    idx < (end); \
-    idx++ \
-  )
+    for ( \
+        uint32 idx = (start); \
+        idx < (end); \
+        idx++ \
+    )
 
 #define range(start, end) range_named(idx, start, end)
 
 #define each(el, set) \
-  for ( \
-    auto el = (set).begin(); \
-    el < (set).end(); \
-    el++ \
-  )
+    for ( \
+        auto el = (set).begin(); \
+        el < (set).end(); \
+        el++ \
+    )
 
 
 // Defer macro/thing
@@ -37,19 +37,18 @@
 
 template<typename T>
 struct ExitScope {
-  T lambda;
-  ExitScope(T lambda) : lambda(lambda) {}
-  ~ExitScope() { lambda(); }
-  ExitScope(const ExitScope&);
+    T lambda;
+    ExitScope(T lambda) : lambda(lambda) {}
+    ~ExitScope() { lambda(); }
+    ExitScope(const ExitScope&);
 private:
-  ExitScope& operator =(const ExitScope&);
+    ExitScope& operator =(const ExitScope&);
 };
 
 class ExitScopeHelp {
 public:
-  template<typename T>
-    ExitScope<T> operator+(T t){ return t;}
+    template<typename T>
+        ExitScope<T> operator+(T t){ return t;}
 };
 
-#define defer [[maybe_unused]] const auto& CONCAT(defer__, __LINE__) = \
-  ExitScopeHelp() + [&]()
+#define defer [[maybe_unused]] const auto& CONCAT(defer__, __LINE__) = ExitScopeHelp() + [&]()
