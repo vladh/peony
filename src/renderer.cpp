@@ -300,7 +300,7 @@ renderer::render(
 
                 if (!(
                         lights::is_light_component_valid(light_component) &&
-                        light_component->type == LightType::point &&
+                        light_component->type == lights::LightType::point &&
                         spatial::is_spatial_component_valid(spatial_component)
                 )) {
                     continue;
@@ -356,7 +356,7 @@ renderer::render(
 
                 if (!(
                         lights::is_light_component_valid(light_component) &&
-                        light_component->type == LightType::directional &&
+                        light_component->type == lights::LightType::directional &&
                         spatial::is_spatial_component_valid(spatial_component)
                 )) {
                     continue;
@@ -1190,7 +1190,7 @@ renderer::copy_scene_data_to_ubo(
             continue;
         }
 
-        if (light_component->type == LightType::point) {
+        if (light_component->type == lights::LightType::point) {
             shader_common->point_light_position[n_point_lights] = v4(
                 spatial_component->position, 1.0f
             );
@@ -1199,7 +1199,7 @@ renderer::copy_scene_data_to_ubo(
             shader_common->point_light_attenuation[n_point_lights] =
                 light_component->attenuation;
             n_point_lights++;
-        } else if (light_component->type == LightType::directional) {
+        } else if (light_component->type == lights::LightType::directional) {
             shader_common->directional_light_position[n_directional_lights] =
                 v4(spatial_component->position, 1.0f);
             shader_common->directional_light_direction[n_directional_lights] =
