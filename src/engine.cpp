@@ -437,7 +437,6 @@ namespace engine {
     EngineState *engine_state,
     TasksState *tasks_state,
     AnimState *anim_state,
-    BehaviorState *behavior_state,
     renderer::WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
@@ -463,10 +462,7 @@ namespace engine {
       cameras::get_main()->position
     );
 
-    behavior::update_behavior_components(
-      behavior_state,
-      engine_state
-    );
+    behavior::update_behavior_components(engine_state);
 
     anim::update_animation_components(
       &engine_state->animation_component_set,
@@ -543,7 +539,6 @@ void engine::run_main_loop(
   InputState *input_state,
   TasksState *tasks_state,
   AnimState *anim_state,
-  BehaviorState *behavior_state,
   GLFWwindow *window,
   renderer::WindowSize *window_size
 ) {
@@ -572,7 +567,6 @@ void engine::run_main_loop(
         engine_state,
         tasks_state,
         anim_state,
-        behavior_state,
         window_size
       );
       renderer::render(
@@ -636,7 +630,7 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
   engine_state->behavior_component_set = {
-    .components = Array<BehaviorComponent>(
+    .components = Array<behavior::Component>(
       asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1
     )
   };

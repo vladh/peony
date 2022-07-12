@@ -6,13 +6,14 @@
 #include "entities.hpp"
 #include "behavior.hpp"
 
-namespace behavior_functions {
-  void test(
-    BehaviorState *behavior_state,
-    EntityHandle entity_handle
-  );
-  void char_movement_test(
-    BehaviorState *behavior_state,
-    EntityHandle entity_handle
-  );
-}
+class behavior_functions {
+public:
+    static void test(
+        behavior::State *behavior_state,
+        EntityHandle entity_handle
+    );
+    static void char_movement_test(
+        behavior::State *behavior_state,
+        EntityHandle entity_handle
+    );
+};
