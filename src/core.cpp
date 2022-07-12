@@ -53,7 +53,6 @@ core::run()
         &state->engine_state,
         &state->input_state,
         &state->tasks_state,
-        &state->anim_state,
         state->window,
         &state->window_size);
 

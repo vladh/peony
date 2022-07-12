@@ -7,11 +7,10 @@
 #include "queue.hpp"
 
 namespace tasks {
-  typedef void (*TaskFn)(void*, void*);
+  typedef void (*TaskFn)(void*);
   struct Task {
     TaskFn fn;
     void *argument_1;
-    void *argument_2;
   };
   struct TasksState {
     Queue<Task> task_queue;

@@ -59,7 +59,7 @@ struct EngineState {
   lights::ComponentSet light_component_set;
   SpatialComponentSet spatial_component_set;
   behavior::ComponentSet behavior_component_set;
-  AnimationComponentSet animation_component_set;
+  anim::ComponentSet animation_component_set;
   physics::ComponentSet physics_component_set;
 };
 
@@ -71,7 +71,6 @@ namespace engine {
     EngineState *engine_state,
     InputState *input_state,
     TasksState *tasks_state,
-    AnimState *anim_state,
     GLFWwindow *window,
     renderer::WindowSize *window_size
   );

@@ -1294,7 +1294,7 @@ renderer::draw_all(
     EntitySet *entity_set,
     drawable::ComponentSet *drawable_component_set,
     SpatialComponentSet *spatial_component_set,
-    AnimationComponentSet *animation_component_set,
+    anim::ComponentSet *animation_component_set,
     drawable::Pass render_pass,
     drawable::Mode render_mode,
     shaders::Asset *standard_depth_shader_asset
@@ -1351,7 +1351,7 @@ renderer::draw_all(
             }
 
             // Animations
-            AnimationComponent *animation_component = find_animation_component(
+            anim::Component *animation_component = anim::find_animation_component(
                 spatial_component, spatial_component_set, animation_component_set);
             if (animation_component) {
                 bone_matrices = animation_component->bone_matrices;

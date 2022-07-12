@@ -416,7 +416,6 @@ mats::prepare_material_and_check_if_done(Material *material, Queue<Task> *task_q
             task_queue->push({
                 .fn = (TaskFn)copy_textures_to_pbo,
                 .argument_1 = (void*)material,
-                .argument_2 = (void*)&mats::state->persistent_pbo,
             });
         } else {
             material->state = MaterialState::textures_copied_to_pbo;
@@ -503,9 +502,8 @@ mats::get_memory_for_persistent_pbo_idx(uint16 idx)
 }
 
 
-// TODO: This argument is here so that it matches TaskFn, should fix.
 void
-mats::copy_textures_to_pbo(Material *material, void *ignored)
+mats::copy_textures_to_pbo(Material *material)
 {
     for (uint32 idx = 0; idx < material->n_textures; idx++) {
         Texture *texture = &material->textures[idx];

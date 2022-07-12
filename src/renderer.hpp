@@ -222,7 +222,7 @@ private:
         EntitySet *entity_set,
         drawable::ComponentSet *drawable_component_set,
         SpatialComponentSet *spatial_component_set,
-        AnimationComponentSet *animation_component_set,
+        anim::ComponentSet *animation_component_set,
         drawable::Pass render_pass,
         drawable::Mode render_mode,
         shaders::Asset *standard_depth_shader_asset

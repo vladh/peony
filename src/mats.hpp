@@ -172,7 +172,7 @@ private:
     static bool32 is_texture_type_screensize_dependent(TextureType type);
     static uint16 get_new_persistent_pbo_idx();
     static void * get_memory_for_persistent_pbo_idx(uint16 idx);
-    static void copy_textures_to_pbo(Material *material, void *ignored);
+    static void copy_textures_to_pbo(Material *material);
     static uint32 get_new_texture_name(uint32 target_size);
     static void * get_offset_for_persistent_pbo_idx(uint16 idx);
     static void generate_textures_from_pbo(Material *material);

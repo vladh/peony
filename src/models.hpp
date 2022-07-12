@@ -40,7 +40,7 @@ public:
         // These are created later
         geom::Mesh meshes[MAX_N_MESHES];
         uint32 n_meshes;
-        AnimationComponent animation_component;
+        anim::Component animation_component;
         ModelLoaderState state;
     };
 
@@ -71,8 +71,7 @@ public:
 
     static bool32 prepare_model_loader_and_check_if_done(
         ModelLoader *model_loader,
-        Queue<Task> *task_queue,
-        BoneMatrixPool *bone_matrix_pool
+        Queue<Task> *task_queue
     );
     static bool32 prepare_entity_loader_and_check_if_done(
         EntityLoader *entity_loader,
@@ -82,7 +81,7 @@ public:
         SpatialComponentSet *spatial_component_set,
         lights::ComponentSet *light_component_set,
         behavior::ComponentSet *behavior_component_set,
-        AnimationComponentSet *animation_component_set,
+        anim::ComponentSet *animation_component_set,
         physics::ComponentSet *physics_component_set
     );
     static bool32 is_model_loader_valid(ModelLoader *model_loader);
@@ -107,18 +106,17 @@ private:
     static bool32 is_bone_only_node(aiNode *node);
     static aiNode * find_root_bone(const aiScene *scene);
     static void add_bone_tree_to_animation_component(
-        AnimationComponent *animation_component,
+        anim::Component *animation_component,
         aiNode *node,
         uint32 idx_parent
     );
     static void load_bones(
-        AnimationComponent *animation_component,
+        anim::Component *animation_component,
         const aiScene *scene
     );
     static void load_animations(
-        AnimationComponent *animation_component,
-        const aiScene *scene,
-        BoneMatrixPool *bone_matrix_pool
+        anim::Component *animation_component,
+        const aiScene *scene
     );
     static void load_mesh(
         geom::Mesh *mesh,
@@ -133,6 +131,6 @@ private:
         aiNode *node, const aiScene *scene,
         m4 accumulated_transform, Pack indices_pack
     );
-    static void load_model_from_file(ModelLoader *model_loader, BoneMatrixPool *bone_matrix_pool);
+    static void load_model_from_file(ModelLoader *model_loader);
     static void load_model_from_data(ModelLoader *model_loader);
 };

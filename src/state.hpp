@@ -27,7 +27,7 @@ struct State {
   InputState input_state;
   gui::State gui_state;
   lights::State lights_state;
-  AnimState anim_state;
+  anim::State anim_state;
   mats::State materials_state;
   TasksState tasks_state;
   debugdraw::State debug_draw_state;
