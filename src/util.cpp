@@ -56,7 +56,7 @@ util::stringify_glenum(GLenum thing)
 
 
 GLenum
-util::get_texture_format_from_n_components(int32 n_components)
+util::get_texture_format_from_n_components(i32 n_components)
 {
     if (n_components == 1) {
         return GL_RED;
@@ -71,11 +71,11 @@ util::get_texture_format_from_n_components(int32 n_components)
 }
 
 
-real64
-util::random(real64 min, real64 max)
+f64
+util::random(f64 min, f64 max)
 {
-    uint32 r = rand();
-    real64 r_normalized = (real64)r / (real64)RAND_MAX;
+    u32 r = rand();
+    f64 r_normalized = (f64)r / (f64)RAND_MAX;
     return min + ((r_normalized) * (max - min));
 }
 
@@ -256,17 +256,17 @@ APIENTRY util::debug_message_callback(
 }
 
 
-real32
-util::round_to_nearest_multiple(real32 n, real32 multiple_of)
+f32
+util::round_to_nearest_multiple(f32 n, f32 multiple_of)
 {
     return (floor((n) / multiple_of) * multiple_of) + multiple_of;
 }
 
 
-real64
-util::get_us_from_duration(chrono::duration<real64> duration)
+f64
+util::get_us_from_duration(chrono::duration<f64> duration)
 {
-    return chrono::duration_cast<chrono::duration<real64>>(duration).count();
+    return chrono::duration_cast<chrono::duration<f64>>(duration).count();
 }
 
 
@@ -281,11 +281,11 @@ util::get_orthogonal_vector(v3 *v)
 }
 
 
-uint32 util::kb_to_b(uint32 value) { return value * 1024; }
-uint32 util::mb_to_b(uint32 value) { return kb_to_b(value) * 1024; }
-uint32 util::gb_to_b(uint32 value) { return mb_to_b(value) * 1024; }
-uint32 util::tb_to_b(uint32 value) { return gb_to_b(value) * 1024; }
-real32 util::b_to_kb(uint32 value) { return value / 1024.0f; }
-real32 util::b_to_mb(uint32 value) { return b_to_kb(value) / 1024.0f; }
-real32 util::b_to_gb(uint32 value) { return b_to_mb(value) / 1024.0f; }
-real32 util::b_to_tb(uint32 value) { return b_to_gb(value) / 1024.0f; }
+u32 util::kb_to_b(u32 value) { return value * 1024; }
+u32 util::mb_to_b(u32 value) { return kb_to_b(value) * 1024; }
+u32 util::gb_to_b(u32 value) { return mb_to_b(value) * 1024; }
+u32 util::tb_to_b(u32 value) { return gb_to_b(value) * 1024; }
+f32 util::b_to_kb(u32 value) { return value / 1024.0f; }
+f32 util::b_to_mb(u32 value) { return b_to_kb(value) / 1024.0f; }
+f32 util::b_to_gb(u32 value) { return b_to_mb(value) / 1024.0f; }
+f32 util::b_to_tb(u32 value) { return b_to_gb(value) / 1024.0f; }

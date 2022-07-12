@@ -20,8 +20,8 @@ public:
     static void push(Task task);
     static void run_loading_loop(
         std::mutex *mutex,
-        bool32 *should_stop,
-        uint32 idx_thread
+        bool *should_stop,
+        u32 idx_thread
     );
     static void init(tasks::State *tasks_state, memory::Pool *pool);
 

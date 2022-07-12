@@ -8,9 +8,9 @@
 
 class physics {
 public:
-    static constexpr real32 PARALLEL_FACE_TOLERANCE = 1.0e-2;
-    static constexpr real32 RELATIVE_TOLERANCE = 1.00f;
-    static constexpr real32 ABSOLUTE_TOLERANCE = 0.10f;
+    static constexpr f32 PARALLEL_FACE_TOLERANCE = 1.0e-2;
+    static constexpr f32 RELATIVE_TOLERANCE = 1.00f;
+    static constexpr f32 ABSOLUTE_TOLERANCE = 0.10f;
 
     struct Component {
         entities::Handle entity_handle;
@@ -23,21 +23,21 @@ public:
     };
 
     struct CollisionManifold {
-        bool32 did_collide;
+        bool did_collide;
         Component *collidee;
-        real32 sep_max;
-        uint32 axis;
+        f32 sep_max;
+        u32 axis;
         v3 normal;
     };
 
     struct RaycastResult {
-        bool32 did_intersect;
-        real32 distance;
+        bool did_intersect;
+        f32 distance;
     };
 
     struct RayCollisionResult {
-        bool32 did_intersect;
-        real32 distance;
+        bool did_intersect;
+        f32 distance;
         Component *collidee;
     };
 
@@ -58,11 +58,11 @@ private:
     static v3 get_edge_contact_point(
         v3 a_edge_point,
         v3 a_axis,
-        real32 a_axis_length,
+        f32 a_axis_length,
         v3 b_edge_point,
         v3 b_axis,
-        real32 b_axis_length,
-        bool32 should_use_a_midpoint
+        f32 b_axis_length,
+        bool should_use_a_midpoint
     );
     static spatial::Face get_incident_face(m3 *cob, v3 e, v3 c, v3 n);
     static void get_reference_face_edges_and_basis(
@@ -70,24 +70,24 @@ private:
         v3 e,
         v3 c,
         v3 n,
-        uint32 axis,
-        uint32 clip_edges[4],
+        u32 axis,
+        u32 clip_edges[4],
         m3 *reference_face_cob,
         v3 *reference_face_e
     );
-    static uint32 clip_faces(
+    static u32 clip_faces(
         v3 reference_center, v3 reference_face_extents,
-        uint32 clip_edges[4], m3 reference_face_cob,
+        u32 clip_edges[4], m3 reference_face_cob,
         spatial::Face incident_face,
-        v3 clip_vertices[8], real32 clip_depths[8]
+        v3 clip_vertices[8], f32 clip_depths[8]
     );
     static void update_best_for_face_axis(
-        real32 *best_sep, uint32 *best_axis, v3 *best_normal,
-        real32 sep, uint32 axis, v3 normal
+        f32 *best_sep, u32 *best_axis, v3 *best_normal,
+        f32 sep, u32 axis, v3 normal
     );
     static void update_best_for_edge_axis(
-        real32 *best_sep, uint32 *best_axis, v3 *best_normal,
-        real32 sep, uint32 axis, v3 normal
+        f32 *best_sep, u32 *best_axis, v3 *best_normal,
+        f32 sep, u32 axis, v3 normal
     );
     static CollisionManifold intersect_obb_obb(
         spatial::Obb *a,

@@ -16,7 +16,7 @@ peony_parser_utils::get_string(peony_parser::Prop *prop)
 }
 
 
-bool32 *
+bool *
 peony_parser_utils::get_boolean(peony_parser::Prop *prop)
 {
     if (!prop) { return nullptr; }
@@ -24,7 +24,7 @@ peony_parser_utils::get_boolean(peony_parser::Prop *prop)
 }
 
 
-real32 *
+f32 *
 peony_parser_utils::get_number(peony_parser::Prop *prop)
 {
     if (!prop) { return nullptr; }
@@ -83,7 +83,7 @@ peony_parser_utils::get_unique_string_values_for_prop_name(
         }
         range_named (idx_value, 0, prop->n_values) {
             peony_parser::PropValue *value = &prop->values[idx_value];
-            bool32 does_material_already_exist = false;
+            bool does_material_already_exist = false;
             each (unique_value, *unique_values) {
                 if (pstr_eq(value->string_value, *unique_value)) {
                     does_material_already_exist = true;
@@ -228,8 +228,8 @@ peony_parser_utils::create_entity_loader_from_peony_file_entry(
     if (render_passes_prop) {
         range (0, render_passes_prop->n_values) {
             render_pass = (drawable::Pass)(
-                (uint32)render_pass |
-                (uint32)drawable::render_pass_from_string(
+                (u32)render_pass |
+                (u32)drawable::render_pass_from_string(
                     render_passes_prop->values[idx].string_value));
         }
     } else {

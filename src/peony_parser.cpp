@@ -6,10 +6,10 @@
 #include "intrinsics.hpp"
 
 
-bool32
+bool
 peony_parser::parse_file(PeonyFile *pf, char const *path)
 {
-    int32 idx_entry = -1;
+    i32 idx_entry = -1;
     Entry *entry = nullptr;
 
     FILE *f = fopen(path, "r");
@@ -71,21 +71,21 @@ peony_parser::print_value(PropValue *value)
 }
 
 
-bool32
+bool
 peony_parser::is_char_whitespace(const char target)
 {
     return target == TOKEN_NEWLINE || target == TOKEN_SPACE;
 }
 
 
-bool32
+bool
 peony_parser::is_token_whitespace(const char *token)
 {
     return is_char_whitespace(token[0]);
 }
 
 
-bool32
+bool
 peony_parser::is_char_allowed_in_name(const char target)
 {
     return isalpha(target) || isdigit(target) || target == '_' || target == '-' ||
@@ -93,7 +93,7 @@ peony_parser::is_char_allowed_in_name(const char target)
 }
 
 
-bool32
+bool
 peony_parser::is_token_name(const char *token)
 {
     range (0, pstr_len(token)) {
@@ -105,7 +105,7 @@ peony_parser::is_token_name(const char *token)
 }
 
 
-bool32
+bool
 peony_parser::is_char_token_boundary(char target)
 {
     return is_char_whitespace(target) ||
@@ -120,11 +120,11 @@ peony_parser::is_char_token_boundary(char target)
 }
 
 
-bool32
+bool
 peony_parser::get_token(char *token, FILE *f)
 {
-    uint32 idx_token = 0;
-    bool32 could_get_token = true;
+    u32 idx_token = 0;
+    bool could_get_token = true;
 
     while (true) {
         char new_char = (char)fgetc(f);
@@ -160,10 +160,10 @@ peony_parser::get_token(char *token, FILE *f)
 }
 
 
-bool32
+bool
 peony_parser::get_non_trivial_token(char *token, FILE *f)
 {
-    bool32 could_get_token;
+    bool could_get_token;
     do {
         could_get_token = get_token(token, f);
         if (token[0] == TOKEN_COMMENT_START) {
@@ -184,9 +184,9 @@ peony_parser::parse_vec2(char *token, FILE *f, v2 *parsed_vector)
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_START);
     get_non_trivial_token(token, f);
-    (*parsed_vector).x = (real32)strtod(token, nullptr);
+    (*parsed_vector).x = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
-    (*parsed_vector).y = (real32)strtod(token, nullptr);
+    (*parsed_vector).y = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_END);
 }
@@ -198,11 +198,11 @@ peony_parser::parse_vec3(char *token, FILE *f, v3 *parsed_vector)
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_START);
     get_non_trivial_token(token, f);
-    (*parsed_vector).x = (real32)strtod(token, nullptr);
+    (*parsed_vector).x = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
-    (*parsed_vector).y = (real32)strtod(token, nullptr);
+    (*parsed_vector).y = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
-    (*parsed_vector).z = (real32)strtod(token, nullptr);
+    (*parsed_vector).z = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_END);
 }
@@ -214,13 +214,13 @@ peony_parser::parse_vec4(char *token, FILE *f, v4 *parsed_vector)
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_START);
     get_non_trivial_token(token, f);
-    (*parsed_vector).x = (real32)strtod(token, nullptr);
+    (*parsed_vector).x = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
-    (*parsed_vector).y = (real32)strtod(token, nullptr);
+    (*parsed_vector).y = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
-    (*parsed_vector).z = (real32)strtod(token, nullptr);
+    (*parsed_vector).z = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
-    (*parsed_vector).w = (real32)strtod(token, nullptr);
+    (*parsed_vector).w = (f32)strtod(token, nullptr);
     get_non_trivial_token(token, f);
     assert(token[0] == TOKEN_TUPLE_END);
 }
@@ -249,7 +249,7 @@ peony_parser::get_value_from_token(char *token, FILE *f, PropValue *prop_value)
         // NOTE: `strtod()` returns 0.0 if parsing fails, so we need to check
         // if our value actually was 0.0;
         prop_value->type = PropValueType::number;
-        prop_value->number_value = (real32)strtod(token, nullptr);
+        prop_value->number_value = (f32)strtod(token, nullptr);
     } else {
         prop_value->type = PropValueType::string;
         pstr_copy(prop_value->string_value, MAX_TOKEN_LENGTH, token);

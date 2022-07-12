@@ -9,7 +9,7 @@ class drawable {
 public:
     enum class Mode { regular, depth };
 
-    enum class Pass : uint32 {
+    enum class Pass : u32 {
         none = 0,
         shadowcaster = (1 << 0),
         deferred = (1 << 1),
@@ -32,11 +32,11 @@ public:
 
     struct ComponentSet {
         Array<drawable::Component> components;
-        uint32 last_drawn_shader_program;
+        u32 last_drawn_shader_program;
     };
 
     static char const * render_pass_to_string(drawable::Pass render_pass);
     static drawable::Pass render_pass_from_string(const char* str);
-    static bool32 is_component_valid(drawable::Component *drawable_component);
+    static bool is_component_valid(drawable::Component *drawable_component);
     static void destroy_component(drawable::Component *drawable_component);
 };

@@ -47,7 +47,7 @@ renderer::init_window(WindowSize *window_size)
     // not pixels!
 
 #if USE_FULLSCREEN
-    int32 n_monitors;
+    i32 n_monitors;
     GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
     GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
     const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
@@ -159,8 +159,8 @@ void
 renderer::resize_renderer_buffers(
     memory::Pool *memory_pool,
     BuiltinTextures *builtin_textures,
-    uint32 width,
-    uint32 height
+    u32 width,
+    u32 height
 ) {
     // TODO: Only regenerate once we're done resizing, not for every little bit
     // of the resize.
@@ -189,7 +189,7 @@ renderer::resize_renderer_buffers(
 
     each (material, *mats::get_materials()) {
         if (material->n_textures > 0 && material->is_screensize_dependent) {
-            for (uint32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
+            for (u32 idx_texture = 0; idx_texture < material->n_textures; idx_texture++) {
                 mats::Texture *texture = &material->textures[idx_texture];
                 if (texture->type == mats::TextureType::g_position) {
                     material->textures[idx_texture] = *builtin_textures->g_position_texture;
@@ -277,14 +277,14 @@ renderer::render(GLFWwindow *window, WindowSize *window_size)
     {
         // Point lights
         {
-            real32 ratio = (real32)renderer::state->builtin_textures.shadowmap_3d_width /
-                (real32)renderer::state->builtin_textures.shadowmap_3d_height;
+            f32 ratio = (f32)renderer::state->builtin_textures.shadowmap_3d_width /
+                (f32)renderer::state->builtin_textures.shadowmap_3d_height;
             m4 perspective_projection = glm::perspective(
                 radians(90.0f), ratio,
                 renderer::state->builtin_textures.shadowmap_near_clip_dist,
                 renderer::state->builtin_textures.shadowmap_far_clip_dist);
 
-            uint32 idx_light = 0;
+            u32 idx_light = 0;
 
             each (light_component, *engine::get_light_components()) {
                 if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
@@ -304,7 +304,7 @@ renderer::render(GLFWwindow *window, WindowSize *window_size)
 
                 v3 position = spatial_component->position;
 
-                for (uint32 idx_face = 0; idx_face < 6; idx_face++) {
+                for (u32 idx_face = 0; idx_face < 6; idx_face++) {
                     renderer::state->shadowmap_3d_transforms[(idx_light * 6) + idx_face] =
                         perspective_projection * glm::lookAt(
                             position,
@@ -330,17 +330,17 @@ renderer::render(GLFWwindow *window, WindowSize *window_size)
 
         // Directional lights
         {
-            real32 ortho_ratio = (
-                (real32)renderer::state->builtin_textures.shadowmap_2d_width /
-                (real32)renderer::state->builtin_textures.shadowmap_2d_height);
-            real32 ortho_width = 100.0f;
-            real32 ortho_height = ortho_width / ortho_ratio;
+            f32 ortho_ratio = (
+                (f32)renderer::state->builtin_textures.shadowmap_2d_width /
+                (f32)renderer::state->builtin_textures.shadowmap_2d_height);
+            f32 ortho_width = 100.0f;
+            f32 ortho_height = ortho_width / ortho_ratio;
             m4 ortho_projection = glm::ortho(
                 -ortho_width, ortho_width, -ortho_height, ortho_height,
                 renderer::state->builtin_textures.shadowmap_near_clip_dist,
                 renderer::state->builtin_textures.shadowmap_far_clip_dist);
 
-            uint32 idx_light = 0;
+            u32 idx_light = 0;
 
             each (light_component, *engine::get_light_components()) {
                 if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
@@ -465,7 +465,7 @@ renderer::render(GLFWwindow *window, WindowSize *window_size)
         copy_scene_data_to_ubo(window_size, 0, 0, false);
         render_scene(drawable::Pass::blur2, drawable::Mode::regular);
 
-        for (uint32 idx = 0; idx < 3; idx++) {
+        for (u32 idx = 0; idx < 3; idx++) {
             glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
             copy_scene_data_to_ubo(window_size, 0, 0, true);
             render_scene(drawable::Pass::blur1, drawable::Mode::regular);
@@ -514,8 +514,8 @@ void
 renderer::init(
     renderer::State *renderer_state,
     memory::Pool *memory_pool,
-    uint32 width,
-    uint32 height,
+    u32 width,
+    u32 height,
     GLFWwindow *window
 ) {
     renderer::state = renderer_state;
@@ -527,8 +527,8 @@ renderer::init(
         .shadowmap_2d_width = 800,
         .shadowmap_2d_height = 600,
 #elif defined(GRAPHICS_HIGH)
-        .shadowmap_3d_width = min((uint32)width, (uint32)2000),
-        .shadowmap_3d_height = min((uint32)width, (uint32)2000),
+        .shadowmap_3d_width = min((u32)width, (u32)2000),
+        .shadowmap_3d_height = min((u32)width, (u32)2000),
         .shadowmap_2d_width = 2560 * 2,
         .shadowmap_2d_height = 1440 * 2,
 #endif
@@ -686,21 +686,21 @@ renderer::set_should_hide_ui(bool val)
 void
 renderer::init_g_buffer(
     memory::Pool *memory_pool,
-    uint32 *g_buffer,
+    u32 *g_buffer,
     mats::Texture **g_position_texture,
     mats::Texture **g_normal_texture,
     mats::Texture **g_albedo_texture,
     mats::Texture **g_pbr_texture,
-    uint32 width,
-    uint32 height
+    u32 width,
+    u32 height
 ) {
     glGenFramebuffers(1, g_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *g_buffer);
 
-    uint32 g_position_texture_name;
-    uint32 g_normal_texture_name;
-    uint32 g_albedo_texture_name;
-    uint32 g_pbr_texture_name;
+    u32 g_position_texture_name;
+    u32 g_normal_texture_name;
+    u32 g_albedo_texture_name;
+    u32 g_pbr_texture_name;
 
     glGenTextures(1, &g_position_texture_name);
     glGenTextures(1, &g_normal_texture_name);
@@ -763,13 +763,13 @@ renderer::init_g_buffer(
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D,
         (*g_pbr_texture)->texture_name, 0);
 
-    uint32 attachments[4] = {
+    u32 attachments[4] = {
         GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
         GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
     };
     glDrawBuffers(4, attachments);
 
-    uint32 rbo_depth;
+    u32 rbo_depth;
     glGenRenderbuffers(1, &rbo_depth);
     glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
@@ -785,19 +785,19 @@ renderer::init_g_buffer(
 void
 renderer::init_l_buffer(
     memory::Pool *memory_pool,
-    uint32 *l_buffer,
+    u32 *l_buffer,
     mats::Texture **l_color_texture,
     mats::Texture **l_bright_color_texture,
     mats::Texture **l_depth_texture,
-    uint32 width,
-    uint32 height
+    u32 width,
+    u32 height
 ) {
     glGenFramebuffers(1, l_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *l_buffer);
 
     // l_color_texture
     {
-        uint32 l_color_texture_name;
+        u32 l_color_texture_name;
         glGenTextures(1, &l_color_texture_name);
 
         *l_color_texture = mats::init_texture(
@@ -820,7 +820,7 @@ renderer::init_l_buffer(
 
     // l_bright_color_texture
     {
-        uint32 l_bright_color_texture_name;
+        u32 l_bright_color_texture_name;
         glGenTextures(1, &l_bright_color_texture_name);
 
         *l_bright_color_texture = mats::init_texture(
@@ -844,7 +844,7 @@ renderer::init_l_buffer(
 
     // Attach textures
     {
-        uint32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+        u32 attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
         glDrawBuffers(2, attachments);
     }
 
@@ -860,7 +860,7 @@ renderer::init_l_buffer(
     // way, we know we can copy the depth from one to the other without issues.  For the
     // moment, we're not using fog, so this is just commented out.
     {
-        uint32 l_depth_texture_name;
+        u32 l_depth_texture_name;
         glGenTextures(1, &l_depth_texture_name);
 
         *l_depth_texture = mats::init_texture(
@@ -884,7 +884,7 @@ renderer::init_l_buffer(
     // Depth buffer
     // NOTE: Either this or the l_depth_texure should be enabled, not both
     {
-        uint32 rbo_depth;
+        u32 rbo_depth;
         glGenRenderbuffers(1, &rbo_depth);
         glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
@@ -902,19 +902,19 @@ renderer::init_l_buffer(
 void
 renderer::init_blur_buffers(
     memory::Pool *memory_pool,
-    uint32 *blur1_buffer,
-    uint32 *blur2_buffer,
+    u32 *blur1_buffer,
+    u32 *blur2_buffer,
     mats::Texture **blur1_texture,
     mats::Texture **blur2_texture,
-    uint32 width,
-    uint32 height
+    u32 width,
+    u32 height
 ) {
 #if !USE_BLOOM
     return;
 #endif
     glGenFramebuffers(1, blur1_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *blur1_buffer);
-    uint32 blur1_texture_name;
+    u32 blur1_texture_name;
     glGenTextures(1, &blur1_texture_name);
 
     *blur1_texture = mats::init_texture(
@@ -940,7 +940,7 @@ renderer::init_blur_buffers(
 
     glGenFramebuffers(1, blur2_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *blur2_buffer);
-    uint32 blur2_texture_name;
+    u32 blur2_texture_name;
     glGenTextures(1, &blur2_texture_name);
 
     *blur2_texture = mats::init_texture(
@@ -967,7 +967,7 @@ renderer::init_blur_buffers(
 
 
 void
-renderer::init_ubo(uint32 *ubo_shader_common)
+renderer::init_ubo(u32 *ubo_shader_common)
 {
     glGenBuffers(1, ubo_shader_common);
     glBindBuffer(GL_UNIFORM_BUFFER, *ubo_shader_common);
@@ -980,11 +980,11 @@ renderer::init_ubo(uint32 *ubo_shader_common)
 void
 renderer::init_3d_shadowmaps(
     memory::Pool *memory_pool,
-    uint32 *shadowmaps_3d_framebuffer,
-    uint32 *shadowmaps_3d,
+    u32 *shadowmaps_3d_framebuffer,
+    u32 *shadowmaps_3d,
     mats::Texture **shadowmaps_3d_texture,
-    uint32 shadowmap_3d_width,
-    uint32 shadowmap_3d_height
+    u32 shadowmap_3d_width,
+    u32 shadowmap_3d_height
 ) {
     glGenFramebuffers(1, shadowmaps_3d_framebuffer);
     glGenTextures(1, shadowmaps_3d);
@@ -1019,11 +1019,11 @@ renderer::init_3d_shadowmaps(
 void
 renderer::init_2d_shadowmaps(
     memory::Pool *memory_pool,
-    uint32 *shadowmaps_2d_framebuffer,
-    uint32 *shadowmaps_2d,
+    u32 *shadowmaps_2d_framebuffer,
+    u32 *shadowmaps_2d,
     mats::Texture **shadowmaps_2d_texture,
-    uint32 shadowmap_2d_width,
-    uint32 shadowmap_2d_height
+    u32 shadowmap_2d_width,
+    u32 shadowmap_2d_height
 ) {
     glGenFramebuffers(1, shadowmaps_2d_framebuffer);
     glGenTextures(1, shadowmaps_2d);
@@ -1036,7 +1036,7 @@ renderer::init_2d_shadowmaps(
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
     glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-    real32 border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+    f32 border_color[] = { 1.0f, 1.0f, 1.0f, 1.0f };
     glTexParameterfv(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_BORDER_COLOR, border_color);
     glBindFramebuffer(GL_FRAMEBUFFER, *shadowmaps_2d_framebuffer);
     glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, *shadowmaps_2d, 0);
@@ -1068,7 +1068,7 @@ renderer::init_gui(memory::Pool *memory_pool)
         glBindVertexArray(renderer::state->gui_vao);
         glBindBuffer(GL_ARRAY_BUFFER, renderer::state->gui_vbo);
         glBufferData(GL_ARRAY_BUFFER, GUI_VERTEX_SIZE * GUI_MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
-        uint32 location;
+        u32 location;
 
         // position (vec2)
         location = 0;
@@ -1080,13 +1080,13 @@ renderer::init_gui(memory::Pool *memory_pool)
         location = 1;
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, 2, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE,
-            (void*)(2 * sizeof(real32)));
+            (void*)(2 * sizeof(f32)));
 
         // color (vec4)
         location = 2;
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, GUI_VERTEX_SIZE,
-            (void*)(4 * sizeof(real32)));
+            (void*)(4 * sizeof(f32)));
     }
 
     // Shaders
@@ -1126,9 +1126,9 @@ renderer::init_gui(memory::Pool *memory_pool)
 void
 renderer::copy_scene_data_to_ubo(
     WindowSize *window_size,
-    uint32 current_shadow_light_idx,
-    uint32 current_shadow_light_type,
-    bool32 is_blur_horizontal
+    u32 current_shadow_light_idx,
+    u32 current_shadow_light_type,
+    bool is_blur_horizontal
 ) {
     ShaderCommon *shader_common = &renderer::state->shader_common;
     cameras::Camera *camera = cameras::get_main();
@@ -1166,8 +1166,8 @@ renderer::copy_scene_data_to_ubo(
     shader_common->window_width = window_size->width;
     shader_common->window_height = window_size->height;
 
-    uint32 n_point_lights = 0;
-    uint32 n_directional_lights = 0;
+    u32 n_point_lights = 0;
+    u32 n_directional_lights = 0;
 
     each (light_component, *engine::get_light_components()) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
@@ -1244,7 +1244,7 @@ renderer::draw(
 
         if (render_mode == drawable::Mode::regular) {
             for (
-                uint32 texture_idx = 1;
+                u32 texture_idx = 1;
                 texture_idx < shader_asset->n_texture_units + 1; texture_idx++
             ) {
                 if (shader_asset->texture_units[texture_idx] != 0) {
@@ -1257,7 +1257,7 @@ renderer::draw(
     }
 
     for (
-        uint32 uniform_idx = 0;
+        u32 uniform_idx = 0;
         uniform_idx < shader_asset->n_intrinsic_uniforms;
         uniform_idx++
     ) {
@@ -1295,7 +1295,7 @@ renderer::draw_all(
             continue;
         }
 
-        if (!((uint32)render_pass & (uint32)drawable_component->target_render_pass)) {
+        if (!((u32)render_pass & (u32)drawable_component->target_render_pass)) {
             continue;
         }
 

@@ -12,7 +12,7 @@ class fonts {
 public:
     // NOTE: Unicode is only the same as ASCII until 0x7F.
     // We can change this to 0xFF when we add Unicode support.
-    static constexpr uint32 CHAR_MAX_CODEPOINT_TO_LOAD = 0x7F;
+    static constexpr u32 CHAR_MAX_CODEPOINT_TO_LOAD = 0x7F;
 
     struct Character {
         iv2 size;
@@ -24,16 +24,16 @@ public:
     struct FontAsset {
         const char *name;
         Array<Character> characters;
-        uint32 texture;
-        uint32 font_size;
-        uint32 units_per_em;
-        uint32 ascender;
-        uint32 descender;
-        uint32 height;
+        u32 texture;
+        u32 font_size;
+        u32 units_per_em;
+        u32 ascender;
+        u32 descender;
+        u32 height;
     };
 
-    static real32 frac_px_to_px(uint32 n);
-    static real32 font_unit_to_px(uint32 n);
+    static f32 frac_px_to_px(u32 n);
+    static f32 font_unit_to_px(u32 n);
     static FontAsset * get_by_name(Array<FontAsset> *assets, const char *name);
     static FontAsset * init_font_asset(
         FontAsset *font_asset,
@@ -42,7 +42,7 @@ public:
         FT_Library *ft_library,
         const char *name,
         const char *filename,
-        uint16 font_size
+        u16 font_size
     );
 
 private:

@@ -9,9 +9,9 @@
 unsigned char *
 files::load_image(
     const char *path,
-    int32 *width,
-    int32 *height,
-    int32 *n_channels,
+    i32 *width,
+    i32 *height,
+    i32 *n_channels,
     bool should_flip
 ) {
     stbi_set_flip_vertically_on_load(should_flip);
@@ -26,9 +26,9 @@ files::load_image(
 unsigned char *
 files::load_image(
     const char *path,
-    int32 *width,
-    int32 *height,
-    int32 *n_channels
+    i32 *width,
+    i32 *height,
+    i32 *n_channels
 ) {
     return load_image(path, width, height, n_channels, true);
 }
@@ -41,7 +41,7 @@ files::free_image(unsigned char *image_data)
 }
 
 
-uint32
+u32
 files::get_file_size(char const *path)
 {
     FILE *f = fopen(path, "rb");
@@ -50,7 +50,7 @@ files::get_file_size(char const *path)
         return 0;
     }
     fseek(f, 0, SEEK_END);
-    uint32 size = ftell(f);
+    u32 size = ftell(f);
     fclose(f);
     return size;
 }
@@ -65,7 +65,7 @@ files::load_file(memory::Pool *memory_pool, const char *path)
         return nullptr;
     }
     fseek(f, 0, SEEK_END);
-    uint32 file_size = ftell(f);
+    u32 file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
 
     char *string = (char*)memory::push(memory_pool, file_size + 1, path);
@@ -90,7 +90,7 @@ files::load_file(char *string, const char *path)
         return nullptr;
     }
     fseek(f, 0, SEEK_END);
-    uint32 file_size = ftell(f);
+    u32 file_size = ftell(f);
     fseek(f, 0, SEEK_SET);
 
     size_t result = fread(string, file_size, 1, f);

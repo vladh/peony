@@ -11,7 +11,7 @@ pack::init(Pack *pack)
 
 
 void
-pack::set(Pack *pack, uint8 value, uint8 idx)
+pack::set(Pack *pack, u8 value, u8 idx)
 {
     assert(idx < MAX_LENGTH);
     Pack mask = 0b1111ULL << (idx * ELEMENT_SIZE);
@@ -19,15 +19,15 @@ pack::set(Pack *pack, uint8 value, uint8 idx)
 }
 
 
-uint8
-pack::get(Pack *pack, uint8 idx)
+u8
+pack::get(Pack *pack, u8 idx)
 {
     Pack mask = 0b1111ULL << (idx * ELEMENT_SIZE);
-    return (uint8)((*pack & mask) >> (idx * ELEMENT_SIZE));
+    return (u8)((*pack & mask) >> (idx * ELEMENT_SIZE));
 }
 
 
-uint8
+u8
 pack::get_count(Pack *pack)
 {
     return get(pack, COUNTER_IDX);
@@ -35,9 +35,9 @@ pack::get_count(Pack *pack)
 
 
 void
-pack::push(Pack *pack, uint8 value)
+pack::push(Pack *pack, u8 value)
 {
-    uint8 count = get_count(pack);
+    u8 count = get_count(pack);
     // Last element is reserved for count;
     assert(count < COUNTER_IDX);
     set(pack, value, count);

@@ -21,8 +21,8 @@ tasks::push(Task task)
 void
 tasks::run_loading_loop(
     std::mutex *mutex,
-    bool32 *should_stop,
-    uint32 idx_thread
+    bool *should_stop,
+    u32 idx_thread
 ) {
     while (!*should_stop) {
         Task *task = nullptr;
@@ -55,6 +55,6 @@ tasks::run_task(Task *task)
 {
     auto t0 = debug_start_timer();
     task->fn(task->argument_1);
-    real64 duration = debug_end_timer(t0);
+    f64 duration = debug_end_timer(t0);
     logs::info("Task took %.0fms", duration);
 }

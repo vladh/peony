@@ -53,7 +53,7 @@ input::get_mouse_3d_offset()
 void
 input::update_mouse_button(int button, int action, int mods)
 {
-    bool32 new_state = (action == GLFW_PRESS);
+    bool new_state = (action == GLFW_PRESS);
     if (new_state != input::state->mouse_button_states[button]) {
         input::state->mouse_button_states[button] = new_state;
         input::state->n_mouse_button_state_changes_this_frame[button]++;
@@ -61,21 +61,21 @@ input::update_mouse_button(int button, int action, int mods)
 }
 
 
-bool32
+bool
 input::is_mouse_button_down(int button)
 {
     return input::state->mouse_button_states[button];
 }
 
 
-bool32
+bool
 input::is_mouse_button_up(int button)
 {
     return !is_mouse_button_down(button);
 }
 
 
-bool32
+bool
 input::is_mouse_button_now_down(int button)
 {
     return is_mouse_button_down(button) &&
@@ -83,7 +83,7 @@ input::is_mouse_button_now_down(int button)
 }
 
 
-bool32
+bool
 input::is_mouse_button_now_up(int button)
 {
     return is_mouse_button_up(button) &&
@@ -101,7 +101,7 @@ input::update_mouse(v2 new_mouse_pos)
 
     input::state->mouse_offset = new_mouse_pos - input::state->mouse_pos;
     input::state->mouse_3d_offset =
-        input::state->mouse_offset * (real32)input::state->mouse_3d_sensitivity;
+        input::state->mouse_offset * (f32)input::state->mouse_3d_sensitivity;
     input::state->mouse_pos = new_mouse_pos;
 }
 
@@ -141,7 +141,7 @@ input::do_text_input_backspace()
 
 
 void
-input::update_text_input(uint32 codepoint)
+input::update_text_input(u32 codepoint)
 {
     if (!input::state->is_text_input_enabled) {
         return;
@@ -162,7 +162,7 @@ input::update_text_input(uint32 codepoint)
 void
 input::update_keys(int key, int scancode, int action, int mods)
 {
-    bool32 new_state = (action == GLFW_PRESS || action == GLFW_REPEAT);
+    bool new_state = (action == GLFW_PRESS || action == GLFW_REPEAT);
     if (new_state != input::state->key_states[key]) {
         input::state->key_states[key] = new_state;
         input::state->n_key_state_changes_this_frame[key]++;
@@ -170,35 +170,35 @@ input::update_keys(int key, int scancode, int action, int mods)
 }
 
 
-bool32
+bool
 input::is_key_down(int key)
 {
     return input::state->key_states[key];
 }
 
 
-bool32
+bool
 input::is_key_up(int key)
 {
     return !is_key_down(key);
 }
 
 
-bool32
+bool
 input::is_key_now_down(int key)
 {
     return is_key_down(key) && input::state->n_key_state_changes_this_frame[key] > 0;
 }
 
 
-bool32
+bool
 input::is_key_now_up(int key)
 {
     return is_key_up(key) && input::state->n_key_state_changes_this_frame[key] > 0;
 }
 
 
-bool32
+bool
 input::is_mouse_in_bb(v2 topleft, v2 bottomright)
 {
     return input::state->mouse_pos.x > topleft.x &&

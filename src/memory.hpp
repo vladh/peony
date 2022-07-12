@@ -10,14 +10,14 @@
 class memory {
 public:
 #if USE_MEMORYPOOL_ITEM_DEBUG
-    constexpr uint32 MAX_N_MEMORYPOOL_ITEMS = 1024;
+    constexpr u32 MAX_N_MEMORYPOOL_ITEMS = 1024;
 #endif
 
     struct Pool {
-        uint8 *memory;
+        u8 *memory;
         size_t size;
         size_t used;
-        uint32 n_items;
+        u32 n_items;
         #if USE_MEMORYPOOL_ITEM_DEBUG
         const char *item_debug_names[MAX_N_MEMORYPOOL_ITEMS];
         size_t item_debug_sizes[MAX_N_MEMORYPOOL_ITEMS];

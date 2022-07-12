@@ -12,7 +12,7 @@ gui::State *gui::state = nullptr;
 
 
 void
-gui::update_screen_dimensions(uint32 new_window_width, uint32 new_window_height)
+gui::update_screen_dimensions(u32 new_window_width, u32 new_window_height)
 {
     gui::state->window_dimensions = v2(new_window_width, new_window_height);
 }
@@ -110,19 +110,19 @@ gui::tick_heading()
         draw_heading(gui::state->heading_text,
             v4(0.0f, 0.33f, 0.93f, gui::state->heading_opacity));
         if (gui::state->heading_fadeout_delay > 0.0f) {
-            gui::state->heading_fadeout_delay -= (real32)(engine::get_dt());
+            gui::state->heading_fadeout_delay -= (f32)(engine::get_dt());
         } else {
             gui::state->heading_opacity -=
-                gui::state->heading_fadeout_duration * (real32)(engine::get_dt());
+                gui::state->heading_fadeout_duration * (f32)(engine::get_dt());
         }
     }
 }
 
 
-bool32
-gui::draw_toggle(Container *container, const char *text, bool32 toggle_state)
+bool
+gui::draw_toggle(Container *container, const char *text, bool toggle_state)
 {
-    bool32 is_pressed = false;
+    bool is_pressed = false;
 
     v2 text_dimensions = get_text_dimensions(fonts::get_by_name(gui::state->font_assets, "body"), text);
     v2 button_dimensions = TOGGLE_BUTTON_SIZE + BUTTON_DEFAULT_BORDER * 2.0f;
@@ -206,10 +206,10 @@ gui::draw_body_text(Container *container, const char *text)
 }
 
 
-bool32
+bool
 gui::draw_button(Container *container, const char *text)
 {
-    bool32 is_pressed = false;
+    bool is_pressed = false;
 
     v2 text_dimensions = get_text_dimensions(fonts::get_by_name(gui::state->font_assets, "body"), text);
     v2 button_dimensions = text_dimensions + BUTTON_AUTOSIZE_PADDING + BUTTON_DEFAULT_BORDER * 2.0f;
@@ -251,8 +251,8 @@ gui::draw_console(char *console_input_text)
     }
 
     fonts::FontAsset *font_asset = fonts::get_by_name(gui::state->font_assets, "body");
-    real32 line_height = fonts::font_unit_to_px(font_asset->height);
-    real32 line_spacing = floor(line_height * CONSOLE_LINE_SPACING_FACTOR);
+    f32 line_height = fonts::font_unit_to_px(font_asset->height);
+    f32 line_spacing = floor(line_height * CONSOLE_LINE_SPACING_FACTOR);
 
     // Draw console log
     {
@@ -262,7 +262,7 @@ gui::draw_console(char *console_input_text)
             v2(gui::state->window_dimensions.x, MAX_CONSOLE_LOG_HEIGHT),
             CONSOLE_BG_COLOR);
 
-        uint32 idx_line = gui::state->console.idx_log_start;
+        u32 idx_line = gui::state->console.idx_log_start;
         while (idx_line != gui::state->console.idx_log_end) {
             v2 text_dimensions = get_text_dimensions(font_asset, gui::state->console.log[idx_line]);
             next_element_position.y -= text_dimensions.y + line_spacing;
@@ -277,7 +277,7 @@ gui::draw_console(char *console_input_text)
 
     // Draw console input
     {
-        real32 console_input_height = line_height + (2.0f * CONSOLE_PADDING.y);
+        f32 console_input_height = line_height + (2.0f * CONSOLE_PADDING.y);
         v2 console_input_position = v2(0.0f, MAX_CONSOLE_LOG_HEIGHT);
 
         draw_rect(console_input_position,
@@ -332,8 +332,8 @@ gui::log(const char *format, ...)
 
 void
 gui::set_heading(
-    const char *text, real32 opacity,
-    real32 fadeout_duration, real32 fadeout_delay
+    const char *text, f32 opacity,
+    f32 fadeout_duration, f32 fadeout_delay
 ) {
     gui::state->heading_text = text;
     gui::state->heading_opacity = opacity;
@@ -348,7 +348,7 @@ gui::init(
     gui::State* gui_state,
     iv2 texture_atlas_size,
     Array<fonts::FontAsset> *font_assets,
-    uint32 window_width, uint32 window_height
+    u32 window_width, u32 window_height
 ) {
     gui::state = gui_state;
 
@@ -376,7 +376,7 @@ gui::set_cursor()
 
 
 void
-gui::push_vertices(real32 *vertices, uint32 n_vertices)
+gui::push_vertices(f32 *vertices, u32 n_vertices)
 {
     renderer::push_gui_vertices(vertices, n_vertices);
 }
@@ -387,18 +387,18 @@ gui::get_text_dimensions(fonts::FontAsset *font_asset, char const *str)
 {
     // NOTE: This returns the dimensions around the main body of the text.
     // This does not include descenders.
-    real32 line_height = fonts::font_unit_to_px(font_asset->height);
-    real32 line_spacing = line_height * LINE_SPACING_FACTOR;
-    real32 ascender = fonts::font_unit_to_px(font_asset->ascender);
+    f32 line_height = fonts::font_unit_to_px(font_asset->height);
+    f32 line_spacing = line_height * LINE_SPACING_FACTOR;
+    f32 ascender = fonts::font_unit_to_px(font_asset->ascender);
 
-    real32 start_x = 0.0f;
-    real32 start_y = 0.0f - (line_height - ascender);
-    real32 max_x = 0.0f;
-    real32 curr_x = start_x;
-    real32 curr_y = start_y;
+    f32 start_x = 0.0f;
+    f32 start_y = 0.0f - (line_height - ascender);
+    f32 max_x = 0.0f;
+    f32 curr_x = start_x;
+    f32 curr_y = start_y;
     size_t str_length = strlen(str);
 
-    for (uint32 idx = 0; idx < str_length; idx++) {
+    for (u32 idx = 0; idx < str_length; idx++) {
         char c = str[idx];
 
         if (c < 32) {
@@ -483,12 +483,12 @@ gui::draw_rect(v2 position, v2 dimensions, v4 color)
 {
     // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
     // Flip the y axis before drawing.
-    real32 x0 = position.x;
-    real32 x1 = x0 + dimensions.x;
-    real32 y0 = (real32)gui::state->window_dimensions.y - position.y;
-    real32 y1 = y0 - dimensions.y;
+    f32 x0 = position.x;
+    f32 x1 = x0 + dimensions.x;
+    f32 y0 = (f32)gui::state->window_dimensions.y - position.y;
+    f32 y1 = y0 - dimensions.y;
 
-    real32 vertices[VERTEX_LENGTH * 6] = {
+    f32 vertices[VERTEX_LENGTH * 6] = {
         x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
         x0, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
         x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
@@ -508,19 +508,19 @@ gui::draw_text(
 ) {
     fonts::FontAsset *font_asset = fonts::get_by_name(gui::state->font_assets, font_name);
 
-    real32 line_height = fonts::font_unit_to_px(font_asset->height);
-    real32 line_spacing = line_height * LINE_SPACING_FACTOR;
-    real32 ascender = fonts::font_unit_to_px(font_asset->ascender);
+    f32 line_height = fonts::font_unit_to_px(font_asset->height);
+    f32 line_spacing = line_height * LINE_SPACING_FACTOR;
+    f32 ascender = fonts::font_unit_to_px(font_asset->ascender);
 
     // NOTE: When changing this code, remember that the text positioning logic
     // needs to be replicated in `get_text_dimensions()`!
-    real32 start_x = position.x;
-    real32 start_y = position.y - (line_height - ascender);
-    real32 curr_x = start_x;
-    real32 curr_y = start_y;
+    f32 start_x = position.x;
+    f32 start_y = position.y - (line_height - ascender);
+    f32 curr_x = start_x;
+    f32 curr_y = start_y;
     size_t str_length = strlen(str);
 
-    for (uint32 idx = 0; idx < str_length; idx++) {
+    for (u32 idx = 0; idx < str_length; idx++) {
         char c = str[idx];
 
         if (c < 32) {
@@ -538,16 +538,16 @@ gui::draw_text(
             continue;
         }
 
-        real32 char_x = curr_x + character->bearing.x;
-        real32 char_y = curr_y + fonts::font_unit_to_px(font_asset->height) - character->bearing.y;
+        f32 char_x = curr_x + character->bearing.x;
+        f32 char_y = curr_y + fonts::font_unit_to_px(font_asset->height) - character->bearing.y;
 
-        real32 tex_x = (real32)character->tex_coords.x / gui::state->texture_atlas_size.x;
-        real32 tex_y = (real32)character->tex_coords.y / gui::state->texture_atlas_size.y;
-        real32 tex_w = (real32)character->size.x / gui::state->texture_atlas_size.x;
-        real32 tex_h = (real32)character->size.y / gui::state->texture_atlas_size.y;
+        f32 tex_x = (f32)character->tex_coords.x / gui::state->texture_atlas_size.x;
+        f32 tex_y = (f32)character->tex_coords.y / gui::state->texture_atlas_size.y;
+        f32 tex_w = (f32)character->size.x / gui::state->texture_atlas_size.x;
+        f32 tex_h = (f32)character->size.y / gui::state->texture_atlas_size.y;
 
-        real32 w = (real32)character->size.x;
-        real32 h = (real32)character->size.y;
+        f32 w = (f32)character->size.x;
+        f32 h = (f32)character->size.y;
 
         curr_x += fonts::frac_px_to_px(character->advance.x);
         curr_y += fonts::frac_px_to_px(character->advance.y);
@@ -559,17 +559,17 @@ gui::draw_text(
 
         // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
         // Flip the y axis before drawing.
-        real32 x0 = char_x;
-        real32 x1 = x0 + w;
-        real32 y0 = (real32)gui::state->window_dimensions.y - char_y;
-        real32 y1 = y0 - h;
+        f32 x0 = char_x;
+        f32 x1 = x0 + w;
+        f32 y0 = (f32)gui::state->window_dimensions.y - char_y;
+        f32 y1 = y0 - h;
 
-        real32 tex_x0 = tex_x;
-        real32 tex_x1 = tex_x0 + tex_w;
-        real32 tex_y0 = tex_y;
-        real32 tex_y1 = tex_y0 + tex_h;
+        f32 tex_x0 = tex_x;
+        f32 tex_x1 = tex_x0 + tex_w;
+        f32 tex_y0 = tex_y;
+        f32 tex_y1 = tex_y0 + tex_h;
 
-        real32 vertices[VERTEX_LENGTH * 6] = {
+        f32 vertices[VERTEX_LENGTH * 6] = {
             x0, y0, tex_x0, tex_y0, color.r, color.g, color.b, color.a,
             x0, y1, tex_x0, tex_y1, color.r, color.g, color.b, color.a,
             x1, y1, tex_x1, tex_y1, color.r, color.g, color.b, color.a,
@@ -616,7 +616,7 @@ gui::draw_container(Container *container)
 
 
 void
-gui::draw_line(v2 start, v2 end, real32 thickness, v4 color)
+gui::draw_line(v2 start, v2 end, f32 thickness, v4 color)
 {
     // NOTE: We use top-left as our origin, but OpenGL uses bottom-left.
     // Flip the y axis before drawing.
@@ -626,16 +626,16 @@ gui::draw_line(v2 start, v2 end, real32 thickness, v4 color)
     // 0------------------3
     // |                  |
     // 1------------------2
-    real32 x0 = start.x + delta.y;
-    real32 y0 = gui::state->window_dimensions.y - start.y;
-    real32 x1 = start.x;
-    real32 y1 = gui::state->window_dimensions.y - start.y - delta.x;
-    real32 x2 = end.x;
-    real32 y2 = gui::state->window_dimensions.y - end.y - delta.x;
-    real32 x3 = end.x + delta.y;
-    real32 y3 = gui::state->window_dimensions.y - end.y;
+    f32 x0 = start.x + delta.y;
+    f32 y0 = gui::state->window_dimensions.y - start.y;
+    f32 x1 = start.x;
+    f32 y1 = gui::state->window_dimensions.y - start.y - delta.x;
+    f32 x2 = end.x;
+    f32 y2 = gui::state->window_dimensions.y - end.y - delta.x;
+    f32 x3 = end.x + delta.y;
+    f32 y3 = gui::state->window_dimensions.y - end.y;
 
-    real32 vertices[VERTEX_LENGTH * 6] = {
+    f32 vertices[VERTEX_LENGTH * 6] = {
         x0, y0, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
         x1, y1, -1.0f, -1.0f, color.r, color.g, color.b, color.a,
         x2, y2, -1.0f, -1.0f, color.r, color.g, color.b, color.a,

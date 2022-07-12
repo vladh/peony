@@ -74,7 +74,7 @@ drawable::render_pass_from_string(const char* str)
 }
 
 
-bool32
+bool
 drawable::is_component_valid(drawable::Component *drawable_component)
 {
     return geom::is_mesh_valid(&drawable_component->mesh);

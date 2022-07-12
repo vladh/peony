@@ -6,10 +6,10 @@
 
 class peony_parser {
 public:
-    static constexpr uint32 MAX_N_FILE_ENTRIES = 128;
-    static constexpr uint32 MAX_N_ENTRY_PROPS = 32;
-    static constexpr uint32 MAX_N_ARRAY_VALUES = 8;
-    static constexpr uint32 MAX_TOKEN_LENGTH = 128;
+    static constexpr u32 MAX_N_FILE_ENTRIES = 128;
+    static constexpr u32 MAX_N_ENTRY_PROPS = 32;
+    static constexpr u32 MAX_N_ARRAY_VALUES = 8;
+    static constexpr u32 MAX_TOKEN_LENGTH = 128;
 
     static constexpr const char TOKEN_SPACE = ' ';
     static constexpr const char TOKEN_NEWLINE = '\n';
@@ -32,8 +32,8 @@ public:
         PropValueType type;
         union {
             char string_value[MAX_TOKEN_LENGTH];
-            bool32 boolean_value;
-            real32 number_value;
+            bool boolean_value;
+            f32 number_value;
             v2 vec2_value;
             v3 vec3_value;
             v4 vec4_value;
@@ -43,31 +43,31 @@ public:
     struct Prop {
         char name[MAX_TOKEN_LENGTH];
         PropValue values[MAX_N_ARRAY_VALUES];
-        uint32 n_values;
+        u32 n_values;
     };
 
     struct Entry {
         char name[MAX_TOKEN_LENGTH];
         Prop props[MAX_N_ENTRY_PROPS];
-        uint32 n_props;
+        u32 n_props;
     };
 
     struct PeonyFile {
         Entry entries[MAX_N_FILE_ENTRIES];
-        uint32 n_entries;
+        u32 n_entries;
     };
 
-    static bool32 parse_file(PeonyFile *pf, char const *path);
+    static bool parse_file(PeonyFile *pf, char const *path);
 
 private:
     static void print_value(PropValue *value);
-    static bool32 is_char_whitespace(const char target);
-    static bool32 is_token_whitespace(const char *token);
-    static bool32 is_char_allowed_in_name(const char target);
-    static bool32 is_token_name(const char *token);
-    static bool32 is_char_token_boundary(char target);
-    static bool32 get_token(char *token, FILE *f);
-    static bool32 get_non_trivial_token(char *token, FILE *f);
+    static bool is_char_whitespace(const char target);
+    static bool is_token_whitespace(const char *token);
+    static bool is_char_allowed_in_name(const char target);
+    static bool is_token_name(const char *token);
+    static bool is_char_token_boundary(char target);
+    static bool get_token(char *token, FILE *f);
+    static bool get_non_trivial_token(char *token, FILE *f);
     static void parse_vec2(char *token, FILE *f, v2 *parsed_vector);
     static void parse_vec3(char *token, FILE *f, v3 *parsed_vector);
     static void parse_vec4(char *token, FILE *f, v4 *parsed_vector);

@@ -11,7 +11,7 @@ int
 main()
 {
     // Seed RNG
-    srand((uint32)time(NULL));
+    srand((u32)time(NULL));
 
     //
     //                                    ___

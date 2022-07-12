@@ -12,8 +12,8 @@ public:
         v3 position;
         v3 normal;
         v2 tex_coords;
-        uint32 bone_idxs[MAX_N_BONES_PER_VERTEX];
-        real32 bone_weights[MAX_N_BONES_PER_VERTEX];
+        u32 bone_idxs[MAX_N_BONES_PER_VERTEX];
+        f32 bone_weights[MAX_N_BONES_PER_VERTEX];
     };
 
     struct Mesh {
@@ -21,34 +21,34 @@ public:
         m4 transform;
         char material_name[MAX_COMMON_NAME_LENGTH];
         pack::Pack indices_pack;
-        uint32 vao;
-        uint32 vbo;
-        uint32 ebo;
+        u32 vao;
+        u32 vbo;
+        u32 ebo;
         GLenum mode;
         Vertex *vertices;
-        uint32 *indices;
-        uint32 n_vertices;
-        uint32 n_indices;
+        u32 *indices;
+        u32 n_vertices;
+        u32 n_indices;
     };
 
     static void setup_mesh_vertex_buffers(
         Mesh *mesh,
-        Vertex *vertex_data, uint32 n_vertices,
-        uint32 *index_data, uint32 n_indices
+        Vertex *vertex_data, u32 n_vertices,
+        u32 *index_data, u32 n_indices
     );
-    static bool32 is_mesh_valid(Mesh *mesh);
+    static bool is_mesh_valid(Mesh *mesh);
     static void destroy_mesh(Mesh *mesh);
     static void make_plane(
         memory::Pool *memory_pool,
-        uint32 x_size, uint32 z_size,
-        uint32 n_x_segments, uint32 n_z_segments,
-        uint32 *n_vertices, uint32 *n_indices,
-        Vertex **vertex_data, uint32 **index_data
+        u32 x_size, u32 z_size,
+        u32 n_x_segments, u32 n_z_segments,
+        u32 *n_vertices, u32 *n_indices,
+        Vertex **vertex_data, u32 **index_data
     );
     static void make_sphere(
         memory::Pool *memory_pool,
-        uint32 n_x_segments, uint32 n_y_segments,
-        uint32 *n_vertices, uint32 *n_indices,
-        Vertex **vertex_data, uint32 **index_data
+        u32 n_x_segments, u32 n_y_segments,
+        u32 *n_vertices, u32 *n_indices,
+        Vertex **vertex_data, u32 **index_data
     );
 };

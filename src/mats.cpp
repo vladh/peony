@@ -45,7 +45,7 @@ void
 mats::destroy_non_internal_materials()
 {
     for (
-        uint32 idx = mats::state->first_non_internal_material_idx;
+        u32 idx = mats::state->first_non_internal_material_idx;
         idx < mats::state->materials.length;
         idx++
     ) {
@@ -192,10 +192,10 @@ mats::init_texture(
     Texture *texture,
     GLenum target,
     TextureType type,
-    uint32 texture_name,
-    int32 width,
-    int32 height,
-    int32 n_components
+    u32 texture_name,
+    i32 width,
+    i32 height,
+    i32 n_components
 ) {
     texture->target = target;
     texture->type = type;
@@ -291,7 +291,7 @@ mats::destroy_material(Material *material)
         shaders::destroy_shader_asset(&material->depth_shader_asset);
     }
 
-    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+    for (u32 idx = 0; idx < material->n_textures; idx++) {
         Texture *texture = &material->textures[idx];
         if (!texture->is_builtin) {
             destroy_texture(texture);
@@ -335,7 +335,7 @@ mats::bind_texture_uniforms(Material *material)
         glUseProgram(shader_asset->program);
 
         for (
-            uint32 uniform_idx = 0;
+            u32 uniform_idx = 0;
             uniform_idx < shader_asset->n_intrinsic_uniforms;
             uniform_idx++
         ) {
@@ -355,7 +355,7 @@ mats::bind_texture_uniforms(Material *material)
 
         shaders::reset_texture_units(shader_asset);
 
-        for (uint32 idx = 0; idx < material->n_textures; idx++) {
+        for (u32 idx = 0; idx < material->n_textures; idx++) {
             Texture *texture = &material->textures[idx];
             const char *uniform_name = material->texture_uniform_names[idx];
 #if USE_SHADER_DEBUG
@@ -392,7 +392,7 @@ mats::init(
 }
 
 
-bool32
+bool
 mats::prepare_material_and_check_if_done(Material *material)
 {
     if (material->state == MaterialState::empty) {
@@ -403,8 +403,8 @@ mats::prepare_material_and_check_if_done(Material *material)
     if (material->state == MaterialState::initialized) {
         // NOTE: We only have to copy stuff if we have one or more textures that
         // don't have names yet.
-        bool32 should_try_to_copy_textures = false;
-        for (uint32 idx = 0; idx < material->n_textures; idx++) {
+        bool should_try_to_copy_textures = false;
+        for (u32 idx = 0; idx < material->n_textures; idx++) {
             Texture *texture = &material->textures[idx];
             if (!texture->texture_name) {
                 should_try_to_copy_textures = true;
@@ -464,7 +464,7 @@ mats::reload_shaders()
 }
 
 
-bool32
+bool
 mats::is_texture_type_screensize_dependent(TextureType type)
 {
     return (
@@ -481,11 +481,11 @@ mats::is_texture_type_screensize_dependent(TextureType type)
 }
 
 
-uint16
+u16
 mats::get_new_persistent_pbo_idx()
 {
     auto *ppbo = &mats::state->persistent_pbo;
-    uint16 current_idx = ppbo->next_idx;
+    u16 current_idx = ppbo->next_idx;
     ppbo->next_idx++;
     if (ppbo->next_idx >= ppbo->texture_count) {
         ppbo->next_idx = 0;
@@ -495,17 +495,17 @@ mats::get_new_persistent_pbo_idx()
 
 
 void *
-mats::get_memory_for_persistent_pbo_idx(uint16 idx)
+mats::get_memory_for_persistent_pbo_idx(u16 idx)
 {
     auto *ppbo = &mats::state->persistent_pbo;
-    return (char*)ppbo->memory + ((uint64)idx * ppbo->texture_size);
+    return (char*)ppbo->memory + ((u64)idx * ppbo->texture_size);
 }
 
 
 void
 mats::copy_textures_to_pbo(Material *material)
 {
-    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+    for (u32 idx = 0; idx < material->n_textures; idx++) {
         Texture *texture = &material->textures[idx];
         if (texture->texture_name) {
             continue;
@@ -521,15 +521,15 @@ mats::copy_textures_to_pbo(Material *material)
 }
 
 
-uint32
-mats::get_new_texture_name(uint32 target_size)
+u32
+mats::get_new_texture_name(u32 target_size)
 {
     auto *pool = &mats::state->texture_name_pool;
-    for (uint32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
+    for (u32 idx_size = 0; idx_size < pool->n_sizes; idx_size++) {
         if (pool->sizes[idx_size] == target_size) {
             assert(pool->idx_next[idx_size] < pool->n_textures);
-            uint32 idx_name = (idx_size * pool->n_textures) + pool->idx_next[idx_size];
-            uint32 texture_name = pool->texture_names[idx_name];
+            u32 idx_name = (idx_size * pool->n_textures) + pool->idx_next[idx_size];
+            u32 texture_name = pool->texture_names[idx_name];
             pool->idx_next[idx_size]++;
             return texture_name;
         }
@@ -540,9 +540,9 @@ mats::get_new_texture_name(uint32 target_size)
 
 
 void *
-mats::get_offset_for_persistent_pbo_idx(uint16 idx)
+mats::get_offset_for_persistent_pbo_idx(u16 idx)
 {
-    return (void*)((uint64)idx * mats::state->persistent_pbo.texture_size);
+    return (void*)((u64)idx * mats::state->persistent_pbo.texture_size);
 }
 
 
@@ -554,7 +554,7 @@ mats::generate_textures_from_pbo(Material *material)
     }
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, mats::state->persistent_pbo.pbo);
 
-    for (uint32 idx = 0; idx < material->n_textures; idx++) {
+    for (u32 idx = 0; idx < material->n_textures; idx++) {
         Texture *texture = &material->textures[idx];
         if (texture->texture_name != 0) {
             continue;
@@ -598,7 +598,7 @@ mats::material_state_to_string(MaterialState material_state)
 
 mats::PersistentPbo *
 mats::init_persistent_pbo(
-    uint16 texture_count, int32 width, int32 height, int32 n_components
+    u16 texture_count, i32 width, i32 height, i32 n_components
 ) {
     auto *ppbo = &mats::state->persistent_pbo;
     ppbo->texture_count = texture_count;
@@ -637,8 +637,8 @@ mats::init_persistent_pbo(
 mats::TextureNamePool *
 mats::init_texture_name_pool(
     memory::Pool *memory_pool,
-    uint32 n_textures,
-    uint32 mipmap_max_level
+    u32 n_textures,
+    u32 mipmap_max_level
 ) {
     auto *pool = &mats::state->texture_name_pool;
     pool->n_textures = n_textures;
@@ -648,14 +648,14 @@ mats::init_texture_name_pool(
     pool->sizes[pool->n_sizes++] = 512;
     pool->sizes[pool->n_sizes++] = 2048;
 
-    pool->texture_names = (uint32*)memory::push(memory_pool,
-        sizeof(uint32) * pool->n_textures * pool->n_sizes, "texture_names");
+    pool->texture_names = (u32*)memory::push(memory_pool,
+        sizeof(u32) * pool->n_textures * pool->n_sizes, "texture_names");
 
     glGenTextures(pool->n_textures * pool->n_sizes, pool->texture_names);
 
     range_named (idx_size, 0, pool->n_sizes) {
         range_named (idx_texture, 0, pool->n_textures) {
-            uint32 idx_name = (idx_size * pool->n_textures) + idx_texture;
+            u32 idx_name = (idx_size * pool->n_textures) + idx_texture;
             glBindTexture(GL_TEXTURE_2D, pool->texture_names[idx_name]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);

@@ -10,7 +10,7 @@
 behavior::State *behavior::state = nullptr;
 
 
-behavior::Function behavior::function_map[(uint32)Behavior::length] = {
+behavior::Function behavior::function_map[(u32)Behavior::length] = {
     (behavior::Function)nullptr,
     (behavior::Function)behavior_functions::test,
     (behavior::Function)behavior_functions::char_movement_test,
@@ -49,7 +49,7 @@ behavior::behavior_from_string(char const *str)
 }
 
 
-bool32
+bool
 behavior::is_behavior_component_valid(behavior::Component *behavior_component)
 {
     return behavior_component->behavior != Behavior::none;
@@ -67,7 +67,7 @@ behavior::update_behavior_components(
 
         entities::Handle entity_handle = behavior_component->entity_handle;
 
-        auto handler = function_map[(uint32)behavior_component->behavior];
+        auto handler = function_map[(u32)behavior_component->behavior];
         if (handler) {
             handler(entity_handle);
         }

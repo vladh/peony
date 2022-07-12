@@ -29,14 +29,14 @@ public:
     };
 
     struct State {
-        real32 dir_light_angle;
+        f32 dir_light_angle;
     };
 
     static void adjust_dir_light_angle(f32 amount);
     static const char* light_type_to_string(LightType light_type);
     static LightType light_type_from_string(const char *str);
-    static uint32 light_type_to_int(LightType light_type);
-    static bool32 is_light_component_valid(Component *light_component);
+    static u32 light_type_to_int(LightType light_type);
+    static bool is_light_component_valid(Component *light_component);
     static void update_light_components(
         ComponentSet *light_component_set,
         spatial::ComponentSet *spatial_component_set,

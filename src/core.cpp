@@ -97,7 +97,7 @@ core::mouse_button_callback(GLFWwindow *window, int button, int action, int mods
 
 
 void
-core::mouse_callback(GLFWwindow *window, real64 x, real64 y)
+core::mouse_callback(GLFWwindow *window, f64 x, f64 y)
 {
     v2 mouse_pos = v2(x, y);
     input::update_mouse(mouse_pos);
@@ -119,7 +119,7 @@ core::key_callback(GLFWwindow* window, int key, int scancode, int action, int mo
 
 
 void
-core::char_callback(GLFWwindow* window, uint32 codepoint) {
+core::char_callback(GLFWwindow* window, u32 codepoint) {
     input::update_text_input(codepoint);
 }
 

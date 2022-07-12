@@ -6,7 +6,7 @@ class drawinfo {
 public:
     enum class Mode { regular, depth };
 
-    enum class Pass : uint32 {
+    enum class Pass : u32 {
         none = 0,
         shadowcaster = (1 << 0),
         deferred = (1 << 1),

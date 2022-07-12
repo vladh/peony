@@ -9,7 +9,7 @@
 class entities {
 public:
     // NOTE: 0 is an invalid handle.
-    typedef uint32 Handle;
+    typedef u32 Handle;
 
     struct Entity {
         Handle handle;

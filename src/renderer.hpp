@@ -15,8 +15,8 @@ struct EngineState;
 
 class renderer {
 public:
-    static constexpr uint32 GUI_MAX_N_VERTICES = 65536;
-    static constexpr size_t GUI_VERTEX_SIZE = sizeof(real32) * gui::VERTEX_LENGTH;
+    static constexpr u32 GUI_MAX_N_VERTICES = 65536;
+    static constexpr size_t GUI_VERTEX_SIZE = sizeof(f32) * gui::VERTEX_LENGTH;
 
     struct ShaderCommon {
         m4 view;
@@ -59,72 +59,72 @@ public:
     };
 
     struct BuiltinTextures {
-        uint32 g_buffer;
+        u32 g_buffer;
         mats::Texture *g_position_texture;
         mats::Texture *g_normal_texture;
         mats::Texture *g_albedo_texture;
         mats::Texture *g_pbr_texture;
 
-        uint32 l_buffer;
+        u32 l_buffer;
         mats::Texture *l_color_texture;
         mats::Texture *l_bright_color_texture;
         mats::Texture *l_depth_texture;
 
-        uint32 blur1_buffer;
-        uint32 blur2_buffer;
+        u32 blur1_buffer;
+        u32 blur2_buffer;
         mats::Texture *blur1_texture;
         mats::Texture *blur2_texture;
 
-        uint32 shadowmaps_3d_framebuffer;
-        uint32 shadowmaps_3d;
+        u32 shadowmaps_3d_framebuffer;
+        u32 shadowmaps_3d;
         mats::Texture *shadowmaps_3d_texture;
-        uint32 shadowmap_3d_width;
-        uint32 shadowmap_3d_height;
+        u32 shadowmap_3d_width;
+        u32 shadowmap_3d_height;
 
-        uint32 shadowmaps_2d_framebuffer;
-        uint32 shadowmaps_2d;
+        u32 shadowmaps_2d_framebuffer;
+        u32 shadowmaps_2d;
         mats::Texture *shadowmaps_2d_texture;
-        uint32 shadowmap_2d_width;
-        uint32 shadowmap_2d_height;
+        u32 shadowmap_2d_width;
+        u32 shadowmap_2d_height;
 
-        real32 shadowmap_near_clip_dist;
-        real32 shadowmap_far_clip_dist;
+        f32 shadowmap_near_clip_dist;
+        f32 shadowmap_far_clip_dist;
     };
 
     struct State {
-        bool32 should_hide_ui;
-        bool32 should_use_wireframe;
+        bool should_hide_ui;
+        bool should_use_wireframe;
         mats::TextureType renderdebug_displayed_texture_type;
         shaders::Asset standard_depth_shader_asset;
-        uint32 ubo_shader_common;
+        u32 ubo_shader_common;
         ShaderCommon shader_common;
         m4 shadowmap_3d_transforms[6 * MAX_N_LIGHTS];
         m4 shadowmap_2d_transforms[MAX_N_LIGHTS];
         BuiltinTextures builtin_textures;
-        uint32 gui_vao;
-        uint32 gui_vbo;
+        u32 gui_vao;
+        u32 gui_vbo;
         mats::TextureAtlas gui_texture_atlas;
         shaders::Asset gui_shader_asset;
         Array<fonts::FontAsset> gui_font_assets;
-        uint32 gui_n_vertices_pushed;
+        u32 gui_n_vertices_pushed;
     };
 
     static GLFWwindow * init_window(WindowSize *window_size);
-    bool32 is_drawable_component_valid(drawable::Component *drawable_component);
+    bool is_drawable_component_valid(drawable::Component *drawable_component);
     void destroy_drawable_component(drawable::Component *drawable_component);
     static void resize_renderer_buffers(
         memory::Pool *memory_pool,
         BuiltinTextures *builtin_textures,
-        uint32 width,
-        uint32 height
+        u32 width,
+        u32 height
     );
     static void update_drawing_options(GLFWwindow *window);
     static void render(GLFWwindow *window, WindowSize *window_size);
     static void init(
         renderer::State *renderer_state,
         memory::Pool *memory_pool,
-        uint32 width,
-        uint32 height,
+        u32 width,
+        u32 height,
         GLFWwindow *window
     );
     static void start_drawing_gui();
@@ -144,55 +144,55 @@ public:
 private:
     static void init_g_buffer(
         memory::Pool *memory_pool,
-        uint32 *g_buffer,
+        u32 *g_buffer,
         mats::Texture **g_position_texture,
         mats::Texture **g_normal_texture,
         mats::Texture **g_albedo_texture,
         mats::Texture **g_pbr_texture,
-        uint32 width,
-        uint32 height
+        u32 width,
+        u32 height
     );
     static void init_l_buffer(
         memory::Pool *memory_pool,
-        uint32 *l_buffer,
+        u32 *l_buffer,
         mats::Texture **l_color_texture,
         mats::Texture **l_bright_color_texture,
         mats::Texture **l_depth_texture,
-        uint32 width,
-        uint32 height
+        u32 width,
+        u32 height
     );
     static void init_blur_buffers(
         memory::Pool *memory_pool,
-        uint32 *blur1_buffer,
-        uint32 *blur2_buffer,
+        u32 *blur1_buffer,
+        u32 *blur2_buffer,
         mats::Texture **blur1_texture,
         mats::Texture **blur2_texture,
-        uint32 width,
-        uint32 height
+        u32 width,
+        u32 height
     );
-    static void init_ubo(uint32 *ubo_shader_common);
+    static void init_ubo(u32 *ubo_shader_common);
     static void init_3d_shadowmaps(
         memory::Pool *memory_pool,
-        uint32 *shadowmaps_3d_framebuffer,
-        uint32 *shadowmaps_3d,
+        u32 *shadowmaps_3d_framebuffer,
+        u32 *shadowmaps_3d,
         mats::Texture **shadowmaps_3d_texture,
-        uint32 shadowmap_3d_width,
-        uint32 shadowmap_3d_height
+        u32 shadowmap_3d_width,
+        u32 shadowmap_3d_height
     );
     static void init_2d_shadowmaps(
         memory::Pool *memory_pool,
-        uint32 *shadowmaps_2d_framebuffer,
-        uint32 *shadowmaps_2d,
+        u32 *shadowmaps_2d_framebuffer,
+        u32 *shadowmaps_2d,
         mats::Texture **shadowmaps_2d_texture,
-        uint32 shadowmap_2d_width,
-        uint32 shadowmap_2d_height
+        u32 shadowmap_2d_width,
+        u32 shadowmap_2d_height
     );
     static void init_gui(memory::Pool *memory_pool);
     static void copy_scene_data_to_ubo(
         WindowSize *window_size,
-        uint32 current_shadow_light_idx,
-        uint32 current_shadow_light_type,
-        bool32 is_blur_horizontal
+        u32 current_shadow_light_idx,
+        u32 current_shadow_light_type,
+        bool is_blur_horizontal
     );
     static void draw(
         drawable::Mode render_mode,

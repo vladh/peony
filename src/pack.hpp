@@ -6,15 +6,15 @@
 
 class pack {
 public:
-    static constexpr uint16 ELEMENT_SIZE = 4;
-    static constexpr uint16 MAX_LENGTH  = (64 / ELEMENT_SIZE);
-    static constexpr uint16 COUNTER_IDX  = (MAX_LENGTH - 1);
+    static constexpr u16 ELEMENT_SIZE = 4;
+    static constexpr u16 MAX_LENGTH  = (64 / ELEMENT_SIZE);
+    static constexpr u16 COUNTER_IDX  = (MAX_LENGTH - 1);
 
-    typedef uint64 Pack;
+    typedef u64 Pack;
 
     static void init(Pack *pack);
-    static void set(Pack *pack, uint8 value, uint8 idx);
-    static uint8 get(Pack *pack, uint8 idx);
-    static uint8 get_count(Pack *pack);
-    static void push(Pack *pack, uint8 value);
+    static void set(Pack *pack, u8 value, u8 idx);
+    static u8 get(Pack *pack, u8 idx);
+    static u8 get_count(Pack *pack);
+    static void push(Pack *pack, u8 value);
 };
