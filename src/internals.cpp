@@ -228,7 +228,7 @@ void internals::create_internal_entities() {
 
   // Lighting screenquad
   {
-    Entity *entity = entities::add_entity_to_set("screenquad_lighting");
+    entities::Entity *entity = entities::add_entity_to_set("screenquad_lighting");
     models::ModelLoader *model_loader = engine::push_model_loader();
     models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:screenquad_lighting");
@@ -245,7 +245,7 @@ void internals::create_internal_entities() {
   #if USE_BLOOM
     // Preblur screenquad
     {
-      Entity *entity = entities::add_entity_to_set("screenquad_preblur");
+      entities::Entity *entity = entities::add_entity_to_set("screenquad_preblur");
       models::ModelLoader *model_loader = engine::push_model_loader();
       models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
       models::init_model_loader(model_loader, "builtin:screenquad_preblur");
@@ -261,7 +261,7 @@ void internals::create_internal_entities() {
 
     // Blur 1 screenquad
     {
-      Entity *entity = entities::add_entity_to_set("screenquad_blur1");
+      entities::Entity *entity = entities::add_entity_to_set("screenquad_blur1");
       models::ModelLoader *model_loader = engine::push_model_loader();
       models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
       models::init_model_loader(model_loader, "builtin:screenquad_blur1");
@@ -277,7 +277,7 @@ void internals::create_internal_entities() {
 
     // Blur 2 screenquad
     {
-      Entity *entity = entities::add_entity_to_set("screenquad_blur2");
+      entities::Entity *entity = entities::add_entity_to_set("screenquad_blur2");
       models::ModelLoader *model_loader = engine::push_model_loader();
       models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
       models::init_model_loader(model_loader, "builtin:screenquad_blur2");
@@ -294,7 +294,7 @@ void internals::create_internal_entities() {
 
   // Postprocessing screenquad
   {
-    Entity *entity = entities::add_entity_to_set("screenquad_postprocessing");
+    entities::Entity *entity = entities::add_entity_to_set("screenquad_postprocessing");
     models::ModelLoader *model_loader = engine::push_model_loader();
     models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:screenquad_postprocessing");
@@ -310,7 +310,7 @@ void internals::create_internal_entities() {
 
   // Debug screenquad
   {
-    Entity *entity = entities::add_entity_to_set("screenquad_renderdebug");
+    entities::Entity *entity = entities::add_entity_to_set("screenquad_renderdebug");
     models::ModelLoader *model_loader = engine::push_model_loader();
     models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:screenquad_renderdebug");
@@ -326,7 +326,7 @@ void internals::create_internal_entities() {
 
   // Skysphere
   {
-    Entity *entity = entities::add_entity_to_set("skysphere");
+    entities::Entity *entity = entities::add_entity_to_set("skysphere");
     models::ModelLoader *model_loader = engine::push_model_loader();
     models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:skysphere");
@@ -347,7 +347,7 @@ void internals::create_internal_entities() {
   }
 
   // We've created all internal entities, so we will mark the next position
-  // in the EntitySet, to know that that position is where the non-internal
+  // in the entities::Set, to know that that position is where the non-internal
   // entities start.
   engine::mark_first_non_internal_handle();
 

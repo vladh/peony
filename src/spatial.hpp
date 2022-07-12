@@ -24,11 +24,11 @@ namespace spatial {
 
 
   struct Component {
-    EntityHandle entity_handle;
+    entities::Handle entity_handle;
     v3 position;
     quat rotation;
     v3 scale;
-    EntityHandle parent_entity_handle;
+    entities::Handle parent_entity_handle;
   };
 
 

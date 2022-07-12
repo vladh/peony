@@ -65,7 +65,7 @@ behavior::update_behavior_components(
             continue;
         }
 
-        EntityHandle entity_handle = behavior_component->entity_handle;
+        entities::Handle entity_handle = behavior_component->entity_handle;
 
         auto handler = function_map[(uint32)behavior_component->behavior];
         if (handler) {

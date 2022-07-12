@@ -7,11 +7,11 @@
 
 
 namespace debug_ui {
-  pny_internal void get_entity_text_representation(char *text, Entity *entity, uint8 depth) {
+  pny_internal void get_entity_text_representation(char *text, entities::Entity *entity, uint8 depth) {
     // TODO: fixme
     engine::State *engine_state = engine::todo_fixme_get_engine_state();
 
-    EntityHandle handle = entity->handle;
+    entities::Handle handle = entity->handle;
     spatial::Component *spatial_component =
       engine_state->spatial_component_set.components[handle];
 
@@ -88,8 +88,8 @@ namespace debug_ui {
           if (n_children_found > 5) {
             continue;
           }
-          EntityHandle child_handle = child_spatial_component->entity_handle;
-          Entity *child_entity = engine_state->entity_set.entities[child_handle];
+          entities::Handle child_handle = child_spatial_component->entity_handle;
+          entities::Entity *child_entity = engine_state->entity_set.entities[child_handle];
 
           if (text[strlen(text) - 1] != '\n') {
             strcat(text, "\n");
