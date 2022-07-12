@@ -13,17 +13,14 @@
 
 
 bool32
-models::prepare_model_loader_and_check_if_done(
-    ModelLoader *model_loader,
-    Queue<Task> *task_queue
-) {
+models::prepare_model_loader_and_check_if_done(ModelLoader *model_loader) {
     if (model_loader->state == ModelLoaderState::initialized) {
         if (pstr_starts_with(model_loader->model_path, "builtin:")) {
             logs::error("Found model with builtin model_path for which no vertex data was loaded.");
             return false;
         }
-        task_queue->push({
-            .fn = (TaskFn)load_model_from_file,
+        tasks::push({
+            .fn = (tasks::TaskFn)load_model_from_file,
             .argument_1 = (void*)model_loader,
         });
         model_loader->state = ModelLoaderState::mesh_data_being_loaded;

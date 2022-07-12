@@ -29,7 +29,7 @@ struct State {
   lights::State lights_state;
   anim::State anim_state;
   mats::State materials_state;
-  TasksState tasks_state;
+  tasks::State tasks_state;
   debugdraw::State debug_draw_state;
   behavior::State behavior_state;
 };

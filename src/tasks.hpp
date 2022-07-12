@@ -6,23 +6,27 @@
 #include "types.hpp"
 #include "queue.hpp"
 
-namespace tasks {
-  typedef void (*TaskFn)(void*);
-  struct Task {
-    TaskFn fn;
-    void *argument_1;
-  };
-  struct TasksState {
-    Queue<Task> task_queue;
-  };
+class tasks {
+public:
+    typedef void (*TaskFn)(void*);
+    struct Task {
+        TaskFn fn;
+        void *argument_1;
+    };
+    struct State {
+        Queue<Task> task_queue;
+    };
 
-  void run_loading_loop(
-    TasksState *tasks_state,
-    std::mutex *mutex,
-    bool32 *should_stop,
-    uint32 idx_thread
-  );
-  void init(TasksState *tasks_state, MemoryPool *pool);
-}
+    static void push(Task task);
+    static void run_loading_loop(
+        std::mutex *mutex,
+        bool32 *should_stop,
+        uint32 idx_thread
+    );
+    static void init(tasks::State *tasks_state, MemoryPool *pool);
 
-using tasks::Task, tasks::TaskFn, tasks::TasksState;
+private:
+    static void run_task(Task *task);
+
+    static tasks::State *state;
+};

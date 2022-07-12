@@ -393,7 +393,7 @@ mats::init(
 
 
 bool32
-mats::prepare_material_and_check_if_done(Material *material, Queue<Task> *task_queue)
+mats::prepare_material_and_check_if_done(Material *material)
 {
     if (material->state == MaterialState::empty) {
         logs::warning("Empty material '%s'. This should never happen.", material->name);
@@ -413,8 +413,8 @@ mats::prepare_material_and_check_if_done(Material *material, Queue<Task> *task_q
 
         if (should_try_to_copy_textures) {
             material->state = MaterialState::textures_being_copied_to_pbo;
-            task_queue->push({
-                .fn = (TaskFn)copy_textures_to_pbo,
+            tasks::push({
+                .fn = (tasks::TaskFn)copy_textures_to_pbo,
                 .argument_1 = (void*)material,
             });
         } else {

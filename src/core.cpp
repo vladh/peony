@@ -40,7 +40,6 @@ core::run()
     range (0, N_LOADING_THREADS) {
         loading_threads[idx] = std::thread(
             tasks::run_loading_loop,
-            &state->tasks_state,
             &loading_thread_mutex,
             &state->engine_state.should_stop,
             idx
@@ -52,7 +51,6 @@ core::run()
     engine::run_main_loop(
         &state->engine_state,
         &state->input_state,
-        &state->tasks_state,
         state->window,
         &state->window_size);
 
