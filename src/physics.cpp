@@ -9,7 +9,7 @@
 
 physics::RayCollisionResult
 physics::find_ray_collision(
-    Ray *ray,
+    spatial::Ray *ray,
     // TODO: Replace this with some kind of collision layers.
     physics::Component *physics_component_to_ignore_or_nullptr
 ) {
@@ -89,8 +89,8 @@ physics::update_components()
 }
 
 
-Obb
-physics::transform_obb(Obb obb, spatial::Component *spatial)
+spatial::Obb
+physics::transform_obb(spatial::Obb obb, spatial::Component *spatial)
 {
     m3 rotation = glm::toMat3(normalize(spatial->rotation));
     obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
@@ -102,7 +102,7 @@ physics::transform_obb(Obb obb, spatial::Component *spatial)
 
 
 physics::RaycastResult
-physics::intersect_obb_ray(Obb *obb, Ray *ray)
+physics::intersect_obb_ray(spatial::Obb *obb, spatial::Ray *ray)
 {
     // Gabor Szauer, Game Physics Cookbook, “Raycast Oriented Bounding Box”
     v3 obb_z_axis = cross(obb->x_axis, obb->y_axis);
@@ -241,14 +241,14 @@ physics::get_edge_contact_point(
 }
 
 
-Face
+spatial::Face
 physics::get_incident_face(
     m3 *cob, // incident change of base
     v3 e, // incident extents
     v3 c, // incident center
     v3 n // incident normal
 ) {
-    Face face;
+    spatial::Face face;
     n = transpose(*cob) * n;
     v3 abs_n = abs(n);
 
@@ -407,7 +407,7 @@ uint32
 physics::clip_faces(
     v3 reference_center, v3 reference_face_extents,
     uint32 clip_edges[4], m3 reference_face_cob,
-    Face incident_face,
+    spatial::Face incident_face,
     v3 clip_vertices[8], real32 clip_depths[8]
 ) {
     return 0;
@@ -472,8 +472,8 @@ physics::update_best_for_edge_axis(
 */
 physics::CollisionManifold
 physics::intersect_obb_obb(
-    Obb *a,
-    Obb *b,
+    spatial::Obb *a,
+    spatial::Obb *b,
     spatial::Component *spatial_a,
     spatial::Component *spatial_b
 ) {
@@ -666,7 +666,7 @@ physics::intersect_obb_obb(
     }
 
     if (manifold.axis < 6) {
-        // Face-something collision
+        // spatial::Face-something collision
         v3 reference_extents, incident_extents, reference_center, incident_center;
         m3 reference_cob, incident_cob;
 
@@ -687,7 +687,7 @@ physics::intersect_obb_obb(
             incident_center = a->center;
         }
 
-        Face incident_face = get_incident_face(&incident_cob, incident_extents, incident_center, manifold.normal);
+        spatial::Face incident_face = get_incident_face(&incident_cob, incident_extents, incident_center, manifold.normal);
 
         uint32 clip_edges[4];
         m3 reference_face_cob;

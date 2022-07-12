@@ -37,7 +37,7 @@ behavior_functions::char_movement_test(entities::Handle entity_handle)
         logs::error("Could not get physics::Component for behavior::Component");
         return;
     }
-    Obb *obb = &physics_component->transformed_obb;
+    spatial::Obb *obb = &physics_component->transformed_obb;
 
     // Update position
     spatial_component->position.x =
@@ -96,7 +96,7 @@ behavior_functions::char_movement_test(entities::Handle entity_handle)
     // Check ray collision
 #if 0
     {
-        Ray ray = {
+        spatial::Ray ray = {
             .origin = obb->center + obb->y_axis * obb->extents[1],
             .direction = obb->y_axis,
         };

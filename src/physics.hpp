@@ -14,8 +14,8 @@ public:
 
     struct Component {
         entities::Handle entity_handle;
-        Obb obb;
-        Obb transformed_obb;
+        spatial::Obb obb;
+        spatial::Obb transformed_obb;
     };
 
     struct ComponentSet {
@@ -42,7 +42,7 @@ public:
     };
 
     static RayCollisionResult find_ray_collision(
-        Ray *ray,
+        spatial::Ray *ray,
         Component *physics_component_to_ignore_or_nullptr
     );
     static CollisionManifold find_collision(
@@ -52,8 +52,8 @@ public:
     static void update_components();
 
 private:
-    static Obb transform_obb(Obb obb, spatial::Component *spatial);
-    static RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
+    static spatial::Obb transform_obb(spatial::Obb obb, spatial::Component *spatial);
+    static RaycastResult intersect_obb_ray(spatial::Obb *obb, spatial::Ray *ray);
     static bool is_component_valid(Component *physics_component);
     static v3 get_edge_contact_point(
         v3 a_edge_point,
@@ -64,7 +64,7 @@ private:
         real32 b_axis_length,
         bool32 should_use_a_midpoint
     );
-    static Face get_incident_face(m3 *cob, v3 e, v3 c, v3 n);
+    static spatial::Face get_incident_face(m3 *cob, v3 e, v3 c, v3 n);
     static void get_reference_face_edges_and_basis(
         m3 *cob,
         v3 e,
@@ -78,7 +78,7 @@ private:
     static uint32 clip_faces(
         v3 reference_center, v3 reference_face_extents,
         uint32 clip_edges[4], m3 reference_face_cob,
-        Face incident_face,
+        spatial::Face incident_face,
         v3 clip_vertices[8], real32 clip_depths[8]
     );
     static void update_best_for_face_axis(
@@ -90,8 +90,8 @@ private:
         real32 sep, uint32 axis, v3 normal
     );
     static CollisionManifold intersect_obb_obb(
-        Obb *a,
-        Obb *b,
+        spatial::Obb *a,
+        spatial::Obb *b,
         spatial::Component *spatial_a,
         spatial::Component *spatial_b
     );

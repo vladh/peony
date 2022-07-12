@@ -1288,7 +1288,7 @@ renderer::draw_all(
     drawable::Mode render_mode,
     shaders::Asset *standard_depth_shader_asset
 ) {
-    ModelMatrixCache cache = { m4(1.0f), nullptr };
+    spatial::ModelMatrixCache cache = { m4(1.0f), nullptr };
 
     each (drawable_component, *engine::get_drawable_components()) {
         if (!drawable::is_component_valid(drawable_component)) {

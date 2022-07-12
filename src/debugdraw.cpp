@@ -22,7 +22,7 @@ debugdraw::draw_line(v3 start_pos, v3 end_pos, v4 color)
 
 
 void
-debugdraw::draw_ray(Ray *ray, real32 length, v4 color)
+debugdraw::draw_ray(spatial::Ray *ray, real32 length, v4 color)
 {
     v3 end_pos = ray->origin + ray->direction * length;
     v3 x_axis = util::get_orthogonal_vector(&ray->direction);
@@ -77,7 +77,7 @@ debugdraw::draw_box(
 
 
 void
-debugdraw::draw_obb(Obb *obb, v4 color)
+debugdraw::draw_obb(spatial::Obb *obb, v4 color)
 {
     v3 z_axis = cross(obb->x_axis, obb->y_axis);
     v3 dir1 = obb->x_axis * obb->extents[0];
@@ -103,7 +103,7 @@ debugdraw::draw_obb(Obb *obb, v4 color)
 void
 debugdraw::draw_point(v3 position, real32 size, v4 color)
 {
-    Obb obb = {
+    spatial::Obb obb = {
         .center=position,
         .x_axis=v3(1.0f, 0.0f, 0.0f),
         .y_axis=v3(0.0f, 1.0f, 0.0f),
