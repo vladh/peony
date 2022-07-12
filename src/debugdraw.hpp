@@ -26,7 +26,7 @@ public:
     };
 
     static void draw_line(v3 start_pos, v3 end_pos, v4 color);
-    static void draw_ray(Ray *ray, real32 length, v4 color);
+    static void draw_ray(spatial::Ray *ray, real32 length, v4 color);
     static void draw_quad(
         v3 p1, // clockwise: top left
         v3 p2, // top right
@@ -45,7 +45,7 @@ public:
         v3 p8, // top left
         v4 color
     );
-    static void draw_obb(Obb *obb, v4 color);
+    static void draw_obb(spatial::Obb *obb, v4 color);
     static void draw_point(v3 position, real32 size, v4 color);
     static void clear();
     static void render();

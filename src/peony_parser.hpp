@@ -4,62 +4,74 @@
 
 #include "types.hpp"
 
-namespace peony_parser {
-  constexpr uint32 MAX_N_FILE_ENTRIES = 128;
-  constexpr uint32 MAX_N_ENTRY_PROPS = 32;
-  constexpr uint32 MAX_N_ARRAY_VALUES = 8;
-  constexpr uint32 MAX_TOKEN_LENGTH = 128;
+class peony_parser {
+public:
+    static constexpr uint32 MAX_N_FILE_ENTRIES = 128;
+    static constexpr uint32 MAX_N_ENTRY_PROPS = 32;
+    static constexpr uint32 MAX_N_ARRAY_VALUES = 8;
+    static constexpr uint32 MAX_TOKEN_LENGTH = 128;
 
-  constexpr const char TOKEN_SPACE = ' ';
-  constexpr const char TOKEN_NEWLINE = '\n';
-  constexpr const char TOKEN_EQUALS = '=';
-  constexpr const char TOKEN_HEADER_START = '>';
-  constexpr const char TOKEN_ARRAY_START = '[';
-  constexpr const char TOKEN_ARRAY_END = ']';
-  constexpr const char TOKEN_OBJECT_START = '{';
-  constexpr const char TOKEN_OBJECT_END = '}';
-  constexpr const char TOKEN_TUPLE_START = '(';
-  constexpr const char TOKEN_TUPLE_END = ')';
-  constexpr const char TOKEN_ELEMENT_SEPARATOR = ',';
-  constexpr const char TOKEN_COMMENT_START = ';';
+    static constexpr const char TOKEN_SPACE = ' ';
+    static constexpr const char TOKEN_NEWLINE = '\n';
+    static constexpr const char TOKEN_EQUALS = '=';
+    static constexpr const char TOKEN_HEADER_START = '>';
+    static constexpr const char TOKEN_ARRAY_START = '[';
+    static constexpr const char TOKEN_ARRAY_END = ']';
+    static constexpr const char TOKEN_OBJECT_START = '{';
+    static constexpr const char TOKEN_OBJECT_END = '}';
+    static constexpr const char TOKEN_TUPLE_START = '(';
+    static constexpr const char TOKEN_TUPLE_END = ')';
+    static constexpr const char TOKEN_ELEMENT_SEPARATOR = ',';
+    static constexpr const char TOKEN_COMMENT_START = ';';
 
-  enum class PeonyFilePropValueType {
-    unknown, string, boolean, number, vec2, vec3, vec4
-  };
-
-  struct PeonyFilePropValue {
-    PeonyFilePropValueType type;
-    union {
-      char string_value[MAX_TOKEN_LENGTH];
-      bool32 boolean_value;
-      real32 number_value;
-      v2 vec2_value;
-      v3 vec3_value;
-      v4 vec4_value;
+    enum class PropValueType {
+        unknown, string, boolean, number, vec2, vec3, vec4
     };
-  };
 
-  struct PeonyFileProp {
-    char name[MAX_TOKEN_LENGTH];
-    PeonyFilePropValue values[MAX_N_ARRAY_VALUES];
-    uint32 n_values;
-  };
+    struct PropValue {
+        PropValueType type;
+        union {
+            char string_value[MAX_TOKEN_LENGTH];
+            bool32 boolean_value;
+            real32 number_value;
+            v2 vec2_value;
+            v3 vec3_value;
+            v4 vec4_value;
+        };
+    };
 
-  struct PeonyFileEntry {
-    char name[MAX_TOKEN_LENGTH];
-    PeonyFileProp props[MAX_N_ENTRY_PROPS];
-    uint32 n_props;
-  };
+    struct Prop {
+        char name[MAX_TOKEN_LENGTH];
+        PropValue values[MAX_N_ARRAY_VALUES];
+        uint32 n_values;
+    };
 
-  struct PeonyFile {
-    PeonyFileEntry entries[MAX_N_FILE_ENTRIES];
-    uint32 n_entries;
-  };
+    struct Entry {
+        char name[MAX_TOKEN_LENGTH];
+        Prop props[MAX_N_ENTRY_PROPS];
+        uint32 n_props;
+    };
 
-  bool32 parse_file(PeonyFile *pf, char const *path);
-}
+    struct PeonyFile {
+        Entry entries[MAX_N_FILE_ENTRIES];
+        uint32 n_entries;
+    };
 
-using peony_parser::PeonyFileEntry,
-  peony_parser::PeonyFileProp,
-  peony_parser::PeonyFilePropValue,
-  peony_parser::PeonyFile;
+    static bool32 parse_file(PeonyFile *pf, char const *path);
+
+private:
+    static void print_value(PropValue *value);
+    static bool32 is_char_whitespace(const char target);
+    static bool32 is_token_whitespace(const char *token);
+    static bool32 is_char_allowed_in_name(const char target);
+    static bool32 is_token_name(const char *token);
+    static bool32 is_char_token_boundary(char target);
+    static bool32 get_token(char *token, FILE *f);
+    static bool32 get_non_trivial_token(char *token, FILE *f);
+    static void parse_vec2(char *token, FILE *f, v2 *parsed_vector);
+    static void parse_vec3(char *token, FILE *f, v3 *parsed_vector);
+    static void parse_vec4(char *token, FILE *f, v4 *parsed_vector);
+    static void get_value_from_token(char *token, FILE *f, PropValue *prop_value);
+    static void parse_header(char *token, FILE *f);
+    static void parse_property(Prop *prop, char *token, FILE *f);
+};

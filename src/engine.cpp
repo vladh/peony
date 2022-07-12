@@ -352,7 +352,8 @@ engine::load_scene(const char *scene_name)
     pstr_vcat(scene_path, MAX_PATH, SCENE_DIR, scene_name, SCENE_EXTENSION, NULL);
     gui::log("Loading scene: %s", scene_path);
 
-    PeonyFile *scene_file = MEMORY_PUSH(&temp_memory_pool, PeonyFile, "scene_file");
+    peony_parser::PeonyFile *scene_file = MEMORY_PUSH(&temp_memory_pool,
+        peony_parser::PeonyFile, "scene_file");
     if (!peony_parser::parse_file(scene_file, scene_path)) {
         gui::log("Could not load scene: %s", scene_path);
         return false;
@@ -369,9 +370,10 @@ engine::load_scene(const char *scene_name)
         scene_file, &used_materials, "materials");
 
     // Create Materials
-    PeonyFile *material_file = MEMORY_PUSH(&temp_memory_pool, PeonyFile, "material_file");
+    peony_parser::PeonyFile *material_file = MEMORY_PUSH(&temp_memory_pool,
+        peony_parser::PeonyFile, "material_file");
     each (used_material, used_materials) {
-        memset(material_file, 0, sizeof(PeonyFile));
+        memset(material_file, 0, sizeof(peony_parser::PeonyFile));
         char material_file_path[MAX_PATH] = {};
         pstr_vcat(material_file_path, MAX_PATH,
             MATERIAL_FILE_DIRECTORY, *used_material, MATERIAL_FILE_EXTENSION, nullptr);
@@ -388,7 +390,7 @@ engine::load_scene(const char *scene_name)
     }
 
     range (0, scene_file->n_entries) {
-        PeonyFileEntry *entry = &scene_file->entries[idx];
+        peony_parser::Entry *entry = &scene_file->entries[idx];
 
         // Create entities::Entity
         entities::Entity *entity = entities::add_entity_to_set(entry->name);
@@ -397,7 +399,7 @@ engine::load_scene(const char *scene_name)
         char const *model_path = peony_parser_utils::get_string(
             peony_parser_utils::find_prop(entry, "model_path")
         );
-        // NOTE: We only want to make a models::ModelLoader from this PeonyFileEntry if we haven't
+        // NOTE: We only want to make a models::ModelLoader from this peony_parser::Entry if we haven't
         // already encountered this model in a previous entry. If two entities
         // have the same `model_path`, we just make one model and use it in both.
         models::ModelLoader *found_model_loader = engine::state->model_loaders.find(
