@@ -243,7 +243,6 @@ namespace engine {
     GLFWwindow *window,
     EngineState *engine_state,
     InputState *input_state,
-    CamerasState *cameras_state,
     LightsState *lights_state
   ) {
     if (input::is_key_now_down(input_state, GLFW_KEY_GRAVE_ACCENT)) {
@@ -277,19 +276,19 @@ namespace engine {
 
     // Continuous
     if (input::is_key_down(input_state, GLFW_KEY_W)) {
-      cameras::move_front_back(cameras_state->camera_active, 1, *engine::g_dt);
+      cameras::move_front_back(cameras::get_main(), 1, *engine::g_dt);
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_S)) {
-      cameras::move_front_back(cameras_state->camera_active, -1, *engine::g_dt);
+      cameras::move_front_back(cameras::get_main(), -1, *engine::g_dt);
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_A)) {
-      cameras::move_left_right(cameras_state->camera_active, -1, *engine::g_dt);
+      cameras::move_left_right(cameras::get_main(), -1, *engine::g_dt);
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_D)) {
-      cameras::move_left_right(cameras_state->camera_active, 1, *engine::g_dt);
+      cameras::move_left_right(cameras::get_main(), 1, *engine::g_dt);
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_Z)) {
@@ -301,11 +300,11 @@ namespace engine {
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_SPACE)) {
-      cameras::move_up_down(cameras_state->camera_active, 1, *engine::g_dt);
+      cameras::move_up_down(cameras::get_main(), 1, *engine::g_dt);
     }
 
     if (input::is_key_down(input_state, GLFW_KEY_LEFT_CONTROL)) {
-      cameras::move_up_down(cameras_state->camera_active, -1, *engine::g_dt);
+      cameras::move_up_down(cameras::get_main(), -1, *engine::g_dt);
     }
 
     // Transient
@@ -438,7 +437,6 @@ namespace engine {
 
   pny_internal void update(
     EngineState *engine_state,
-    CamerasState *cameras_state,
     TasksState *tasks_state,
     AnimState *anim_state,
     LightsState *lights_state,
@@ -451,7 +449,7 @@ namespace engine {
     }
 
     cameras::update_matrices(
-      cameras_state->camera_active,
+      cameras::get_main(),
       window_size->width,
       window_size->height
     );
@@ -466,7 +464,7 @@ namespace engine {
       lights_state,
       &engine_state->light_component_set,
       &engine_state->spatial_component_set,
-      cameras_state->camera_active->position
+      cameras::get_main()->position
     );
 
     behavior::update_behavior_components(
@@ -546,7 +544,6 @@ namespace engine {
 
 void engine::run_main_loop(
   EngineState *engine_state,
-  CamerasState *cameras_state,
   InputState *input_state,
   LightsState *lights_state,
   TasksState *tasks_state,
@@ -563,7 +560,6 @@ void engine::run_main_loop(
       window,
       engine_state,
       input_state,
-      cameras_state,
       lights_state
     );
 
@@ -580,7 +576,6 @@ void engine::run_main_loop(
 
       update(
         engine_state,
-        cameras_state,
         tasks_state,
         anim_state,
         lights_state,
@@ -589,7 +584,6 @@ void engine::run_main_loop(
       );
       renderer::render(
         engine_state,
-        cameras_state,
         input_state,
         window,
         window_size

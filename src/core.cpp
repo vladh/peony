@@ -51,7 +51,6 @@ core::run()
     // Run main loop
     engine::run_main_loop(
         &state->engine_state,
-        &state->cameras_state,
         &state->input_state,
         &state->lights_state,
         &state->tasks_state,
@@ -73,10 +72,11 @@ core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
     logs::info("Window is now: %d x %d", state->window_size.width, state->window_size.height);
     state->window_size.width = width;
     state->window_size.height = height;
+    cameras::Camera *camera = cameras::get_main();
     cameras::update_matrices(
-        state->cameras_state.camera_active, state->window_size.width, state->window_size.height);
+        camera, state->window_size.width, state->window_size.height);
     cameras::update_ui_matrices(
-        state->cameras_state.camera_active, state->window_size.width, state->window_size.height);
+        camera, state->window_size.width, state->window_size.height);
     gui::update_screen_dimensions(state->window_size.width, state->window_size.height);
 
     auto *builtin_textures = renderer::get_builtin_textures();
@@ -108,7 +108,8 @@ core::mouse_callback(GLFWwindow *window, real64 x, real64 y)
     if (state->input_state.is_cursor_enabled) {
         gui::update_mouse();
     } else {
-        cameras::update_mouse(state->cameras_state.camera_active, state->input_state.mouse_3d_offset);
+        cameras::Camera *camera = cameras::get_main();
+        cameras::update_mouse(camera, state->input_state.mouse_3d_offset);
     }
 }
 

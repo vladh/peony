@@ -128,7 +128,6 @@ public:
     static void update_drawing_options(InputState *input_state, GLFWwindow *window);
     static void render(
         EngineState *engine_state,
-        CamerasState *cameras_state,
         InputState *input_state,
         GLFWwindow *window,
         WindowSize *window_size
@@ -203,7 +202,6 @@ private:
     );
     static void init_gui(MemoryPool *memory_pool);
     static void copy_scene_data_to_ubo(
-        CamerasState *cameras_state,
         EngineState *engine_state,
         WindowSize *window_size,
         uint32 current_shadow_light_idx,

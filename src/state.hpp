@@ -23,7 +23,7 @@ struct State {
   renderer::WindowSize window_size;
   EngineState engine_state;
   renderer::State renderer_state;
-  CamerasState cameras_state;
+  cameras::State cameras_state;
   InputState input_state;
   gui::State gui_state;
   LightsState lights_state;
