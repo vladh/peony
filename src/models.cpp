@@ -15,8 +15,7 @@
 bool32
 models::prepare_model_loader_and_check_if_done(
     ModelLoader *model_loader,
-    Queue<Task> *task_queue,
-    BoneMatrixPool *bone_matrix_pool
+    Queue<Task> *task_queue
 ) {
     if (model_loader->state == ModelLoaderState::initialized) {
         if (pstr_starts_with(model_loader->model_path, "builtin:")) {
@@ -26,7 +25,6 @@ models::prepare_model_loader_and_check_if_done(
         task_queue->push({
             .fn = (TaskFn)load_model_from_file,
             .argument_1 = (void*)model_loader,
-            .argument_2 = (void*)bone_matrix_pool,
         });
         model_loader->state = ModelLoaderState::mesh_data_being_loaded;
     }
@@ -84,7 +82,7 @@ models::prepare_entity_loader_and_check_if_done(
     SpatialComponentSet *spatial_component_set,
     lights::ComponentSet *light_component_set,
     behavior::ComponentSet *behavior_component_set,
-    AnimationComponentSet *animation_component_set,
+    anim::ComponentSet *animation_component_set,
     physics::ComponentSet *physics_component_set
 ) {
     if (entity_loader->state == EntityLoaderState::initialized) {
@@ -106,7 +104,7 @@ models::prepare_entity_loader_and_check_if_done(
         *behavior_component = entity_loader->behavior_component;
         behavior_component->entity_handle = entity_loader->entity_handle;
 
-        AnimationComponent *animation_component = animation_component_set->components[entity_loader->entity_handle];
+        anim::Component *animation_component = animation_component_set->components[entity_loader->entity_handle];
         *animation_component = model_loader->animation_component;
         animation_component->entity_handle = entity_loader->entity_handle;
 
@@ -265,7 +263,7 @@ models::find_root_bone(const aiScene *scene)
 
 void
 models::add_bone_tree_to_animation_component(
-    AnimationComponent *animation_component,
+    anim::Component *animation_component,
     aiNode *node,
     uint32 idx_parent
 ) {
@@ -285,7 +283,7 @@ models::add_bone_tree_to_animation_component(
 
 void
 models::load_bones(
-    AnimationComponent *animation_component,
+    anim::Component *animation_component,
     const aiScene *scene
 ) {
     aiNode *root_bone = find_root_bone(scene);
@@ -304,21 +302,20 @@ models::load_bones(
 
 void
 models::load_animations(
-    AnimationComponent *animation_component,
-    const aiScene *scene,
-    BoneMatrixPool *bone_matrix_pool
+    anim::Component *animation_component,
+    const aiScene *scene
 ) {
     m4 scene_root_transform = util::aimatrix4x4_to_glm(&scene->mRootNode->mTransformation);
     m4 inverse_scene_root_transform = inverse(scene_root_transform);
 
     animation_component->n_animations = scene->mNumAnimations;
     range_named (idx_animation, 0, scene->mNumAnimations) {
-        Animation *animation = &animation_component->animations[idx_animation];
+        anim::Animation *animation = &animation_component->animations[idx_animation];
         aiAnimation *ai_animation = scene->mAnimations[idx_animation];
 
         *animation = {
             .duration = ai_animation->mDuration * ai_animation->mTicksPerSecond,
-            .idx_bone_matrix_set = anim::push_to_bone_matrix_pool(bone_matrix_pool),
+            .idx_bone_matrix_set = anim::push_to_bone_matrix_pool(),
         };
         pstr_copy(animation->name, MAX_NODE_NAME_LENGTH, ai_animation->mName.C_Str());
 
@@ -326,7 +323,7 @@ models::load_animations(
         // NOTE: We do not finalise the bone matrices at this stage!
         // The matrices in local form are still needed for the children.
         range_named(idx_bone, 0, animation_component->n_bones) {
-            Bone *bone = &animation_component->bones[idx_bone];
+            anim::Bone *bone = &animation_component->bones[idx_bone];
 
             uint32 found_channel_idx = 0;
             bool32 did_find_channel = false;
@@ -347,18 +344,18 @@ models::load_animations(
 
             anim::make_bone_matrices_for_animation_bone(animation_component,
                 ai_animation->mChannels[found_channel_idx],
-                idx_animation, idx_bone, bone_matrix_pool);
+                idx_animation, idx_bone);
         }
 
         // Finalise bone matrices.
         // NOTE: Now that we've calculated all the bone matrices for this
         // animation, we can finalise them.
         range_named(idx_bone, 0, animation_component->n_bones) {
-            Bone *bone = &animation_component->bones[idx_bone];
+            anim::Bone *bone = &animation_component->bones[idx_bone];
 
             range_named (idx_anim_key, 0, bone->n_anim_keys) {
                 // #slow: We could avoid this multiplication here.
-                m4 *bone_matrix = anim::get_bone_matrix(bone_matrix_pool, animation->idx_bone_matrix_set,
+                m4 *bone_matrix = anim::get_bone_matrix(animation->idx_bone_matrix_set,
                     idx_bone, idx_anim_key);
 
                 *bone_matrix =
@@ -443,7 +440,7 @@ models::load_mesh(
 
     // Bones
     assert(ai_mesh->mNumBones < MAX_N_BONES);
-    AnimationComponent *animation_component = &model_loader->animation_component;
+    anim::Component *animation_component = &model_loader->animation_component;
     range_named (idx_bone, 0, ai_mesh->mNumBones) {
         aiBone *ai_bone = ai_mesh->mBones[idx_bone];
         uint32 idx_found_bone = 0;
@@ -513,7 +510,7 @@ models::load_node(
 
 
 void
-models::load_model_from_file(ModelLoader *model_loader, BoneMatrixPool *bone_matrix_pool)
+models::load_model_from_file(ModelLoader *model_loader)
 {
     // NOTE: This function stores its vertex data in the MemoryPool for each
     // mesh, and so is intended to be called from a separate thread.
@@ -541,10 +538,10 @@ models::load_model_from_file(ModelLoader *model_loader, BoneMatrixPool *bone_mat
         return;
     }
 
-    AnimationComponent *animation_component = &model_loader->animation_component;
+    anim::Component *animation_component = &model_loader->animation_component;
     load_bones(animation_component, scene);
     load_node(model_loader, scene->mRootNode, scene, m4(1.0f), 0ULL);
-    load_animations(animation_component, scene, bone_matrix_pool);
+    load_animations(animation_component, scene);
     aiReleaseImport(scene);
 
     model_loader->state = ModelLoaderState::mesh_data_loaded;

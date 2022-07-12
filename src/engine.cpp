@@ -350,8 +350,7 @@ namespace engine {
 
   pny_internal bool32 check_all_entities_loaded(
     EngineState *engine_state,
-    TasksState *tasks_state,
-    AnimState *anim_state
+    TasksState *tasks_state
   ) {
     bool are_all_done_loading = true;
 
@@ -373,8 +372,7 @@ namespace engine {
       new_n_valid_model_loaders++;
       bool is_done_loading = models::prepare_model_loader_and_check_if_done(
         model_loader,
-        &tasks_state->task_queue,
-        &anim_state->bone_matrix_pool
+        &tasks_state->task_queue
       );
       if (!is_done_loading) {
         are_all_done_loading = false;
@@ -436,7 +434,6 @@ namespace engine {
   pny_internal void update(
     EngineState *engine_state,
     TasksState *tasks_state,
-    AnimState *anim_state,
     renderer::WindowSize *window_size
   ) {
     if (engine_state->is_world_loaded && !engine_state->was_world_ever_loaded) {
@@ -452,8 +449,7 @@ namespace engine {
 
     engine_state->is_world_loaded = check_all_entities_loaded(
       engine_state,
-      tasks_state,
-      anim_state
+      tasks_state
     );
 
     lights::update_light_components(
@@ -466,8 +462,7 @@ namespace engine {
 
     anim::update_animation_components(
       &engine_state->animation_component_set,
-      &engine_state->spatial_component_set,
-      &anim_state->bone_matrix_pool
+      &engine_state->spatial_component_set
     );
 
     physics::update_components(
@@ -538,7 +533,6 @@ void engine::run_main_loop(
   EngineState *engine_state,
   InputState *input_state,
   TasksState *tasks_state,
-  AnimState *anim_state,
   GLFWwindow *window,
   renderer::WindowSize *window_size
 ) {
@@ -566,7 +560,6 @@ void engine::run_main_loop(
       update(
         engine_state,
         tasks_state,
-        anim_state,
         window_size
       );
       renderer::render(
@@ -635,7 +628,7 @@ void engine::init(EngineState *engine_state, MemoryPool *asset_memory_pool) {
     )
   };
   engine_state->animation_component_set = {
-    .components = Array<AnimationComponent>(
+    .components = Array<anim::Component>(
       asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1
     )
   };

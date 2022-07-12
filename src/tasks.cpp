@@ -11,7 +11,7 @@
 namespace tasks {
   pny_internal void run_task(Task *task) {
     auto t0 = debug_start_timer();
-    task->fn(task->argument_1, task->argument_2);
+    task->fn(task->argument_1);
     real64 duration = debug_end_timer(t0);
     logs::info("Task took %.0fms", duration);
   }

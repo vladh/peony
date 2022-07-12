@@ -9,73 +9,82 @@
 #include "entities.hpp"
 #include "spatial.hpp"
 
-namespace anim {
-  struct BoneMatrixPool {
-    Array<m4> bone_matrices;
-    Array<real64> times;
-    uint32 n_bone_matrix_sets;
-  };
+class anim {
+public:
+    struct BoneMatrixPool {
+        Array<m4> bone_matrices;
+        Array<real64> times;
+        uint32 n_bone_matrix_sets;
+    };
 
-  struct Bone {
-    char name[MAX_NODE_NAME_LENGTH];
-    uint32 idx_parent;
-    uint32 n_anim_keys;
-    uint32 last_anim_key;
-    m4 offset;
-  };
+    struct Bone {
+        char name[MAX_NODE_NAME_LENGTH];
+        uint32 idx_parent;
+        uint32 n_anim_keys;
+        uint32 last_anim_key;
+        m4 offset;
+    };
 
-  struct Animation {
-    char name[MAX_NODE_NAME_LENGTH];
-    real64 duration;
-    // NOTE: Index into the BoneMatrixPool
-    uint32 idx_bone_matrix_set;
-  };
+    struct Animation {
+        char name[MAX_NODE_NAME_LENGTH];
+        real64 duration;
+        // NOTE: Index into the BoneMatrixPool
+        uint32 idx_bone_matrix_set;
+    };
 
-  struct AnimationComponent {
-    EntityHandle entity_handle;
-    Bone bones[MAX_N_BONES];
-    m4 bone_matrices[MAX_N_BONES];
-    uint32 n_bones;
-    Animation animations[MAX_N_ANIMATIONS];
-    uint32 n_animations;
-  };
+    struct Component {
+        EntityHandle entity_handle;
+        Bone bones[MAX_N_BONES];
+        m4 bone_matrices[MAX_N_BONES];
+        uint32 n_bones;
+        Animation animations[MAX_N_ANIMATIONS];
+        uint32 n_animations;
+    };
 
-  struct AnimationComponentSet {
-    Array<AnimationComponent> components;
-  };
+    struct ComponentSet {
+        Array<Component> components;
+    };
 
-  struct AnimState {
-    BoneMatrixPool bone_matrix_pool;
-  };
+    struct State {
+        BoneMatrixPool bone_matrix_pool;
+    };
 
-  bool32 is_animation_component_valid(AnimationComponent *animation_component);
-  uint32 push_to_bone_matrix_pool(BoneMatrixPool *pool);
-  m4* get_bone_matrix(
-    BoneMatrixPool *pool,
-    uint32 idx,
-    uint32 idx_bone,
-    uint32 idx_anim_key
-  );
-  void update_animation_components(
-    AnimationComponentSet *animation_component_set,
-    SpatialComponentSet *spatial_component_set,
-    BoneMatrixPool *bone_matrix_pool
-  );
-  void make_bone_matrices_for_animation_bone(
-    AnimationComponent *animation_component,
-    aiNodeAnim *ai_channel,
-    uint32 idx_animation,
-    uint32 idx_bone,
-    BoneMatrixPool *bone_matrix_pool
-  );
-  AnimationComponent* find_animation_component(
-    SpatialComponent *spatial_component,
-    SpatialComponentSet *spatial_component_set,
-    AnimationComponentSet *animation_component_set
-  );
-  void init(AnimState *anim_state, MemoryPool *pool);
-}
+    static bool32 is_animation_component_valid(Component *animation_component);
+    static uint32 push_to_bone_matrix_pool();
+    static m4 * get_bone_matrix(
+        uint32 idx,
+        uint32 idx_bone,
+        uint32 idx_anim_key
+    );
+    static void update_animation_components(
+        ComponentSet *animation_component_set,
+        SpatialComponentSet *spatial_component_set
+    );
+    static void make_bone_matrices_for_animation_bone(
+        Component *animation_component,
+        aiNodeAnim *ai_channel,
+        uint32 idx_animation,
+        uint32 idx_bone
+    );
+    static Component * find_animation_component(
+        SpatialComponent *spatial_component,
+        SpatialComponentSet *spatial_component_set,
+        ComponentSet *animation_component_set
+    );
+    static void init(anim::State *anim_state, MemoryPool *pool);
 
-using anim::BoneMatrixPool, anim::Bone, anim::Animation,
-  anim::AnimationComponent, anim::AnimationComponentSet,
-  anim::AnimState;
+private:
+    static real64 * get_bone_matrix_time(
+        uint32 idx,
+        uint32 idx_bone,
+        uint32 idx_anim_key
+    );
+    static uint32 get_bone_matrix_anim_key_for_timepoint(
+        Component *animation_component,
+        real64 animation_timepoint,
+        uint32 idx_bone_matrix_set,
+        uint32 idx_bone
+    );
+
+    static anim::State *state;
+};
