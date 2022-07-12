@@ -10,7 +10,7 @@
 
 class debug_ui {
 public:
-    static void render_debug_ui(WindowSize *window_size);
+    static void render_debug_ui();
 
 private:
     static void get_entity_text_representation(char *text, entities::Entity *entity, u8 depth);

@@ -202,8 +202,8 @@ engine::run_main_loop(GLFWwindow *window, WindowSize *window_size)
                 update_dt_and_perf_counters(&timing);
             }
 
-            update(window_size);
-            renderer::render(window, window_size);
+            update();
+            renderer::render(window);
 
             if (engine::state->is_manual_frame_advance_enabled) {
                 engine::state->should_manually_advance_to_next_frame = false;
@@ -642,15 +642,14 @@ engine::check_all_entities_loaded()
 
 
 void
-engine::update(WindowSize *window_size)
+engine::update()
 {
     if (engine::state->is_world_loaded && !engine::state->was_world_ever_loaded) {
         load_scene(DEFAULT_SCENE);
         engine::state->was_world_ever_loaded = true;
     }
 
-    cameras::update_matrices(cameras::get_main(),
-        window_size->width, window_size->height);
+    cameras::update_matrices(cameras::get_main());
 
     engine::state->is_world_loaded = check_all_entities_loaded();
 
