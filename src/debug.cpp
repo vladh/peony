@@ -8,6 +8,6 @@ chrono::steady_clock::time_point debug_start_timer() {
 }
 
 
-real64 debug_end_timer(chrono::steady_clock::time_point t0) {
-    return ((chrono::duration<real64, std::milli>)(chrono::steady_clock::now() - t0)).count();
+f64 debug_end_timer(chrono::steady_clock::time_point t0) {
+    return ((chrono::duration<f64, std::milli>)(chrono::steady_clock::now() - t0)).count();
 }

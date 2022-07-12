@@ -15,8 +15,8 @@ public:
     static constexpr size_t BUILTIN_TEXTURE_PREFIX_LENGTH = 17;
 
     static char * get_string(peony_parser::Prop *prop);
-    static bool32 * get_boolean(peony_parser::Prop *prop);
-    static real32 * get_number(peony_parser::Prop *prop);
+    static bool * get_boolean(peony_parser::Prop *prop);
+    static f32 * get_number(peony_parser::Prop *prop);
     static v2 * get_vec2(peony_parser::Prop *prop);
     static v3 * get_vec3(peony_parser::Prop *prop);
     static v4 * get_vec4(peony_parser::Prop *prop);

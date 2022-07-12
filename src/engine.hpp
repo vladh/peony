@@ -17,7 +17,7 @@ namespace chrono = std::chrono;
 #include "cameras.hpp"
 
 
-static constexpr uint32 DT_HIST_LENGTH = 512;
+static constexpr u32 DT_HIST_LENGTH = 512;
 
 
 class engine {
@@ -29,33 +29,33 @@ public:
         chrono::steady_clock::time_point time_frame_should_end;
 
         chrono::steady_clock::time_point second_start;
-        uint32 n_frames_this_second;
-        uint32 n_frames_since_start;
+        u32 n_frames_this_second;
+        u32 n_frames_since_start;
     };
 
     struct PerfCounters {
-        real64 dt_average;
-        real64 dt_hist[DT_HIST_LENGTH];
-        uint32 dt_hist_idx;
-        uint32 last_fps;
+        f64 dt_average;
+        f64 dt_hist[DT_HIST_LENGTH];
+        u32 dt_hist_idx;
+        u32 last_fps;
     };
 
     struct State {
-        bool32 is_manual_frame_advance_enabled;
-        bool32 should_manually_advance_to_next_frame;
-        bool32 should_stop;
-        bool32 should_pause;
-        bool32 should_limit_fps;
+        bool is_manual_frame_advance_enabled;
+        bool should_manually_advance_to_next_frame;
+        bool should_stop;
+        bool should_pause;
+        bool should_limit_fps;
         char current_scene_name[MAX_COMMON_NAME_LENGTH];
         // NOTE: `t` and `dt` will not change when gameplay is paused.
-        real64 t; // us
-        real64 dt; // us
-        real64 timescale_diff;
+        f64 t; // us
+        f64 dt; // us
+        f64 timescale_diff;
         PerfCounters perf_counters;
-        uint32 n_valid_model_loaders;
-        uint32 n_valid_entity_loaders;
-        bool32 is_world_loaded;
-        bool32 was_world_ever_loaded;
+        u32 n_valid_model_loaders;
+        u32 n_valid_entity_loaders;
+        bool is_world_loaded;
+        bool was_world_ever_loaded;
         Array<models::ModelLoader> model_loaders;
         models::EntityLoaderSet entity_loader_set;
         entities::Set entity_set;
@@ -88,8 +88,8 @@ public:
     static behavior::Component * get_behavior_component(entities::Handle entity_handle);
     static anim::Component * get_animation_component(entities::Handle entity_handle);
     static physics::Component * get_physics_component(entities::Handle entity_handle);
-    static real64 get_t();
-    static real64 get_dt();
+    static f64 get_t();
+    static f64 get_dt();
     static void run_main_loop(GLFWwindow *window, WindowSize *window_size);
     static void init(engine::State *engine_state, memory::Pool *asset_memory_pool);
 
@@ -98,13 +98,13 @@ private:
     static void destroy_model_loaders();
     static void destroy_non_internal_entities();
     static void destroy_scene();
-    static bool32 load_scene(const char *scene_name);
+    static bool load_scene(const char *scene_name);
     static void handle_console_command();
-    static void update_light_position(real32 amount);
+    static void update_light_position(f32 amount);
     static void process_input(GLFWwindow *window);
-    static bool32 check_all_entities_loaded();
+    static bool check_all_entities_loaded();
     static void update(WindowSize *window_size);
-    static TimingInfo init_timing_info(uint32 target_fps);
-    static void update_timing_info(TimingInfo *timing, uint32 *last_fps);
+    static TimingInfo init_timing_info(u32 target_fps);
+    static void update_timing_info(TimingInfo *timing, u32 *last_fps);
     static void update_dt_and_perf_counters(TimingInfo *timing);
 };

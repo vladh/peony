@@ -22,12 +22,12 @@ debugdraw::draw_line(v3 start_pos, v3 end_pos, v4 color)
 
 
 void
-debugdraw::draw_ray(spatial::Ray *ray, real32 length, v4 color)
+debugdraw::draw_ray(spatial::Ray *ray, f32 length, v4 color)
 {
     v3 end_pos = ray->origin + ray->direction * length;
     v3 x_axis = util::get_orthogonal_vector(&ray->direction);
     v3 z_axis = cross(ray->direction, x_axis);
-    real32 chevron_size = 0.2f;
+    f32 chevron_size = 0.2f;
     v3 chevron_1_pos = end_pos + ((-ray->direction + x_axis) * chevron_size);
     v3 chevron_2_pos = end_pos + ((-ray->direction - x_axis) * chevron_size);
     v3 chevron_3_pos = end_pos + ((-ray->direction + z_axis) * chevron_size);
@@ -101,7 +101,7 @@ debugdraw::draw_obb(spatial::Obb *obb, v4 color)
 
 
 void
-debugdraw::draw_point(v3 position, real32 size, v4 color)
+debugdraw::draw_point(v3 position, f32 size, v4 color)
 {
     spatial::Obb obb = {
         .center=position,
@@ -158,7 +158,7 @@ debugdraw::init(debugdraw::State *debug_draw_state, memory::Pool *memory_pool)
         glBindBuffer(GL_ARRAY_BUFFER, debugdraw::state->vbo);
         glBufferData(GL_ARRAY_BUFFER, VERTEX_SIZE * MAX_N_VERTICES, NULL, GL_DYNAMIC_DRAW);
 
-        uint32 location;
+        u32 location;
 
         // position (vec3)
         location = 0;
@@ -170,7 +170,7 @@ debugdraw::init(debugdraw::State *debug_draw_state, memory::Pool *memory_pool)
         location = 1;
         glEnableVertexAttribArray(location);
         glVertexAttribPointer(location, 4, GL_FLOAT, GL_FALSE, VERTEX_SIZE,
-            (void*)(3 * sizeof(real32)));
+            (void*)(3 * sizeof(f32)));
     }
 
     memory::destroy_memory_pool(&temp_memory_pool);
@@ -178,7 +178,7 @@ debugdraw::init(debugdraw::State *debug_draw_state, memory::Pool *memory_pool)
 
 
 void
-debugdraw::push_vertices(DebugDrawVertex vertices[], uint32 n_vertices)
+debugdraw::push_vertices(DebugDrawVertex vertices[], u32 n_vertices)
 {
     if (debugdraw::state->n_vertices_pushed + n_vertices > MAX_N_VERTICES) {
         logs::error("Pushed too many DebugDraw vertices, did you forget to call debugdraw::clear()?");

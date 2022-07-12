@@ -9,22 +9,22 @@
 #include "intrinsics.hpp"
 
 
-real32
-fonts::frac_px_to_px(uint32 n)
+f32
+fonts::frac_px_to_px(u32 n)
 {
-    return (real32)(n >> 6);
+    return (f32)(n >> 6);
 }
 
 
-real32
-fonts::font_unit_to_px(uint32 n)
+f32
+fonts::font_unit_to_px(u32 n)
 {
     // NOTE: We should be dividing by units_per_em here...probably?
     // This is because we expect height etc. to be in "font units".
     // But treating these metrics as "fractional pixels" seems to work,
     // whereas division by units_per_em doesn't.
     // Check this in more detail.
-    return (real32)(n >> 6);
+    return (f32)(n >> 6);
 }
 
 
@@ -49,7 +49,7 @@ fonts::init_font_asset(
     FT_Library *ft_library,
     const char *name,
     const char *filename,
-    uint16 font_size
+    u16 font_size
 ) {
     font_asset->name = name;
     font_asset->font_size = font_size;
@@ -90,7 +90,7 @@ fonts::load_glyphs(
     FT_GlyphSlot glyph = face->glyph;
 
     // TODO: Can we avoid loading all characters twice here?
-    for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
+    for (u32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
         Character *character = font_asset->characters.push();
 
         if (FT_Load_Char(face, c, FT_LOAD_RENDER)) {
@@ -105,7 +105,7 @@ fonts::load_glyphs(
 
     mats::activate_font_texture(texture_atlas->texture_name);
 
-    for (uint32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
+    for (u32 c = 0; c < CHAR_MAX_CODEPOINT_TO_LOAD; c++) {
         if (
             // Unicode C0 controls
             (c <= 0x1F) ||

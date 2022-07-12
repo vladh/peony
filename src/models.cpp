@@ -12,7 +12,7 @@
 #include "intrinsics.hpp"
 
 
-bool32
+bool
 models::prepare_model_loader_and_check_if_done(ModelLoader *model_loader) {
     if (model_loader->state == ModelLoaderState::initialized) {
         if (pstr_starts_with(model_loader->model_path, "builtin:")) {
@@ -31,7 +31,7 @@ models::prepare_model_loader_and_check_if_done(ModelLoader *model_loader) {
     }
 
     if (model_loader->state == ModelLoaderState::mesh_data_loaded) {
-        for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+        for (u32 idx = 0; idx < model_loader->n_meshes; idx++) {
             geom::Mesh *mesh = &model_loader->meshes[idx];
             geom::setup_mesh_vertex_buffers(mesh, mesh->vertices, mesh->n_vertices, mesh->indices, mesh->n_indices);
             memory::destroy_memory_pool(&mesh->temp_memory_pool);
@@ -44,7 +44,7 @@ models::prepare_model_loader_and_check_if_done(ModelLoader *model_loader) {
         range_named (idx_material, 0, model_loader->n_material_names) {
             range_named (idx_mesh, 0, model_loader->n_meshes) {
                 geom::Mesh *mesh = &model_loader->meshes[idx_mesh];
-                uint8 mesh_number = pack::get(&mesh->indices_pack, 0);
+                u8 mesh_number = pack::get(&mesh->indices_pack, 0);
                 // For our model's mesh number `mesh_number`, we want to choose
                 // material `idx_mesh` such that `mesh_number == idx_mesh`, i.e.
                 // we choose the 4th material for mesh number 4.
@@ -70,7 +70,7 @@ models::prepare_model_loader_and_check_if_done(ModelLoader *model_loader) {
 }
 
 
-bool32
+bool
 models::prepare_entity_loader_and_check_if_done(
     EntityLoader *entity_loader,
     ModelLoader *model_loader
@@ -112,7 +112,7 @@ models::prepare_entity_loader_and_check_if_done(
                 .target_render_pass = entity_loader->render_pass,
             };
         } else if (model_loader->n_meshes > 1) {
-            for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
+            for (u32 idx = 0; idx < model_loader->n_meshes; idx++) {
                 geom::Mesh *mesh = &model_loader->meshes[idx];
 
                 entities::Entity *child_entity = entities::add_entity_to_set(entity_loader->name);
@@ -150,14 +150,14 @@ models::prepare_entity_loader_and_check_if_done(
 }
 
 
-bool32
+bool
 models::is_model_loader_valid(ModelLoader *model_loader)
 {
     return model_loader->state != ModelLoaderState::empty;
 }
 
 
-bool32
+bool
 models::is_entity_loader_valid(EntityLoader *entity_loader)
 {
     return entity_loader->state != EntityLoaderState::empty;
@@ -215,13 +215,13 @@ models::init_entity_loader(
 }
 
 
-bool32
+bool
 models::is_bone_only_node(aiNode *node)
 {
     if (node->mNumMeshes > 0) {
         return false;
     }
-    bool32 have_we_found_it = true;
+    bool have_we_found_it = true;
     range (0, node->mNumChildren) {
         if (!is_bone_only_node(node->mChildren[idx])) {
             have_we_found_it = false;
@@ -255,9 +255,9 @@ void
 models::add_bone_tree_to_animation_component(
     anim::Component *animation_component,
     aiNode *node,
-    uint32 idx_parent
+    u32 idx_parent
 ) {
-    uint32 idx_new_bone = animation_component->n_bones;
+    u32 idx_new_bone = animation_component->n_bones;
     animation_component->bones[idx_new_bone] = {
         .idx_parent = idx_parent,
         // NOTE: offset is added later, since we don't have the aiBone at this stage.
@@ -315,8 +315,8 @@ models::load_animations(
         range_named(idx_bone, 0, animation_component->n_bones) {
             anim::Bone *bone = &animation_component->bones[idx_bone];
 
-            uint32 found_channel_idx = 0;
-            bool32 did_find_channel = false;
+            u32 found_channel_idx = 0;
+            bool did_find_channel = false;
 
             range_named (idx_channel, 0, ai_animation->mNumChannels) {
                 aiNodeAnim *ai_channel = ai_animation->mChannels[idx_channel];
@@ -383,7 +383,7 @@ models::load_mesh(
     mesh->vertices = (geom::Vertex*)memory::push(&mesh->temp_memory_pool,
         mesh->n_vertices * sizeof(geom::Vertex), "mesh_vertices");
 
-    for (uint32 idx = 0; idx < ai_mesh->mNumVertices; idx++) {
+    for (u32 idx = 0; idx < ai_mesh->mNumVertices; idx++) {
         geom::Vertex *vertex = &mesh->vertices[idx];
         *vertex = {};
 
@@ -406,21 +406,21 @@ models::load_mesh(
     }
 
     // Indices
-    uint32 n_indices = 0;
-    for (uint32 idx_face = 0; idx_face < ai_mesh->mNumFaces; idx_face++) {
+    u32 n_indices = 0;
+    for (u32 idx_face = 0; idx_face < ai_mesh->mNumFaces; idx_face++) {
         aiFace face = ai_mesh->mFaces[idx_face];
         n_indices += face.mNumIndices;
     }
 
     mesh->n_indices = n_indices;
-    mesh->indices = (uint32*)memory::push(&mesh->temp_memory_pool,
-        mesh->n_indices * sizeof(uint32), "mesh_indices");
-    uint32 idx_index = 0;
+    mesh->indices = (u32*)memory::push(&mesh->temp_memory_pool,
+        mesh->n_indices * sizeof(u32), "mesh_indices");
+    u32 idx_index = 0;
 
-    for (uint32 idx_face = 0; idx_face < ai_mesh->mNumFaces; idx_face++) {
+    for (u32 idx_face = 0; idx_face < ai_mesh->mNumFaces; idx_face++) {
         aiFace face = ai_mesh->mFaces[idx_face];
         for (
-            uint32 idx_face_index = 0;
+            u32 idx_face_index = 0;
             idx_face_index < face.mNumIndices;
             idx_face_index++
         ) {
@@ -433,8 +433,8 @@ models::load_mesh(
     anim::Component *animation_component = &model_loader->animation_component;
     range_named (idx_bone, 0, ai_mesh->mNumBones) {
         aiBone *ai_bone = ai_mesh->mBones[idx_bone];
-        uint32 idx_found_bone = 0;
-        bool32 did_find_bone = false;
+        u32 idx_found_bone = 0;
+        bool did_find_bone = false;
 
         range_named (idx_animcomp_bone, 0, animation_component->n_bones) {
             if (pstr_eq(
@@ -456,8 +456,8 @@ models::load_mesh(
             util::aimatrix4x4_to_glm(&ai_bone->mOffsetMatrix);
 
         range_named (idx_weight, 0, ai_bone->mNumWeights) {
-            uint32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
-            real32 weight = ai_bone->mWeights[idx_weight].mWeight;
+            u32 vertex_idx = ai_bone->mWeights[idx_weight].mVertexId;
+            f32 weight = ai_bone->mWeights[idx_weight].mWeight;
             assert(vertex_idx < mesh->n_vertices);
             range_named (idx_vertex_weight, 0, MAX_N_BONES_PER_VERTEX) {
                 // Put it in the next free space, if there is any.
@@ -492,8 +492,8 @@ models::load_node(
         pack::Pack new_indices_pack = indices_pack;
         // NOTE: We can only store 4 bits per pack element. Our indices can be way
         // bigger than that, but that's fine. We don't need that much precision.
-        // Just smash the number down to a uint8.
-        pack::push(&new_indices_pack, (uint8)idx);
+        // Just smash the number down to a u8.
+        pack::push(&new_indices_pack, (u8)idx);
         load_node(model_loader, node->mChildren[idx], scene, transform, new_indices_pack);
     }
 }
@@ -546,9 +546,9 @@ models::load_model_from_data(ModelLoader *model_loader)
     memory::Pool temp_memory_pool = {};
 
     geom::Vertex *vertex_data = nullptr;
-    uint32 n_vertices = 0;
-    uint32 *index_data = nullptr;
-    uint32 n_indices = 0;
+    u32 n_vertices = 0;
+    u32 *index_data = nullptr;
+    u32 n_indices = 0;
     GLenum mode = 0;
 
     if (pstr_eq(model_loader->model_path, "builtin:axes")) {

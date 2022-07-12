@@ -125,7 +125,7 @@ physics::intersect_obb_ray(spatial::Obb *obb, spatial::Ray *ray)
     // Calculate slab intersection points for ray
     // `t is the distance along the ray (or “time” along the ray, as Szauer
     // calls it) that the intersection happens at.
-    real32 t[6] = {};
+    f32 t[6] = {};
     range_named (i, 0, 3) {
         if (f[i] == 0) {
             if (-e[i] - obb->extents[i] > 0 || -e[i] + obb->extents[i] < 0) {
@@ -141,10 +141,10 @@ physics::intersect_obb_ray(spatial::Obb *obb, spatial::Ray *ray)
 
     // After the above loop, we've hit all three slabs. We now need to find the
     // largest minimum `t^{min}` and smallest maximum `t^{max}`.
-    real32 tmin = max(
+    f32 tmin = max(
         max(min(t[0], t[1]), min(t[2], t[3])),
         min(t[4], t[5]));
-    real32 tmax = min(
+    f32 tmax = min(
         min(max(t[0], t[1]), max(t[2], t[3])),
         max(t[4], t[5]));
 
@@ -203,29 +203,29 @@ v3
 physics::get_edge_contact_point(
     v3 a_edge_point,
     v3 a_axis,
-    real32 a_axis_length,
+    f32 a_axis_length,
     v3 b_edge_point,
     v3 b_axis,
-    real32 b_axis_length,
-    bool32 should_use_a_midpoint
+    f32 b_axis_length,
+    bool should_use_a_midpoint
 ) {
-    real32 a_axis_sqlen = length2(a_axis);
-    real32 b_axis_sqlen = length2(b_axis);
-    real32 a_b_axes_dotprod = dot(b_axis, a_axis);
+    f32 a_axis_sqlen = length2(a_axis);
+    f32 b_axis_sqlen = length2(b_axis);
+    f32 a_b_axes_dotprod = dot(b_axis, a_axis);
 
     v3 a_ep_to_b_ep = a_edge_point - b_edge_point;
-    real32 a_ep_projection = dot(a_axis, a_ep_to_b_ep);
-    real32 b_ep_projection = dot(b_axis, a_ep_to_b_ep);
+    f32 a_ep_projection = dot(a_axis, a_ep_to_b_ep);
+    f32 b_ep_projection = dot(b_axis, a_ep_to_b_ep);
 
-    real32 denom = a_axis_sqlen * b_axis_sqlen - a_b_axes_dotprod * a_b_axes_dotprod;
+    f32 denom = a_axis_sqlen * b_axis_sqlen - a_b_axes_dotprod * a_b_axes_dotprod;
 
     // Zero denominator indicates parallel lines
     if (abs(denom) < 0.0001f) {
         return should_use_a_midpoint ? a_edge_point : b_edge_point;
     }
 
-    real32 mua = (a_b_axes_dotprod * b_ep_projection - b_axis_sqlen * a_ep_projection) / denom;
-    real32 mub = (a_axis_sqlen * b_ep_projection - a_b_axes_dotprod * a_ep_projection) / denom;
+    f32 mua = (a_b_axes_dotprod * b_ep_projection - b_axis_sqlen * a_ep_projection) / denom;
+    f32 mub = (a_axis_sqlen * b_ep_projection - a_b_axes_dotprod * a_ep_projection) / denom;
 
     // If either of the edges has the nearest point out of bounds, then the edges
     // aren't crossed, we have an edge-face contact. Our point is on the edge,
@@ -328,8 +328,8 @@ physics::get_reference_face_edges_and_basis(
     v3 e, // object extents
     v3 c, // object center
     v3 n, // collision normal
-    uint32 axis, // axis of separation
-    uint32 clip_edges[4], // the indices of the reference face edges
+    u32 axis, // axis of separation
+    u32 clip_edges[4], // the indices of the reference face edges
     m3 *reference_face_cob, // the change of basis of the reference face
     v3 *reference_face_e // the extents of the reference face
 ) {
@@ -403,12 +403,12 @@ physics::get_reference_face_edges_and_basis(
 }
 
 
-uint32
+u32
 physics::clip_faces(
     v3 reference_center, v3 reference_face_extents,
-    uint32 clip_edges[4], m3 reference_face_cob,
+    u32 clip_edges[4], m3 reference_face_cob,
     spatial::Face incident_face,
-    v3 clip_vertices[8], real32 clip_depths[8]
+    v3 clip_vertices[8], f32 clip_depths[8]
 ) {
     return 0;
 }
@@ -416,8 +416,8 @@ physics::clip_faces(
 
 void
 physics::update_best_for_face_axis(
-    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
-    real32 sep, uint32 axis, v3 normal
+    f32 *best_sep, u32 *best_axis, v3 *best_normal,
+    f32 sep, u32 axis, v3 normal
 ) {
     if (sep > *best_sep) {
         *best_sep = sep;
@@ -429,10 +429,10 @@ physics::update_best_for_face_axis(
 
 void
 physics::update_best_for_edge_axis(
-    real32 *best_sep, uint32 *best_axis, v3 *best_normal,
-    real32 sep, uint32 axis, v3 normal
+    f32 *best_sep, u32 *best_axis, v3 *best_normal,
+    f32 sep, u32 axis, v3 normal
 ) {
-    real32 normal_len = length(normal);
+    f32 normal_len = length(normal);
     sep /= normal_len;
     if (sep > *best_sep) {
         *best_sep = sep;
@@ -478,11 +478,11 @@ physics::intersect_obb_obb(
     spatial::Component *spatial_b
 ) {
     // The radius from a/b's center to its outer vertex
-    real32 a_radius, b_radius;
+    f32 a_radius, b_radius;
     // The distance between a and b
-    real32 a_to_b;
+    f32 a_to_b;
     // The separation between a and b
-    real32 sep;
+    f32 sep;
     // The rotation matrix expression b in a's coordinate frame
     m3 r;
     // abs(r) is used in a lot of calculations so we precompute it
@@ -529,7 +529,7 @@ physics::intersect_obb_obb(
     // their cross product will give us something we can't use. I'm not sure why
     // we're not skipping the specific axes specifically, and we're skipping
     // everything instead.
-    bool32 do_obbs_share_one_axis = false;
+    bool do_obbs_share_one_axis = false;
 
     // Compute common subexpressions. Add in an epsilon term to counteract
     // arithmetic errors when two edges are parallel and their cross product
@@ -543,14 +543,14 @@ physics::intersect_obb_obb(
         }
     }
 
-    real32 a_face_max_sep = -FLT_MAX;
-    uint32 a_face_best_axis = 0;
+    f32 a_face_max_sep = -FLT_MAX;
+    u32 a_face_best_axis = 0;
     v3 a_face_best_normal = v3(0.0f);
-    real32 b_face_max_sep = -FLT_MAX;
-    uint32 b_face_best_axis = 0;
+    f32 b_face_max_sep = -FLT_MAX;
+    u32 b_face_best_axis = 0;
     v3 b_face_best_normal = v3(0.0f);
-    real32 edge_max_sep = -FLT_MAX;
-    uint32 edge_best_axis = 0;
+    f32 edge_max_sep = -FLT_MAX;
+    u32 edge_best_axis = 0;
     v3 edge_best_normal = v3(0.0f);
 
     // Test a's face axes (a.x, a.y, a.z)
@@ -606,8 +606,8 @@ physics::intersect_obb_obb(
     }
 
     // Find the best option for the face cases
-    real32 face_max_sep;
-    uint32 face_best_axis;
+    f32 face_max_sep;
+    u32 face_best_axis;
     if (a_face_max_sep > b_face_max_sep) {
         face_max_sep = a_face_max_sep;
         face_best_axis = a_face_best_axis;
@@ -689,16 +689,16 @@ physics::intersect_obb_obb(
 
         spatial::Face incident_face = get_incident_face(&incident_cob, incident_extents, incident_center, manifold.normal);
 
-        uint32 clip_edges[4];
+        u32 clip_edges[4];
         m3 reference_face_cob;
         v3 reference_face_extents;
         get_reference_face_edges_and_basis(
             &reference_cob, reference_extents, reference_center, manifold.normal,
             manifold.axis, clip_edges, &reference_face_cob, &reference_face_extents);
 
-        uint32 n_clip_vertices;
+        u32 n_clip_vertices;
         v3 clip_vertices[8];
-        real32 clip_depths[8];
+        f32 clip_depths[8];
         n_clip_vertices = clip_faces(
             reference_center, reference_face_extents,
             clip_edges, reference_face_cob,
@@ -729,9 +729,9 @@ physics::intersect_obb_obb(
             v4(0.0f, 1.0f, 0.0f, 1.0f));
     } else {
         // Edge-edge collision
-        uint32 edge_axis = manifold.axis - 6;
-        uint32 a_axis = edge_axis / 3;
-        uint32 b_axis = edge_axis % 3;
+        u32 edge_axis = manifold.axis - 6;
+        u32 a_axis = edge_axis / 3;
+        u32 b_axis = edge_axis % 3;
 
         v3 a_edge_point = a->extents;
         v3 b_edge_point = b->extents;

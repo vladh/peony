@@ -16,8 +16,8 @@ behavior_functions::test(entities::Handle entity_handle)
     }
 
     spatial_component->rotation =
-        glm::angleAxis((real32)sin(1.0f - (engine::get_t())), v3(0.0f, 1.0f, 0.0f)) *
-        glm::angleAxis((real32)cos(1.0f - (engine::get_t())), v3(1.0f, 0.0f, 0.0f));
+        glm::angleAxis((f32)sin(1.0f - (engine::get_t())), v3(0.0f, 1.0f, 0.0f)) *
+        glm::angleAxis((f32)cos(1.0f - (engine::get_t())), v3(1.0f, 0.0f, 0.0f));
 }
 
 
@@ -41,28 +41,28 @@ behavior_functions::char_movement_test(entities::Handle entity_handle)
 
     // Update position
     spatial_component->position.x =
-        (real32)sin((engine::get_t()) * 1.0f) * 4.0f +
-        (real32)sin((engine::get_t()) * 2.0f) * 0.1f +
-        (real32)cos((engine::get_t()) * 3.0f) * 0.3f;
+        (f32)sin((engine::get_t()) * 1.0f) * 4.0f +
+        (f32)sin((engine::get_t()) * 2.0f) * 0.1f +
+        (f32)cos((engine::get_t()) * 3.0f) * 0.3f;
     spatial_component->position.z =
-        (real32)cos((engine::get_t()) * 1.0f) * 4.0f +
-        (real32)cos((engine::get_t()) * 2.0f) * 0.3f +
-        (real32)sin((engine::get_t()) * 3.0f) * 0.1f;
+        (f32)cos((engine::get_t()) * 1.0f) * 4.0f +
+        (f32)cos((engine::get_t()) * 2.0f) * 0.3f +
+        (f32)sin((engine::get_t()) * 3.0f) * 0.1f;
     spatial_component->rotation =
         glm::angleAxis(
-            (real32)sin((engine::get_t()) * 3.0f) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)
+            (f32)sin((engine::get_t()) * 3.0f) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)
         ) *
         glm::angleAxis(
-            (real32)cos((engine::get_t()) * 2.0f) / 3.0f, v3(0.0f, 1.0f, 0.0f)
+            (f32)cos((engine::get_t()) * 2.0f) / 3.0f, v3(0.0f, 1.0f, 0.0f)
         ) *
-        glm::angleAxis((real32)cos((engine::get_t()) * 2.0f), v3(1.0f, 0.0f, 0.0f)) *
-        glm::angleAxis((real32)sin((engine::get_t()) * 1.5f) / 2.0f, v3(1.0f, 0.0f, 0.0f)) *
-        glm::angleAxis((real32)sin((engine::get_t()) * 2.5f) / 1.5f, v3(0.5f, 0.5f, 0.2f));
+        glm::angleAxis((f32)cos((engine::get_t()) * 2.0f), v3(1.0f, 0.0f, 0.0f)) *
+        glm::angleAxis((f32)sin((engine::get_t()) * 1.5f) / 2.0f, v3(1.0f, 0.0f, 0.0f)) *
+        glm::angleAxis((f32)sin((engine::get_t()) * 2.5f) / 1.5f, v3(0.5f, 0.5f, 0.2f));
 #if 0
     spatial_component->position.x = -5.0f;
     spatial_component->position.z = -5.0f;
     spatial_component->rotation =
-        glm::angleAxis((real32)sin((engine::get_t())) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
+        glm::angleAxis((f32)sin((engine::get_t())) + radians(70.0f), v3(0.0f, 1.0f, 0.0f)) *
         glm::angleAxis(radians(90.0f), v3(1.0f, 0.0f, 0.0f));
 #endif
 

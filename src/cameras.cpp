@@ -16,7 +16,7 @@ cameras::get_main()
 
 void
 cameras::update_matrices(
-    Camera *camera, uint32 window_width, uint32 window_height
+    Camera *camera, u32 window_width, u32 window_height
 ) {
     if (window_width == 0 || window_height == 0) {
         return;
@@ -32,34 +32,34 @@ cameras::update_matrices(
 
 void
 cameras::update_ui_matrices(
-    Camera *camera, uint32 window_width, uint32 window_height
+    Camera *camera, u32 window_width, u32 window_height
 ) {
-    camera->ui_projection = glm::ortho(0.0f, (real32)window_width,
-        0.0f, (real32)window_height);
+    camera->ui_projection = glm::ortho(0.0f, (f32)window_width,
+        0.0f, (f32)window_height);
 }
 
 
 void
-cameras::move_front_back(Camera *camera, real32 sign, real64 dt)
+cameras::move_front_back(Camera *camera, f32 sign, f64 dt)
 {
-    camera->position += (sign * camera->speed * (real32)dt) * camera->front;
+    camera->position += (sign * camera->speed * (f32)dt) * camera->front;
 }
 
 
 void
-cameras::move_left_right(Camera *camera, real32 sign, real64 dt)
+cameras::move_left_right(Camera *camera, f32 sign, f64 dt)
 {
     v3 direction = normalize(cross(
             camera->front, camera->up
     ));
-    camera->position += (sign * camera->speed * (real32)dt) * direction;
+    camera->position += (sign * camera->speed * (f32)dt) * direction;
 }
 
 
 void
-cameras::move_up_down(Camera *camera, real32 sign, real64 dt)
+cameras::move_up_down(Camera *camera, f32 sign, f64 dt)
 {
-    camera->position += (sign * camera->speed * (real32)dt) * camera->up;
+    camera->position += (sign * camera->speed * (f32)dt) * camera->up;
 }
 
 
@@ -80,8 +80,8 @@ cameras::update_mouse(Camera *camera, v2 mouse_offset)
 void
 cameras::init(
     cameras::State *cameras_state,
-    uint32 window_width,
-    uint32 window_height
+    u32 window_width,
+    u32 window_height
 ) {
     cameras::state = cameras_state;
     cameras::state->camera_main.type = CameraType::perspective;
@@ -104,7 +104,7 @@ cameras::init(
 
 void
 cameras::update_matrices_ortho(
-    Camera *camera, uint32 window_width, uint32 window_height
+    Camera *camera, u32 window_width, u32 window_height
 ) {
     if (window_width == 0 || window_height == 0) {
         return;
@@ -119,7 +119,7 @@ cameras::update_matrices_ortho(
 
 void
 cameras::update_matrices_perspective(
-    Camera *camera, uint32 window_width, uint32 window_height
+    Camera *camera, u32 window_width, u32 window_height
 ) {
     if (window_width == 0 || window_height == 0) {
         return;
@@ -134,9 +134,9 @@ cameras::update_matrices_perspective(
         camera->position + camera->front, camera->up);
 
     camera->projection = glm::perspective(radians(camera->horizontal_fov),
-        (real32)window_width / (real32)window_height,
+        (f32)window_width / (f32)window_height,
         camera->near_clip_dist, camera->far_clip_dist);
     // https://en.wikipedia.org/wiki/Field_of_view_in_video_games#Field_of_view_calculations
-    camera->vertical_fov = (real32)degrees(2 *
+    camera->vertical_fov = (f32)degrees(2 *
         atan(tan(radians(camera->horizontal_fov) / 2) * window_height / window_width));
 }

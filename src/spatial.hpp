@@ -44,8 +44,8 @@ public:
 
 
     static void print_spatial_component(Component *spatial_component);
-    static bool32 does_spatial_component_have_dimensions(Component *spatial_component);
-    static bool32 is_spatial_component_valid(Component *spatial_component);
+    static bool does_spatial_component_have_dimensions(Component *spatial_component);
+    static bool is_spatial_component_valid(Component *spatial_component);
     static m4 make_model_matrix(
         Component *spatial_component,
         ModelMatrixCache *cache

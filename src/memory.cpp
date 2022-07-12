@@ -22,10 +22,10 @@ memory::push(
     if (pool->memory == nullptr) {
 #if USE_MEMORY_DEBUG_LOGS
         logs::info("Allocating memory pool: %.2fMB (%dB)",
-            util::b_to_mb((real64)pool->size), pool->size);
+            util::b_to_mb((f64)pool->size), pool->size);
 #endif
 
-        pool->memory = (uint8*)calloc(1, pool->size);
+        pool->memory = (u8*)calloc(1, pool->size);
         if (!pool->memory) {
             logs::fatal("Could not allocate memory. Buy more RAM!");
             assert(false); // A little hint for the compiler
@@ -47,9 +47,9 @@ memory::push(
 
 #if USE_MEMORY_DEBUG_LOGS
     logs::info("Pusing to memory pool: %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
-        util::b_to_mb((real64)item_size),
+        util::b_to_mb((f64)item_size),
         item_size, item_debug_name,
-        util::b_to_mb((real64)pool->used),
+        util::b_to_mb((f64)pool->used),
         pool->used);
 #endif
 
@@ -61,18 +61,18 @@ void
 memory::print_memory_pool(Pool *pool)
 {
     logs::info("memory::Pool:");
-    logs::info("  Used: %.2fMB (%dB)", util::b_to_mb((uint32)pool->used), pool->used);
-    logs::info("  Size: %.2fMB (%dB)", util::b_to_mb((uint32)pool->size), pool->size);
+    logs::info("  Used: %.2fMB (%dB)", util::b_to_mb((u32)pool->used), pool->used);
+    logs::info("  Size: %.2fMB (%dB)", util::b_to_mb((u32)pool->size), pool->size);
     logs::info("  Items:");
     if (pool->n_items == 0) {
         logs::info("    (none)");
     }
     #if USE_MEMORYPOOL_ITEM_DEBUG
-    for (uint32 idx = 0; idx < pool->n_items; idx++) {
+    for (u32 idx = 0; idx < pool->n_items; idx++) {
         logs::info("    %02d. %s, %.2fMB (%dB)",
             idx,
             pool->item_debug_names[idx],
-            util::b_to_mb((real64)pool->item_debug_sizes[idx]),
+            util::b_to_mb((f64)pool->item_debug_sizes[idx]),
             pool->item_debug_sizes[idx]);
     }
     #endif

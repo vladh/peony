@@ -49,9 +49,9 @@ shaders::is_shader_asset_valid(shaders::Asset *shader_asset)
 
 void
 shaders::set_int(
-    shaders::Asset *shader_asset, const char *uniform_name, uint32 value
+    shaders::Asset *shader_asset, const char *uniform_name, u32 value
 ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniform1i(location, value);
     }
@@ -62,7 +62,7 @@ void
 shaders::set_bool(
     shaders::Asset *shader_asset, const char *uniform_name, bool value
 ) {
-    set_int(shader_asset, uniform_name, (uint32)value);
+    set_int(shader_asset, uniform_name, (u32)value);
 }
 
 
@@ -70,7 +70,7 @@ void
 shaders::set_float(
     shaders::Asset *shader_asset, const char *uniform_name, float value
 ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniform1f(location, value);
     }
@@ -80,7 +80,7 @@ shaders::set_float(
 void
 shaders::set_vec2(shaders::Asset *shader_asset, const char *uniform_name, v2 *value)
 {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniform2fv(location, 1, glm::value_ptr(*value));
     }
@@ -90,7 +90,7 @@ shaders::set_vec2(shaders::Asset *shader_asset, const char *uniform_name, v2 *va
 void
 shaders::set_vec3(shaders::Asset *shader_asset, const char *uniform_name, v3 *value)
 {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniform3fv(location, 1, glm::value_ptr(*value));
     }
@@ -100,7 +100,7 @@ shaders::set_vec3(shaders::Asset *shader_asset, const char *uniform_name, v3 *va
 void
 shaders::set_vec4(shaders::Asset *shader_asset, const char *uniform_name, v4 *value)
 {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniform4fv(location, 1, glm::value_ptr(*value));
     }
@@ -110,7 +110,7 @@ shaders::set_vec4(shaders::Asset *shader_asset, const char *uniform_name, v4 *va
 void
 shaders::set_mat2(shaders::Asset *shader_asset, const char *uniform_name, m2 *mat)
 {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
     }
@@ -120,7 +120,7 @@ shaders::set_mat2(shaders::Asset *shader_asset, const char *uniform_name, m2 *ma
 void
 shaders::set_mat3(shaders::Asset *shader_asset, const char *uniform_name, m3 *mat)
 {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
     }
@@ -129,9 +129,9 @@ shaders::set_mat3(shaders::Asset *shader_asset, const char *uniform_name, m3 *ma
 
 void
 shaders::set_mat4_multiple(
-    shaders::Asset *shader_asset, uint32 n, const char *uniform_name, m4 *mat
+    shaders::Asset *shader_asset, u32 n, const char *uniform_name, m4 *mat
 ) {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniformMatrix4fv(location, n, GL_FALSE, glm::value_ptr(*mat));
     }
@@ -141,7 +141,7 @@ shaders::set_mat4_multiple(
 void
 shaders::set_mat4(shaders::Asset *shader_asset, const char *uniform_name, m4 *mat)
 {
-    int32 location = get_uniform_location(shader_asset, uniform_name);
+    i32 location = get_uniform_location(shader_asset, uniform_name);
     if (location >= 0) {
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(*mat));
     }
@@ -155,13 +155,13 @@ shaders::reset_texture_units(shaders::Asset *shader_asset)
 }
 
 
-uint32
+u32
 shaders::add_texture_unit(
     shaders::Asset *shader_asset,
-    uint32 new_texture_unit,
+    u32 new_texture_unit,
     GLenum new_texture_unit_type
 ) {
-    uint32 idx = ++shader_asset->n_texture_units;
+    u32 idx = ++shader_asset->n_texture_units;
     shader_asset->texture_units[idx] = new_texture_unit;
     shader_asset->texture_unit_types[idx] = new_texture_unit_type;
     return idx;
@@ -235,9 +235,9 @@ shaders::destroy_shader_asset(shaders::Asset *shader_asset)
 
 
 void
-shaders::assert_shader_status_ok(uint32 new_shader, const char *path)
+shaders::assert_shader_status_ok(u32 new_shader, const char *path)
 {
-    int32 status;
+    i32 status;
     glGetShaderiv(new_shader, GL_COMPILE_STATUS, &status);
 
     if (status != 1) {
@@ -251,9 +251,9 @@ shaders::assert_shader_status_ok(uint32 new_shader, const char *path)
 
 
 void
-shaders::assert_program_status_ok(uint32 new_program)
+shaders::assert_program_status_ok(u32 new_program)
 {
-    int32 status;
+    i32 status;
     glGetProgramiv(new_program, GL_LINK_STATUS, &status);
 
     if (status != 1) {
@@ -266,10 +266,10 @@ shaders::assert_program_status_ok(uint32 new_program)
 }
 
 
-uint32
+u32
 shaders::make_shader(const char *path, const char *source, GLenum shader_type)
 {
-    uint32 shader = glCreateShader(shader_type);
+    u32 shader = glCreateShader(shader_type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
     assert_shader_status_ok(shader, path);
@@ -277,10 +277,10 @@ shaders::make_shader(const char *path, const char *source, GLenum shader_type)
 }
 
 
-uint32
-shaders::make_program(uint32 vertex_shader, uint32 fragment_shader)
+u32
+shaders::make_program(u32 vertex_shader, u32 fragment_shader)
 {
-    uint32 new_program = glCreateProgram();
+    u32 new_program = glCreateProgram();
     glAttachShader(new_program, vertex_shader);
     glAttachShader(new_program, fragment_shader);
     glLinkProgram(new_program);
@@ -291,11 +291,11 @@ shaders::make_program(uint32 vertex_shader, uint32 fragment_shader)
 }
 
 
-uint32
+u32
 shaders::make_program(
-    uint32 vertex_shader, uint32 fragment_shader, uint32 geometry_shader
+    u32 vertex_shader, u32 fragment_shader, u32 geometry_shader
 ) {
-    uint32 new_program = glCreateProgram();
+    u32 new_program = glCreateProgram();
     glAttachShader(new_program, vertex_shader);
     glAttachShader(new_program, fragment_shader);
     glAttachShader(new_program, geometry_shader);
@@ -314,8 +314,8 @@ shaders::load_file(memory::Pool *memory_pool, const char *path)
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
     strcat(full_path, path);
-    uint32 f1_size = files::get_file_size(SHADER_COMMON_PATH);
-    uint32 f2_size = files::get_file_size(full_path);
+    u32 f1_size = files::get_file_size(SHADER_COMMON_PATH);
+    u32 f2_size = files::get_file_size(full_path);
     char *file_memory = (char*)memory::push(memory_pool, f1_size + f2_size + 1, full_path);
     files::load_file(file_memory, SHADER_COMMON_PATH);
     files::load_file(file_memory + f1_size, full_path);
@@ -329,9 +329,9 @@ shaders::load_frag_file(memory::Pool *memory_pool, const char *path)
     char full_path[MAX_PATH];
     strcpy(full_path, SHADER_DIR); // TODO: Fix unsafe strings?
     strcat(full_path, path);
-    uint32 f1_size = files::get_file_size(SHADER_COMMON_PATH);
-    uint32 f2_size = files::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
-    uint32 f3_size = files::get_file_size(full_path);
+    u32 f1_size = files::get_file_size(SHADER_COMMON_PATH);
+    u32 f2_size = files::get_file_size(SHADER_COMMON_FRAGMENT_PATH);
+    u32 f3_size = files::get_file_size(full_path);
     char *file_memory = (char*)memory::push(memory_pool, f1_size + f2_size + f3_size + 1, full_path);
     files::load_file(file_memory, SHADER_COMMON_PATH);
     files::load_file(file_memory + f1_size, SHADER_COMMON_FRAGMENT_PATH);
@@ -340,13 +340,13 @@ shaders::load_frag_file(memory::Pool *memory_pool, const char *path)
 }
 
 
-int32
+i32
 shaders::get_uniform_location(
     shaders::Asset *shader_asset,
     const char *uniform_name
 ) {
     // Look up in cache.
-    for (uint32 idx = 0; idx < shader_asset->n_intrinsic_uniforms; idx++) {
+    for (u32 idx = 0; idx < shader_asset->n_intrinsic_uniforms; idx++) {
         if (strcmp(shader_asset->intrinsic_uniform_names[idx], uniform_name) == 0) {
             return shader_asset->intrinsic_uniform_locations[idx];
         }
@@ -368,19 +368,19 @@ shaders::get_uniform_location(
 void
 shaders::load_uniforms(shaders::Asset *shader_asset)
 {
-    for (uint16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
+    for (u16 idx = 0; idx < MAX_N_UNIFORMS; idx++) {
         shader_asset->intrinsic_uniform_locations[idx] = -1;
     }
 
     // Bind uniform block
-    uint32 uniform_block_index = glGetUniformBlockIndex(shader_asset->program, "shader_common");
+    u32 uniform_block_index = glGetUniformBlockIndex(shader_asset->program, "shader_common");
     glUniformBlockBinding(shader_asset->program, uniform_block_index, 0);
 
     // Load uniforms
     // NOTE: We may want to skip all shader_asset stuff, because fallback on loading the locations
     // in `shader::set_*` anyway. But, it's kind of cool to know we're loading everything we can
     // up front in shader_asset function.
-    uint32 new_n_intrinsic_uniforms = 0;
+    u32 new_n_intrinsic_uniforms = 0;
     GLint n_active_uniforms;
     char uniform_name[MAX_UNIFORM_NAME_LENGTH];
     GLint uniform_name_length;

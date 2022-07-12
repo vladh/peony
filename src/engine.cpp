@@ -168,14 +168,14 @@ engine::get_physics_component(entities::Handle entity_handle)
 }
 
 
-real64
+f64
 engine::get_t()
 {
     return engine::state->t;
 }
 
 
-real64
+f64
 engine::get_dt()
 {
     return engine::state->dt;
@@ -288,7 +288,7 @@ void
 engine::destroy_non_internal_entities()
 {
     for (
-        uint32 idx = engine::state->entity_set.first_non_internal_handle;
+        u32 idx = engine::state->entity_set.first_non_internal_handle;
         idx < engine::state->entity_set.entities.length;
         idx++
     ) {
@@ -333,7 +333,7 @@ engine::destroy_scene()
 }
 
 
-bool32
+bool
 engine::load_scene(const char *scene_name)
 {
     // If the current scene has not finished loading, we can neither
@@ -403,7 +403,7 @@ engine::load_scene(const char *scene_name)
         // already encountered this model in a previous entry. If two entities
         // have the same `model_path`, we just make one model and use it in both.
         models::ModelLoader *found_model_loader = engine::state->model_loaders.find(
-            [model_path](models::ModelLoader *candidate_model_loader) -> bool32 {
+            [model_path](models::ModelLoader *candidate_model_loader) -> bool {
                 return pstr_eq(model_path, candidate_model_loader->model_path);
             }
         );
@@ -461,7 +461,7 @@ engine::handle_console_command()
 
 
 void
-engine::update_light_position(real32 amount)
+engine::update_light_position(f32 amount)
 {
     each (light_component, engine::state->light_component_set.components) {
         if (light_component->type == lights::LightType::directional) {
@@ -520,11 +520,11 @@ engine::process_input(GLFWwindow *window)
     }
 
     if (input::is_key_down(GLFW_KEY_Z)) {
-        update_light_position(0.10f * (real32)(engine::get_dt()));
+        update_light_position(0.10f * (f32)(engine::get_dt()));
     }
 
     if (input::is_key_down(GLFW_KEY_X)) {
-        update_light_position(-0.10f * (real32)(engine::get_dt()));
+        update_light_position(-0.10f * (f32)(engine::get_dt()));
     }
 
     if (input::is_key_down(GLFW_KEY_SPACE)) {
@@ -575,7 +575,7 @@ engine::process_input(GLFWwindow *window)
 }
 
 
-bool32
+bool
 engine::check_all_entities_loaded()
 {
     bool are_all_done_loading = true;
@@ -587,7 +587,7 @@ engine::check_all_entities_loaded()
         }
     }
 
-    uint32 new_n_valid_model_loaders = 0;
+    u32 new_n_valid_model_loaders = 0;
     each (model_loader, engine::state->model_loaders) {
         if (!models::is_model_loader_valid(model_loader)) {
             continue;
@@ -600,7 +600,7 @@ engine::check_all_entities_loaded()
     }
     engine::state->n_valid_model_loaders = new_n_valid_model_loaders;
 
-    uint32 new_n_valid_entity_loaders = 0;
+    u32 new_n_valid_entity_loaders = 0;
     each (entity_loader, engine::state->entity_loader_set.loaders) {
         if (!models::is_entity_loader_valid(entity_loader)) {
             continue;
@@ -608,7 +608,7 @@ engine::check_all_entities_loaded()
         new_n_valid_entity_loaders++;
 
         models::ModelLoader *model_loader = engine::state->model_loaders.find(
-            [entity_loader](models::ModelLoader *candidate_model_loader) -> bool32 {
+            [entity_loader](models::ModelLoader *candidate_model_loader) -> bool {
                 return pstr_eq(entity_loader->model_path, candidate_model_loader->model_path);
             }
         );
@@ -670,21 +670,21 @@ engine::update(WindowSize *window_size)
 
 
 engine::TimingInfo
-engine::init_timing_info(uint32 target_fps)
+engine::init_timing_info(u32 target_fps)
 {
     TimingInfo timing_info = {};
     timing_info.second_start = chrono::steady_clock::now();
     timing_info.frame_start = chrono::steady_clock::now();
     timing_info.last_frame_start = chrono::steady_clock::now();
     timing_info.frame_duration = chrono::nanoseconds(
-        (uint32)((real64)1.0f / (real64)target_fps)
+        (u32)((f64)1.0f / (f64)target_fps)
     );
     return timing_info;
 }
 
 
 void
-engine::update_timing_info(TimingInfo *timing, uint32 *last_fps)
+engine::update_timing_info(TimingInfo *timing, u32 *last_fps)
 {
     timing->n_frames_since_start++;
     timing->last_frame_start = timing->frame_start;
@@ -692,7 +692,7 @@ engine::update_timing_info(TimingInfo *timing, uint32 *last_fps)
     timing->time_frame_should_end = timing->frame_start + timing->frame_duration;
 
     timing->n_frames_this_second++;
-    chrono::duration<real64> time_since_second_start =
+    chrono::duration<f64> time_since_second_start =
         timing->frame_start - timing->second_start;
     if (time_since_second_start >= chrono::seconds(1)) {
         timing->second_start = timing->frame_start;
@@ -708,7 +708,7 @@ engine::update_dt_and_perf_counters(TimingInfo *timing)
     engine::state->dt = util::get_us_from_duration(
         timing->frame_start - timing->last_frame_start);
     if (engine::state->timescale_diff != 0.0f) {
-        engine::state->dt *= max(1.0f + engine::state->timescale_diff, (real64)0.01f);
+        engine::state->dt *= max(1.0f + engine::state->timescale_diff, (f64)0.01f);
     }
 
     engine::state->perf_counters.dt_hist[engine::state->perf_counters.dt_hist_idx] =
@@ -717,8 +717,8 @@ engine::update_dt_and_perf_counters(TimingInfo *timing)
     if (engine::state->perf_counters.dt_hist_idx >= DT_HIST_LENGTH) {
         engine::state->perf_counters.dt_hist_idx = 0;
     }
-    real64 dt_hist_sum = 0.0f;
-    for (uint32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
+    f64 dt_hist_sum = 0.0f;
+    for (u32 idx = 0; idx < DT_HIST_LENGTH; idx++) {
         dt_hist_sum += engine::state->perf_counters.dt_hist[idx];
     }
     engine::state->perf_counters.dt_average = dt_hist_sum / DT_HIST_LENGTH;

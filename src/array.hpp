@@ -9,10 +9,10 @@ class Array {
 public:
     memory::Pool *memory_pool = nullptr;
     const char *debug_name = nullptr;
-    uint32 length = 0;
-    uint32 capacity = 0;
-    bool32 is_sparse = false;
-    uint32 starting_idx = 0;
+    u32 length = 0;
+    u32 capacity = 0;
+    bool is_sparse = false;
+    u32 starting_idx = 0;
     T *items = nullptr;
 
     void alloc() {
@@ -24,7 +24,7 @@ public:
             alloc();
         }
         assert(this->length < this->capacity);
-        uint32 new_idx = this->length;
+        u32 new_idx = this->length;
         this->length++;
         T* new_slot = &this->items[new_idx];
         return new_slot;
@@ -36,7 +36,7 @@ public:
         return new_slot;
     }
 
-    T* get(uint32 idx) {
+    T* get(u32 idx) {
         if (!this->items) {
             alloc();
         }
@@ -48,7 +48,7 @@ public:
         return &this->items[idx];
     }
 
-    T* operator[](uint32 idx) {
+    T* operator[](u32 idx) {
         return get(idx);
     }
 
@@ -75,17 +75,17 @@ public:
         this->length = 0;
     }
 
-    void delete_elements_after_index(uint32 idx) {
+    void delete_elements_after_index(u32 idx) {
         memset(&this->items[idx], 0, sizeof(T) * (this->length - idx));
         this->length = idx;
     }
 
     Array(
         memory::Pool *memory_pool,
-        uint32 capacity,
+        u32 capacity,
         const char *debug_name,
-        bool32 is_sparse = false,
-        uint32 starting_idx = 0
+        bool is_sparse = false,
+        u32 starting_idx = 0
     ) :
         memory_pool(memory_pool),
         debug_name(debug_name),

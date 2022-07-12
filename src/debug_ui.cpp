@@ -125,7 +125,7 @@ void debug_ui::render_debug_ui(WindowSize *window_size) {
 
 
 void
-debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, uint8 depth)
+debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u8 depth)
 {
     // TODO: fixme
     engine::State *engine_state = engine::todo_fixme_get_engine_state();
@@ -142,17 +142,17 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
         return;
     }
 
-    bool32 has_spatial_component = spatial::is_spatial_component_valid(spatial_component);
-    bool32 has_drawable_component = drawable::is_component_valid(
+    bool has_spatial_component = spatial::is_spatial_component_valid(spatial_component);
+    bool has_drawable_component = drawable::is_component_valid(
         engine_state->drawable_component_set.components[handle]);
-    bool32 has_light_component = lights::is_light_component_valid(
+    bool has_light_component = lights::is_light_component_valid(
         engine_state->light_component_set.components[handle]);
-    bool32 has_behavior_component = behavior::is_behavior_component_valid(
+    bool has_behavior_component = behavior::is_behavior_component_valid(
         engine_state->behavior_component_set.components[handle]);
-    bool32 has_animation_component = anim::is_animation_component_valid(
+    bool has_animation_component = anim::is_animation_component_valid(
         engine_state->animation_component_set.components[handle]);
 
-    for (uint8 level = 0; level < depth; level++) {
+    for (u8 level = 0; level < depth; level++) {
         strcat(text, "  ");
     }
 
@@ -190,7 +190,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
 
     if (spatial::is_spatial_component_valid(spatial_component)) {
         // NOTE: This is super slow lol.
-        uint32 n_children_found = 0;
+        u32 n_children_found = 0;
         each (child_spatial_component, engine_state->spatial_component_set.components) {
             if (
                 child_spatial_component->parent_entity_handle ==
@@ -210,7 +210,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
             }
         }
         if (n_children_found > 5) {
-            for (uint8 level = 0; level < (depth + 1); level++) {
+            for (u8 level = 0; level < (depth + 1); level++) {
                 strcat(text, "  ");
             }
             strcat(text, "(and ");
@@ -233,8 +233,8 @@ debug_ui::get_scene_text_representation(char *text)
 
     text[0] = '\0';
 
-    constexpr uint32 const MAX_N_SHOWN_ENTITIES = 35;
-    uint32 idx_entity = 0;
+    constexpr u32 const MAX_N_SHOWN_ENTITIES = 35;
+    u32 idx_entity = 0;
     each (entity, engine_state->entity_set.entities) {
         if (idx_entity > MAX_N_SHOWN_ENTITIES) {
             sprintf(text + strlen(text),
@@ -261,7 +261,7 @@ debug_ui::get_materials_text_representation(char *text)
 
     bool have_seen_non_internal = false;
 
-    uint32 idx = 0;
+    u32 idx = 0;
     each (material, *mats::get_materials()) {
         strcat(text, "- ");
         strcat(text, material->name);

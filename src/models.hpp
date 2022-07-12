@@ -20,7 +20,7 @@
 class models {
 public:
     // NOTE: Should be at least peony_parser::MAX_N_ARRAY_VALUES
-    static constexpr uint32 const MAX_N_COMMON_ARRAY_VALUES = 8;
+    static constexpr u32 const MAX_N_COMMON_ARRAY_VALUES = 8;
 
     enum class ModelLoaderState {
         empty,
@@ -35,11 +35,11 @@ public:
         // These from from the file
         char model_path[MAX_PATH];
         char material_names[MAX_COMMON_NAME_LENGTH][MAX_N_COMMON_ARRAY_VALUES];
-        uint32 n_material_names;
+        u32 n_material_names;
 
         // These are created later
         geom::Mesh meshes[MAX_N_MESHES];
-        uint32 n_meshes;
+        u32 n_meshes;
         anim::Component animation_component;
         ModelLoaderState state;
     };
@@ -69,13 +69,13 @@ public:
 
 #include "models_data.hpp"
 
-    static bool32 prepare_model_loader_and_check_if_done(ModelLoader *model_loader);
-    static bool32 prepare_entity_loader_and_check_if_done(
+    static bool prepare_model_loader_and_check_if_done(ModelLoader *model_loader);
+    static bool prepare_entity_loader_and_check_if_done(
         EntityLoader *entity_loader,
         ModelLoader *model_loader
     );
-    static bool32 is_model_loader_valid(ModelLoader *model_loader);
-    static bool32 is_entity_loader_valid(EntityLoader *entity_loader);
+    static bool is_model_loader_valid(ModelLoader *model_loader);
+    static bool is_entity_loader_valid(EntityLoader *entity_loader);
     static void add_material_to_model_loader(
         ModelLoader *model_loader,
         char const *material_name
@@ -93,12 +93,12 @@ public:
     );
 
 private:
-    static bool32 is_bone_only_node(aiNode *node);
+    static bool is_bone_only_node(aiNode *node);
     static aiNode * find_root_bone(const aiScene *scene);
     static void add_bone_tree_to_animation_component(
         anim::Component *animation_component,
         aiNode *node,
-        uint32 idx_parent
+        u32 idx_parent
     );
     static void load_bones(
         anim::Component *animation_component,

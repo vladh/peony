@@ -9,17 +9,17 @@
 
 class gui {
 public:
-    static constexpr uint32 MAX_CONSOLE_LINE_LENGTH = 200;
-    static constexpr uint32 MAX_N_CONSOLE_LINES = 30;
+    static constexpr u32 MAX_CONSOLE_LINE_LENGTH = 200;
+    static constexpr u32 MAX_N_CONSOLE_LINES = 30;
     static constexpr char CONSOLE_SYMBOL[] = "> ";
     static constexpr size_t CONSOLE_SYMBOL_LENGTH = 2;
 
     static constexpr const char *MAIN_FONT_REGULAR = "SofiaProRegular.otf";
     static constexpr const char *MAIN_FONT_BOLD = "SofiaProBold.otf";
-    static constexpr real32 LINE_SPACING_FACTOR = 1.8f;
-    static constexpr real32 CONSOLE_LINE_SPACING_FACTOR = 1.2f;
+    static constexpr f32 LINE_SPACING_FACTOR = 1.8f;
+    static constexpr f32 CONSOLE_LINE_SPACING_FACTOR = 1.2f;
 
-    static constexpr uint32 VERTEX_LENGTH = 8;
+    static constexpr u32 VERTEX_LENGTH = 8;
 
     static constexpr v2 TEXT_SHADOW_OFFSET = v2(1.0f);
 
@@ -38,12 +38,12 @@ public:
     static constexpr v2 BUTTON_AUTOSIZE_PADDING = v2(20.0f, 20.0f);
     static constexpr v2 BUTTON_DEFAULT_BORDER = v2(0.0f);
 
-    static constexpr real32 NAMED_VALUE_NAME_WIDTH = 250.0f;
-    static constexpr real32 TOGGLE_SPACING = 20.0f;
+    static constexpr f32 NAMED_VALUE_NAME_WIDTH = 250.0f;
+    static constexpr f32 TOGGLE_SPACING = 20.0f;
     static constexpr v2 TOGGLE_BUTTON_SIZE = v2(20.0f);
     static constexpr v2 TOGGLE_BUTTON_DEFAULT_BORDER = v2(0.0f);
 
-    static constexpr real32 MAX_CONSOLE_LOG_HEIGHT = 350.0f;
+    static constexpr f32 MAX_CONSOLE_LOG_HEIGHT = 350.0f;
     static constexpr v2 CONSOLE_PADDING = v2(10.0f);
 
     struct Container {
@@ -58,16 +58,16 @@ public:
         // The main axis has a 1.0f, while the orthogonal axis has a 0.0f.
         v2 direction;
         v2 padding;
-        real32 title_bar_height;
-        uint32 n_elements;
-        real32 element_margin;
+        f32 title_bar_height;
+        u32 n_elements;
+        f32 element_margin;
     };
 
     struct GameConsole {
-        bool32 is_enabled;
+        bool is_enabled;
         char log[gui::MAX_N_CONSOLE_LINES][gui::MAX_CONSOLE_LINE_LENGTH];
-        uint32 idx_log_start;
-        uint32 idx_log_end;
+        u32 idx_log_start;
+        u32 idx_log_end;
     };
 
     struct State {
@@ -83,14 +83,14 @@ public:
         Container *container_being_moved;
 
         // Heading
-        real32 heading_opacity;
+        f32 heading_opacity;
         const char *heading_text;
-        real32 heading_fadeout_duration;
-        real32 heading_fadeout_delay;
+        f32 heading_fadeout_duration;
+        f32 heading_fadeout_delay;
     };
 
     static void update_screen_dimensions(
-        uint32 new_window_width, uint32 new_window_height
+        u32 new_window_width, u32 new_window_height
     );
     static void update_mouse_button();
     static void update_mouse();
@@ -99,10 +99,10 @@ public:
     static Container * make_container(const char *title, v2 position);
     static void draw_heading(const char *str, v4 color);
     static void tick_heading();
-    static bool32 draw_toggle(
+    static bool draw_toggle(
         Container *container,
         const char *text,
-        bool32 toggle_state
+        bool toggle_state
     );
     static void draw_named_value(
         Container *container,
@@ -110,27 +110,27 @@ public:
         const char *value_text
     );
     static void draw_body_text(Container *container, const char *text);
-    static bool32 draw_button(Container *container, const char *text);
+    static bool draw_button(Container *container, const char *text);
     static void draw_console(char *console_input_text);
     static bool is_console_enabled();
     static void set_console_enabled(bool val);
     static void log(const char *format, ...);
     static void set_heading(
-        const char *text, real32 opacity,
-        real32 fadeout_duration, real32 fadeout_delay
+        const char *text, f32 opacity,
+        f32 fadeout_duration, f32 fadeout_delay
     );
     static void init(
         memory::Pool *memory_pool,
         gui::State* gui_state,
         iv2 texture_atlas_size,
         Array<fonts::FontAsset> *font_assets,
-        uint32 window_width, uint32 window_height
+        u32 window_width, u32 window_height
     );
 
 private:
     static void request_cursor(input::CursorType cursor);
     static void set_cursor();
-    static void push_vertices(real32 *vertices, uint32 n_vertices);
+    static void push_vertices(f32 *vertices, u32 n_vertices);
     static v2 get_text_dimensions(fonts::FontAsset *font_asset, char const *str);
     static v2 center_bb(v2 container_position, v2 container_dimensions, v2 element_dimensions);
     static v2 add_element_to_container(Container *container, v2 element_dimensions);
@@ -146,7 +146,7 @@ private:
         v4 color
     );
     static void draw_container(Container *container);
-    static void draw_line(v2 start, v2 end, real32 thickness, v4 color);
+    static void draw_line(v2 start, v2 end, f32 thickness, v4 color);
     static void draw_frame(v2 position, v2 bottomright, v2 thickness, v4 color);
 
     static gui::State *state;

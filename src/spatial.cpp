@@ -21,7 +21,7 @@ spatial::print_spatial_component(spatial::Component *spatial_component)
 }
 
 
-bool32
+bool
 spatial::does_spatial_component_have_dimensions(spatial::Component *spatial_component)
 {
     return (
@@ -32,7 +32,7 @@ spatial::does_spatial_component_have_dimensions(spatial::Component *spatial_comp
 }
 
 
-bool32
+bool
 spatial::is_spatial_component_valid(spatial::Component *spatial_component)
 {
     return does_spatial_component_have_dimensions(spatial_component) ||

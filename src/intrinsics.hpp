@@ -16,7 +16,7 @@
 // Loops
 #define range_named(idx, start, end) \
     for ( \
-        uint32 idx = (start); \
+        u32 idx = (start); \
         idx < (end); \
         idx++ \
     )

@@ -5,8 +5,8 @@
 #include "types.hpp"
 
 // Math things
-constexpr real32 PI32 = 3.14159265359f;
-constexpr real64 PI = 3.14159265358979323846;
+constexpr f32 PI32 = 3.14159265359f;
+constexpr f64 PI = 3.14159265358979323846;
 
 // Platform things
 #if !defined(MAX_PATH)
@@ -72,25 +72,25 @@ constexpr char SHADER_DIR[] = "src_shaders/";
 constexpr char DEFAULT_SCENE[] = "terraintest";
 constexpr char SCENE_EXTENSION[] = ".peony_scene";
 constexpr char MATERIAL_FILE_EXTENSION[] = ".peony_materials";
-constexpr uint32 N_LOADING_THREADS = 5;
-constexpr uint32 MAX_N_ENTITIES = 256;
-constexpr uint32 MAX_N_MODELS = 128;
-constexpr uint32 MAX_N_ANIMATED_MODELS = 128;
-constexpr uint32 MAX_DEBUG_NAME_LENGTH = 256;
-constexpr uint32 MAX_GENEROUS_STRING_LENGTH = 512;
-constexpr uint32 MAX_N_MESHES = 128;
-constexpr uint32 MAX_N_MATERIALS = 256;
-constexpr uint32 MAX_N_MATERIALS_PER_MODEL = 16;
-constexpr uint32 MAX_UNIFORM_LENGTH = 256;
-constexpr uint32 MAX_N_TEXTURE_POOL_SIZES = 6;
-constexpr uint32 MAX_N_TEXTURES_PER_MATERIAL = 16;
-constexpr uint8 MAX_N_UNIFORMS = 64;
-constexpr uint8 MAX_UNIFORM_NAME_LENGTH = 64;
-constexpr uint8 MAX_N_TEXTURE_UNITS = 80;
-constexpr uint32 MAX_COMMON_NAME_LENGTH = 128;
-constexpr uint32 MAX_N_BONES = 128;
-constexpr uint32 MAX_N_BONES_PER_VERTEX = 4;
-constexpr uint32 MAX_NODE_NAME_LENGTH = 32;
-constexpr uint32 MAX_N_ANIMATIONS = 2;
-constexpr uint32 MAX_N_ANIM_KEYS = 256;
-constexpr uint16 MAX_N_LIGHTS = 8;
+constexpr u32 N_LOADING_THREADS = 5;
+constexpr u32 MAX_N_ENTITIES = 256;
+constexpr u32 MAX_N_MODELS = 128;
+constexpr u32 MAX_N_ANIMATED_MODELS = 128;
+constexpr u32 MAX_DEBUG_NAME_LENGTH = 256;
+constexpr u32 MAX_GENEROUS_STRING_LENGTH = 512;
+constexpr u32 MAX_N_MESHES = 128;
+constexpr u32 MAX_N_MATERIALS = 256;
+constexpr u32 MAX_N_MATERIALS_PER_MODEL = 16;
+constexpr u32 MAX_UNIFORM_LENGTH = 256;
+constexpr u32 MAX_N_TEXTURE_POOL_SIZES = 6;
+constexpr u32 MAX_N_TEXTURES_PER_MATERIAL = 16;
+constexpr u8 MAX_N_UNIFORMS = 64;
+constexpr u8 MAX_UNIFORM_NAME_LENGTH = 64;
+constexpr u8 MAX_N_TEXTURE_UNITS = 80;
+constexpr u32 MAX_COMMON_NAME_LENGTH = 128;
+constexpr u32 MAX_N_BONES = 128;
+constexpr u32 MAX_N_BONES_PER_VERTEX = 4;
+constexpr u32 MAX_NODE_NAME_LENGTH = 32;
+constexpr u32 MAX_N_ANIMATIONS = 2;
+constexpr u32 MAX_N_ANIM_KEYS = 256;
+constexpr u16 MAX_N_LIGHTS = 8;

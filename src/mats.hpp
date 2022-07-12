@@ -14,31 +14,31 @@
 class mats {
 public:
     struct TextureNamePool {
-        uint32 mipmap_max_level;
-        uint32 n_textures;
-        uint32 n_sizes;
-        uint32 sizes[MAX_N_TEXTURE_POOL_SIZES];
-        uint32 idx_next[MAX_N_TEXTURE_POOL_SIZES];
-        uint32 *texture_names;
+        u32 mipmap_max_level;
+        u32 n_textures;
+        u32 n_sizes;
+        u32 sizes[MAX_N_TEXTURE_POOL_SIZES];
+        u32 idx_next[MAX_N_TEXTURE_POOL_SIZES];
+        u32 *texture_names;
     };
 
     struct PersistentPbo {
-        uint32 pbo;
+        u32 pbo;
         void *memory;
-        int32 width;
-        int32 height;
-        int32 n_components;
-        uint16 texture_count;
-        uint32 texture_size;
-        uint32 total_size;
-        uint16 next_idx;
+        i32 width;
+        i32 height;
+        i32 n_components;
+        u16 texture_count;
+        u32 texture_size;
+        u32 total_size;
+        u16 next_idx;
     };
 
     struct TextureAtlas {
         iv2 size;
         iv2 next_position;
         iv2 max_allocated_position_per_axis;
-        uint32 texture_name;
+        u32 texture_name;
     };
 
     enum class TextureType {
@@ -68,16 +68,16 @@ public:
         GLenum target;
         TextureType type;
         char path[MAX_PATH];
-        uint32 texture_name;
-        int32 width;
-        int32 height;
-        int32 n_components;
-        uint16 pbo_idx_for_copy;
-        bool32 is_screensize_dependent;
+        u32 texture_name;
+        i32 width;
+        i32 height;
+        i32 n_components;
+        u16 pbo_idx_for_copy;
+        bool is_screensize_dependent;
         // NOTE: We assume a builtin texture can belong to multiple materials,
         // but a non-builtin texture can belong to only one material.
         // If we delete a material, we delete all its non-builtin textures.
-        bool32 is_builtin;
+        bool is_builtin;
     };
 
     enum class MaterialState {
@@ -91,27 +91,27 @@ public:
     struct Material {
         char name[MAX_COMMON_NAME_LENGTH];
         MaterialState state;
-        bool32 have_textures_been_generated;
-        bool32 is_screensize_dependent;
+        bool have_textures_been_generated;
+        bool is_screensize_dependent;
         shaders::Asset shader_asset;
         shaders::Asset depth_shader_asset;
-        uint32 n_textures;
+        u32 n_textures;
         Texture textures[MAX_N_TEXTURES_PER_MATERIAL];
         char texture_uniform_names[MAX_N_UNIFORMS][MAX_UNIFORM_LENGTH];
-        uint32 idx_texture_uniform_names;
+        u32 idx_texture_uniform_names;
 
         v4 albedo_static;
-        real32 metallic_static;
-        real32 roughness_static;
-        real32 ao_static;
-        bool32 should_use_normal_map;
+        f32 metallic_static;
+        f32 roughness_static;
+        f32 ao_static;
+        bool should_use_normal_map;
     };
 
     struct State {
         PersistentPbo persistent_pbo;
         TextureNamePool texture_name_pool;
         Array<Material> materials;
-        uint32 first_non_internal_material_idx;
+        u32 first_non_internal_material_idx;
     };
 
     static Array<Material> * get_materials();
@@ -133,10 +133,10 @@ public:
         Texture *texture,
         GLenum target,
         TextureType type,
-        uint32 texture_name,
-        int32 width,
-        int32 height,
-        int32 n_components
+        u32 texture_name,
+        i32 width,
+        i32 height,
+        i32 n_components
     );
     static void destroy_texture(Texture *texture);
     static TextureAtlas * init_texture_atlas(
@@ -162,25 +162,25 @@ public:
         mats::State *materials_state,
         memory::Pool *memory_pool
     );
-    static bool32 prepare_material_and_check_if_done(Material *material);
+    static bool prepare_material_and_check_if_done(Material *material);
     static void reload_shaders();
 
 private:
-    static bool32 is_texture_type_screensize_dependent(TextureType type);
-    static uint16 get_new_persistent_pbo_idx();
-    static void * get_memory_for_persistent_pbo_idx(uint16 idx);
+    static bool is_texture_type_screensize_dependent(TextureType type);
+    static u16 get_new_persistent_pbo_idx();
+    static void * get_memory_for_persistent_pbo_idx(u16 idx);
     static void copy_textures_to_pbo(Material *material);
-    static uint32 get_new_texture_name(uint32 target_size);
-    static void * get_offset_for_persistent_pbo_idx(uint16 idx);
+    static u32 get_new_texture_name(u32 target_size);
+    static void * get_offset_for_persistent_pbo_idx(u16 idx);
     static void generate_textures_from_pbo(Material *material);
     static char const * material_state_to_string(MaterialState material_state);
     static PersistentPbo * init_persistent_pbo(
-        uint16 texture_count, int32 width, int32 height, int32 n_components
+        u16 texture_count, i32 width, i32 height, i32 n_components
     );
     static TextureNamePool * init_texture_name_pool(
         memory::Pool *memory_pool,
-        uint32 n_textures,
-        uint32 mipmap_max_level
+        u32 n_textures,
+        u32 mipmap_max_level
     );
 
     static mats::State *state;

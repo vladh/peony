@@ -48,7 +48,7 @@ lights::light_type_from_string(char const *str)
 }
 
 
-uint32
+u32
 lights::light_type_to_int(LightType light_type)
 {
     if (light_type == LightType::point) {
@@ -60,7 +60,7 @@ lights::light_type_to_int(LightType light_type)
 }
 
 
-bool32
+bool
 lights::is_light_component_valid(lights::Component *light_component)
 {
     return light_component->type != LightType::none;
@@ -89,7 +89,7 @@ lights::update_light_components(
         }
 
         if (light_component->type == LightType::point) {
-            light_component->color.b = ((real32)sin(engine::get_t()) + 1.0f) / 2.0f * 50.0f;
+            light_component->color.b = ((f32)sin(engine::get_t()) + 1.0f) / 2.0f * 50.0f;
         }
 
         // For the sun! :)

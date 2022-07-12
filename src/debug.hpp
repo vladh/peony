@@ -8,7 +8,7 @@ namespace chrono = std::chrono;
 #include "types.hpp"
 
 chrono::steady_clock::time_point debug_start_timer();
-real64 debug_end_timer(chrono::steady_clock::time_point t0);
+f64 debug_end_timer(chrono::steady_clock::time_point t0);
 
 #if USE_TIMERS
 #define START_TIMER(name) \
@@ -16,7 +16,7 @@ real64 debug_end_timer(chrono::steady_clock::time_point t0);
 
 #define END_TIMER_MIN(name, min_duration_ms) \
 { \
-    real64 duration = debug_end_timer(debug_timerstart_##name); \
+    f64 duration = debug_end_timer(debug_timerstart_##name); \
     if (duration >= min_duration_ms) { \
         logs::info("Timer %s took %0.fms", #name, duration); \
     } \
