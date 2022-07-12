@@ -8,12 +8,6 @@
 
 class behavior_functions {
 public:
-    static void test(
-        behavior::State *behavior_state,
-        EntityHandle entity_handle
-    );
-    static void char_movement_test(
-        behavior::State *behavior_state,
-        EntityHandle entity_handle
-    );
+    static void test(EntityHandle entity_handle);
+    static void char_movement_test(EntityHandle entity_handle);
 };

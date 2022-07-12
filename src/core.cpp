@@ -61,10 +61,7 @@ core::run()
     defer { range (0, N_LOADING_THREADS) { loading_threads[idx].join(); } };
 
     // Run main loop
-    engine::run_main_loop(
-        &state->engine_state,
-        state->window,
-        &state->window_size);
+    engine::run_main_loop(state->window, &state->window_size);
 
     return EXIT_SUCCESS;
 }
@@ -142,7 +139,7 @@ core::init_state(State *state, MemoryPool *asset_memory_pool)
     renderer::init(
         &state->renderer_state, asset_memory_pool,
         state->window_size.width, state->window_size.height, state->window);
-    internals::init(&state->engine_state);
+    internals::init();
     gui::init(asset_memory_pool,
         &state->gui_state,
         renderer::get_gui_texture_atlas_size(),

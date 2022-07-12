@@ -252,7 +252,7 @@ void peony_parser_utils::create_entity_loader_from_peony_file_entry(
     entity_handle
   );
 
-  // Build physics::Component, SpatialComponent, lights::Component, behavior::Component
+  // Build physics::Component, spatial::Component, lights::Component, behavior::Component
   range (0, entry->n_props) {
     PeonyFileProp *prop = &entry->props[idx];
     if (pstr_eq(prop->name, "physics_component.obb.center")) {

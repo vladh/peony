@@ -58,7 +58,7 @@ public:
     );
     static void update_animation_components(
         ComponentSet *animation_component_set,
-        SpatialComponentSet *spatial_component_set
+        spatial::ComponentSet *spatial_component_set
     );
     static void make_bone_matrices_for_animation_bone(
         Component *animation_component,
@@ -66,11 +66,7 @@ public:
         uint32 idx_animation,
         uint32 idx_bone
     );
-    static Component * find_animation_component(
-        SpatialComponent *spatial_component,
-        SpatialComponentSet *spatial_component_set,
-        ComponentSet *animation_component_set
-    );
+    static Component * find_animation_component(spatial::Component *spatial_component);
     static void init(anim::State *anim_state, MemoryPool *pool);
 
 private:

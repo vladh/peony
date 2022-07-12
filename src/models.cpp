@@ -73,14 +73,7 @@ models::prepare_model_loader_and_check_if_done(ModelLoader *model_loader) {
 bool32
 models::prepare_entity_loader_and_check_if_done(
     EntityLoader *entity_loader,
-    EntitySet *entity_set,
-    ModelLoader *model_loader,
-    drawable::ComponentSet *drawable_component_set,
-    SpatialComponentSet *spatial_component_set,
-    lights::ComponentSet *light_component_set,
-    behavior::ComponentSet *behavior_component_set,
-    anim::ComponentSet *animation_component_set,
-    physics::ComponentSet *physics_component_set
+    ModelLoader *model_loader
 ) {
     if (entity_loader->state == EntityLoaderState::initialized) {
         // Before we can create entities, we need this entity's models to have
@@ -89,29 +82,29 @@ models::prepare_entity_loader_and_check_if_done(
             return false;
         }
 
-        SpatialComponent *spatial_component = spatial_component_set->components[entity_loader->entity_handle];
+        spatial::Component *spatial_component = engine::get_spatial_component(entity_loader->entity_handle);
         *spatial_component = entity_loader->spatial_component;
         spatial_component->entity_handle = entity_loader->entity_handle;
 
-        lights::Component *light_component = light_component_set->components[entity_loader->entity_handle];
+        lights::Component *light_component = engine::get_light_component(entity_loader->entity_handle);
         *light_component = entity_loader->light_component;
         light_component->entity_handle = entity_loader->entity_handle;
 
-        behavior::Component *behavior_component = behavior_component_set->components[entity_loader->entity_handle];
+        behavior::Component *behavior_component = engine::get_behavior_component(entity_loader->entity_handle);
         *behavior_component = entity_loader->behavior_component;
         behavior_component->entity_handle = entity_loader->entity_handle;
 
-        anim::Component *animation_component = animation_component_set->components[entity_loader->entity_handle];
+        anim::Component *animation_component = engine::get_animation_component(entity_loader->entity_handle);
         *animation_component = model_loader->animation_component;
         animation_component->entity_handle = entity_loader->entity_handle;
 
-        physics::Component *physics_component = physics_component_set->components[entity_loader->entity_handle];
+        physics::Component *physics_component = engine::get_physics_component(entity_loader->entity_handle);
         *physics_component = entity_loader->physics_component;
         physics_component->entity_handle = entity_loader->entity_handle;
 
         // drawable::Component
         if (model_loader->n_meshes == 1) {
-            drawable::Component *drawable_component = drawable_component_set->components[entity_loader->entity_handle];
+            drawable::Component *drawable_component = engine::get_drawable_component(entity_loader->entity_handle);
             assert(drawable_component);
             *drawable_component = {
                 .entity_handle = entity_loader->entity_handle,
@@ -122,10 +115,10 @@ models::prepare_entity_loader_and_check_if_done(
             for (uint32 idx = 0; idx < model_loader->n_meshes; idx++) {
                 geom::Mesh *mesh = &model_loader->meshes[idx];
 
-                Entity *child_entity = entities::add_entity_to_set(entity_set, entity_loader->name);
+                Entity *child_entity = entities::add_entity_to_set(entity_loader->name);
 
                 if (spatial::is_spatial_component_valid(&entity_loader->spatial_component)) {
-                    SpatialComponent *child_spatial_component = spatial_component_set->components[child_entity->handle];
+                    spatial::Component *child_spatial_component = engine::get_spatial_component(child_entity->handle);
                     assert(child_spatial_component);
                     *child_spatial_component = {
                         .entity_handle = child_entity->handle,
@@ -136,7 +129,7 @@ models::prepare_entity_loader_and_check_if_done(
                     };
                 }
 
-                drawable::Component *drawable_component = drawable_component_set->components[child_entity->handle];
+                drawable::Component *drawable_component = engine::get_drawable_component(child_entity->handle);
                 assert(drawable_component);
                 *drawable_component = {
                     .entity_handle = child_entity->handle,

@@ -43,22 +43,16 @@ public:
 
     static RayCollisionResult find_ray_collision(
         Ray *ray,
-        Component *physics_component_to_ignore_or_nullptr,
-        ComponentSet *physics_component_set
+        Component *physics_component_to_ignore_or_nullptr
     );
     static CollisionManifold find_collision(
         Component *self_physics,
-        SpatialComponent *self_spatial,
-        ComponentSet *physics_component_set,
-        SpatialComponentSet *spatial_component_set
+        spatial::Component *self_spatial
     );
-    static void update_components(
-        ComponentSet *physics_component_set,
-        SpatialComponentSet *spatial_component_set
-    );
+    static void update_components();
 
 private:
-    static Obb transform_obb(Obb obb, SpatialComponent *spatial);
+    static Obb transform_obb(Obb obb, spatial::Component *spatial);
     static RaycastResult intersect_obb_ray(Obb *obb, Ray *ray);
     static bool is_component_valid(Component *physics_component);
     static v3 get_edge_contact_point(
@@ -98,7 +92,7 @@ private:
     static CollisionManifold intersect_obb_obb(
         Obb *a,
         Obb *b,
-        SpatialComponent *spatial_a,
-        SpatialComponent *spatial_b
+        spatial::Component *spatial_a,
+        spatial::Component *spatial_b
     );
 };

@@ -30,8 +30,8 @@ namespace entities {
 
   constexpr EntityHandle NO_ENTITY_HANDLE = 0;
 
-  EntityHandle make_handle(EntitySet *entity_set);
-  Entity* add_entity_to_set(EntitySet *entity_set, const char *debug_name);
+  EntityHandle make_handle();
+  Entity* add_entity_to_set(const char *debug_name);
 }
 
 using entities::EntityHandle, entities::Entity, entities::EntitySet;

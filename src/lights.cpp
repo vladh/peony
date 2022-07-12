@@ -70,7 +70,7 @@ lights::is_light_component_valid(lights::Component *light_component)
 void
 lights::update_light_components(
     lights::ComponentSet *light_component_set,
-    SpatialComponentSet *spatial_component_set,
+    spatial::ComponentSet *spatial_component_set,
     v3 camera_position
 ) {
     each (light_component, light_component_set->components) {
@@ -78,7 +78,7 @@ lights::update_light_components(
             continue;
         }
 
-        SpatialComponent *spatial_component =
+        spatial::Component *spatial_component =
             spatial_component_set->components[light_component->entity_handle];
 
         if (!(
@@ -89,7 +89,7 @@ lights::update_light_components(
         }
 
         if (light_component->type == LightType::point) {
-            light_component->color.b = ((real32)sin(*engine::g_t) + 1.0f) / 2.0f * 50.0f;
+            light_component->color.b = ((real32)sin(engine::get_t()) + 1.0f) / 2.0f * 50.0f;
         }
 
         // For the sun! :)

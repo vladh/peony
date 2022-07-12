@@ -11,10 +11,9 @@ physics::RayCollisionResult
 physics::find_ray_collision(
     Ray *ray,
     // TODO: Replace this with some kind of collision layers.
-    physics::Component *physics_component_to_ignore_or_nullptr,
-    physics::ComponentSet *physics_component_set
+    physics::Component *physics_component_to_ignore_or_nullptr
 ) {
-    each (candidate, physics_component_set->components) {
+    each (candidate, *engine::get_physics_components()) {
         if (!is_component_valid(candidate)) {
             continue;
         }
@@ -40,17 +39,16 @@ physics::find_ray_collision(
 physics::CollisionManifold
 physics::find_collision(
     physics::Component *self_physics,
-    SpatialComponent *self_spatial,
-    physics::ComponentSet *physics_component_set,
-    SpatialComponentSet *spatial_component_set
+    spatial::Component *self_spatial
 ) {
-    each (candidate_physics, physics_component_set->components) {
+    each (candidate_physics, *engine::get_physics_components()) {
         if (!is_component_valid(candidate_physics)) {
             continue;
         }
-        SpatialComponent *candidate_spatial = spatial_component_set->components[candidate_physics->entity_handle];
+        spatial::Component *candidate_spatial =
+            engine::get_spatial_component(candidate_physics->entity_handle);
         if (!candidate_spatial) {
-            logs::error("Could not get SpatialComponent for candidate");
+            logs::error("Could not get spatial::Component for candidate");
             return physics::CollisionManifold {};
         }
 
@@ -71,16 +69,15 @@ physics::find_collision(
 
 
 void
-physics::update_components(
-    physics::ComponentSet *physics_component_set,
-    SpatialComponentSet *spatial_component_set
-) {
-    each (physics_component, physics_component_set->components) {
+physics::update_components()
+{
+    each (physics_component, *engine::get_physics_components()) {
         if (!is_component_valid(physics_component)) {
             continue;
         }
 
-        SpatialComponent *spatial_component = spatial_component_set->components[physics_component->entity_handle];
+        spatial::Component *spatial_component =
+            engine::get_spatial_component(physics_component->entity_handle);
 
         if (!spatial::is_spatial_component_valid(spatial_component)) {
             logs::warning("Tried to update physics component but it had no spatial component.");
@@ -93,7 +90,7 @@ physics::update_components(
 
 
 Obb
-physics::transform_obb(Obb obb, SpatialComponent *spatial)
+physics::transform_obb(Obb obb, spatial::Component *spatial)
 {
     m3 rotation = glm::toMat3(normalize(spatial->rotation));
     obb.center = spatial->position + (rotation * (spatial->scale * obb.center));
@@ -477,8 +474,8 @@ physics::CollisionManifold
 physics::intersect_obb_obb(
     Obb *a,
     Obb *b,
-    SpatialComponent *spatial_a,
-    SpatialComponent *spatial_b
+    spatial::Component *spatial_a,
+    spatial::Component *spatial_b
 ) {
     // The radius from a/b's center to its outer vertex
     real32 a_radius, b_radius;
