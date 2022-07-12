@@ -60,7 +60,7 @@ core::run()
     defer { range (0, N_LOADING_THREADS) { loading_threads[idx].join(); } };
 
     // Run main loop
-    engine::run_main_loop(state->window, &state->window_size);
+    engine::run_main_loop(state->window);
 
     return EXIT_SUCCESS;
 }

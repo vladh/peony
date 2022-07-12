@@ -184,7 +184,7 @@ engine::get_dt()
 
 
 void
-engine::run_main_loop(GLFWwindow *window, WindowSize *window_size)
+engine::run_main_loop(GLFWwindow *window)
 {
     TimingInfo timing = init_timing_info(165);
 
