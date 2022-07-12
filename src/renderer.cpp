@@ -237,7 +237,6 @@ renderer::update_drawing_options(InputState *input_state, GLFWwindow *window)
 void
 renderer::render(
     EngineState *engine_state,
-    CamerasState *cameras_state,
     InputState *input_state,
     GLFWwindow *window,
     WindowSize *window_size
@@ -259,7 +258,7 @@ renderer::render(
     glFinish();
 #endif
 
-    copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, false);
+    copy_scene_data_to_ubo(engine_state, window_size, 0, 0, false);
 
     // Clear framebuffers
     {
@@ -324,7 +323,7 @@ renderer::render(
                     renderer::state->builtin_textures.shadowmaps_3d_framebuffer);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                copy_scene_data_to_ubo(cameras_state, engine_state, window_size,
+                copy_scene_data_to_ubo(engine_state, window_size,
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
                 render_scene(engine_state, drawable::Pass::shadowcaster, drawable::Mode::depth);
@@ -375,7 +374,7 @@ renderer::render(
                     renderer::state->builtin_textures.shadowmaps_2d_framebuffer);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                copy_scene_data_to_ubo(cameras_state, engine_state, window_size,
+                copy_scene_data_to_ubo(engine_state, window_size,
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
                 render_scene(engine_state, drawable::Pass::shadowcaster, drawable::Mode::depth);
@@ -463,20 +462,20 @@ renderer::render(
     // Blur pass
     {
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
-        copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, true);
+        copy_scene_data_to_ubo(engine_state, window_size, 0, 0, true);
         render_scene(engine_state, drawable::Pass::preblur, drawable::Mode::regular);
 
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
-        copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, false);
+        copy_scene_data_to_ubo(engine_state, window_size, 0, 0, false);
         render_scene(engine_state, drawable::Pass::blur2, drawable::Mode::regular);
 
         for (uint32 idx = 0; idx < 3; idx++) {
             glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
-            copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, true);
+            copy_scene_data_to_ubo(engine_state, window_size, 0, 0, true);
             render_scene(engine_state, drawable::Pass::blur1, drawable::Mode::regular);
 
             glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
-            copy_scene_data_to_ubo(cameras_state, engine_state, window_size, 0, 0, false);
+            copy_scene_data_to_ubo(engine_state, window_size, 0, 0, false);
             render_scene(engine_state, drawable::Pass::blur2, drawable::Mode::regular);
         }
     }
@@ -1131,7 +1130,6 @@ renderer::init_gui(MemoryPool *memory_pool)
 
 void
 renderer::copy_scene_data_to_ubo(
-    CamerasState *cameras_state,
     EngineState *engine_state,
     WindowSize *window_size,
     uint32 current_shadow_light_idx,
@@ -1139,7 +1137,7 @@ renderer::copy_scene_data_to_ubo(
     bool32 is_blur_horizontal
 ) {
     ShaderCommon *shader_common = &renderer::state->shader_common;
-    Camera *camera = cameras_state->camera_active;
+    cameras::Camera *camera = cameras::get_main();
 
     shader_common->view = camera->view;
     shader_common->projection = camera->projection;

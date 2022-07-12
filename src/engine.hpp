@@ -69,7 +69,6 @@ namespace engine {
 
   void run_main_loop(
     EngineState *engine_state,
-    CamerasState *cameras_state,
     InputState *input_state,
     LightsState *lights_state,
     TasksState *tasks_state,
