@@ -69,9 +69,8 @@ namespace engine {
 
   void run_main_loop(
     EngineState *engine_state,
-    InputState *input_state,
     GLFWwindow *window,
-    renderer::WindowSize *window_size
+    WindowSize *window_size
   );
   void init(EngineState *engine_state, MemoryPool *asset_memory_pool);
 }

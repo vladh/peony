@@ -71,13 +71,11 @@ public:
     };
 
     struct State {
-        // NOTE: We're holding a pointer to another state here. What does this mean?
-        InputState *input_state;
         Array<fonts::FontAsset> *font_assets;
         iv2 texture_atlas_size;
         GameConsole console;
 
-        GLFWcursor *requested_cursor;
+        input::CursorType requested_cursor;
         v2 window_dimensions;
 
         // Containers
@@ -124,14 +122,13 @@ public:
     static void init(
         MemoryPool *memory_pool,
         gui::State* gui_state,
-        InputState *input_state,
         iv2 texture_atlas_size,
         Array<fonts::FontAsset> *font_assets,
         uint32 window_width, uint32 window_height
     );
 
 private:
-    static void request_cursor(GLFWcursor *cursor);
+    static void request_cursor(input::CursorType cursor);
     static void set_cursor();
     static void push_vertices(real32 *vertices, uint32 n_vertices);
     static v2 get_text_dimensions(fonts::FontAsset *font_asset, char const *str);

@@ -11,7 +11,6 @@
 namespace debug_ui {
   void render_debug_ui(
     EngineState *engine_state,
-    InputState *input_state,
-    renderer::WindowSize *window_size
+    WindowSize *window_size
   );
 }

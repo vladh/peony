@@ -4,9 +4,12 @@
 
 #include <GLFW/glfw3.h>
 #include "types.hpp"
+#include "renderer.hpp"
+#include "common.hpp"
 
 class core {
 public:
+    static WindowSize * get_window_size();
     static int run();
     static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
     static void mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
@@ -16,5 +19,8 @@ public:
 
 private:
     static bool init_state(State *state, MemoryPool *asset_memory_pool);
+    static MemoryPool * get_asset_memory_pool();
     static void destroy_state(State *state);
+
+    static State *state;
 };

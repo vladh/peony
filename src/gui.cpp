@@ -21,7 +21,7 @@ gui::update_screen_dimensions(uint32 new_window_width, uint32 new_window_height)
 void
 gui::update_mouse_button()
 {
-    if (input::is_mouse_button_now_up(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+    if (input::is_mouse_button_now_up(GLFW_MOUSE_BUTTON_LEFT)) {
         gui::state->container_being_moved = nullptr;
     }
 }
@@ -31,7 +31,7 @@ void
 gui::update_mouse()
 {
     if (gui::state->container_being_moved) {
-        gui::state->container_being_moved->position += gui::state->input_state->mouse_offset;
+        gui::state->container_being_moved->position += input::get_mouse_offset();
     }
 }
 
@@ -57,10 +57,9 @@ gui::make_container(const char *title, v2 position)
     if (container) {
         // Check if we need to set this container as being moved.
         if (
-            input::is_mouse_in_bb(gui::state->input_state,
-                container->position,
+            input::is_mouse_in_bb(container->position,
                 container->position + v2(container->dimensions.x, container->title_bar_height)) &&
-            input::is_mouse_button_now_down(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)
+            input::is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)
         ) {
             gui::state->container_being_moved = container;
         }
@@ -144,19 +143,19 @@ gui::draw_toggle(Container *container, const char *text, bool32 toggle_state)
         button_color = LIGHT_COLOR;
     }
 
-    if (input::is_mouse_in_bb(gui::state->input_state, position, button_bottomright)) {
-        request_cursor(gui::state->input_state->hand_cursor);
+    if (input::is_mouse_in_bb(position, button_bottomright)) {
+        request_cursor(input::CursorType::hand);
         if (toggle_state) {
             button_color = MAIN_HOVER_COLOR;
         } else {
             button_color = LIGHT_HOVER_COLOR;
         }
 
-        if (input::is_mouse_button_now_down(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input::is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
             is_pressed = true;
         }
 
-        if (input::is_mouse_button_down(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input::is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
             if (toggle_state) {
                 button_color = MAIN_ACTIVE_COLOR;
             } else {
@@ -222,15 +221,15 @@ gui::draw_button(Container *container, const char *text)
 
     v4 button_color = MAIN_COLOR;
 
-    if (input::is_mouse_in_bb(gui::state->input_state, position, bottomright)) {
-        request_cursor(gui::state->input_state->hand_cursor);
+    if (input::is_mouse_in_bb(position, bottomright)) {
+        request_cursor(input::CursorType::hand);
         button_color = MAIN_HOVER_COLOR;
 
-        if (input::is_mouse_button_now_down(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input::is_mouse_button_now_down(GLFW_MOUSE_BUTTON_LEFT)) {
             is_pressed = true;
         }
 
-        if (input::is_mouse_button_down(gui::state->input_state, GLFW_MOUSE_BUTTON_LEFT)) {
+        if (input::is_mouse_button_down(GLFW_MOUSE_BUTTON_LEFT)) {
             button_color = MAIN_ACTIVE_COLOR;
         }
     }
@@ -347,7 +346,6 @@ void
 gui::init(
     MemoryPool *memory_pool,
     gui::State* gui_state,
-    InputState *input_state,
     iv2 texture_atlas_size,
     Array<fonts::FontAsset> *font_assets,
     uint32 window_width, uint32 window_height
@@ -355,7 +353,6 @@ gui::init(
     gui::state = gui_state;
 
     gui::state->containers = Array<Container>(memory_pool, 32, "gui_containers");
-    gui::state->input_state = input_state;
     gui::state->texture_atlas_size = texture_atlas_size;
     gui::state->font_assets = font_assets;
     gui::state->window_dimensions = v2(window_width, window_height);
@@ -364,7 +361,7 @@ gui::init(
 
 
 void
-gui::request_cursor(GLFWcursor *cursor)
+gui::request_cursor(input::CursorType cursor)
 {
     gui::state->requested_cursor = cursor;
 }
@@ -373,8 +370,8 @@ gui::request_cursor(GLFWcursor *cursor)
 void
 gui::set_cursor()
 {
-    input::set_cursor(gui::state->input_state, gui::state->requested_cursor);
-    gui::state->requested_cursor = nullptr;
+    input::set_cursor(gui::state->requested_cursor);
+    gui::state->requested_cursor = input::CursorType::none;
 }
 
 

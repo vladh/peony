@@ -15,6 +15,23 @@
 #include "intrinsics.hpp"
 
 
+State *core::state = nullptr;
+
+
+WindowSize *
+core::get_window_size()
+{
+    return &core::state->window_size;
+}
+
+
+MemoryPool *
+core::get_asset_memory_pool()
+{
+    return core::state->asset_memory_pool;
+}
+
+
 int
 core::run()
 {
@@ -29,10 +46,6 @@ core::run()
         return EXIT_FAILURE;
     }
     defer { destroy_state(state); };
-
-    // Set up globals
-    MemoryAndState memory_and_state = { &asset_memory_pool, state };
-    glfwSetWindowUserPointer(state->window, &memory_and_state);
 
     // Set up loading threads
     std::mutex loading_thread_mutex;
@@ -50,7 +63,6 @@ core::run()
     // Run main loop
     engine::run_main_loop(
         &state->engine_state,
-        &state->input_state,
         state->window,
         &state->window_size);
 
@@ -61,18 +73,17 @@ core::run()
 void
 core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-    MemoryPool *asset_memory_pool = memory_and_state->asset_memory_pool;
-    logs::info("Window is now: %d x %d", state->window_size.width, state->window_size.height);
-    state->window_size.width = width;
-    state->window_size.height = height;
+    MemoryPool *asset_memory_pool = get_asset_memory_pool();
+    WindowSize *window_size = get_window_size();
+    logs::info("Window is now: %d x %d", window_size->width, window_size->height);
+    window_size->width = width;
+    window_size->height = height;
     cameras::Camera *camera = cameras::get_main();
     cameras::update_matrices(
-        camera, state->window_size.width, state->window_size.height);
+        camera, window_size->width, window_size->height);
     cameras::update_ui_matrices(
-        camera, state->window_size.width, state->window_size.height);
-    gui::update_screen_dimensions(state->window_size.width, state->window_size.height);
+        camera, window_size->width, window_size->height);
+    gui::update_screen_dimensions(window_size->width, window_size->height);
 
     auto *builtin_textures = renderer::get_builtin_textures();
     renderer::resize_renderer_buffers(asset_memory_pool, builtin_textures,
@@ -83,10 +94,7 @@ core::framebuffer_size_callback(GLFWwindow* window, int width, int height)
 void
 core::mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
 {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-
-    input::update_mouse_button(&state->input_state, button, action, mods);
+    input::update_mouse_button(button, action, mods);
     gui::update_mouse_button();
 }
 
@@ -94,17 +102,14 @@ core::mouse_button_callback(GLFWwindow *window, int button, int action, int mods
 void
 core::mouse_callback(GLFWwindow *window, real64 x, real64 y)
 {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-
     v2 mouse_pos = v2(x, y);
-    input::update_mouse(&state->input_state, mouse_pos);
+    input::update_mouse(mouse_pos);
 
-    if (state->input_state.is_cursor_enabled) {
+    if (input::is_cursor_enabled()) {
         gui::update_mouse();
     } else {
         cameras::Camera *camera = cameras::get_main();
-        cameras::update_mouse(camera, state->input_state.mouse_3d_offset);
+        cameras::update_mouse(camera, input::get_mouse_3d_offset());
     }
 }
 
@@ -112,40 +117,38 @@ core::mouse_callback(GLFWwindow *window, real64 x, real64 y)
 void
 core::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-    input::update_keys(&state->input_state, key, scancode, action, mods);
+    input::update_keys(key, scancode, action, mods);
 }
 
 
 void
 core::char_callback(GLFWwindow* window, uint32 codepoint) {
-    MemoryAndState *memory_and_state = (MemoryAndState*)glfwGetWindowUserPointer(window);
-    State *state = memory_and_state->state;
-    input::update_text_input(&state->input_state, codepoint);
+    input::update_text_input(codepoint);
 }
 
 
 bool
 core::init_state(State *state, MemoryPool *asset_memory_pool)
 {
+    core::state = state;
     state->window = renderer::init_window(&state->window_size);
     if (!state->window) { return false; }
 
+    state->asset_memory_pool = asset_memory_pool;
+
     engine::init(&state->engine_state, asset_memory_pool);
     mats::init(&state->materials_state, asset_memory_pool);
+    input::init(&state->input_state, state->window);
     renderer::init(
-        &state->renderer_state, &state->input_state, asset_memory_pool,
+        &state->renderer_state, asset_memory_pool,
         state->window_size.width, state->window_size.height, state->window);
     internals::init(&state->engine_state);
     gui::init(asset_memory_pool,
         &state->gui_state,
-        &state->input_state,
         renderer::get_gui_texture_atlas_size(),
         renderer::get_gui_font_assets(),
         state->window_size.width, state->window_size.height);
     debugdraw::init(&state->debug_draw_state, asset_memory_pool);
-    input::init(&state->input_state, state->window);
     lights::init(&state->lights_state);
     tasks::init(&state->tasks_state, asset_memory_pool);
     anim::init(&state->anim_state, asset_memory_pool);

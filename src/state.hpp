@@ -3,6 +3,7 @@
 #pragma once
 
 #include "types.hpp"
+#include "common.hpp"
 #include "anim.hpp"
 #include "gui.hpp"
 #include "cameras.hpp"
@@ -19,22 +20,23 @@
 #include "core.hpp"
 
 struct State {
-  GLFWwindow *window;
-  renderer::WindowSize window_size;
-  EngineState engine_state;
-  renderer::State renderer_state;
-  cameras::State cameras_state;
-  InputState input_state;
-  gui::State gui_state;
-  lights::State lights_state;
-  anim::State anim_state;
-  mats::State materials_state;
-  tasks::State tasks_state;
-  debugdraw::State debug_draw_state;
-  behavior::State behavior_state;
+    GLFWwindow *window;
+    WindowSize window_size;
+    EngineState engine_state;
+    renderer::State renderer_state;
+    cameras::State cameras_state;
+    input::State input_state;
+    gui::State gui_state;
+    lights::State lights_state;
+    anim::State anim_state;
+    mats::State materials_state;
+    tasks::State tasks_state;
+    debugdraw::State debug_draw_state;
+    behavior::State behavior_state;
+    MemoryPool *asset_memory_pool;
 };
 
 struct MemoryAndState {
-  MemoryPool *asset_memory_pool;
-  State *state;
+    MemoryPool *asset_memory_pool;
+    State *state;
 };
