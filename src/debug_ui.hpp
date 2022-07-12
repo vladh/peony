@@ -9,8 +9,5 @@
 #include "input.hpp"
 
 namespace debug_ui {
-  void render_debug_ui(
-    EngineState *engine_state,
-    WindowSize *window_size
-  );
+  void render_debug_ui(WindowSize *window_size);
 }

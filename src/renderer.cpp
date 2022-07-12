@@ -235,11 +235,8 @@ renderer::update_drawing_options(GLFWwindow *window)
 
 
 void
-renderer::render(
-    EngineState *engine_state,
-    GLFWwindow *window,
-    WindowSize *window_size
-) {
+renderer::render(GLFWwindow *window, WindowSize *window_size)
+{
     // Block rendering until all previous OpenGL operations have been completed.
     // This prevents issues where we have multiple frames queued up for drawing on the GPU,
     // in which case we will get all sorts of unpleasant stutter. This problem will only
@@ -257,7 +254,7 @@ renderer::render(
     glFinish();
 #endif
 
-    copy_scene_data_to_ubo(engine_state, window_size, 0, 0, false);
+    copy_scene_data_to_ubo(window_size, 0, 0, false);
 
     // Clear framebuffers
     {
@@ -289,13 +286,13 @@ renderer::render(
 
             uint32 idx_light = 0;
 
-            each (light_component, engine_state->light_component_set.components) {
+            each (light_component, *engine::get_light_components()) {
                 if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
                     continue;
                 }
 
-                SpatialComponent *spatial_component =
-                    engine_state->spatial_component_set.components[light_component->entity_handle];
+                spatial::Component *spatial_component =
+                    engine::get_spatial_component(light_component->entity_handle);
 
                 if (!(
                         lights::is_light_component_valid(light_component) &&
@@ -322,10 +319,10 @@ renderer::render(
                     renderer::state->builtin_textures.shadowmaps_3d_framebuffer);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                copy_scene_data_to_ubo(engine_state, window_size,
+                copy_scene_data_to_ubo(window_size,
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
-                render_scene(engine_state, drawable::Pass::shadowcaster, drawable::Mode::depth);
+                render_scene(drawable::Pass::shadowcaster, drawable::Mode::depth);
 
                 idx_light++;
             }
@@ -345,13 +342,13 @@ renderer::render(
 
             uint32 idx_light = 0;
 
-            each (light_component, engine_state->light_component_set.components) {
+            each (light_component, *engine::get_light_components()) {
                 if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
                     continue;
                 }
 
-                SpatialComponent *spatial_component =
-                    engine_state->spatial_component_set.components[light_component->entity_handle];
+                spatial::Component *spatial_component =
+                    engine::get_spatial_component(light_component->entity_handle);
 
                 if (!(
                         lights::is_light_component_valid(light_component) &&
@@ -373,10 +370,10 @@ renderer::render(
                     renderer::state->builtin_textures.shadowmaps_2d_framebuffer);
                 glClear(GL_DEPTH_BUFFER_BIT);
 
-                copy_scene_data_to_ubo(engine_state, window_size,
+                copy_scene_data_to_ubo(window_size,
                     idx_light, lights::light_type_to_int(light_component->type),
                     false);
-                render_scene(engine_state, drawable::Pass::shadowcaster, drawable::Mode::depth);
+                render_scene(drawable::Pass::shadowcaster, drawable::Mode::depth);
 
                 idx_light++;
             }
@@ -392,7 +389,7 @@ renderer::render(
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.g_buffer);
-        render_scene(engine_state, drawable::Pass::deferred, drawable::Mode::regular);
+        render_scene(drawable::Pass::deferred, drawable::Mode::regular);
         if (renderer::state->should_use_wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
@@ -412,7 +409,7 @@ renderer::render(
     // Lighting pass
     {
         glDisable(GL_DEPTH_TEST);
-        render_scene(engine_state, drawable::Pass::lighting, drawable::Mode::regular);
+        render_scene(drawable::Pass::lighting, drawable::Mode::regular);
         glEnable(GL_DEPTH_TEST);
     }
 
@@ -428,7 +425,7 @@ renderer::render(
             // Draw at the very back of our depth range, so as to be behind everything.
             glDepthRange(0.9999f, 1.0f);
 
-            render_scene(engine_state, drawable::Pass::forward_skybox, drawable::Mode::regular);
+            render_scene(drawable::Pass::forward_skybox, drawable::Mode::regular);
 
             glDepthRange(0.0f, 1.0f);
             glDepthMask(GL_TRUE);
@@ -440,9 +437,9 @@ renderer::render(
             if (renderer::state->should_use_wireframe) {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             }
-            render_scene(engine_state, drawable::Pass::forward_depth, drawable::Mode::regular);
+            render_scene(drawable::Pass::forward_depth, drawable::Mode::regular);
             glDisable(GL_DEPTH_TEST);
-            render_scene(engine_state, drawable::Pass::forward_nodepth, drawable::Mode::regular);
+            render_scene(drawable::Pass::forward_nodepth, drawable::Mode::regular);
             glEnable(GL_DEPTH_TEST);
             if (renderer::state->should_use_wireframe) {
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -461,21 +458,21 @@ renderer::render(
     // Blur pass
     {
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
-        copy_scene_data_to_ubo(engine_state, window_size, 0, 0, true);
-        render_scene(engine_state, drawable::Pass::preblur, drawable::Mode::regular);
+        copy_scene_data_to_ubo(window_size, 0, 0, true);
+        render_scene(drawable::Pass::preblur, drawable::Mode::regular);
 
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
-        copy_scene_data_to_ubo(engine_state, window_size, 0, 0, false);
-        render_scene(engine_state, drawable::Pass::blur2, drawable::Mode::regular);
+        copy_scene_data_to_ubo(window_size, 0, 0, false);
+        render_scene(drawable::Pass::blur2, drawable::Mode::regular);
 
         for (uint32 idx = 0; idx < 3; idx++) {
             glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
-            copy_scene_data_to_ubo(engine_state, window_size, 0, 0, true);
-            render_scene(engine_state, drawable::Pass::blur1, drawable::Mode::regular);
+            copy_scene_data_to_ubo(window_size, 0, 0, true);
+            render_scene(drawable::Pass::blur1, drawable::Mode::regular);
 
             glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
-            copy_scene_data_to_ubo(engine_state, window_size, 0, 0, false);
-            render_scene(engine_state, drawable::Pass::blur2, drawable::Mode::regular);
+            copy_scene_data_to_ubo(window_size, 0, 0, false);
+            render_scene(drawable::Pass::blur2, drawable::Mode::regular);
         }
     }
 #endif
@@ -484,19 +481,19 @@ renderer::render(
 
     // Postprocessing pass
     {
-        render_scene(engine_state, drawable::Pass::postprocessing, drawable::Mode::regular);
+        render_scene(drawable::Pass::postprocessing, drawable::Mode::regular);
     }
 
     // Render debug pass
     {
-        render_scene(engine_state, drawable::Pass::renderdebug, drawable::Mode::regular);
+        render_scene(drawable::Pass::renderdebug, drawable::Mode::regular);
     }
 
     // UI pass
     {
         if (!renderer::state->should_hide_ui) {
             glEnable(GL_BLEND);
-            debug_ui::render_debug_ui(engine_state, window_size);
+            debug_ui::render_debug_ui(window_size);
             glDisable(GL_BLEND);
         }
     }
@@ -1128,7 +1125,6 @@ renderer::init_gui(MemoryPool *memory_pool)
 
 void
 renderer::copy_scene_data_to_ubo(
-    EngineState *engine_state,
     WindowSize *window_size,
     uint32 current_shadow_light_idx,
     uint32 current_shadow_light_type,
@@ -1166,20 +1162,20 @@ renderer::copy_scene_data_to_ubo(
     shader_common->unused_pad = 0;
 
     shader_common->exposure = camera->exposure;
-    shader_common->t = (float)(*engine::g_t);
+    shader_common->t = (float)(engine::get_t());
     shader_common->window_width = window_size->width;
     shader_common->window_height = window_size->height;
 
     uint32 n_point_lights = 0;
     uint32 n_directional_lights = 0;
 
-    each (light_component, engine_state->light_component_set.components) {
+    each (light_component, *engine::get_light_components()) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
             continue;
         }
 
-        SpatialComponent *spatial_component =
-            engine_state->spatial_component_set.components[light_component->entity_handle];
+        spatial::Component *spatial_component =
+            engine::get_spatial_component(light_component->entity_handle);
 
         if (!(
             lights::is_light_component_valid(light_component) &&
@@ -1220,7 +1216,6 @@ renderer::copy_scene_data_to_ubo(
 void
 renderer::draw(
     drawable::Mode render_mode,
-    drawable::ComponentSet *drawable_component_set,
     drawable::Component *drawable_component,
     mats::Material *material,
     m4 *model_matrix,
@@ -1243,9 +1238,9 @@ renderer::draw(
     assert(shader_asset);
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
-    if (shader_asset->program != drawable_component_set->last_drawn_shader_program) {
+    if (shader_asset->program != engine::get_last_drawn_shader_program()) {
         glUseProgram(shader_asset->program);
-        drawable_component_set->last_drawn_shader_program = shader_asset->program;
+        engine::set_last_drawn_shader_program(shader_asset->program);
 
         if (render_mode == drawable::Mode::regular) {
             for (
@@ -1289,17 +1284,13 @@ renderer::draw(
 
 void
 renderer::draw_all(
-    EntitySet *entity_set,
-    drawable::ComponentSet *drawable_component_set,
-    SpatialComponentSet *spatial_component_set,
-    anim::ComponentSet *animation_component_set,
     drawable::Pass render_pass,
     drawable::Mode render_mode,
     shaders::Asset *standard_depth_shader_asset
 ) {
     ModelMatrixCache cache = { m4(1.0f), nullptr };
 
-    each (drawable_component, drawable_component_set->components) {
+    each (drawable_component, *engine::get_drawable_components()) {
         if (!drawable::is_component_valid(drawable_component)) {
             continue;
         }
@@ -1310,7 +1301,7 @@ renderer::draw_all(
 
 #if 0
         logs::info("Drawing %s",
-            entity_set->entities[drawable_component->entity_handle]->debug_name);
+            engine::get_entity(drawable_component->entity_handle)->debug_name);
 #endif
 
         mats::Material *material = mats::get_material_by_name(
@@ -1320,8 +1311,8 @@ renderer::draw_all(
             material = mats::get_material_by_name("unknown");
         }
 
-        SpatialComponent *spatial_component =
-            spatial_component_set->components[drawable_component->entity_handle];
+        spatial::Component *spatial_component =
+            engine::get_spatial_component(drawable_component->entity_handle);
 
         m4 model_matrix = m4(1.0f);
         m3 model_normal_matrix = m3(1.0f);
@@ -1330,8 +1321,7 @@ renderer::draw_all(
         if (spatial::is_spatial_component_valid(spatial_component)) {
             // We only need to calculate the normal matrix if we have non-uniform
             // scaling.
-            model_matrix = spatial::make_model_matrix(
-                spatial_component_set, spatial_component, &cache);
+            model_matrix = spatial::make_model_matrix(spatial_component, &cache);
 
             // TODO: Even though we have a uniform scaling in the transformation for
             // our spatial component itself, when accumulating it with the parent
@@ -1350,32 +1340,24 @@ renderer::draw_all(
 
             // Animations
             anim::Component *animation_component = anim::find_animation_component(
-                spatial_component, spatial_component_set, animation_component_set);
+                spatial_component);
             if (animation_component) {
                 bone_matrices = animation_component->bone_matrices;
             }
         }
 
-        draw(render_mode, drawable_component_set, drawable_component, material,
+        draw(render_mode, drawable_component, material,
             &model_matrix, &model_normal_matrix, bone_matrices, standard_depth_shader_asset);
     }
 }
 
 
 void
-renderer::render_scene(
-    EngineState *engine_state,
-    drawable::Pass render_pass,
-    drawable::Mode render_mode
-) {
+renderer::render_scene(drawable::Pass render_pass, drawable::Mode render_mode)
+{
 #if 0
     logs::info("drawable::Pass: %s", render_pass_to_string(render_pass));
 #endif
-    draw_all(&engine_state->entity_set,
-        &engine_state->drawable_component_set,
-        &engine_state->spatial_component_set,
-        &engine_state->animation_component_set,
-        render_pass,
-        render_mode,
+    draw_all(render_pass, render_mode,
         &renderer::state->standard_depth_shader_asset);
 }

@@ -32,14 +32,14 @@ public:
         ::State *state;
     };
 
-    typedef void (*Function) (void *bevahior_state, EntityHandle entity_handle);
+    typedef void (*Function) (EntityHandle entity_handle);
 
     static Function function_map[(uint32)Behavior::length];
 
     static char const * behavior_to_string(Behavior behavior);
     static Behavior behavior_from_string(const char *str);
     static bool32 is_behavior_component_valid(Component *behavior_component);
-    static void update_behavior_components(EngineState *engine_state);
+    static void update_behavior_components(ComponentSet *component_set);
     static void init(
         behavior::State *behavior_state,
         ::State *state

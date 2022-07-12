@@ -58,9 +58,9 @@ behavior::is_behavior_component_valid(behavior::Component *behavior_component)
 
 void
 behavior::update_behavior_components(
-    EngineState *engine_state
+    behavior::ComponentSet *component_set
 ) {
-    each (behavior_component, engine_state->behavior_component_set.components) {
+    each (behavior_component, component_set->components) {
         if (!is_behavior_component_valid(behavior_component)) {
             continue;
         }
@@ -69,7 +69,7 @@ behavior::update_behavior_components(
 
         auto handler = function_map[(uint32)behavior_component->behavior];
         if (handler) {
-            handler(behavior::state, entity_handle);
+            handler(entity_handle);
         }
     }
 }

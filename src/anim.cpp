@@ -39,7 +39,7 @@ anim::get_bone_matrix(uint32 idx, uint32 idx_bone, uint32 idx_anim_key)
 void
 anim::update_animation_components(
     anim::ComponentSet *animation_component_set,
-    SpatialComponentSet *spatial_component_set
+    spatial::ComponentSet *spatial_component_set
 ) {
     each (animation_component, animation_component_set->components) {
         if (!is_animation_component_valid(animation_component)) {
@@ -62,7 +62,7 @@ anim::update_animation_components(
 
                 // If we have multiple anim keys, find the right ones and interpolate.
             } else {
-                real64 animation_timepoint = fmod(*engine::g_t, animation->duration);
+                real64 animation_timepoint = fmod(engine::get_t(), animation->duration);
 
                 uint32 idx_anim_key = get_bone_matrix_anim_key_for_timepoint(
                     animation_component,
@@ -144,22 +144,19 @@ anim::make_bone_matrices_for_animation_bone(
 
 
 anim::Component *
-anim::find_animation_component(
-    SpatialComponent *spatial_component,
-    SpatialComponentSet *spatial_component_set,
-    anim::ComponentSet *animation_component_set
-) {
+anim::find_animation_component(spatial::Component *spatial_component)
+{
     anim::Component *animation_component =
-        animation_component_set->components[spatial_component->entity_handle];
+        engine::get_animation_component(spatial_component->entity_handle);
 
     if (is_animation_component_valid(animation_component)) {
         return animation_component;
     }
 
     if (spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE) {
-        SpatialComponent *parent =
-            spatial_component_set->components[spatial_component->parent_entity_handle];
-        return find_animation_component(parent, spatial_component_set, animation_component_set);
+        spatial::Component *parent =
+            engine::get_spatial_component(spatial_component->parent_entity_handle);
+        return find_animation_component(parent);
     }
 
     return nullptr;

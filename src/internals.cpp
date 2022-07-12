@@ -7,9 +7,7 @@
 #include "internals.hpp"
 
 
-void internals::create_internal_materials(
-  EngineState *engine_state
-) {
+void internals::create_internal_materials() {
   MemoryPool temp_memory_pool = {};
   auto *builtin_textures = renderer::get_builtin_textures();
 
@@ -217,9 +215,7 @@ void internals::create_internal_materials(
 }
 
 
-void internals::create_internal_entities(
-  EngineState *engine_state
-) {
+void internals::create_internal_entities() {
   MemoryPool temp_memory_pool = {};
 
   shaders::init_shader_asset(
@@ -232,12 +228,9 @@ void internals::create_internal_entities(
 
   // Lighting screenquad
   {
-    Entity *entity = entities::add_entity_to_set(
-      &engine_state->entity_set, "screenquad_lighting"
-    );
-    models::ModelLoader *model_loader = engine_state->model_loaders.push();
-    models::EntityLoader *entity_loader =
-      engine_state->entity_loader_set.loaders[entity->handle];
+    Entity *entity = entities::add_entity_to_set("screenquad_lighting");
+    models::ModelLoader *model_loader = engine::push_model_loader();
+    models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:screenquad_lighting");
     models::init_entity_loader(
       entity_loader,
@@ -252,12 +245,9 @@ void internals::create_internal_entities(
   #if USE_BLOOM
     // Preblur screenquad
     {
-      Entity *entity = entities::add_entity_to_set(
-        &engine_state->entity_set, "screenquad_preblur"
-      );
-      models::ModelLoader *model_loader = engine_state->model_loaders.push();
-      models::EntityLoader *entity_loader =
-        engine_state->entity_loader_set.loaders[entity->handle];
+      Entity *entity = entities::add_entity_to_set("screenquad_preblur");
+      models::ModelLoader *model_loader = engine::push_model_loader();
+      models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
       models::init_model_loader(model_loader, "builtin:screenquad_preblur");
       models::init_entity_loader(
         entity_loader,
@@ -271,12 +261,9 @@ void internals::create_internal_entities(
 
     // Blur 1 screenquad
     {
-      Entity *entity = entities::add_entity_to_set(
-        &engine_state->entity_set, "screenquad_blur1"
-      );
-      models::ModelLoader *model_loader = engine_state->model_loaders.push();
-      models::EntityLoader *entity_loader =
-        engine_state->entity_loader_set.loaders[entity->handle];
+      Entity *entity = entities::add_entity_to_set("screenquad_blur1");
+      models::ModelLoader *model_loader = engine::push_model_loader();
+      models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
       models::init_model_loader(model_loader, "builtin:screenquad_blur1");
       models::init_entity_loader(
         entity_loader,
@@ -290,12 +277,9 @@ void internals::create_internal_entities(
 
     // Blur 2 screenquad
     {
-      Entity *entity = entities::add_entity_to_set(
-        &engine_state->entity_set, "screenquad_blur2"
-      );
-      models::ModelLoader *model_loader = engine_state->model_loaders.push();
-      models::EntityLoader *entity_loader =
-        engine_state->entity_loader_set.loaders[entity->handle];
+      Entity *entity = entities::add_entity_to_set("screenquad_blur2");
+      models::ModelLoader *model_loader = engine::push_model_loader();
+      models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
       models::init_model_loader(model_loader, "builtin:screenquad_blur2");
       models::init_entity_loader(
         entity_loader,
@@ -310,12 +294,9 @@ void internals::create_internal_entities(
 
   // Postprocessing screenquad
   {
-    Entity *entity = entities::add_entity_to_set(
-      &engine_state->entity_set, "screenquad_postprocessing"
-    );
-    models::ModelLoader *model_loader = engine_state->model_loaders.push();
-    models::EntityLoader *entity_loader =
-      engine_state->entity_loader_set.loaders[entity->handle];
+    Entity *entity = entities::add_entity_to_set("screenquad_postprocessing");
+    models::ModelLoader *model_loader = engine::push_model_loader();
+    models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:screenquad_postprocessing");
     models::init_entity_loader(
       entity_loader,
@@ -329,12 +310,9 @@ void internals::create_internal_entities(
 
   // Debug screenquad
   {
-    Entity *entity = entities::add_entity_to_set(
-      &engine_state->entity_set, "screenquad_renderdebug"
-    );
-    models::ModelLoader *model_loader = engine_state->model_loaders.push();
-    models::EntityLoader *entity_loader =
-      engine_state->entity_loader_set.loaders[entity->handle];
+    Entity *entity = entities::add_entity_to_set("screenquad_renderdebug");
+    models::ModelLoader *model_loader = engine::push_model_loader();
+    models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:screenquad_renderdebug");
     models::init_entity_loader(
       entity_loader,
@@ -348,12 +326,9 @@ void internals::create_internal_entities(
 
   // Skysphere
   {
-    Entity *entity = entities::add_entity_to_set(
-      &engine_state->entity_set, "skysphere"
-    );
-    models::ModelLoader *model_loader = engine_state->model_loaders.push();
-    models::EntityLoader *entity_loader =
-      engine_state->entity_loader_set.loaders[entity->handle];
+    Entity *entity = entities::add_entity_to_set("skysphere");
+    models::ModelLoader *model_loader = engine::push_model_loader();
+    models::EntityLoader *entity_loader = engine::get_entity_loader(entity->handle);
     models::init_model_loader(model_loader, "builtin:skysphere");
     models::init_entity_loader(
       entity_loader,
@@ -374,20 +349,13 @@ void internals::create_internal_entities(
   // We've created all internal entities, so we will mark the next position
   // in the EntitySet, to know that that position is where the non-internal
   // entities start.
-  engine_state->entity_set.first_non_internal_handle =
-    engine_state->entity_set.next_handle;
+  engine::mark_first_non_internal_handle();
 
   memory::destroy_memory_pool(&temp_memory_pool);
 }
 
 
-void internals::init(
-  EngineState *engine_state
-) {
-  create_internal_materials(
-    engine_state
-  );
-  create_internal_entities(
-    engine_state
-  );
+void internals::init() {
+  create_internal_materials();
+  create_internal_entities();
 }

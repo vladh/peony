@@ -7,14 +7,12 @@
 
 
 namespace debug_ui {
-  pny_internal void get_entity_text_representation(
-    char *text,
-    EngineState *engine_state,
-    Entity *entity,
-    uint8 depth
-  ) {
+  pny_internal void get_entity_text_representation(char *text, Entity *entity, uint8 depth) {
+    // TODO: fixme
+    engine::State *engine_state = engine::todo_fixme_get_engine_state();
+
     EntityHandle handle = entity->handle;
-    SpatialComponent *spatial_component =
+    spatial::Component *spatial_component =
       engine_state->spatial_component_set.components[handle];
 
     // Children will be drawn under their parents.
@@ -96,7 +94,7 @@ namespace debug_ui {
           if (text[strlen(text) - 1] != '\n') {
             strcat(text, "\n");
           }
-          get_entity_text_representation(text, engine_state, child_entity, depth + 1);
+          get_entity_text_representation(text, child_entity, depth + 1);
         }
       }
       if (n_children_found > 5) {
@@ -117,10 +115,10 @@ namespace debug_ui {
   }
 
 
-  pny_internal void get_scene_text_representation(
-    char *text,
-    EngineState *engine_state
-  ) {
+  pny_internal void get_scene_text_representation(char *text) {
+    // TODO: fixme
+    engine::State *engine_state = engine::todo_fixme_get_engine_state();
+
     text[0] = '\0';
 
     constexpr uint32 const MAX_N_SHOWN_ENTITIES = 35;
@@ -134,7 +132,7 @@ namespace debug_ui {
         );
         break;;
       }
-      get_entity_text_representation(text, engine_state, entity, 0);
+      get_entity_text_representation(text, entity, 0);
       idx_entity++;
     }
 
@@ -144,10 +142,7 @@ namespace debug_ui {
   }
 
 
-  pny_internal void get_materials_text_representation(
-    char *text,
-    EngineState *engine_state
-  ) {
+  pny_internal void get_materials_text_representation(char *text) {
     text[0] = '\0';
 
     strcat(text, "Internal:\n");
@@ -173,10 +168,10 @@ namespace debug_ui {
 }
 
 
-void debug_ui::render_debug_ui(
-  EngineState *engine_state,
-  WindowSize *window_size
-) {
+void debug_ui::render_debug_ui(WindowSize *window_size) {
+  // TODO: fixme
+  engine::State *engine_state = engine::todo_fixme_get_engine_state();
+
   char debug_text[1 << 14];
   size_t dt_size = sizeof(debug_text);
 
@@ -314,7 +309,7 @@ void debug_ui::render_debug_ui(
     gui::Container *container = gui::make_container(
       "Entities", v2(window_size->width - 400.0f, 25.0f)
     );
-    get_scene_text_representation(debug_text, engine_state);
+    get_scene_text_representation(debug_text);
     gui::draw_body_text(container, debug_text);
   }
 
@@ -322,7 +317,7 @@ void debug_ui::render_debug_ui(
     gui::Container *container = gui::make_container(
       "Materials", v2(window_size->width - 600.0f, 25.0f)
     );
-    get_materials_text_representation(debug_text, engine_state);
+    get_materials_text_representation(debug_text);
     gui::draw_body_text(container, debug_text);
   }
 

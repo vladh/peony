@@ -110,10 +110,10 @@ gui::tick_heading()
         draw_heading(gui::state->heading_text,
             v4(0.0f, 0.33f, 0.93f, gui::state->heading_opacity));
         if (gui::state->heading_fadeout_delay > 0.0f) {
-            gui::state->heading_fadeout_delay -= (real32)(*engine::g_dt);
+            gui::state->heading_fadeout_delay -= (real32)(engine::get_dt());
         } else {
             gui::state->heading_opacity -=
-                gui::state->heading_fadeout_duration * (real32)(*engine::g_dt);
+                gui::state->heading_fadeout_duration * (real32)(engine::get_dt());
         }
     }
 }

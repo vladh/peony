@@ -119,11 +119,7 @@ public:
         uint32 height
     );
     static void update_drawing_options(GLFWwindow *window);
-    static void render(
-        EngineState *engine_state,
-        GLFWwindow *window,
-        WindowSize *window_size
-    );
+    static void render(GLFWwindow *window, WindowSize *window_size);
     static void init(
         renderer::State *renderer_state,
         MemoryPool *memory_pool,
@@ -193,7 +189,6 @@ private:
     );
     static void init_gui(MemoryPool *memory_pool);
     static void copy_scene_data_to_ubo(
-        EngineState *engine_state,
         WindowSize *window_size,
         uint32 current_shadow_light_idx,
         uint32 current_shadow_light_type,
@@ -201,7 +196,6 @@ private:
     );
     static void draw(
         drawable::Mode render_mode,
-        drawable::ComponentSet *drawable_component_set,
         drawable::Component *drawable_component,
         mats::Material *material,
         m4 *model_matrix,
@@ -210,19 +204,11 @@ private:
         shaders::Asset *standard_depth_shader_asset
     );
     static void draw_all(
-        EntitySet *entity_set,
-        drawable::ComponentSet *drawable_component_set,
-        SpatialComponentSet *spatial_component_set,
-        anim::ComponentSet *animation_component_set,
         drawable::Pass render_pass,
         drawable::Mode render_mode,
         shaders::Asset *standard_depth_shader_asset
     );
-    static void render_scene(
-        EngineState *engine_state,
-        drawable::Pass render_pass,
-        drawable::Mode render_mode
-    );
+    static void render_scene(drawable::Pass render_pass, drawable::Mode render_mode);
 
     static renderer::State *state;
 };

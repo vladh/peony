@@ -56,7 +56,7 @@ public:
         EntityHandle entity_handle;
         drawable::Pass render_pass;
         EntityLoaderState state;
-        SpatialComponent spatial_component;
+        spatial::Component spatial_component;
         lights::Component light_component;
         behavior::Component behavior_component;
         physics::Component physics_component;
@@ -72,14 +72,7 @@ public:
     static bool32 prepare_model_loader_and_check_if_done(ModelLoader *model_loader);
     static bool32 prepare_entity_loader_and_check_if_done(
         EntityLoader *entity_loader,
-        EntitySet *entity_set,
-        ModelLoader *model_loader,
-        drawable::ComponentSet *drawable_component_set,
-        SpatialComponentSet *spatial_component_set,
-        lights::ComponentSet *light_component_set,
-        behavior::ComponentSet *behavior_component_set,
-        anim::ComponentSet *animation_component_set,
-        physics::ComponentSet *physics_component_set
+        ModelLoader *model_loader
     );
     static bool32 is_model_loader_valid(ModelLoader *model_loader);
     static bool32 is_entity_loader_valid(EntityLoader *entity_loader);

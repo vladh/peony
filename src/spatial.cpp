@@ -2,10 +2,11 @@
 
 #include "spatial.hpp"
 #include "logs.hpp"
+#include "engine.hpp"
 
 
-void spatial::print_spatial_component(SpatialComponent *spatial_component) {
-  logs::info("SpatialComponent:");
+void spatial::print_spatial_component(spatial::Component *spatial_component) {
+  logs::info("spatial::Component:");
   logs::info("  entity_handle: %d", spatial_component->entity_handle);
   logs::info("  position:");
   logs::print_v3(&spatial_component->position);
@@ -19,7 +20,7 @@ void spatial::print_spatial_component(SpatialComponent *spatial_component) {
 
 
 bool32 spatial::does_spatial_component_have_dimensions(
-  SpatialComponent *spatial_component
+  spatial::Component *spatial_component
 ) {
   return (
     spatial_component->scale.x > 0.0f &&
@@ -29,24 +30,22 @@ bool32 spatial::does_spatial_component_have_dimensions(
 }
 
 
-bool32 spatial::is_spatial_component_valid(SpatialComponent *spatial_component) {
+bool32 spatial::is_spatial_component_valid(spatial::Component *spatial_component) {
   return does_spatial_component_have_dimensions(spatial_component) ||
     spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE;
 }
 
 
 m4 spatial::make_model_matrix(
-  SpatialComponentSet *spatial_component_set,
-  SpatialComponent *spatial_component,
+  spatial::Component *spatial_component,
   ModelMatrixCache *cache
 ) {
   m4 model_matrix = m4(1.0f);
 
   if (spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE) {
-    SpatialComponent *parent = spatial_component_set->components[
-      spatial_component->parent_entity_handle
-    ];
-    model_matrix = make_model_matrix(spatial_component_set, parent, cache);
+    spatial::Component *parent = engine::get_spatial_component(
+      spatial_component->parent_entity_handle);
+    model_matrix = make_model_matrix(parent, cache);
   }
 
   if (does_spatial_component_have_dimensions(spatial_component)) {
