@@ -42,20 +42,6 @@ engine::push_model_loader()
 }
 
 
-u32
-engine::get_last_drawn_shader_program()
-{
-    return engine::state->drawable_component_set.last_drawn_shader_program;
-}
-
-
-void
-engine::set_last_drawn_shader_program(u32 val)
-{
-    engine::state->drawable_component_set.last_drawn_shader_program = val;
-}
-
-
 void
 engine::mark_first_non_internal_handle()
 {
@@ -75,13 +61,6 @@ Array<entities::Entity> *
 engine::get_entities()
 {
     return &engine::state->entity_set.entities;
-}
-
-
-Array<drawable::Component> *
-engine::get_drawable_components()
-{
-    return &engine::state->drawable_component_set.components;
 }
 
 
@@ -117,13 +96,6 @@ entities::Entity *
 engine::get_entity(entities::Handle entity_handle)
 {
     return engine::state->entity_set.entities[entity_handle];
-}
-
-
-drawable::Component *
-engine::get_drawable_component(entities::Handle entity_handle)
-{
-    return engine::state->drawable_component_set.components[entity_handle];
 }
 
 
@@ -228,10 +200,6 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
         .entities = Array<entities::Entity>(
             asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1)
     };
-    engine::state->drawable_component_set = {
-        .components = Array<drawable::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1)
-    };
     engine::state->light_component_set = {
         .components = Array<lights::Component>(
             asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1)
@@ -266,8 +234,7 @@ engine::destroy_non_internal_entities()
         idx < engine::state->entity_set.entities.length;
         idx++
     ) {
-        drawable::destroy_component(
-            engine::state->drawable_component_set.components[idx]);
+        drawable::destroy_component(drawable::get_component(idx));
     }
 
     engine::state->entity_set.next_handle =
@@ -280,7 +247,7 @@ engine::destroy_non_internal_entities()
         engine::state->entity_set.first_non_internal_handle);
     spatial::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
-    engine::state->drawable_component_set.components.delete_elements_after_index(
+    drawable::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
     engine::state->behavior_component_set.components.delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);

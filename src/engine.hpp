@@ -6,7 +6,6 @@
 namespace chrono = std::chrono;
 #include "types.hpp"
 #include "entities.hpp"
-#include "spatial.hpp"
 #include "lights.hpp"
 #include "behavior.hpp"
 #include "physics.hpp"
@@ -59,7 +58,6 @@ public:
         Array<models::ModelLoader> model_loaders;
         models::EntityLoaderSet entity_loader_set;
         entities::Set entity_set;
-        drawable::ComponentSet drawable_component_set;
         lights::ComponentSet light_component_set;
         behavior::ComponentSet behavior_component_set;
         anim::ComponentSet animation_component_set;
@@ -69,21 +67,15 @@ public:
     static engine::State * debug_get_engine_state();
     static models::EntityLoader * get_entity_loader(entities::Handle entity_handle);
     static models::ModelLoader * push_model_loader();
-    static u32 get_last_drawn_shader_program();
-    static void set_last_drawn_shader_program(u32 val);
     static void mark_first_non_internal_handle();
     static entities::Set * get_entity_set();
     static Array<entities::Entity> * get_entities();
-    static Array<drawable::Component> * get_drawable_components();
     static Array<lights::Component> * get_light_components();
-    static Array<spatial::Component> * get_spatial_components();
     static Array<behavior::Component> * get_behavior_components();
     static Array<anim::Component> * get_animation_components();
     static Array<physics::Component> * get_physics_components();
     static entities::Entity * get_entity(entities::Handle entity_handle);
-    static drawable::Component * get_drawable_component(entities::Handle entity_handle);
     static lights::Component * get_light_component(entities::Handle entity_handle);
-    static spatial::Component * get_spatial_component(entities::Handle entity_handle);
     static behavior::Component * get_behavior_component(entities::Handle entity_handle);
     static anim::Component * get_animation_component(entities::Handle entity_handle);
     static physics::Component * get_physics_component(entities::Handle entity_handle);

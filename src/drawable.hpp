@@ -30,7 +30,7 @@ public:
         Pass target_render_pass = Pass::none;
     };
 
-    struct ComponentSet {
+    struct State {
         Array<drawable::Component> components;
         u32 last_drawn_shader_program;
     };
@@ -39,4 +39,12 @@ public:
     static drawable::Pass render_pass_from_string(const char* str);
     static bool is_component_valid(drawable::Component *drawable_component);
     static void destroy_component(drawable::Component *drawable_component);
+    static Array<drawable::Component> * get_components();
+    static drawable::Component * get_component(entities::Handle entity_handle);
+    static u32 get_last_drawn_shader_program();
+    static void set_last_drawn_shader_program(u32 val);
+    static void init(drawable::State *drawable_state, memory::Pool *asset_memory_pool);
+
+private:
+    static drawable::State *state;
 };

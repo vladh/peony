@@ -1240,9 +1240,9 @@ renderer::draw(
     assert(shader_asset);
 
     // If our shader program has changed since our last mesh, tell OpenGL about it.
-    if (shader_asset->program != engine::get_last_drawn_shader_program()) {
+    if (shader_asset->program != drawable::get_last_drawn_shader_program()) {
         glUseProgram(shader_asset->program);
-        engine::set_last_drawn_shader_program(shader_asset->program);
+        drawable::set_last_drawn_shader_program(shader_asset->program);
 
         if (render_mode == drawable::Mode::regular) {
             for (
@@ -1292,7 +1292,7 @@ renderer::draw_all(
 ) {
     spatial::ModelMatrixCache cache = { m4(1.0f), nullptr };
 
-    each (drawable_component, *engine::get_drawable_components()) {
+    each (drawable_component, *drawable::get_components()) {
         if (!drawable::is_component_valid(drawable_component)) {
             continue;
         }

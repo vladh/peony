@@ -144,7 +144,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
 
     bool has_spatial_component = spatial::is_spatial_component_valid(spatial_component);
     bool has_drawable_component = drawable::is_component_valid(
-        engine_state->drawable_component_set.components[handle]);
+        drawable::get_component(handle));
     bool has_light_component = lights::is_light_component_valid(
         engine_state->light_component_set.components[handle]);
     bool has_behavior_component = behavior::is_behavior_component_valid(
