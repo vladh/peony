@@ -80,14 +80,14 @@ spatial::make_model_matrix(
 Array<spatial::Component> *
 spatial::get_components()
 {
-    return &spatial::state->component_set.components;
+    return &spatial::state->components;
 }
 
 
 spatial::Component *
 spatial::get_component(entities::Handle entity_handle)
 {
-    return spatial::state->component_set.components[entity_handle];
+    return spatial::state->components[entity_handle];
 }
 
 
@@ -95,9 +95,6 @@ void
 spatial::init(spatial::State *spatial_state, memory::Pool *asset_memory_pool)
 {
     spatial::state = spatial_state;
-    spatial::state->component_set = {
-        .components = Array<spatial::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1
-        )
-    };
+    spatial::state->components =  Array<spatial::Component>(
+        asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1);
 }
