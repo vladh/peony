@@ -7,13 +7,16 @@
 #include "intrinsics.hpp"
 
 
+physics::State *physics::state = nullptr;
+
+
 physics::RayCollisionResult
 physics::find_ray_collision(
     spatial::Ray *ray,
     // TODO: Replace this with some kind of collision layers.
     physics::Component *physics_component_to_ignore_or_nullptr
 ) {
-    each (candidate, *engine::get_physics_components()) {
+    each (candidate, *get_components()) {
         if (!is_component_valid(candidate)) {
             continue;
         }
@@ -41,7 +44,7 @@ physics::find_collision(
     physics::Component *self_physics,
     spatial::Component *self_spatial
 ) {
-    each (candidate_physics, *engine::get_physics_components()) {
+    each (candidate_physics, *get_components()) {
         if (!is_component_valid(candidate_physics)) {
             continue;
         }
@@ -70,7 +73,7 @@ physics::find_collision(
 void
 physics::update()
 {
-    each (physics_component, *engine::get_physics_components()) {
+    each (physics_component, *get_components()) {
         if (!is_component_valid(physics_component)) {
             continue;
         }
@@ -84,6 +87,29 @@ physics::update()
 
         physics_component->transformed_obb = transform_obb(physics_component->obb, spatial_component);
     }
+}
+
+
+Array<physics::Component> *
+physics::get_components()
+{
+    return &physics::state->components;
+}
+
+
+physics::Component *
+physics::get_component(entities::Handle entity_handle)
+{
+    return physics::state->components[entity_handle];
+}
+
+
+void
+physics::init(physics::State *physics_state, memory::Pool *asset_memory_pool)
+{
+    physics::state = physics_state;
+    physics::state->components = Array<physics::Component>(
+        asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1);
 }
 
 

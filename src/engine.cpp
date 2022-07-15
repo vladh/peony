@@ -64,24 +64,10 @@ engine::get_entities()
 }
 
 
-Array<physics::Component> *
-engine::get_physics_components()
-{
-    return &engine::state->physics_component_set.components;
-}
-
-
 entities::Entity *
 engine::get_entity(entities::Handle entity_handle)
 {
     return engine::state->entity_set.entities[entity_handle];
-}
-
-
-physics::Component *
-engine::get_physics_component(entities::Handle entity_handle)
-{
-    return engine::state->physics_component_set.components[entity_handle];
 }
 
 
@@ -157,10 +143,6 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
     engine::state->entity_set = {
         .entities = Array<entities::Entity>(
             asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1)
-    };
-    engine::state->physics_component_set = {
-        .components = Array<physics::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1)
     };
 }
 

@@ -24,17 +24,18 @@ struct State {
     WindowSize window_size;
     spatial::State spatial_state;
     drawable::State drawable_state;
+    lights::State lights_state;
+    anim::State anim_state;
+    physics::State physics_state;
+    behavior::State behavior_state;
     engine::State engine_state;
     renderer::State renderer_state;
     cameras::State cameras_state;
     input::State input_state;
     gui::State gui_state;
-    lights::State lights_state;
-    anim::State anim_state;
     mats::State materials_state;
     tasks::State tasks_state;
     debugdraw::State debug_draw_state;
-    behavior::State behavior_state;
     memory::Pool *asset_memory_pool;
 };
 

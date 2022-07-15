@@ -18,7 +18,7 @@ public:
         spatial::Obb transformed_obb;
     };
 
-    struct ComponentSet {
+    struct State {
         Array<Component> components;
     };
 
@@ -50,6 +50,9 @@ public:
         spatial::Component *self_spatial
     );
     static void update();
+    static Array<physics::Component> * get_components();
+    static physics::Component * get_component(entities::Handle entity_handle);
+    static void init(physics::State *physics_state, memory::Pool *asset_memory_pool);
 
 private:
     static spatial::Obb transform_obb(spatial::Obb obb, spatial::Component *spatial);
@@ -95,4 +98,6 @@ private:
         spatial::Component *spatial_a,
         spatial::Component *spatial_b
     );
+
+    static physics::State *state;
 };
