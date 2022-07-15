@@ -6,6 +6,9 @@
 #include "models.hpp"
 
 
+drawable::State *drawable::state = nullptr;
+
+
 char const *
 drawable::render_pass_to_string(drawable::Pass render_pass)
 {
@@ -90,3 +93,39 @@ drawable::destroy_component(drawable::Component *drawable_component)
     geom::destroy_mesh(&drawable_component->mesh);
 }
 
+
+Array<drawable::Component> *
+drawable::get_components()
+{
+    return &drawable::state->components;
+}
+
+
+drawable::Component *
+drawable::get_component(entities::Handle entity_handle)
+{
+    return drawable::state->components[entity_handle];
+}
+
+
+u32
+drawable::get_last_drawn_shader_program()
+{
+    return drawable::state->last_drawn_shader_program;
+}
+
+
+void
+drawable::set_last_drawn_shader_program(u32 val)
+{
+    drawable::state->last_drawn_shader_program = val;
+}
+
+
+void
+drawable::init(drawable::State *drawable_state, memory::Pool *asset_memory_pool)
+{
+    drawable::state = drawable_state;
+    drawable::state->components = Array<drawable::Component>(
+        asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1);
+}

@@ -104,7 +104,7 @@ models::prepare_entity_loader_and_check_if_done(
 
         // drawable::Component
         if (model_loader->n_meshes == 1) {
-            drawable::Component *drawable_component = engine::get_drawable_component(entity_loader->entity_handle);
+            drawable::Component *drawable_component = drawable::get_component(entity_loader->entity_handle);
             assert(drawable_component);
             *drawable_component = {
                 .entity_handle = entity_loader->entity_handle,
@@ -129,7 +129,7 @@ models::prepare_entity_loader_and_check_if_done(
                     };
                 }
 
-                drawable::Component *drawable_component = engine::get_drawable_component(child_entity->handle);
+                drawable::Component *drawable_component = drawable::get_component(child_entity->handle);
                 assert(drawable_component);
                 *drawable_component = {
                     .entity_handle = child_entity->handle,
