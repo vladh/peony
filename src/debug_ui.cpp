@@ -148,7 +148,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
     bool has_light_component = lights::is_light_component_valid(
         lights::get_component(handle));
     bool has_behavior_component = behavior::is_behavior_component_valid(
-        engine_state->behavior_component_set.components[handle]);
+        behavior::get_component(handle));
     bool has_animation_component = anim::is_animation_component_valid(
         engine_state->animation_component_set.components[handle]);
 

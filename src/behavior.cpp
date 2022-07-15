@@ -57,10 +57,9 @@ behavior::is_behavior_component_valid(behavior::Component *behavior_component)
 
 
 void
-behavior::update_behavior_components(
-    behavior::ComponentSet *component_set
-) {
-    each (behavior_component, component_set->components) {
+behavior::update_behavior_components()
+{
+    each (behavior_component, *get_components()) {
         if (!is_behavior_component_valid(behavior_component)) {
             continue;
         }
@@ -75,11 +74,28 @@ behavior::update_behavior_components(
 }
 
 
+Array<behavior::Component> *
+behavior::get_components()
+{
+    return &behavior::state->components;
+}
+
+
+behavior::Component *
+behavior::get_component(entities::Handle entity_handle)
+{
+    return behavior::state->components[entity_handle];
+}
+
+
 void behavior::init(
     behavior::State *behavior_state,
+    memory::Pool *asset_memory_pool,
     ::State *state
 ) {
     behavior::state = behavior_state;
     // NOTE: behavior needs the global state to pass to the behavior functions
     behavior::state->state = state;
+    behavior::state->components = Array<behavior::Component>(
+        asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1);
 }

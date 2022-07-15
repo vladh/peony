@@ -58,7 +58,6 @@ public:
         Array<models::ModelLoader> model_loaders;
         models::EntityLoaderSet entity_loader_set;
         entities::Set entity_set;
-        behavior::ComponentSet behavior_component_set;
         anim::ComponentSet animation_component_set;
         physics::ComponentSet physics_component_set;
     };
@@ -69,11 +68,9 @@ public:
     static void mark_first_non_internal_handle();
     static entities::Set * get_entity_set();
     static Array<entities::Entity> * get_entities();
-    static Array<behavior::Component> * get_behavior_components();
     static Array<anim::Component> * get_animation_components();
     static Array<physics::Component> * get_physics_components();
     static entities::Entity * get_entity(entities::Handle entity_handle);
-    static behavior::Component * get_behavior_component(entities::Handle entity_handle);
     static anim::Component * get_animation_component(entities::Handle entity_handle);
     static physics::Component * get_physics_component(entities::Handle entity_handle);
     static f64 get_t();
