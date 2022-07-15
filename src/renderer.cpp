@@ -288,7 +288,7 @@ renderer::render(GLFWwindow *window)
 
             u32 idx_light = 0;
 
-            each (light_component, *engine::get_light_components()) {
+            each (light_component, *lights::get_components()) {
                 if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
                     continue;
                 }
@@ -344,7 +344,7 @@ renderer::render(GLFWwindow *window)
 
             u32 idx_light = 0;
 
-            each (light_component, *engine::get_light_components()) {
+            each (light_component, *lights::get_components()) {
                 if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
                     continue;
                 }
@@ -1171,7 +1171,7 @@ renderer::copy_scene_data_to_ubo(
     u32 n_point_lights = 0;
     u32 n_directional_lights = 0;
 
-    each (light_component, *engine::get_light_components()) {
+    each (light_component, *lights::get_components()) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
             continue;
         }

@@ -24,11 +24,8 @@ public:
         v4 attenuation;
     };
 
-    struct ComponentSet {
-        Array<Component> components;
-    };
-
     struct State {
+        Array<Component> components;
         f32 dir_light_angle;
     };
 
@@ -37,11 +34,10 @@ public:
     static LightType light_type_from_string(const char *str);
     static u32 light_type_to_int(LightType light_type);
     static bool is_light_component_valid(Component *light_component);
-    static void update_light_components(
-        ComponentSet *light_component_set,
-        v3 camera_position
-    );
-    static void init(lights::State *state);
+    static void update_light_components(v3 camera_position);
+    static Array<lights::Component> * get_components();
+    static lights::Component * get_component(entities::Handle entity_handle);
+    static void init(lights::State *state, memory::Pool *asset_memory_pool);
 
 private:
     static lights::State *state;
