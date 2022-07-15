@@ -132,6 +132,7 @@ core::init_state(State *state, memory::Pool *asset_memory_pool)
 
     spatial::init(&state->spatial_state, asset_memory_pool);
     drawable::init(&state->drawable_state, asset_memory_pool);
+    lights::init(&state->lights_state, asset_memory_pool);
     engine::init(&state->engine_state, asset_memory_pool);
     mats::init(&state->materials_state, asset_memory_pool);
     input::init(&state->input_state, state->window);
@@ -145,7 +146,6 @@ core::init_state(State *state, memory::Pool *asset_memory_pool)
         renderer::get_gui_font_assets(),
         state->window_size.width, state->window_size.height);
     debugdraw::init(&state->debug_draw_state, asset_memory_pool);
-    lights::init(&state->lights_state);
     tasks::init(&state->tasks_state, asset_memory_pool);
     anim::init(&state->anim_state, asset_memory_pool);
     cameras::init(&state->cameras_state, state->window_size.width, state->window_size.height);

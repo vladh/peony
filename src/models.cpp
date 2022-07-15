@@ -86,7 +86,7 @@ models::prepare_entity_loader_and_check_if_done(
         *spatial_component = entity_loader->spatial_component;
         spatial_component->entity_handle = entity_loader->entity_handle;
 
-        lights::Component *light_component = engine::get_light_component(entity_loader->entity_handle);
+        lights::Component *light_component = lights::get_component(entity_loader->entity_handle);
         *light_component = entity_loader->light_component;
         light_component->entity_handle = entity_loader->entity_handle;
 

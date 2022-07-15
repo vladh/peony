@@ -68,11 +68,9 @@ lights::is_light_component_valid(lights::Component *light_component)
 
 
 void
-lights::update_light_components(
-    lights::ComponentSet *light_component_set,
-    v3 camera_position
-) {
-    each (light_component, light_component_set->components) {
+lights::update_light_components(v3 camera_position)
+{
+    each (light_component, *get_components()) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
             continue;
         }
@@ -102,9 +100,25 @@ lights::update_light_components(
 }
 
 
+Array<lights::Component> *
+lights::get_components()
+{
+    return &lights::state->components;
+}
+
+
+lights::Component *
+lights::get_component(entities::Handle entity_handle)
+{
+    return lights::state->components[entity_handle];
+}
+
+
 void
-lights::init(lights::State *lights_state)
+lights::init(lights::State *lights_state, memory::Pool *asset_memory_pool)
 {
     lights::state = lights_state;
     lights::state->dir_light_angle = radians(55.0f);
+    lights::state->components = Array<lights::Component>(
+        asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1);
 }

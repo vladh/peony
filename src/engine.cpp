@@ -64,13 +64,6 @@ engine::get_entities()
 }
 
 
-Array<lights::Component> *
-engine::get_light_components()
-{
-    return &engine::state->light_component_set.components;
-}
-
-
 Array<behavior::Component> *
 engine::get_behavior_components()
 {
@@ -96,13 +89,6 @@ entities::Entity *
 engine::get_entity(entities::Handle entity_handle)
 {
     return engine::state->entity_set.entities[entity_handle];
-}
-
-
-lights::Component *
-engine::get_light_component(entities::Handle entity_handle)
-{
-    return engine::state->light_component_set.components[entity_handle];
 }
 
 
@@ -200,10 +186,6 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
         .entities = Array<entities::Entity>(
             asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1)
     };
-    engine::state->light_component_set = {
-        .components = Array<lights::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1)
-    };
     engine::state->behavior_component_set = {
         .components = Array<behavior::Component>(
             asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1)
@@ -243,7 +225,7 @@ engine::destroy_non_internal_entities()
         engine::state->entity_set.first_non_internal_handle);
     engine::state->entity_loader_set.loaders.delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
-    engine::state->light_component_set.components.delete_elements_after_index(
+    lights::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
     spatial::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
@@ -404,7 +386,7 @@ engine::handle_console_command()
 void
 engine::update_light_position(f32 amount)
 {
-    each (light_component, engine::state->light_component_set.components) {
+    each (light_component, *lights::get_components()) {
         if (light_component->type == lights::LightType::directional) {
             lights::adjust_dir_light_angle(amount);
             break;
@@ -594,9 +576,7 @@ engine::update()
 
     engine::state->is_world_loaded = check_all_entities_loaded();
 
-    lights::update_light_components(
-        &engine::state->light_component_set,
-        cameras::get_main()->position);
+    lights::update_light_components(cameras::get_main()->position);
 
     behavior::update_behavior_components(&engine::state->behavior_component_set);
 
