@@ -1,8 +1,4 @@
-/*
-  Peony Game Engine
-  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
-  All rights reserved.
-*/
+// (c) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
 
 layout (triangles) in;
 layout (triangle_strip, max_vertices=18) out;

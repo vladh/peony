@@ -1,8 +1,4 @@
-/*
-  Peony Game Engine
-  Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
-  All rights reserved.
-*/
+// (c) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
 
 uniform mat4 model_matrix;
 uniform mat4 bone_matrices[MAX_N_BONES];
