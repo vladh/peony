@@ -4,6 +4,7 @@
 #include "../src_external/pstr.c"
 #include "logs.cpp"
 #include "util.cpp"
+#include "glutil.cpp"
 #include "debug.cpp"
 #include "memory.cpp"
 #include "files.cpp"

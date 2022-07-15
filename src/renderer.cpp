@@ -6,6 +6,7 @@
 #include "mats.hpp"
 #include "debug.hpp"
 #include "util.hpp"
+#include "glutil.hpp"
 #include "logs.hpp"
 #include "debug_ui.hpp"
 #include "debugdraw.hpp"
@@ -122,7 +123,7 @@ renderer::init_window(WindowSize *window_size)
             if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
                 glEnable(GL_DEBUG_OUTPUT);
                 glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-                glDebugMessageCallback(util::debug_message_callback, nullptr);
+                glDebugMessageCallback(glutil::debug_message_callback, nullptr);
                 glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
             } else {
                 logs::fatal("Tried to initialise OpenGL debug output but couldn't");
