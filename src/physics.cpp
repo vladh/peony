@@ -81,7 +81,8 @@ physics::update()
         spatial::Component *spatial_component = spatial::get_component(physics_component->entity_handle);
 
         if (!spatial::is_spatial_component_valid(spatial_component)) {
-            logs::warning("Tried to update physics component but it had no spatial component.");
+            logs::warning("Tried to update physics component %d but it had no spatial component.",
+                physics_component->entity_handle);
             continue;
         }
 
