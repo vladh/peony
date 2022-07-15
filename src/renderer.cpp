@@ -32,10 +32,10 @@ renderer::init_window(WindowSize *window_size)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-#if USE_OPENGL_DEBUG
-    logs::info("Using OpenGL debug context");
-    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
-#endif
+    if (SETTINGS.opengl_debug_on) {
+        logs::info("Using OpenGL debug context");
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, true);
+    }
 
     // Remove window decorations (border etc.)
     glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
@@ -46,37 +46,43 @@ renderer::init_window(WindowSize *window_size)
     // Create the window. Right now we're working with screencoord sizes,
     // not pixels!
 
-#if USE_FULLSCREEN
-    i32 n_monitors;
-    GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
-    GLFWmonitor *target_monitor = monitors[TARGET_MONITOR];
-    const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
-    glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
-    glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
-    glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
-    glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
+    GLFWwindow *window;
 
-    window_size->screencoord_width = video_mode->width;
-    window_size->screencoord_height = video_mode->height;
+    if (SETTINGS.fullscreen_on) {
+        i32 n_monitors;
+        GLFWmonitor **monitors = glfwGetMonitors(&n_monitors);
+        GLFWmonitor *target_monitor = monitors[SETTINGS.target_monitor];
+        const GLFWvidmode *video_mode = glfwGetVideoMode(target_monitor);
+        glfwWindowHint(GLFW_RED_BITS, video_mode->redBits);
+        glfwWindowHint(GLFW_GREEN_BITS, video_mode->greenBits);
+        glfwWindowHint(GLFW_BLUE_BITS, video_mode->blueBits);
+        glfwWindowHint(GLFW_REFRESH_RATE, video_mode->refreshRate);
 
-    GLFWwindow *window = glfwCreateWindow(
-        window_size->screencoord_width, window_size->screencoord_height,
-        WINDOW_TITLE,
-#if USE_WINDOWED_FULLSCREEN
-        nullptr, nullptr
-#else
-        target_monitor, nullptr
-#endif
-    );
-#else
-    window_size->screencoord_width = 1920;
-    window_size->screencoord_height = 1080;
+        window_size->screencoord_width = video_mode->width;
+        window_size->screencoord_height = video_mode->height;
 
-    GLFWwindow *window = glfwCreateWindow(
-        window_size->screencoord_width, window_size->screencoord_height, WINDOW_TITLE, nullptr, nullptr);
+        if (SETTINGS.windowed_fullscreen_on) {
+            window = glfwCreateWindow(
+                window_size->screencoord_width, window_size->screencoord_height,
+                WINDOW_TITLE,
+                nullptr, nullptr);
+        } else {
+            window = glfwCreateWindow(
+                window_size->screencoord_width, window_size->screencoord_height,
+                WINDOW_TITLE,
+                target_monitor, nullptr);
+        }
+    } else {
+        window_size->screencoord_width = 1920;
+        window_size->screencoord_height = 1080;
 
-    glfwSetWindowPos(window, 200, 200);
-#endif
+        window = glfwCreateWindow(
+            window_size->screencoord_width, window_size->screencoord_height,
+            WINDOW_TITLE,
+            nullptr, nullptr);
+
+        glfwSetWindowPos(window, 200, 200);
+    }
 
     if (!window) {
         logs::fatal("Failed to create GLFW window");
@@ -84,9 +90,10 @@ renderer::init_window(WindowSize *window_size)
     }
 
     glfwMakeContextCurrent(window);
-#if !USE_VSYNC
-    glfwSwapInterval(0);
-#endif
+
+    if (!SETTINGS.vsync_on) {
+        glfwSwapInterval(0);
+    }
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         logs::fatal("Failed to initialize GLAD");
@@ -107,26 +114,26 @@ renderer::init_window(WindowSize *window_size)
     // TODO: Remove GL_EXT_debug_label from GLAD
     // TODO: Remove GL_ARB_texture_storage_multisample from GLAD
 
-#if USE_OPENGL_DEBUG
-    if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
-        GLint flags;
-        glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
+    if (SETTINGS.opengl_debug_on) {
+        if (GLAD_GL_AMD_debug_output || GLAD_GL_ARB_debug_output || GLAD_GL_KHR_debug) {
+            GLint flags;
+            glGetIntegerv(GL_CONTEXT_FLAGS, &flags);
 
-        if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
-            glEnable(GL_DEBUG_OUTPUT);
-            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
-            glDebugMessageCallback(util::debug_message_callback, nullptr);
-            glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            if (flags & GL_CONTEXT_FLAG_DEBUG_BIT) {
+                glEnable(GL_DEBUG_OUTPUT);
+                glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+                glDebugMessageCallback(util::debug_message_callback, nullptr);
+                glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
+            } else {
+                logs::fatal("Tried to initialise OpenGL debug output but couldn't");
+            }
         } else {
-            logs::fatal("Tried to initialise OpenGL debug output but couldn't");
+            logs::warning(
+                "Tried to initialise OpenGL debug output but none of "
+                "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
+                "are supported on this system. Skipping.");
         }
-    } else {
-        logs::warning(
-            "Tried to initialise OpenGL debug output but none of "
-            "[GL_AMD_debug_output, GL_ARB_debug_output, GL_KHR_debug] "
-            "are supported on this system. Skipping.");
     }
-#endif
 
     // Enable multisampling
     glEnable(GL_MULTISAMPLE);
@@ -250,9 +257,9 @@ renderer::render(GLFWwindow *window)
     // vsync, but actually a graphics driver has forced it off, in which case we won't be
     // using glFinish(), but we should be...probably not going to be a real problem,
     // though.
-#if !USE_VSYNC
-    glFinish();
-#endif
+    if (!SETTINGS.vsync_on) {
+        glFinish();
+    }
 
     WindowSize *window_size = core::get_window_size();
 
@@ -266,17 +273,16 @@ renderer::render(GLFWwindow *window)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.l_buffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#if USE_BLOOM
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
+        if (SETTINGS.bloom_on) {
+            glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur2_buffer);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
     }
 
     // Render shadow map
-#if USE_SHADOW_RENDERING
-    {
+    if (SETTINGS.shadows_on) {
         // Point lights
         {
             f32 ratio = (f32)renderer::state->builtin_textures.shadowmap_3d_width /
@@ -381,7 +387,6 @@ renderer::render(GLFWwindow *window)
             }
         }
     }
-#endif
 
     glViewport(0, 0, window_size->width, window_size->height);
 
@@ -456,9 +461,8 @@ renderer::render(GLFWwindow *window)
 
     glDisable(GL_DEPTH_TEST);
 
-#if USE_BLOOM
     // Blur pass
-    {
+    if (SETTINGS.bloom_on) {
         glBindFramebuffer(GL_FRAMEBUFFER, renderer::state->builtin_textures.blur1_buffer);
         copy_scene_data_to_ubo(0, 0, true);
         render_scene(drawable::Pass::preblur, drawable::Mode::regular);
@@ -477,7 +481,6 @@ renderer::render(GLFWwindow *window)
             render_scene(drawable::Pass::blur2, drawable::Mode::regular);
         }
     }
-#endif
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -522,21 +525,25 @@ renderer::init(
 ) {
     renderer::state = renderer_state;
     BuiltinTextures *builtin_textures = &renderer::state->builtin_textures;
-    *builtin_textures = {
-#if defined(GRAPHICS_LOW)
-        .shadowmap_3d_width = 500,
-        .shadowmap_3d_height = 500,
-        .shadowmap_2d_width = 800,
-        .shadowmap_2d_height = 600,
-#elif defined(GRAPHICS_HIGH)
-        .shadowmap_3d_width = min((u32)width, (u32)2000),
-        .shadowmap_3d_height = min((u32)width, (u32)2000),
-        .shadowmap_2d_width = 2560 * 2,
-        .shadowmap_2d_height = 1440 * 2,
-#endif
-        .shadowmap_near_clip_dist = 0.05f,
-        .shadowmap_far_clip_dist = 200.0f,
-    };
+    if (SETTINGS.graphics_quality == GraphicsQuality::high) {
+        *builtin_textures = {
+            .shadowmap_3d_width = min((u32)width, (u32)2000),
+            .shadowmap_3d_height = min((u32)width, (u32)2000),
+            .shadowmap_2d_width = 2560 * 2,
+            .shadowmap_2d_height = 1440 * 2,
+            .shadowmap_near_clip_dist = 0.05f,
+            .shadowmap_far_clip_dist = 200.0f,
+        };
+    } else if (SETTINGS.graphics_quality == GraphicsQuality::low) {
+        *builtin_textures = {
+            .shadowmap_3d_width = 500,
+            .shadowmap_3d_height = 500,
+            .shadowmap_2d_width = 800,
+            .shadowmap_2d_height = 600,
+            .shadowmap_near_clip_dist = 0.05f,
+            .shadowmap_far_clip_dist = 200.0f,
+        };
+    }
     init_g_buffer(memory_pool,
         &builtin_textures->g_buffer,
         &builtin_textures->g_position_texture,
@@ -850,18 +857,19 @@ renderer::init_l_buffer(
         glDrawBuffers(2, attachments);
     }
 
-#if USE_FOG
-    // l_depth_texture
-    // NOTE: Either this or the depth buffer should be enabled, not both
-    // NOTE: This does not work on macOS. The most likely reason is that in the render()
-    // function, we copy the depth framebuffer from the g_buffer to the "depth
-    // framebuffer" of the l_buffer (this one). Of course, the l_buffer does not have a
-    // depth framebuffer, but it has a depth texture. It looks like some machines are
-    // capable of doing the right thing, but we can't rely on being able to do this. The
-    // solution would probably be to use a depth texture for the g_buffer as well. That
-    // way, we know we can copy the depth from one to the other without issues.  For the
-    // moment, we're not using fog, so this is just commented out.
-    {
+    if (SETTINGS.fog_on) {
+        // l_depth_texture
+        // NOTE: Either this or the depth buffer should be enabled, not both
+        // NOTE: This does not work on macOS. The most likely reason is that in
+        // the render() function, we copy the depth framebuffer from the
+        // g_buffer to the "depth framebuffer" of the l_buffer (this one). Of
+        // course, the l_buffer does not have a depth framebuffer, but it has a
+        // depth texture. It looks like some machines are capable of doing the
+        // right thing, but we can't rely on being able to do this. The solution
+        // would probably be to use a depth texture for the g_buffer as well.
+        // That way, we know we can copy the depth from one to the other without
+        // issues. For the moment, we're not using fog, so this is just
+        // commented out.
         u32 l_depth_texture_name;
         glGenTextures(1, &l_depth_texture_name);
 
@@ -881,11 +889,9 @@ renderer::init_l_buffer(
             0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
             (*l_depth_texture)->texture_name, 0);
-    }
-#else
-    // Depth buffer
-    // NOTE: Either this or the l_depth_texure should be enabled, not both
-    {
+    } else {
+        // Depth buffer
+        // NOTE: Either this or the l_depth_texure should be enabled, not both
         u32 rbo_depth;
         glGenRenderbuffers(1, &rbo_depth);
         glBindRenderbuffer(GL_RENDERBUFFER, rbo_depth);
@@ -893,7 +899,6 @@ renderer::init_l_buffer(
         glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER,
             rbo_depth);
     }
-#endif
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         logs::fatal("Framebuffer not complete!");
@@ -911,9 +916,9 @@ renderer::init_blur_buffers(
     u32 width,
     u32 height
 ) {
-#if !USE_BLOOM
-    return;
-#endif
+    if (!SETTINGS.bloom_on) {
+        return;
+    }
     glGenFramebuffers(1, blur1_buffer);
     glBindFramebuffer(GL_FRAMEBUFFER, *blur1_buffer);
     u32 blur1_texture_name;

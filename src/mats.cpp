@@ -358,10 +358,10 @@ mats::bind_texture_uniforms(Material *material)
         for (u32 idx = 0; idx < material->n_textures; idx++) {
             Texture *texture = &material->textures[idx];
             const char *uniform_name = material->texture_uniform_names[idx];
-#if USE_SHADER_DEBUG
-            logs::info("Setting uniforms: (uniform_name %s) (texture->texture_name %d)",
-                uniform_name, texture->texture_name);
-#endif
+            if (SETTINGS.shader_debug_on) {
+                logs::info("Setting uniforms: (uniform_name %s) (texture->texture_name %d)",
+                    uniform_name, texture->texture_name);
+            }
             shaders::set_int(shader_asset, uniform_name,
                 shaders::add_texture_unit(shader_asset, texture->texture_name, texture->target)
             );
