@@ -1,6 +1,4 @@
-# Peony Game Engine
-# Copyright (C) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
-# All rights reserved.
+# (c) 2020 Vlad-Stefan Harbuz <vlad@vladh.net>
 
 COMPILER_FLAGS = \
 	-I/usr/local/opt/glm/include \
