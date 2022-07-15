@@ -56,7 +56,7 @@ public:
         bool is_world_loaded;
         bool was_world_ever_loaded;
         Array<models::ModelLoader> model_loaders;
-        models::EntityLoaderSet entity_loader_set;
+        Array<models::EntityLoader> entity_loaders;
     };
 
     static engine::State * debug_get_engine_state();
