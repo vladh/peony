@@ -49,7 +49,7 @@ public:
         Component *self_physics,
         spatial::Component *self_spatial
     );
-    static void update_components();
+    static void update();
 
 private:
     static spatial::Obb transform_obb(spatial::Obb obb, spatial::Component *spatial);

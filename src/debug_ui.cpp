@@ -150,7 +150,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
     bool has_behavior_component = behavior::is_behavior_component_valid(
         behavior::get_component(handle));
     bool has_animation_component = anim::is_animation_component_valid(
-        engine_state->animation_component_set.components[handle]);
+        anim::get_component(handle));
 
     for (u8 level = 0; level < depth; level++) {
         strcat(text, "  ");

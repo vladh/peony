@@ -36,7 +36,7 @@ public:
     static char const * behavior_to_string(Behavior behavior);
     static Behavior behavior_from_string(const char *str);
     static bool is_behavior_component_valid(Component *behavior_component);
-    static void update_behavior_components();
+    static void update();
     static Array<behavior::Component> * get_components();
     static behavior::Component * get_component(entities::Handle entity_handle);
     static void init(

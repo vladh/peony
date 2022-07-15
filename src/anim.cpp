@@ -37,9 +37,9 @@ anim::get_bone_matrix(u32 idx, u32 idx_bone, u32 idx_anim_key)
 
 
 void
-anim::update_animation_components(anim::ComponentSet *animation_component_set)
+anim::update()
 {
-    each (animation_component, animation_component_set->components) {
+    each (animation_component, *get_components()) {
         if (!is_animation_component_valid(animation_component)) {
             continue;
         }
@@ -144,8 +144,7 @@ anim::make_bone_matrices_for_animation_bone(
 anim::Component *
 anim::find_animation_component(spatial::Component *spatial_component)
 {
-    anim::Component *animation_component =
-        engine::get_animation_component(spatial_component->entity_handle);
+    anim::Component *animation_component = get_component(spatial_component->entity_handle);
 
     if (is_animation_component_valid(animation_component)) {
         return animation_component;
@@ -160,16 +159,32 @@ anim::find_animation_component(spatial::Component *spatial_component)
 }
 
 
+Array<anim::Component> *
+anim::get_components()
+{
+    return &anim::state->components;
+}
+
+
+anim::Component *
+anim::get_component(entities::Handle entity_handle)
+{
+    return anim::state->components[entity_handle];
+}
+
+
 void
-anim::init(anim::State *anim_state, memory::Pool *pool)
+anim::init(anim::State *anim_state, memory::Pool *asset_memory_pool)
 {
     anim::state = anim_state;
-    anim::state->bone_matrix_pool.bone_matrices = Array<m4>(pool,
+    anim::state->bone_matrix_pool.bone_matrices = Array<m4>(asset_memory_pool,
         MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
         "bone_matrices", true);
-    anim::state->bone_matrix_pool.times = Array<f64>(pool,
+    anim::state->bone_matrix_pool.times = Array<f64>(asset_memory_pool,
         MAX_N_ANIMATED_MODELS * MAX_N_BONES * MAX_N_ANIMATIONS * MAX_N_ANIM_KEYS,
         "bone_matrix_times", true);
+    anim::state->components =  Array<anim::Component>(
+        asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1);
 }
 
 

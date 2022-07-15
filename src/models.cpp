@@ -94,7 +94,7 @@ models::prepare_entity_loader_and_check_if_done(
         *behavior_component = entity_loader->behavior_component;
         behavior_component->entity_handle = entity_loader->entity_handle;
 
-        anim::Component *animation_component = engine::get_animation_component(entity_loader->entity_handle);
+        anim::Component *animation_component = anim::get_component(entity_loader->entity_handle);
         *animation_component = model_loader->animation_component;
         animation_component->entity_handle = entity_loader->entity_handle;
 

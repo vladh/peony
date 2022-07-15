@@ -57,7 +57,7 @@ behavior::is_behavior_component_valid(behavior::Component *behavior_component)
 
 
 void
-behavior::update_behavior_components()
+behavior::update()
 {
     each (behavior_component, *get_components()) {
         if (!is_behavior_component_valid(behavior_component)) {

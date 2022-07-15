@@ -64,13 +64,6 @@ engine::get_entities()
 }
 
 
-Array<anim::Component> *
-engine::get_animation_components()
-{
-    return &engine::state->animation_component_set.components;
-}
-
-
 Array<physics::Component> *
 engine::get_physics_components()
 {
@@ -82,13 +75,6 @@ entities::Entity *
 engine::get_entity(entities::Handle entity_handle)
 {
     return engine::state->entity_set.entities[entity_handle];
-}
-
-
-anim::Component *
-engine::get_animation_component(entities::Handle entity_handle)
-{
-    return engine::state->animation_component_set.components[entity_handle];
 }
 
 
@@ -172,10 +158,6 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
         .entities = Array<entities::Entity>(
             asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1)
     };
-    engine::state->animation_component_set = {
-        .components = Array<anim::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1)
-    };
     engine::state->physics_component_set = {
         .components = Array<physics::Component>(
             asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1)
@@ -215,7 +197,7 @@ engine::destroy_non_internal_entities()
         engine::state->entity_set.first_non_internal_handle);
     behavior::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
-    engine::state->animation_component_set.components.delete_elements_after_index(
+    anim::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
 }
 
@@ -558,13 +540,10 @@ engine::update()
 
     engine::state->is_world_loaded = check_all_entities_loaded();
 
-    lights::update_light_components(cameras::get_main()->position);
-
-    behavior::update_behavior_components();
-
-    anim::update_animation_components(&engine::state->animation_component_set);
-
-    physics::update_components();
+    lights::update(cameras::get_main()->position);
+    behavior::update();
+    anim::update();
+    physics::update();
 }
 
 
