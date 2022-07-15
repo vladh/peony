@@ -42,35 +42,6 @@ engine::push_model_loader()
 }
 
 
-void
-engine::mark_first_non_internal_handle()
-{
-    engine::state->entity_set.first_non_internal_handle =
-        engine::state->entity_set.next_handle;
-}
-
-
-entities::Set *
-engine::get_entity_set()
-{
-    return &engine::state->entity_set;
-}
-
-
-Array<entities::Entity> *
-engine::get_entities()
-{
-    return &engine::state->entity_set.entities;
-}
-
-
-entities::Entity *
-engine::get_entity(entities::Handle entity_handle)
-{
-    return engine::state->entity_set.entities[entity_handle];
-}
-
-
 f64
 engine::get_t()
 {
@@ -140,10 +111,6 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
         .loaders = Array<models::EntityLoader>(
             asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1)
     };
-    engine::state->entity_set = {
-        .entities = Array<entities::Entity>(
-            asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1)
-    };
 }
 
 
@@ -151,36 +118,6 @@ void
 engine::destroy_model_loaders()
 {
     engine::state->model_loaders.clear();
-}
-
-
-void
-engine::destroy_non_internal_entities()
-{
-    for (
-        u32 idx = engine::state->entity_set.first_non_internal_handle;
-        idx < engine::state->entity_set.entities.length;
-        idx++
-    ) {
-        drawable::destroy_component(drawable::get_component(idx));
-    }
-
-    engine::state->entity_set.next_handle =
-        engine::state->entity_set.first_non_internal_handle;
-    engine::state->entity_set.entities.delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
-    engine::state->entity_loader_set.loaders.delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
-    lights::get_components()->delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
-    spatial::get_components()->delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
-    drawable::get_components()->delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
-    behavior::get_components()->delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
-    anim::get_components()->delete_elements_after_index(
-        engine::state->entity_set.first_non_internal_handle);
 }
 
 
@@ -198,7 +135,10 @@ engine::destroy_scene()
     // end up overflowing.
     destroy_model_loaders();
     mats::destroy_non_internal_materials();
-    destroy_non_internal_entities();
+
+    entities::destroy_non_internal_entities();
+    engine::state->entity_loader_set.loaders.delete_elements_after_index(
+        entities::get_first_non_internal_handle());
 }
 
 

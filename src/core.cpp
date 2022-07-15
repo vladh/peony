@@ -135,6 +135,7 @@ core::init_state(State *state, memory::Pool *asset_memory_pool)
     lights::init(&state->lights_state, asset_memory_pool);
     anim::init(&state->anim_state, asset_memory_pool);
     physics::init(&state->physics_state, asset_memory_pool);
+    entities::init(&state->entities_state, asset_memory_pool);
     behavior::init(
         &state->behavior_state,
         asset_memory_pool,

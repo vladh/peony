@@ -27,6 +27,7 @@ struct State {
     lights::State lights_state;
     anim::State anim_state;
     physics::State physics_state;
+    entities::State entities_state;
     behavior::State behavior_state;
     engine::State engine_state;
     renderer::State renderer_state;
