@@ -274,7 +274,7 @@ internals::create_internal_entities()
     // We've created all internal entities, so we will mark the next position
     // in the entities::Set, to know that that position is where the non-internal
     // entities start.
-    engine::mark_first_non_internal_handle();
+    entities::mark_first_non_internal_handle();
 
     memory::destroy_memory_pool(&temp_memory_pool);
 }

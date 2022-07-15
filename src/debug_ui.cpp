@@ -45,7 +45,7 @@ void debug_ui::render_debug_ui() {
         snprintf(debug_text, dt_size, "%u", mats::get_n_materials());
         gui::draw_named_value(container, "materials.length", debug_text);
 
-        snprintf(debug_text, dt_size, "%u", engine_state->entity_set.entities.length);
+        snprintf(debug_text, dt_size, "%u", entities::get_n_entities());
         gui::draw_named_value(container, "entities.length", debug_text);
 
         snprintf(debug_text, dt_size, "%u", engine_state->model_loaders.length);
@@ -128,8 +128,6 @@ void debug_ui::render_debug_ui() {
 void
 debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u8 depth)
 {
-    engine::State *engine_state = engine::debug_get_engine_state();
-
     entities::Handle handle = entity->handle;
     spatial::Component *spatial_component = spatial::get_component(handle);
 
@@ -201,7 +199,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
                     continue;
                 }
                 entities::Handle child_handle = child_spatial_component->entity_handle;
-                entities::Entity *child_entity = engine_state->entity_set.entities[child_handle];
+                entities::Entity *child_entity = entities::get_entity(child_handle);
 
                 if (text[strlen(text) - 1] != '\n') {
                     strcat(text, "\n");
@@ -228,17 +226,15 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
 void
 debug_ui::get_scene_text_representation(char *text)
 {
-    engine::State *engine_state = engine::debug_get_engine_state();
-
     text[0] = '\0';
 
     constexpr u32 const MAX_N_SHOWN_ENTITIES = 35;
     u32 idx_entity = 0;
-    each (entity, engine_state->entity_set.entities) {
+    each (entity, *entities::get_entities()) {
         if (idx_entity > MAX_N_SHOWN_ENTITIES) {
             sprintf(text + strlen(text),
                 "...and %d more\n",
-                engine_state->entity_set.entities.length - idx_entity);
+                entities::get_n_entities() - idx_entity);
             break;;
         }
         get_entity_text_representation(text, entity, 0);

@@ -57,16 +57,11 @@ public:
         bool was_world_ever_loaded;
         Array<models::ModelLoader> model_loaders;
         models::EntityLoaderSet entity_loader_set;
-        entities::Set entity_set;
     };
 
     static engine::State * debug_get_engine_state();
     static models::EntityLoader * get_entity_loader(entities::Handle entity_handle);
     static models::ModelLoader * push_model_loader();
-    static void mark_first_non_internal_handle();
-    static entities::Set * get_entity_set();
-    static Array<entities::Entity> * get_entities();
-    static entities::Entity * get_entity(entities::Handle entity_handle);
     static f64 get_t();
     static f64 get_dt();
     static void run_main_loop(GLFWwindow *window);
@@ -75,7 +70,6 @@ public:
 private:
     static engine::State *state;
     static void destroy_model_loaders();
-    static void destroy_non_internal_entities();
     static void destroy_scene();
     static bool load_scene(const char *scene_name);
     static void handle_console_command();
