@@ -56,10 +56,7 @@ public:
         u32 idx_bone,
         u32 idx_anim_key
     );
-    static void update_animation_components(
-        ComponentSet *animation_component_set,
-        spatial::ComponentSet *spatial_component_set
-    );
+    static void update_animation_components(ComponentSet *animation_component_set);
     static void make_bone_matrices_for_animation_bone(
         Component *animation_component,
         aiNodeAnim *ai_channel,

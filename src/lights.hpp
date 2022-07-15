@@ -39,7 +39,6 @@ public:
     static bool is_light_component_valid(Component *light_component);
     static void update_light_components(
         ComponentSet *light_component_set,
-        spatial::ComponentSet *spatial_component_set,
         v3 camera_position
     );
     static void init(lights::State *state);

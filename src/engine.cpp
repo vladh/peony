@@ -92,13 +92,6 @@ engine::get_light_components()
 }
 
 
-Array<spatial::Component> *
-engine::get_spatial_components()
-{
-    return &engine::state->spatial_component_set.components;
-}
-
-
 Array<behavior::Component> *
 engine::get_behavior_components()
 {
@@ -138,13 +131,6 @@ lights::Component *
 engine::get_light_component(entities::Handle entity_handle)
 {
     return engine::state->light_component_set.components[entity_handle];
-}
-
-
-spatial::Component *
-engine::get_spatial_component(entities::Handle entity_handle)
-{
-    return engine::state->spatial_component_set.components[entity_handle];
 }
 
 
@@ -233,47 +219,34 @@ engine::run_main_loop(GLFWwindow *window)
 void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) {
     engine::state = engine_state;
     engine::state->model_loaders = Array<models::ModelLoader>(
-        asset_memory_pool, MAX_N_MODELS, "model_loaders"
-    );
+        asset_memory_pool, MAX_N_MODELS, "model_loaders");
     engine::state->entity_loader_set = {
         .loaders = Array<models::EntityLoader>(
-            asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1)
     };
     engine::state->entity_set = {
         .entities = Array<entities::Entity>(
-            asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "entities", true, 1)
     };
     engine::state->drawable_component_set = {
         .components = Array<drawable::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "drawable_components", true, 1)
     };
     engine::state->light_component_set = {
         .components = Array<lights::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1
-        )
-    };
-    engine::state->spatial_component_set = {
-        .components = Array<spatial::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "light_components", true, 1)
     };
     engine::state->behavior_component_set = {
         .components = Array<behavior::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "behavior_components", true, 1)
     };
     engine::state->animation_component_set = {
         .components = Array<anim::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "animation_components", true, 1)
     };
     engine::state->physics_component_set = {
         .components = Array<physics::Component>(
-            asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1
-        )
+            asset_memory_pool, MAX_N_ENTITIES, "physics_components", true, 1)
     };
 }
 
@@ -305,7 +278,7 @@ engine::destroy_non_internal_entities()
         engine::state->entity_set.first_non_internal_handle);
     engine::state->light_component_set.components.delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
-    engine::state->spatial_component_set.components.delete_elements_after_index(
+    spatial::get_components()->delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
     engine::state->drawable_component_set.components.delete_elements_after_index(
         engine::state->entity_set.first_non_internal_handle);
@@ -656,14 +629,11 @@ engine::update()
 
     lights::update_light_components(
         &engine::state->light_component_set,
-        &engine::state->spatial_component_set,
         cameras::get_main()->position);
 
     behavior::update_behavior_components(&engine::state->behavior_component_set);
 
-    anim::update_animation_components(
-        &engine::state->animation_component_set,
-        &engine::state->spatial_component_set);
+    anim::update_animation_components(&engine::state->animation_component_set);
 
     physics::update_components();
 }

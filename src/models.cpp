@@ -82,7 +82,7 @@ models::prepare_entity_loader_and_check_if_done(
             return false;
         }
 
-        spatial::Component *spatial_component = engine::get_spatial_component(entity_loader->entity_handle);
+        spatial::Component *spatial_component = spatial::get_component(entity_loader->entity_handle);
         *spatial_component = entity_loader->spatial_component;
         spatial_component->entity_handle = entity_loader->entity_handle;
 
@@ -118,7 +118,7 @@ models::prepare_entity_loader_and_check_if_done(
                 entities::Entity *child_entity = entities::add_entity_to_set(entity_loader->name);
 
                 if (spatial::is_spatial_component_valid(&entity_loader->spatial_component)) {
-                    spatial::Component *child_spatial_component = engine::get_spatial_component(child_entity->handle);
+                    spatial::Component *child_spatial_component = spatial::get_component(child_entity->handle);
                     assert(child_spatial_component);
                     *child_spatial_component = {
                         .entity_handle = child_entity->handle,

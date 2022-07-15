@@ -8,8 +8,7 @@
 void
 behavior_functions::test(entities::Handle entity_handle)
 {
-    spatial::Component *spatial_component =
-        engine::get_spatial_component(entity_handle);
+    spatial::Component *spatial_component = spatial::get_component(entity_handle);
     if (!spatial_component) {
         logs::error("Could not get spatial::Component for behavior::Component");
         return;
@@ -24,8 +23,7 @@ behavior_functions::test(entities::Handle entity_handle)
 void
 behavior_functions::char_movement_test(entities::Handle entity_handle)
 {
-    spatial::Component *spatial_component =
-        engine::get_spatial_component(entity_handle);
+    spatial::Component *spatial_component = spatial::get_component(entity_handle);
     if (!spatial_component) {
         logs::error("Could not get spatial::Component for behavior::Component");
         return;

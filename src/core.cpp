@@ -130,6 +130,7 @@ core::init_state(State *state, memory::Pool *asset_memory_pool)
 
     state->asset_memory_pool = asset_memory_pool;
 
+    spatial::init(&state->spatial_state, asset_memory_pool);
     engine::init(&state->engine_state, asset_memory_pool);
     mats::init(&state->materials_state, asset_memory_pool);
     input::init(&state->input_state, state->window);
