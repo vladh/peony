@@ -56,11 +56,15 @@ engine::get_dt()
 }
 
 
+u32 engine::get_frame_number()
+{
+    return engine::state->timing_info.n_frames_since_start;
+}
+
+
 void
 engine::run_main_loop(GLFWwindow *window)
 {
-    TimingInfo timing = init_timing_info(165);
-
     while (!engine::state->should_stop) {
         glfwPollEvents();
         process_input(window);
@@ -69,11 +73,11 @@ engine::run_main_loop(GLFWwindow *window)
             !engine::state->is_manual_frame_advance_enabled ||
             engine::state->should_manually_advance_to_next_frame
         ) {
-            update_timing_info(&timing, &engine::state->perf_counters.last_fps);
+            update_timing_info(&engine::state->perf_counters.last_fps);
 
             // If we should pause, stop time-based events.
             if (!engine::state->should_pause) {
-                update_dt_and_perf_counters(&timing);
+                update_dt_and_perf_counters();
             }
 
             update();
@@ -87,7 +91,8 @@ engine::run_main_loop(GLFWwindow *window)
             input::reset_n_key_state_changes_this_frame();
 
             if (engine::state->should_limit_fps) {
-                std::this_thread::sleep_until(timing.time_frame_should_end);
+                std::this_thread::sleep_until(
+                    engine::state->timing_info.time_frame_should_end);
             }
 
             #if USE_PRINT_FPS
@@ -109,6 +114,8 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
         asset_memory_pool, MAX_N_MODELS, "model_loaders");
     engine::state->entity_loaders = Array<models::EntityLoader>(
         asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1);
+    engine::state->timing_info = init_timing_info(165);
+
 }
 
 
@@ -282,13 +289,23 @@ engine::update_light_position(f32 amount)
 void
 engine::process_input(GLFWwindow *window)
 {
+    // NOTE: We need to enable text input one frame after the actual key
+    // is pressed to enable it, so that text starts being processed another
+    // frame after that. This is because, on Linux, the backtick character
+    // pressed to enable text input also then immediately gets processed as
+    // text, which is not what we want.
+    if (engine::state->should_enable_text_input) {
+        input::enable_text_input();
+        engine::state->should_enable_text_input = false;
+    }
+
     if (input::is_key_now_down(GLFW_KEY_GRAVE_ACCENT)) {
         if (gui::is_console_enabled()) {
             gui::set_console_enabled(false);
             input::disable_text_input();
         } else {
             gui::set_console_enabled(true);
-            input::enable_text_input();
+            engine::state->should_enable_text_input = true;
         }
     }
 
@@ -482,8 +499,9 @@ engine::init_timing_info(u32 target_fps)
 
 
 void
-engine::update_timing_info(TimingInfo *timing, u32 *last_fps)
+engine::update_timing_info(u32 *last_fps)
 {
+    auto *timing = &engine::state->timing_info;
     timing->n_frames_since_start++;
     timing->last_frame_start = timing->frame_start;
     timing->frame_start = chrono::steady_clock::now();
@@ -501,10 +519,10 @@ engine::update_timing_info(TimingInfo *timing, u32 *last_fps)
 
 
 void
-engine::update_dt_and_perf_counters(TimingInfo *timing)
+engine::update_dt_and_perf_counters()
 {
     engine::state->dt = util::get_us_from_duration(
-        timing->frame_start - timing->last_frame_start);
+        engine::state->timing_info.frame_start - engine::state->timing_info.last_frame_start);
     if (engine::state->timescale_diff != 0.0f) {
         engine::state->dt *= max(1.0f + engine::state->timescale_diff, (f64)0.01f);
     }

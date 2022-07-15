@@ -45,6 +45,7 @@ public:
         bool should_stop;
         bool should_pause;
         bool should_limit_fps;
+        bool should_enable_text_input;
         char current_scene_name[MAX_COMMON_NAME_LENGTH];
         // NOTE: `t` and `dt` will not change when gameplay is paused.
         f64 t; // us
@@ -57,6 +58,7 @@ public:
         bool was_world_ever_loaded;
         Array<models::ModelLoader> model_loaders;
         Array<models::EntityLoader> entity_loaders;
+        TimingInfo timing_info;
     };
 
     static engine::State * debug_get_engine_state();
@@ -64,6 +66,7 @@ public:
     static models::ModelLoader * push_model_loader();
     static f64 get_t();
     static f64 get_dt();
+    static u32 get_frame_number();
     static void run_main_loop(GLFWwindow *window);
     static void init(engine::State *engine_state, memory::Pool *asset_memory_pool);
 
@@ -78,6 +81,6 @@ private:
     static bool check_all_entities_loaded();
     static void update();
     static TimingInfo init_timing_info(u32 target_fps);
-    static void update_timing_info(TimingInfo *timing, u32 *last_fps);
-    static void update_dt_and_perf_counters(TimingInfo *timing);
+    static void update_timing_info(u32 *last_fps);
+    static void update_dt_and_perf_counters();
 };
