@@ -38,12 +38,8 @@ public:
         Component *last_model_matrix_spatial_component;
     };
 
-    struct ComponentSet {
-        Array<Component> components;
-    };
-
     struct State {
-        ComponentSet component_set;
+        Array<Component> components;
     };
 
 
