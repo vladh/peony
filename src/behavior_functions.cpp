@@ -29,8 +29,7 @@ behavior_functions::char_movement_test(entities::Handle entity_handle)
         return;
     }
 
-    physics::Component *physics_component =
-        engine::get_physics_component(entity_handle);
+    physics::Component *physics_component = physics::get_component(entity_handle);
     if (!physics_component) {
         logs::error("Could not get physics::Component for behavior::Component");
         return;

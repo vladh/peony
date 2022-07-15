@@ -58,7 +58,6 @@ public:
         Array<models::ModelLoader> model_loaders;
         models::EntityLoaderSet entity_loader_set;
         entities::Set entity_set;
-        physics::ComponentSet physics_component_set;
     };
 
     static engine::State * debug_get_engine_state();
@@ -67,9 +66,7 @@ public:
     static void mark_first_non_internal_handle();
     static entities::Set * get_entity_set();
     static Array<entities::Entity> * get_entities();
-    static Array<physics::Component> * get_physics_components();
     static entities::Entity * get_entity(entities::Handle entity_handle);
-    static physics::Component * get_physics_component(entities::Handle entity_handle);
     static f64 get_t();
     static f64 get_dt();
     static void run_main_loop(GLFWwindow *window);
