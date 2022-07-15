@@ -20,10 +20,10 @@ memory::push(
 
     // If we haven't allocated anything in the pool, let's allocate something now.
     if (pool->memory == nullptr) {
-#if USE_MEMORY_DEBUG_LOGS
-        logs::info("Allocating memory pool: %.2fMB (%dB)",
-            util::b_to_mb((f64)pool->size), pool->size);
-#endif
+        if (SETTINGS.memory_debug_logs_on) {
+            logs::info("Allocating memory pool: %.2fMB (%dB)",
+                util::b_to_mb((f64)pool->size), pool->size);
+        }
 
         pool->memory = (u8*)calloc(1, pool->size);
         if (!pool->memory) {
@@ -45,13 +45,13 @@ memory::push(
     pool->used += item_size;
     pool->n_items++;
 
-#if USE_MEMORY_DEBUG_LOGS
-    logs::info("Pusing to memory pool: %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
-        util::b_to_mb((f64)item_size),
-        item_size, item_debug_name,
-        util::b_to_mb((f64)pool->used),
-        pool->used);
-#endif
+    if (SETTINGS.memory_debug_logs_on) {
+        logs::info("Pusing to memory pool: %.2fMB (%dB) for %s, now at %.2fMB (%dB)",
+            util::b_to_mb((f64)item_size),
+            item_size, item_debug_name,
+            util::b_to_mb((f64)pool->used),
+            pool->used);
+    }
 
     return new_memory;
 }
@@ -82,9 +82,9 @@ memory::print_memory_pool(Pool *pool)
 void
 memory::destroy_memory_pool(Pool *memory_pool)
 {
-#if USE_MEMORY_DEBUG_LOGS
-    logs::info("destroy_memory_pool");
-#endif
+    if (SETTINGS.memory_debug_logs_on) {
+        logs::info("destroy_memory_pool");
+    }
     reset_memory_pool(memory_pool);
     free(memory_pool->memory);
 }
@@ -93,9 +93,9 @@ memory::destroy_memory_pool(Pool *memory_pool)
 void
 memory::reset_memory_pool(Pool *pool)
 {
-    #if USE_MEMORY_DEBUG_LOGS
-    logs::info("Resetting memory pool");
-    #endif
+    if (SETTINGS.memory_debug_logs_on) {
+        logs::info("Resetting memory pool");
+    }
     pool->used = 0;
     pool->n_items = 0;
 }

@@ -95,9 +95,9 @@ engine::run_main_loop(GLFWwindow *window)
                     engine::state->timing_info.time_frame_should_end);
             }
 
-            #if USE_PRINT_FPS
-            logs::info("%u fps", engine::state->perf_counters.last_fps);
-            #endif
+            if (SETTINGS.print_fps_on) {
+                logs::info("%u fps", engine::state->perf_counters.last_fps);
+            }
         }
 
 

@@ -33,31 +33,40 @@ constexpr f64 PI = 3.14159265358979323846;
 #error "Unknown platform"
 #endif
 
-// General options
-#define USE_PRINT_FPS false
 #define USE_TIMERS true
-#define USE_MEMORY_DEBUG_LOGS false
 #define USE_MEMORYPOOL_ITEM_DEBUG false
 
-// Graphics options
-#define TARGET_MONITOR 0
-#define USE_FULLSCREEN true
-#define USE_WINDOWED_FULLSCREEN true
+enum class GraphicsQuality { low, high };
 
-#define USE_ANIMATION_DEBUG false
-#define USE_SHADER_DEBUG false
-#define USE_OPENGL_DEBUG false
+struct Settings {
+    GraphicsQuality graphics_quality;
+    bool opengl_debug_on;
+    bool vsync_on;
+    bool shader_debug_on;
+    bool shadows_on;
+    bool bloom_on;
+    bool fog_on;
+    bool windowed_fullscreen_on;
+    bool fullscreen_on;
+    u32 target_monitor;
+    bool print_fps_on;
+    bool memory_debug_logs_on;
+};
 
-#define USE_SHADOW_RENDERING true
-#define USE_BLOOM true
-#define USE_FOG false
-#define USE_VSYNC false
-
-#if defined(PLATFORM_WINDOWS)
-  #define GRAPHICS_HIGH
-#else
-  #define GRAPHICS_LOW
-#endif
+constexpr Settings SETTINGS = {
+    .graphics_quality = GraphicsQuality::high,
+    .opengl_debug_on = false,
+    .vsync_on = false,
+    .shader_debug_on = false,
+    .shadows_on = true,
+    .bloom_on = true,
+    .fog_on = false,
+    .windowed_fullscreen_on = true,
+    .fullscreen_on = true,
+    .target_monitor = 0,
+    .print_fps_on = false,
+    .memory_debug_logs_on = false,
+};
 
 // Constants
 constexpr char WINDOW_TITLE[] = "peony";
