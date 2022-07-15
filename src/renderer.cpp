@@ -294,7 +294,7 @@ renderer::render(GLFWwindow *window)
                 }
 
                 spatial::Component *spatial_component =
-                    engine::get_spatial_component(light_component->entity_handle);
+                    spatial::get_component(light_component->entity_handle);
 
                 if (!(
                         lights::is_light_component_valid(light_component) &&
@@ -350,7 +350,7 @@ renderer::render(GLFWwindow *window)
                 }
 
                 spatial::Component *spatial_component =
-                    engine::get_spatial_component(light_component->entity_handle);
+                    spatial::get_component(light_component->entity_handle);
 
                 if (!(
                         lights::is_light_component_valid(light_component) &&
@@ -1177,7 +1177,7 @@ renderer::copy_scene_data_to_ubo(
         }
 
         spatial::Component *spatial_component =
-            engine::get_spatial_component(light_component->entity_handle);
+            spatial::get_component(light_component->entity_handle);
 
         if (!(
             lights::is_light_component_valid(light_component) &&
@@ -1313,8 +1313,7 @@ renderer::draw_all(
             material = mats::get_material_by_name("unknown");
         }
 
-        spatial::Component *spatial_component =
-            engine::get_spatial_component(drawable_component->entity_handle);
+        spatial::Component *spatial_component = spatial::get_component(drawable_component->entity_handle);
 
         m4 model_matrix = m4(1.0f);
         m3 model_normal_matrix = m3(1.0f);

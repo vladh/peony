@@ -5,6 +5,9 @@
 #include "engine.hpp"
 
 
+spatial::State *spatial::state = nullptr;
+
+
 void
 spatial::print_spatial_component(spatial::Component *spatial_component)
 {
@@ -48,7 +51,7 @@ spatial::make_model_matrix(
     m4 model_matrix = m4(1.0f);
 
     if (spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE) {
-        spatial::Component *parent = engine::get_spatial_component(
+        spatial::Component *parent = spatial::get_component(
             spatial_component->parent_entity_handle);
         model_matrix = make_model_matrix(parent, cache);
     }
@@ -71,4 +74,30 @@ spatial::make_model_matrix(
     }
 
     return model_matrix;
+}
+
+
+Array<spatial::Component> *
+spatial::get_components()
+{
+    return &spatial::state->component_set.components;
+}
+
+
+spatial::Component *
+spatial::get_component(entities::Handle entity_handle)
+{
+    return spatial::state->component_set.components[entity_handle];
+}
+
+
+void
+spatial::init(spatial::State *spatial_state, memory::Pool *asset_memory_pool)
+{
+    spatial::state = spatial_state;
+    spatial::state->component_set = {
+        .components = Array<spatial::Component>(
+            asset_memory_pool, MAX_N_ENTITIES, "spatial_components", true, 1
+        )
+    };
 }

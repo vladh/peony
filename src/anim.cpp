@@ -37,10 +37,8 @@ anim::get_bone_matrix(u32 idx, u32 idx_bone, u32 idx_anim_key)
 
 
 void
-anim::update_animation_components(
-    anim::ComponentSet *animation_component_set,
-    spatial::ComponentSet *spatial_component_set
-) {
+anim::update_animation_components(anim::ComponentSet *animation_component_set)
+{
     each (animation_component, animation_component_set->components) {
         if (!is_animation_component_valid(animation_component)) {
             continue;
@@ -154,8 +152,7 @@ anim::find_animation_component(spatial::Component *spatial_component)
     }
 
     if (spatial_component->parent_entity_handle != entities::NO_ENTITY_HANDLE) {
-        spatial::Component *parent =
-            engine::get_spatial_component(spatial_component->parent_entity_handle);
+        spatial::Component *parent = spatial::get_component(spatial_component->parent_entity_handle);
         return find_animation_component(parent);
     }
 

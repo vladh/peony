@@ -70,7 +70,6 @@ lights::is_light_component_valid(lights::Component *light_component)
 void
 lights::update_light_components(
     lights::ComponentSet *light_component_set,
-    spatial::ComponentSet *spatial_component_set,
     v3 camera_position
 ) {
     each (light_component, light_component_set->components) {
@@ -79,7 +78,7 @@ lights::update_light_components(
         }
 
         spatial::Component *spatial_component =
-            spatial_component_set->components[light_component->entity_handle];
+            spatial::get_component(light_component->entity_handle);
 
         if (!(
             is_light_component_valid(light_component) &&

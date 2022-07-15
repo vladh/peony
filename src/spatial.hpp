@@ -42,6 +42,10 @@ public:
         Array<Component> components;
     };
 
+    struct State {
+        ComponentSet component_set;
+    };
+
 
     static void print_spatial_component(Component *spatial_component);
     static bool does_spatial_component_have_dimensions(Component *spatial_component);
@@ -50,4 +54,10 @@ public:
         Component *spatial_component,
         ModelMatrixCache *cache
     );
+    static Array<spatial::Component> * get_components();
+    static spatial::Component * get_component(entities::Handle entity_handle);
+    static void init(spatial::State *spatial_state, memory::Pool *asset_memory_pool);
+
+private:
+    static spatial::State *state;
 };

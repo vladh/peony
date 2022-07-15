@@ -61,7 +61,6 @@ public:
         entities::Set entity_set;
         drawable::ComponentSet drawable_component_set;
         lights::ComponentSet light_component_set;
-        spatial::ComponentSet spatial_component_set;
         behavior::ComponentSet behavior_component_set;
         anim::ComponentSet animation_component_set;
         physics::ComponentSet physics_component_set;

@@ -45,8 +45,7 @@ physics::find_collision(
         if (!is_component_valid(candidate_physics)) {
             continue;
         }
-        spatial::Component *candidate_spatial =
-            engine::get_spatial_component(candidate_physics->entity_handle);
+        spatial::Component *candidate_spatial = spatial::get_component(candidate_physics->entity_handle);
         if (!candidate_spatial) {
             logs::error("Could not get spatial::Component for candidate");
             return physics::CollisionManifold {};
@@ -76,8 +75,7 @@ physics::update_components()
             continue;
         }
 
-        spatial::Component *spatial_component =
-            engine::get_spatial_component(physics_component->entity_handle);
+        spatial::Component *spatial_component = spatial::get_component(physics_component->entity_handle);
 
         if (!spatial::is_spatial_component_valid(spatial_component)) {
             logs::warning("Tried to update physics component but it had no spatial component.");

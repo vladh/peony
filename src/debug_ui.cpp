@@ -131,7 +131,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
     engine::State *engine_state = engine::debug_get_engine_state();
 
     entities::Handle handle = entity->handle;
-    spatial::Component *spatial_component = engine_state->spatial_component_set.components[handle];
+    spatial::Component *spatial_component = spatial::get_component(handle);
 
     // Children will be drawn under their parents.
     if (
@@ -191,7 +191,7 @@ debug_ui::get_entity_text_representation(char *text, entities::Entity *entity, u
     if (spatial::is_spatial_component_valid(spatial_component)) {
         // NOTE: This is super slow lol.
         u32 n_children_found = 0;
-        each (child_spatial_component, engine_state->spatial_component_set.components) {
+        each (child_spatial_component, *spatial::get_components()) {
             if (
                 child_spatial_component->parent_entity_handle ==
                 spatial_component->entity_handle
