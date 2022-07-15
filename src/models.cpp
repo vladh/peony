@@ -90,7 +90,7 @@ models::prepare_entity_loader_and_check_if_done(
         *light_component = entity_loader->light_component;
         light_component->entity_handle = entity_loader->entity_handle;
 
-        behavior::Component *behavior_component = engine::get_behavior_component(entity_loader->entity_handle);
+        behavior::Component *behavior_component = behavior::get_component(entity_loader->entity_handle);
         *behavior_component = entity_loader->behavior_component;
         behavior_component->entity_handle = entity_loader->entity_handle;
 
