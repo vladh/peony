@@ -4,6 +4,7 @@
 #include "shaders.hpp"
 #include "array.hpp"
 #include "util.hpp"
+#include "glutil.hpp"
 #include "logs.hpp"
 #include "files.hpp"
 #include "mats.hpp"
@@ -562,7 +563,7 @@ mats::generate_textures_from_pbo(Material *material)
         texture->texture_name = get_new_texture_name(texture->width);
         glBindTexture(GL_TEXTURE_2D, texture->texture_name);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, texture->width, texture->height,
-            util::get_texture_format_from_n_components(texture->n_components),
+            glutil::get_texture_format_from_n_components(texture->n_components),
             GL_UNSIGNED_BYTE,
             get_offset_for_persistent_pbo_idx(texture->pbo_idx_for_copy));
         glGenerateMipmap(GL_TEXTURE_2D);
