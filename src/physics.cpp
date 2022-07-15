@@ -68,7 +68,7 @@ physics::find_collision(
 
 
 void
-physics::update_components()
+physics::update()
 {
     each (physics_component, *engine::get_physics_components()) {
         if (!is_component_valid(physics_component)) {

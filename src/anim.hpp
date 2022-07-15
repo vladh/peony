@@ -41,11 +41,8 @@ public:
         u32 n_animations;
     };
 
-    struct ComponentSet {
-        Array<Component> components;
-    };
-
     struct State {
+        Array<Component> components;
         BoneMatrixPool bone_matrix_pool;
     };
 
@@ -56,7 +53,7 @@ public:
         u32 idx_bone,
         u32 idx_anim_key
     );
-    static void update_animation_components(ComponentSet *animation_component_set);
+    static void update();
     static void make_bone_matrices_for_animation_bone(
         Component *animation_component,
         aiNodeAnim *ai_channel,
@@ -64,6 +61,8 @@ public:
         u32 idx_bone
     );
     static Component * find_animation_component(spatial::Component *spatial_component);
+    static Array<anim::Component> * get_components();
+    static anim::Component * get_component(entities::Handle entity_handle);
     static void init(anim::State *anim_state, memory::Pool *pool);
 
 private:

@@ -133,6 +133,7 @@ core::init_state(State *state, memory::Pool *asset_memory_pool)
     spatial::init(&state->spatial_state, asset_memory_pool);
     drawable::init(&state->drawable_state, asset_memory_pool);
     lights::init(&state->lights_state, asset_memory_pool);
+    anim::init(&state->anim_state, asset_memory_pool);
     behavior::init(
         &state->behavior_state,
         asset_memory_pool,
@@ -152,7 +153,6 @@ core::init_state(State *state, memory::Pool *asset_memory_pool)
         state->window_size.width, state->window_size.height);
     debugdraw::init(&state->debug_draw_state, asset_memory_pool);
     tasks::init(&state->tasks_state, asset_memory_pool);
-    anim::init(&state->anim_state, asset_memory_pool);
     cameras::init(&state->cameras_state, state->window_size.width, state->window_size.height);
 
     return true;

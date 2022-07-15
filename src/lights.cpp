@@ -68,7 +68,7 @@ lights::is_light_component_valid(lights::Component *light_component)
 
 
 void
-lights::update_light_components(v3 camera_position)
+lights::update(v3 camera_position)
 {
     each (light_component, *get_components()) {
         if (light_component->entity_handle == entities::NO_ENTITY_HANDLE) {
