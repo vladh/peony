@@ -31,7 +31,7 @@ engine::debug_get_engine_state()
 models::EntityLoader *
 engine::get_entity_loader(entities::Handle entity_handle)
 {
-    return engine::state->entity_loader_set.loaders[entity_handle];
+    return engine::state->entity_loaders[entity_handle];
 }
 
 
@@ -107,10 +107,8 @@ void engine::init(engine::State *engine_state, memory::Pool *asset_memory_pool) 
     engine::state = engine_state;
     engine::state->model_loaders = Array<models::ModelLoader>(
         asset_memory_pool, MAX_N_MODELS, "model_loaders");
-    engine::state->entity_loader_set = {
-        .loaders = Array<models::EntityLoader>(
-            asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1)
-    };
+    engine::state->entity_loaders = Array<models::EntityLoader>(
+        asset_memory_pool, MAX_N_ENTITIES, "entity_loaders", true, 1);
 }
 
 
@@ -137,7 +135,7 @@ engine::destroy_scene()
     mats::destroy_non_internal_materials();
 
     entities::destroy_non_internal_entities();
-    engine::state->entity_loader_set.loaders.delete_elements_after_index(
+    engine::state->entity_loaders.delete_elements_after_index(
         entities::get_first_non_internal_handle());
 }
 
@@ -226,7 +224,7 @@ engine::load_scene(const char *scene_name)
         // Create models::EntityLoader
         peony_parser_utils::create_entity_loader_from_peony_file_entry(
             entry, entity->handle,
-            engine::state->entity_loader_set.loaders[entity->handle]);
+            engine::state->entity_loaders[entity->handle]);
     }
 
     return true;
@@ -410,7 +408,7 @@ engine::check_all_entities_loaded()
     engine::state->n_valid_model_loaders = new_n_valid_model_loaders;
 
     u32 new_n_valid_entity_loaders = 0;
-    each (entity_loader, engine::state->entity_loader_set.loaders) {
+    each (entity_loader, engine::state->entity_loaders) {
         if (!models::is_entity_loader_valid(entity_loader)) {
             continue;
         }

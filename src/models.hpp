@@ -62,11 +62,6 @@ public:
         physics::Component physics_component;
     };
 
-    struct EntityLoaderSet {
-        Array<EntityLoader> loaders;
-    };
-
-
 #include "models_data.hpp"
 
     static bool prepare_model_loader_and_check_if_done(ModelLoader *model_loader);

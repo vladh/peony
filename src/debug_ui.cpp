@@ -54,8 +54,8 @@ void debug_ui::render_debug_ui() {
         snprintf(debug_text, dt_size, "%u", engine_state->n_valid_model_loaders);
         gui::draw_named_value(container, "n_valid_model_loaders", debug_text);
 
-        snprintf(debug_text, dt_size, "%u", engine_state->entity_loader_set.loaders.length);
-        gui::draw_named_value(container, "entity_loader_set.length", debug_text);
+        snprintf(debug_text, dt_size, "%u", engine_state->entity_loaders.length);
+        gui::draw_named_value(container, "entities.length", debug_text);
 
         snprintf(debug_text, dt_size, "%u", engine_state->n_valid_entity_loaders);
         gui::draw_named_value(container, "n_valid_entity_loaders", debug_text);
