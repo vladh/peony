@@ -4,6 +4,11 @@
 
 #include "types.hpp"
 
+#if defined(PLATFORM_UNIX)
+#include <unistd.h>
+#include <limits.h>
+#endif
+
 // Math things
 constexpr f32 PI32 = 3.14159265359f;
 constexpr f64 PI = 3.14159265358979323846;
@@ -53,22 +58,8 @@ struct Settings {
     bool memory_debug_logs_on;
 };
 
-constexpr Settings SETTINGS = {
-    .graphics_quality = GraphicsQuality::high,
-    .opengl_debug_on = false,
-    .vsync_on = false,
-    .shader_debug_on = false,
-    .shadows_on = true,
-    .bloom_on = true,
-    .fog_on = false,
-    .windowed_fullscreen_on = true,
-    .fullscreen_on = true,
-    .target_monitor = 0,
-    .print_fps_on = false,
-    .memory_debug_logs_on = false,
-};
+Settings SETTINGS = {};
 
-// Constants
 constexpr char WINDOW_TITLE[] = "peony";
 constexpr char TEXTURE_DIR[] = "resources/textures/";
 constexpr char MODEL_DIR[] = "resources/models/";
@@ -103,3 +94,47 @@ constexpr u32 MAX_NODE_NAME_LENGTH = 32;
 constexpr u32 MAX_N_ANIMATIONS = 2;
 constexpr u32 MAX_N_ANIM_KEYS = 256;
 constexpr u16 MAX_N_LIGHTS = 8;
+
+
+void
+init_constants()
+{
+#if defined(PLATFORM_UNIX)
+    char hostname[HOST_NAME_MAX];
+    gethostname(hostname, HOST_NAME_MAX);
+#else
+    char *hostname = "dunno lol!";
+#endif
+
+    if (pstr_eq(hostname, "usu")) {
+        SETTINGS = {
+            .graphics_quality = GraphicsQuality::low,
+            .opengl_debug_on = false,
+            .vsync_on = false,
+            .shader_debug_on = false,
+            .shadows_on = true,
+            .bloom_on = true,
+            .fog_on = false,
+            .windowed_fullscreen_on = true,
+            .fullscreen_on = false,
+            .target_monitor = 0,
+            .print_fps_on = false,
+            .memory_debug_logs_on = false,
+        };
+    } else {
+        SETTINGS = {
+            .graphics_quality = GraphicsQuality::high,
+            .opengl_debug_on = false,
+            .vsync_on = false,
+            .shader_debug_on = false,
+            .shadows_on = true,
+            .bloom_on = true,
+            .fog_on = false,
+            .windowed_fullscreen_on = true,
+            .fullscreen_on = true,
+            .target_monitor = 0,
+            .print_fps_on = false,
+            .memory_debug_logs_on = false,
+        };
+    }
+}
