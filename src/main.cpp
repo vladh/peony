@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdio.h>
 #include "types.hpp"
+#include "constants.hpp"
 #include "core.hpp"
 #include "logs.hpp"
 
@@ -12,6 +13,7 @@ main()
 {
     // Seed RNG
     srand((u32)time(NULL));
+    init_constants();
 
     //
     //                                    ___
