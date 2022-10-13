@@ -4,11 +4,6 @@
 
 #include "types.hpp"
 
-#if defined(PLATFORM_UNIX)
-#include <unistd.h>
-#include <limits.h>
-#endif
-
 // Math things
 constexpr f32 PI32 = 3.14159265359f;
 constexpr f64 PI = 3.14159265358979323846;
@@ -36,6 +31,11 @@ constexpr f64 PI = 3.14159265358979323846;
 #define PLATFORM_POSIX
 #else
 #error "Unknown platform"
+#endif
+
+#if defined(PLATFORM_UNIX)
+#include <unistd.h>
+#include <limits.h>
 #endif
 
 #define USE_TIMERS true
